@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "eagrn-inference"
+version = "0.1.0"
+description = "Evolutionary algorithm for determining the optimal ensemble of unsupervised learning techniques for gene network inference."
+authors = ["adrian_segura <adrianseor.99@uma.es>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+arboreto = "^0.1.6"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
