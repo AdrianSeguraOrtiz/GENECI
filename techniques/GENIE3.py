@@ -1,23 +1,30 @@
 import pandas as pd
 
-from arboreto.utils import load_tf_names
-from arboreto.algo import genie3
+from arboreto.algo import diy
+from arboreto.core import RF_KWARGS, SGBM_KWARGS, ET_KWARGS
 
 if __name__ == '__main__':
 
-    in_file  = 'net1_expression_data.tsv'
-    tf_file  = 'net1_transcription_factors.tsv'
-    out_file = 'net1_grn_output.tsv'
+    in_file  = '../data/DREAM4/EXP/dream4_010_01_exp.csv'
 
-    # ex_matrix is a DataFrame with gene names as column names
-    ex_matrix = pd.read_csv(in_file, sep='\t')
+    # Load the expression matrix
+    ex_matrix = pd.read_csv(in_file, index_col=0).T
 
-    # tf_names is read using a utility function included in Arboreto
-    tf_names = load_tf_names(tf_file)
+    # Define gene identifiers
+    tf_names = list(ex_matrix.columns.values)
 
-    # compute the GRN
-    network = genie3(expression_data=ex_matrix,
-                        tf_names=tf_names)
+    # Infer gene regulatory network
+    ## Random Forest regression (RF)
+    network_RF = diy(expression_data=ex_matrix, tf_names=tf_names, regressor_type='RF', regressor_kwargs=RF_KWARGS)
+    print(network_RF)
 
-    # write the GRN to file
-    network.to_csv(out_file, sep='\t', index=False, header=False)
+    ## Gradient Boosting Machine regression with early-stopping regularization (GBM)
+    network_GBM = diy(expression_data=ex_matrix, tf_names=tf_names, regressor_type='GBM', regressor_kwargs=SGBM_KWARGS)
+    print(network_GBM)
+
+    ## ExtraTrees regression (ET)
+    network_ET = diy(expression_data=ex_matrix, tf_names=tf_names, regressor_type='ET', regressor_kwargs=ET_KWARGS)
+    print(network_ET)
+
+    # OPTIONAL: Export inferred gene network to CSV file
+    #network.to_csv(out_file, index=False, header=False)

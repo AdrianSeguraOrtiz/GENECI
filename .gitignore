@@ -130,3 +130,6 @@ dmypy.json
 
 # Data folder
 data/
+
+# Dask folder
+techniques/dask-worker-space
