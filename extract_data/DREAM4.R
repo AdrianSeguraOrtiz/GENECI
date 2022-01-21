@@ -30,10 +30,6 @@ for (str_n in v.str_networks) {
     # Extract expression data
     mtx.exp <- assays(n)[[1]]
 
-    # Remove the columns with time series data
-    good_cols <- grep("\\.t", colnames(mtx.exp), invert=T)
-    mtx.exp <- mtx.exp[, good_cols]
-
     # Save expression data
     write.table(mtx.exp, paste0("../data/DREAM4/EXP/", str_n, "_exp.csv"), sep=",", col.names = NA)
 
