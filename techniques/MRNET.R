@@ -1,14 +1,15 @@
+# Load functions
+source("./functions/functions.R")
+
 # Install BiocManager if not already installed
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
-# Install minet and GENIE3
+# Install minet
 #BiocManager::install("minet")
-#BiocManager::install("GENIE3")
 
-# Load minet and GENIE3
+# Load minet
 library(minet)
-library(GENIE3)
 
 in_file <- '../data/DREAM4/EXP/dream4_010_01_exp.csv'
 
@@ -17,5 +18,5 @@ ex_matrix <- t(read.table(in_file, sep=",", head=T, row.names=1))
 
 # Infer gene regulatory network
 network <- minet(ex_matrix, method="mrnet")
-conf_list <- getLinkList(network)
+conf_list <- GetConfList(network)
 head(conf_list)

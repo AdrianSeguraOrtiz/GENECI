@@ -1,3 +1,6 @@
+# Load functions
+source("./functions/functions.R")
+
 # Install BiocManager if not already installed
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
@@ -16,12 +19,12 @@ ex_matrix <- as.matrix(read.table(in_file, sep=",", head=T, row.names=1))
 # Infer gene regulatory network
 ## Random Forest regression (RF)
 network_RF <- GENIE3(ex_matrix, treeMethod="RF")
-conf_list_RF <- getLinkList(network_RF)
+conf_list_RF <- GetConfList(network_RF)
 head(conf_list_RF)
 
 ## ExtraTrees regression (ET)
 network_ET <- GENIE3(ex_matrix, treeMethod="ET")
-conf_list_ET <- getLinkList(network_ET)
+conf_list_ET <- GetConfList(network_ET)
 head(conf_list_ET)
 
 
