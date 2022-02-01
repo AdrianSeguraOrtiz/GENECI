@@ -37,3 +37,9 @@ Respecto a GENIE3, CLR, ARACNE, MRNET y MRNETB:
 
 Respecto a C3NET y BC3NET:
     - Tienen muchos parámetros que no entiendo, preguntar cuáles combinaciones se podrían probar
+
+# Consensus
+
+    - Normalización: En el TFM de Barcelona se indica que la mejor opción es utilizar lo que llaman LScale. En otros artículos aparece como CLRSum, sin embargo, no logro encontrar ningún paquete que implemente esta normalización. La fórmula se detalla en el TFM pero no consigo entenderla como para implementarla por mi cuenta.
+
+    - Agregación: En los artículos que he visto suelen decantarse por la suma, lo cual también coincide con lo mostrado en la experimentación del TFM.
