@@ -4,29 +4,29 @@ Evolutionary algorithm for determining the optimal ensemble of unsupervised lear
 # Techniques contemplated 
 - GENIE3:
     - Python: https://arboreto.readthedocs.io/en/latest/ (GENIE3.py) --> Te permite RF, ET y GBM (Tiene una opción adicional)
-    - R: https://bioconductor.org/packages/release/bioc/html/GENIE3.html (GENIE3.R) --> Te permite RF, ET (Va mucho más rapido)
+    - R: https://bioconductor.org/packages/release/bioc/html/GENIE3.html (GENIE3.R) (C) --> Te permite RF, ET (Va mucho más rapido)
 
 - CLR: 
-    - R: https://www.bioconductor.org/packages/release/bioc/html/minet.html (CLR.R)
+    - R: https://www.bioconductor.org/packages/release/bioc/html/minet.html (CLR.R) (NC)
 
 - ARACNE: 
     - Python SH: https://github.com/jyyulab/SJARACNe (No sé instalarlo pero está muy bien)
-    - R: https://www.bioconductor.org/packages/release/bioc/html/minet.html (ARACNE.R)
+    - R: https://www.bioconductor.org/packages/release/bioc/html/minet.html (ARACNE.R) (NC)
 
 - MRNET:
-    - R: https://www.bioconductor.org/packages/release/bioc/html/minet.html (MRNET.R)
+    - R: https://www.bioconductor.org/packages/release/bioc/html/minet.html (MRNET.R) (NC)
 
 - MRNETB:
-    - R: https://www.bioconductor.org/packages/release/bioc/html/minet.html (MRNETB.R)
+    - R: https://www.bioconductor.org/packages/release/bioc/html/minet.html (MRNETB.R) (NC)
 
 - C3NET
-    - R: https://cran.rstudio.com/web/packages/c3net/index.html (C3NET.R)
+    - R: https://cran.rstudio.com/web/packages/c3net/index.html (C3NET.R) (NC)
 
 - BC3NET 
-    - R: https://cran.rstudio.com/web/packages/bc3net/index.html (BC3NET.R)
+    - R: https://cran.rstudio.com/web/packages/bc3net/index.html (BC3NET.R) (C)
 
 - PCIT
-    - R: http://www.bioconductor.org/packages/release/bioc/html/CeTF.html (PCIT.R)
+    - R: http://www.bioconductor.org/packages/release/bioc/html/CeTF.html (PCIT.R) (NC)
 
 # Annotations
 
