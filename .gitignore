@@ -133,3 +133,9 @@ data/
 
 # Dask folder
 techniques/dask-worker-space
+
+# Java project
+EAGRN-JMetal/.idea
+EAGRN-JMetal/target
+EAGRN-JMetal/*.csv
+EAGRN-JMetal/*.log
