@@ -1,5 +1,6 @@
 import org.uma.jmetal.problem.doubleproblem.impl.AbstractDoubleProblem;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
+import org.uma.jmetal.solution.doublesolution.impl.DefaultDoubleSolution;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +11,7 @@ public class GRNProblem extends AbstractDoubleProblem {
     public GRNProblem() {
         setNumberOfVariables(3);
         setNumberOfObjectives(2);
-        setName("GRN");
+        setName("GRNProblem");
 
         List<Double> lowerLimit = new ArrayList<>(getNumberOfVariables()) ;
         List<Double> upperLimit = new ArrayList<>(getNumberOfVariables()) ;
@@ -23,6 +24,14 @@ public class GRNProblem extends AbstractDoubleProblem {
         setVariableBounds(lowerLimit, upperLimit);
     }
 
+    /** CreateSolution() method */
+    @Override
+    public DoubleSolution createSolution() {
+        DefaultDoubleSolution solution = new DefaultDoubleSolution(this.getNumberOfObjectives(), this.getNumberOfConstraints(), this.getBoundsForVariables());
+        WeightRepairer repairer = new WeightRepairer();
+        repairer.repairSolution(solution);
+        return solution;
+    }
 
     /** Evaluate() method */
     @Override
@@ -42,7 +51,7 @@ public class GRNProblem extends AbstractDoubleProblem {
         return solution;
     }
 
-    /** fitnessF1() method */
+    /** FitnessF1() method */
     public double fitnessF1(double[] weights) {
         double max = Double.NEGATIVE_INFINITY;
         for(double cur: weights)
@@ -51,7 +60,7 @@ public class GRNProblem extends AbstractDoubleProblem {
         return -1 * max;
     }
 
-    /** fitnessF2() method */
+    /** FitnessF2() method */
     public double fitnessF2(double[] weights) {
         double min = Double.POSITIVE_INFINITY;
         for(double cur: weights)

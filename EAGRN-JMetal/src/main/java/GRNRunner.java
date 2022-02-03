@@ -29,6 +29,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         Algorithm<List<DoubleSolution>> algorithm;
         CrossoverOperator<DoubleSolution> crossover;
         MutationOperator<DoubleSolution> mutation;
+        WeightRepairer repairer;
         SelectionOperator<List<DoubleSolution>, DoubleSolution> selection;
         String referenceParetoFront = "";
 
@@ -40,7 +41,8 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
         double mutationProbability = 1.0 / problem.getNumberOfVariables();
         double mutationDistributionIndex = 20.0;
-        mutation = new PolynomialMutationWithRepair(mutationProbability, mutationDistributionIndex);
+        repairer = new WeightRepairer();
+        mutation = new PolynomialMutationWithRepair(mutationProbability, mutationDistributionIndex, repairer);
 
         selection = new BinaryTournamentSelection<>(new RankingAndCrowdingDistanceComparator<>());
 
@@ -48,7 +50,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         algorithm =
                 new NSGAIIBuilder<>(problem, crossover, mutation, populationSize)
                         .setSelectionOperator(selection)
-                        .setMaxEvaluations(1000)
+                        .setMaxEvaluations(10000)
                         .build();
 
         AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute();
