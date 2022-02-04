@@ -128,8 +128,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Data folder
-data/
+# Expression data folder
+expression_data/
 
 # Dask folder
 techniques/dask-worker-space
@@ -139,3 +139,6 @@ EAGRN-JMetal/.idea
 EAGRN-JMetal/target
 EAGRN-JMetal/*.csv
 EAGRN-JMetal/*.log
+
+# Inferred Networks
+inferred_networks/

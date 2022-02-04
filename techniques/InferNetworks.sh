@@ -5,8 +5,7 @@ parallel_inference() {
 
     mkdir -p "../inferred_networks/$data_id/"
     out_id="../inferred_networks/$data_id/GRN_$(basename $technique)"
-    echo $out_id
-    # Rscript $technique $in_file $out_file
+    Rscript $technique $in_file $out_file $out_id
 }
 export -f parallel_inference
 

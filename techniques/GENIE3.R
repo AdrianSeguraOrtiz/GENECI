@@ -1,16 +1,17 @@
 ARGS <- commandArgs(trailingOnly = TRUE)
-if (length(ARGS) == 1) { 
-    if (ARGS[1] == "--help") {
-        cat("Usage: \n")
-        cat("Rscript GENIE3.R input.csv \n") 
-        cat("Arguments required: \n")
-        cat("\t 1) CSV input file \n")
-        stop("", call. = FALSE)
-    } else {
-        cat("ARGS == 1: the argument will be treated as input csv file \n")
-        in_file <- ARGS[1]
-    }
-} else if (length(ARGS) != 1) {
+if (length(ARGS) >= 2) { 
+    cat("ARGS == 1: the argument will be treated as input csv file \n")
+    in_file <- ARGS[1]
+    cat("ARGS == 2: the argument will be treated as output identifier string \n")
+    out_id <- ARGS[2]
+} else if (length(ARGS) == 1 && ARGS[1] == "--help") {
+    cat("Usage: \n")
+    cat("Rscript GENIE3.R input.csv out_id \n") 
+    cat("Arguments required: \n")
+    cat("\t 1) CSV input file \n")
+    cat("\t 2) Output identifier string \n")
+    stop("", call. = FALSE)
+} else if (length(ARGS) < 2) {
   stop("More arguments required, write --help to see the options \n", call. = FALSE)
 }
 
@@ -25,7 +26,7 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
 #BiocManager::install("GENIE3")
 
 # Load GENIE3
-library(GENIE3)
+suppressMessages(library(GENIE3))
 
 # Load the expression matrix
 ex_matrix <- as.matrix(read.table(in_file, sep=",", head=T, row.names=1))
@@ -34,11 +35,11 @@ ex_matrix <- as.matrix(read.table(in_file, sep=",", head=T, row.names=1))
 ## Random Forest regression (RF)
 network_RF <- GENIE3(ex_matrix, treeMethod="RF")
 conf_list_RF <- GetConfList(network_RF)
-head(conf_list_RF)
+write.csv(conf_list_RF, paste0(out_id, "_RF.csv"))
 
 ## ExtraTrees regression (ET)
 network_ET <- GENIE3(ex_matrix, treeMethod="ET")
 conf_list_ET <- GetConfList(network_ET)
-head(conf_list_ET)
+write.csv(conf_list_ET, paste0(out_id, "_ET.csv"))
 
 

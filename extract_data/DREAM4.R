@@ -6,7 +6,7 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
 #BiocManager::install("DREAM4")
 
 # Load DREAM4
-library(DREAM4)
+suppressMessages(library(DREAM4))
 
 # Networks of 10 nodes
 v.str_networks_10 <- c("dream4_010_01", "dream4_010_02", "dream4_010_03", "dream4_010_04", "dream4_010_05")

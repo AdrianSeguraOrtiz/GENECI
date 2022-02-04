@@ -6,7 +6,7 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
 #BiocManager::install("grndata")
 
 # Load grndata
-library(grndata)
+suppressMessages(library(grndata))
 
 # Select the data to be downloaded
 v.str_networks <- c("rogers1000")

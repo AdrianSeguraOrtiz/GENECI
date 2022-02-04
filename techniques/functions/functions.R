@@ -2,7 +2,7 @@
 if(! "gdata" %in% installed.packages()[,"Package"]) install.packages("gdata")
 
 # Load gdata
-library(gdata)
+suppressMessages(library(gdata))
 
 # Get confidence list from network
 GetConfList <- function(network) {
