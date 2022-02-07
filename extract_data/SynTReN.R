@@ -21,11 +21,11 @@ for (str_n in v.str_networks) {
     mtx.exp <- t(l.data[[1]])
 
     # Save expression data
-    write.table(mtx.exp, paste0("../data/SynTReN/EXP/", str_n, "_exp.csv"), sep=",", col.names = NA)
+    write.table(mtx.exp, paste0("../expression_data/SynTReN/EXP/", str_n, "_exp.csv"), sep=",", col.names = NA)
 
     # Extract gold standard adjacency matrix
     mtx.gs <- l.data[[2]]
 
     # Save gold standard
-    write.table(mtx.gs, paste0("../data/SynTReN/GS/", str_n, "_gs.csv"), sep=",", col.names = NA)
+    write.table(mtx.gs, paste0("../expression_data/SynTReN/GS/", str_n, "_gs.csv"), sep=",", col.names = NA)
 }

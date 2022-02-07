@@ -30,13 +30,16 @@ for (str_n in v.str_networks) {
     # Extract expression data
     mtx.exp <- assays(n)[[1]]
 
+    # Delete columns that do not contain time series data
+    mtx.exp <- mtx.exp[, grep("\\.t", colnames(mtx.exp))]
+
     # Save expression data
-    write.table(mtx.exp, paste0("../data/DREAM4/EXP/", str_n, "_exp.csv"), sep=",", col.names = NA)
+    write.table(mtx.exp, paste0("../expression_data/DREAM4/EXP/", str_n, "_exp.csv"), sep=",", col.names = NA)
 
     # Extract gold standard adjacency matrix
     mtx.gs <- metadata(n)[[1]]
 
     # Save gold standard
-    write.table(mtx.gs, paste0("../data/DREAM4/GS/", str_n, "_gs.csv"), sep=",", col.names = NA)
+    write.table(mtx.gs, paste0("../expression_data/DREAM4/GS/", str_n, "_gs.csv"), sep=",", col.names = NA)
 }
 

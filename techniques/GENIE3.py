@@ -5,7 +5,7 @@ from arboreto.core import RF_KWARGS, SGBM_KWARGS, ET_KWARGS
 
 if __name__ == '__main__':
 
-    in_file = '../data/DREAM4/EXP/dream4_010_01_exp.csv'
+    in_file = '../expression_data/DREAM4/EXP/dream4_010_01_exp.csv'
 
     # Load the expression matrix
     ex_matrix = pd.read_csv(in_file, index_col=0).T

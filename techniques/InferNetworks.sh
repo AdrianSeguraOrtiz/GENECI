@@ -10,7 +10,7 @@ parallel_inference() {
 export -f parallel_inference
 
 techniques=$(ls *.R)
-files=$(ls ../data/*/EXP/*.csv)
+files=$(ls ../expression_data/*/EXP/*.csv)
 
 parallel parallel_inference ::: ${techniques[@]} ::: ${files[@]}
 
