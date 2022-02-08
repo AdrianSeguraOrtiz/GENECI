@@ -2,19 +2,23 @@ import org.uma.jmetal.problem.doubleproblem.impl.AbstractDoubleProblem;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 import org.uma.jmetal.solution.doublesolution.impl.DefaultDoubleSolution;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.*;
 
 public class GRNProblem extends AbstractDoubleProblem {
+    private Map<String, Double>[] inferredNetworks;
 
     /** Constructor Creates a default instance of the GRN problem */
-    public GRNProblem() {
-        setNumberOfVariables(3);
+    public GRNProblem(File[] inferredNetworkFiles) {
+        this.inferredNetworks = readAll(inferredNetworkFiles);
+        setNumberOfVariables(inferredNetworkFiles.length);
         setNumberOfObjectives(2);
         setName("GRNProblem");
 
-        List<Double> lowerLimit = new ArrayList<>(getNumberOfVariables()) ;
-        List<Double> upperLimit = new ArrayList<>(getNumberOfVariables()) ;
+        List<Double> lowerLimit = new ArrayList<>(getNumberOfVariables());
+        List<Double> upperLimit = new ArrayList<>(getNumberOfVariables());
 
         for (int i = 0; i < getNumberOfVariables(); i++) {
             lowerLimit.add(0.0);
@@ -42,6 +46,8 @@ public class GRNProblem extends AbstractDoubleProblem {
             x[i] = solution.variables().get(i);
         }
 
+        Map<String, Double> consensus = makeConsensus(x);
+
         fx[0] = fitnessF1(x);
         fx[1] = fitnessF2(x);
 
@@ -49,6 +55,56 @@ public class GRNProblem extends AbstractDoubleProblem {
         solution.objectives()[1] = fx[1];
 
         return solution;
+    }
+
+    /** ReadAll() method */
+    private Map<String, Double>[] readAll(File[] inferredNetworkFiles) {
+        Map<String, Double>[] vmap = new HashMap[inferredNetworkFiles.length];
+
+        for (int i = 0; i < inferredNetworkFiles.length; i++) {
+            Map<String, Double> map = new HashMap<String, Double>();
+
+            try {
+                Scanner sc = new Scanner(inferredNetworkFiles[i]);
+                while(sc.hasNextLine()){
+                    String line = sc.nextLine();
+                    String[] splitLine = line.split(",");
+
+                    String key;
+                    if(splitLine[0].compareTo(splitLine[1]) > 0) {
+                        key = splitLine[0] + "-" + splitLine[1];
+                    } else {
+                        key = splitLine[1] + "-" + splitLine[0];
+                    }
+
+                    Double value = Double.parseDouble(splitLine[2]);
+                    map.put(key, value);
+                }
+            } catch (FileNotFoundException fnfe) {
+                throw new RuntimeException(fnfe.getMessage());
+            }
+
+            vmap[i] = map;
+        }
+
+        return vmap;
+    }
+
+    /** MakeConsensus() method */
+    public Map<String, Double> makeConsensus(double[] x) {
+        Map<String, Double> consensus = new HashMap<String, Double>();
+
+        for (int i = 0; i < x.length; i++) {
+            if (x[i] > 0) {
+                for (Map.Entry<String, Double> pair : inferredNetworks[i].entrySet()) {
+                    Double mapConf = consensus.getOrDefault(pair.getKey(), 0.0);
+                    Double curConf = x[i] * pair.getValue();
+                    consensus.put(pair.getKey(), mapConf + curConf);
+                }
+            }
+        }
+
+        return consensus;
     }
 
     /** FitnessF1() method */

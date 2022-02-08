@@ -35,11 +35,21 @@ ex_matrix <- as.matrix(read.table(in_file, sep=",", head=T, row.names=1))
 ## Random Forest regression (RF)
 network_RF <- GENIE3(ex_matrix, treeMethod="RF")
 conf_list_RF <- GetConfList(network_RF)
-write.csv(conf_list_RF, paste0(out_id, "_RF.csv"))
+
+# Delete all rows with confidence 0
+conf_list_RF <- conf_list_RF[conf_list_RF[,3] != 0, ]
+
+# Save list
+write.table(conf_list_RF, paste0(out_id, "_RF.csv"), sep=",", col.names=F, row.names=F, quote=F)
 
 ## ExtraTrees regression (ET)
 network_ET <- GENIE3(ex_matrix, treeMethod="ET")
 conf_list_ET <- GetConfList(network_ET)
-write.csv(conf_list_ET, paste0(out_id, "_ET.csv"))
+
+# Delete all rows with confidence 0
+conf_list_ET <- conf_list_ET[conf_list_ET[,3] != 0, ]
+
+# Save list
+write.table(conf_list_ET, paste0(out_id, "_ET.csv"), sep=",", col.names=F, row.names=F, quote=F)
 
 

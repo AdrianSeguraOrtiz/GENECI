@@ -1,3 +1,4 @@
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.uma.jmetal.algorithm.Algorithm;
 import org.uma.jmetal.algorithm.multiobjective.nsgaii.NSGAIIBuilder;
 import org.uma.jmetal.example.AlgorithmRunner;
@@ -13,9 +14,12 @@ import org.uma.jmetal.util.*;
 import org.uma.jmetal.util.comparator.RankingAndCrowdingDistanceComparator;
 import org.uma.jmetal.util.errorchecking.JMetalException;
 
+import java.io.File;
+import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public class GRNRunner extends AbstractAlgorithmRunner {
     /**
@@ -25,7 +29,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
      *     org.uma.jmetal.runner.multiobjective.nsgaii.NSGAIIRunner problemName [referenceFront]
      */
     public static void main(String[] args) throws JMetalException, IOException {
-        Problem<DoubleSolution> problem;
+        GRNProblem problem;
         Algorithm<List<DoubleSolution>> algorithm;
         CrossoverOperator<DoubleSolution> crossover;
         MutationOperator<DoubleSolution> mutation;
@@ -33,7 +37,17 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         SelectionOperator<List<DoubleSolution>, DoubleSolution> selection;
         String referenceParetoFront = "";
 
-        problem = new GRNProblem();
+        String networkFolder;
+        if (args.length == 1) {
+            networkFolder = args[0];
+        } else {
+            networkFolder = "/mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/dream4_010_01_exp/";
+        }
+
+        File dir = new File(networkFolder);
+        FileFilter fileFilter = new WildcardFileFilter("*.csv");
+        File[] files = dir.listFiles(fileFilter);
+        problem = new GRNProblem(files);
 
         double crossoverProbability = 0.9;
         double crossoverDistributionIndex = 20.0;
@@ -47,10 +61,9 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         selection = new BinaryTournamentSelection<>(new RankingAndCrowdingDistanceComparator<>());
 
         int populationSize = 10;
-        algorithm =
-                new NSGAIIBuilder<>(problem, crossover, mutation, populationSize)
+        algorithm = new NSGAIIBuilder<>(problem, crossover, mutation, populationSize)
                         .setSelectionOperator(selection)
-                        .setMaxEvaluations(10000)
+                        .setMaxEvaluations(100)
                         .build();
 
         AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute();
@@ -66,6 +79,18 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                     SolutionListUtils.getMatrixWithObjectiveValues(population),
                     VectorUtils.readVectors(referenceParetoFront, ","));
         }
+
+        double[] winner = new double[problem.getNumberOfVariables()];
+        for (int i = 0; i < problem.getNumberOfVariables(); i++) {
+            winner[i] = population.get(1).variables().get(i);
+        }
+        Map<String, Double> consensus = problem.makeConsensus(winner);
+
+        System.out.println(consensus.keySet().size());
+
+        consensus.entrySet().forEach(entry -> {
+            System.out.println(entry.getKey() + " " + entry.getValue());
+        });
     }
 }
 

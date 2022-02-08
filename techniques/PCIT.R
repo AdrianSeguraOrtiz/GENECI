@@ -40,6 +40,9 @@ prov_list[,3] <- abs(prov_list[,3])
 # Sort the list in descending order
 conf_list <- prov_list[order(prov_list[,3], decreasing=T),]
 
+# Delete all rows with confidence 0
+conf_list <- conf_list[conf_list[,3] != 0, ]
+
 # Save list
-write.csv(conf_list, paste0(out_id, ".csv"))
+write.table(conf_list, paste0(out_id, ".csv"), sep=",", col.names=F, row.names=F, quote=F)
 
