@@ -71,7 +71,7 @@ public class GRNProblem extends AbstractDoubleProblem {
                     String[] splitLine = line.split(",");
 
                     String key;
-                    if(splitLine[0].compareTo(splitLine[1]) > 0) {
+                    if(splitLine[0].compareTo(splitLine[1]) < 0) {
                         key = splitLine[0] + "-" + splitLine[1];
                     } else {
                         key = splitLine[1] + "-" + splitLine[0];

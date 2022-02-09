@@ -41,7 +41,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         if (args.length == 1) {
             networkFolder = args[0];
         } else {
-            networkFolder = "/mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/dream4_010_01_exp/";
+            networkFolder = "/mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/gnw1565_exp/";
         }
 
         File dir = new File(networkFolder);
@@ -60,10 +60,10 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
         selection = new BinaryTournamentSelection<>(new RankingAndCrowdingDistanceComparator<>());
 
-        int populationSize = 10;
+        int populationSize = 100;
         algorithm = new NSGAIIBuilder<>(problem, crossover, mutation, populationSize)
                         .setSelectionOperator(selection)
-                        .setMaxEvaluations(100)
+                        .setMaxEvaluations(10000)
                         .build();
 
         AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute();
@@ -82,14 +82,12 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
         double[] winner = new double[problem.getNumberOfVariables()];
         for (int i = 0; i < problem.getNumberOfVariables(); i++) {
-            winner[i] = population.get(1).variables().get(i);
+            winner[i] = population.get(0).variables().get(i);
         }
         Map<String, Double> consensus = problem.makeConsensus(winner);
 
-        System.out.println(consensus.keySet().size());
-
         consensus.entrySet().forEach(entry -> {
-            System.out.println(entry.getKey() + " " + entry.getValue());
+            System.out.println(entry.getKey() + ": " + entry.getValue());
         });
     }
 }
