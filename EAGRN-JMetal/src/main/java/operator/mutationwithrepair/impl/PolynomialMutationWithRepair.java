@@ -1,3 +1,6 @@
+package operator.mutationwithrepair.impl;
+
+import operator.repairer.WeightRepairer;
 import org.uma.jmetal.operator.mutation.impl.PolynomialMutation;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 import org.uma.jmetal.util.errorchecking.JMetalException;

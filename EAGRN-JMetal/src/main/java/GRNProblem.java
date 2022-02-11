@@ -1,18 +1,20 @@
+import operator.repairer.WeightRepairer;
 import org.uma.jmetal.problem.doubleproblem.impl.AbstractDoubleProblem;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 import org.uma.jmetal.solution.doublesolution.impl.DefaultDoubleSolution;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.*;
 
 public class GRNProblem extends AbstractDoubleProblem {
     private Map<String, Double>[] inferredNetworks;
+    private WeightRepairer initialPopulationRepairer;
 
     /** Constructor Creates a default instance of the GRN problem */
-    public GRNProblem(File[] inferredNetworkFiles) {
+    public GRNProblem(File[] inferredNetworkFiles, WeightRepairer initialPopulationRepairer) {
         this.inferredNetworks = readAll(inferredNetworkFiles);
+        this.initialPopulationRepairer = initialPopulationRepairer;
         setNumberOfVariables(inferredNetworkFiles.length);
         setNumberOfObjectives(2);
         setName("GRNProblem");
@@ -32,8 +34,7 @@ public class GRNProblem extends AbstractDoubleProblem {
     @Override
     public DoubleSolution createSolution() {
         DefaultDoubleSolution solution = new DefaultDoubleSolution(this.getNumberOfObjectives(), this.getNumberOfConstraints(), this.getBoundsForVariables());
-        WeightRepairer repairer = new WeightRepairer();
-        repairer.repairSolution(solution);
+        initialPopulationRepairer.repairSolution(solution);
         return solution;
     }
 

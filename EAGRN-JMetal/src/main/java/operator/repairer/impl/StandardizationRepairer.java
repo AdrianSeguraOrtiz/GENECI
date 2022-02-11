@@ -1,8 +1,12 @@
+package operator.repairer.impl;
+
+import operator.repairer.WeightRepairer;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 
-public class WeightRepairer {
+public class StandardizationRepairer implements WeightRepairer {
 
     /** RepairSolution() method */
+    @Override
     public void repairSolution(DoubleSolution solution) {
         double v, sum = 0;
 

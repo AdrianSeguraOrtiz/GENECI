@@ -1,13 +1,15 @@
+import operator.mutationwithrepair.impl.*;
+import operator.repairer.WeightRepairer;
+import operator.repairer.impl.*;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.uma.jmetal.algorithm.Algorithm;
 import org.uma.jmetal.algorithm.multiobjective.nsgaii.NSGAIIBuilder;
 import org.uma.jmetal.example.AlgorithmRunner;
 import org.uma.jmetal.operator.crossover.CrossoverOperator;
-import org.uma.jmetal.operator.crossover.impl.SBXCrossover;
+import org.uma.jmetal.operator.crossover.impl.*;
 import org.uma.jmetal.operator.mutation.MutationOperator;
 import org.uma.jmetal.operator.selection.SelectionOperator;
 import org.uma.jmetal.operator.selection.impl.BinaryTournamentSelection;
-import org.uma.jmetal.problem.Problem;
 import org.uma.jmetal.qualityindicator.QualityIndicatorUtils;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 import org.uma.jmetal.util.*;
@@ -38,25 +40,58 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         String referenceParetoFront = "";
 
         String networkFolder;
-        if (args.length == 1) {
+        String strCrossover;
+        String strMutation;
+        String strRepairer;
+        if (args.length == 3) {
             networkFolder = args[0];
+            strCrossover = args[1];
+            strMutation = args[2];
+            strRepairer = args[3];
         } else {
-            networkFolder = "/mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/gnw1565_exp/";
+            networkFolder = "/mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/dream4_010_01_exp/";
+            strCrossover = "SBXCrossover";
+            strMutation = "PolynomialMutation";
+            strRepairer = "StandardizationRepairer";
+        }
+
+        switch (strRepairer) {
+            case "StandardizationRepairer": repairer = new StandardizationRepairer();
+                break;
+            default: throw new RuntimeException("The repairer operator entered is not available");
         }
 
         File dir = new File(networkFolder);
         FileFilter fileFilter = new WildcardFileFilter("*.csv");
         File[] files = dir.listFiles(fileFilter);
-        problem = new GRNProblem(files);
+        problem = new GRNProblem(files, repairer);
 
         double crossoverProbability = 0.9;
         double crossoverDistributionIndex = 20.0;
-        crossover = new SBXCrossover(crossoverProbability, crossoverDistributionIndex);
+        int numPointsCrossover = 2;
+        switch (strCrossover) {
+            case "SBXCrossover":  crossover = new SBXCrossover(crossoverProbability, crossoverDistributionIndex);;
+                break;
+            case "BLXAlphaCrossover":  crossover = new BLXAlphaCrossover(crossoverProbability);
+                break;
+            case "DifferentialEvolutionCrossover":  crossover = new DifferentialEvolutionCrossover();
+                break;
+            case "NPointCrossover":  crossover = new NPointCrossover(crossoverProbability, numPointsCrossover);
+                break;
+            case "NullCrossover":  crossover = new NullCrossover();
+                break;
+            case "WholeArithmeticCrossover":  crossover = new WholeArithmeticCrossover(crossoverProbability);
+                break;
+            default: throw new RuntimeException("The crossover operator entered is not available");
+        }
 
         double mutationProbability = 1.0 / problem.getNumberOfVariables();
         double mutationDistributionIndex = 20.0;
-        repairer = new WeightRepairer();
-        mutation = new PolynomialMutationWithRepair(mutationProbability, mutationDistributionIndex, repairer);
+        switch (strMutation) {
+            case "PolynomialMutation": mutation = new PolynomialMutationWithRepair(mutationProbability, mutationDistributionIndex, repairer);
+                break;
+            default: throw new RuntimeException("The mutation operator entered is not available");
+        }
 
         selection = new BinaryTournamentSelection<>(new RankingAndCrowdingDistanceComparator<>());
 
