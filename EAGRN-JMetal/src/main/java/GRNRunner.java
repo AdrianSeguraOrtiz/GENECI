@@ -15,6 +15,8 @@ import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 import org.uma.jmetal.util.*;
 import org.uma.jmetal.util.comparator.RankingAndCrowdingDistanceComparator;
 import org.uma.jmetal.util.errorchecking.JMetalException;
+import org.uma.jmetal.util.grouping.CollectionGrouping;
+import org.uma.jmetal.util.grouping.impl.ListLinearGrouping;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -51,7 +53,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         } else {
             networkFolder = "/mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/dream4_010_01_exp/";
             strCrossover = "SBXCrossover";
-            strMutation = "PolynomialMutation";
+            strMutation = "GroupedAndLinkedPolynomialMutation";
             strRepairer = "GreedyRepair";
         }
 
@@ -89,8 +91,16 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
         double mutationProbability = 1.0 / problem.getNumberOfVariables();
         double mutationDistributionIndex = 20.0;
+        double delta = 0.5;
+        int numberOfGroups = 4;
+        CollectionGrouping<List<Double>> grouping = new ListLinearGrouping<>(numberOfGroups);
+
         switch (strMutation) {
             case "PolynomialMutation": mutation = new PolynomialMutationWithRepair(mutationProbability, mutationDistributionIndex, repairer);
+                break;
+            case "CDGMutation": mutation = new CDGMutationWithRepair(mutationProbability, delta, repairer);
+                break;
+            case "GroupedAndLinkedPolynomialMutation": mutation = new GroupedAndLinkedPolynomialMutationWithRepair(mutationDistributionIndex, grouping, repairer);
                 break;
             default: throw new RuntimeException("The mutation operator entered is not available");
         }
