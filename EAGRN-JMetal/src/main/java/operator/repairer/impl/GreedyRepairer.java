@@ -8,7 +8,7 @@ public class GreedyRepairer implements WeightRepairer {
     /** RepairSolution() method */
     @Override
     public void repairSolution(DoubleSolution solution) {
-        double v, sum = 0;
+        double v = 0, sum = 0;
         int pos = -1;
         int numVariables = solution.variables().size();
         int randInitialPos = (int) (Math.random() * (numVariables - 1));
@@ -19,21 +19,32 @@ public class GreedyRepairer implements WeightRepairer {
             if (pos >= numVariables) pos -= numVariables;
 
             v = solution.variables().get(pos);
+            v = Math.round(v * 10000.0) / 10000.0;
+            solution.variables().set(pos, v);
+
             sum += v;
+            cnt += 1;
         }
 
+        int lastPos;
+        if (randInitialPos == 0) lastPos = numVariables - 1;
+        else lastPos = randInitialPos - 1;
+
         if (sum > 1) {
-            for (int i = 0; i < numVariables; i++) {
-                v = solution.variables().get(i);
-                solution.variables().set(i, v);
+            v = Math.round((v - (sum - 1)) * 10000.0) / 10000.0;
+            solution.variables().set(pos, v);
+
+            while (pos != lastPos) {
+                pos = cnt + randInitialPos;
+                if (pos >= numVariables) pos -= numVariables;
+
+                solution.variables().set(pos, 0.0);
+                cnt += 1;
             }
         } else {
-            int lastPos;
-            if (randInitialPos == 0) lastPos = numVariables - 1;
-            else lastPos = randInitialPos - 1;
-
             v = solution.variables().get(lastPos);
-            solution.variables().set(lastPos, v + 1 - sum);
+            v = Math.round((v + 1 - sum) * 10000.0) / 10000.0;
+            solution.variables().set(lastPos, v);
         }
     }
 }

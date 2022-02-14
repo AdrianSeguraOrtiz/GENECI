@@ -52,11 +52,13 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             networkFolder = "/mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/dream4_010_01_exp/";
             strCrossover = "SBXCrossover";
             strMutation = "PolynomialMutation";
-            strRepairer = "StandardizationRepairer";
+            strRepairer = "GreedyRepair";
         }
 
         switch (strRepairer) {
             case "StandardizationRepairer": repairer = new StandardizationRepairer();
+                break;
+            case "GreedyRepair": repairer = new GreedyRepairer();
                 break;
             default: throw new RuntimeException("The repairer operator entered is not available");
         }
@@ -98,7 +100,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         int populationSize = 100;
         algorithm = new NSGAIIBuilder<>(problem, crossover, mutation, populationSize)
                         .setSelectionOperator(selection)
-                        .setMaxEvaluations(10000)
+                        .setMaxEvaluations(100000)
                         .build();
 
         AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute();
