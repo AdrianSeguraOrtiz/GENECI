@@ -53,7 +53,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         } else {
             networkFolder = "/mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/dream4_010_01_exp/";
             strCrossover = "SBXCrossover";
-            strMutation = "GroupedAndLinkedPolynomialMutation";
+            strMutation = "UniformMutation";
             strRepairer = "GreedyRepair";
         }
 
@@ -94,6 +94,8 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         double delta = 0.5;
         int numberOfGroups = 4;
         CollectionGrouping<List<Double>> grouping = new ListLinearGrouping<>(numberOfGroups);
+        double perturbation = 0.5;
+        int maxMutIterations = 10;
 
         switch (strMutation) {
             case "PolynomialMutation": mutation = new PolynomialMutationWithRepair(mutationProbability, mutationDistributionIndex, repairer);
@@ -101,6 +103,18 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             case "CDGMutation": mutation = new CDGMutationWithRepair(mutationProbability, delta, repairer);
                 break;
             case "GroupedAndLinkedPolynomialMutation": mutation = new GroupedAndLinkedPolynomialMutationWithRepair(mutationDistributionIndex, grouping, repairer);
+                break;
+            case "GroupedPolynomialMutation": mutation = new GroupedPolynomialMutationWithRepair(mutationDistributionIndex, grouping, repairer);
+                break;
+            case "LinkedPolynomialMutation": mutation = new LinkedPolynomialMutationWithRepair(mutationProbability, mutationDistributionIndex, repairer);
+                break;
+            case "NonUniformMutation": mutation = new NonUniformMutationWithRepair(mutationProbability, perturbation, maxMutIterations, repairer);
+                break;
+            case "NullMutation": mutation = new NullMutationWithRepair(repairer);
+                break;
+            case "SimpleRandomMutation": mutation = new SimpleRandomMutationWithRepair(mutationProbability, repairer);
+                break;
+            case "UniformMutation": mutation = new UniformMutationWithRepair(mutationProbability, perturbation, repairer);
                 break;
             default: throw new RuntimeException("The mutation operator entered is not available");
         }
@@ -131,7 +145,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         for (int i = 0; i < problem.getNumberOfVariables(); i++) {
             winner[i] = population.get(0).variables().get(i);
         }
-        Map<String, Double> consensus = problem.makeConsensus(winner);
+        Map<String, ConsensusTuple> consensus = problem.makeConsensus(winner);
 
         consensus.entrySet().forEach(entry -> {
             System.out.println(entry.getKey() + ": " + entry.getValue());

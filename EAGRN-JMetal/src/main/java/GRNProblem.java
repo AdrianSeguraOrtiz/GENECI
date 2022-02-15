@@ -1,7 +1,10 @@
+import com.sun.xml.bind.v2.schemagen.xmlschema.Union;
+import generic.Tuple;
 import operator.repairer.WeightRepairer;
 import org.uma.jmetal.problem.doubleproblem.impl.AbstractDoubleProblem;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 import org.uma.jmetal.solution.doublesolution.impl.DefaultDoubleSolution;
+import smile.timeseries.AR;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -16,7 +19,7 @@ public class GRNProblem extends AbstractDoubleProblem {
         this.inferredNetworks = readAll(inferredNetworkFiles);
         this.initialPopulationRepairer = initialPopulationRepairer;
         setNumberOfVariables(inferredNetworkFiles.length);
-        setNumberOfObjectives(2);
+        setNumberOfObjectives(1);
         setName("GRNProblem");
 
         List<Double> lowerLimit = new ArrayList<>(getNumberOfVariables());
@@ -41,20 +44,13 @@ public class GRNProblem extends AbstractDoubleProblem {
     /** Evaluate() method */
     @Override
     public DoubleSolution evaluate(DoubleSolution solution) {
-        double[] fx = new double[solution.objectives().length];
         double[] x = new double[getNumberOfVariables()];
         for (int i = 0; i < getNumberOfVariables(); i++) {
             x[i] = solution.variables().get(i);
         }
 
-        Map<String, Double> consensus = makeConsensus(x);
-
-        fx[0] = fitnessF1(x);
-        fx[1] = fitnessF2(x);
-
-        solution.objectives()[0] = fx[0];
-        solution.objectives()[1] = fx[1];
-
+        Map<String, ConsensusTuple> consensus = makeConsensus(x);
+        solution.objectives()[0] = fitnessF1(consensus);
         return solution;
     }
 
@@ -92,15 +88,16 @@ public class GRNProblem extends AbstractDoubleProblem {
     }
 
     /** MakeConsensus() method */
-    public Map<String, Double> makeConsensus(double[] x) {
-        Map<String, Double> consensus = new HashMap<String, Double>();
+    public Map<String, ConsensusTuple> makeConsensus(double[] x) {
+        Map<String, ConsensusTuple> consensus = new HashMap<>();
 
         for (int i = 0; i < x.length; i++) {
             if (x[i] > 0) {
                 for (Map.Entry<String, Double> pair : inferredNetworks[i].entrySet()) {
-                    Double mapConf = consensus.getOrDefault(pair.getKey(), 0.0);
-                    Double curConf = x[i] * pair.getValue();
-                    consensus.put(pair.getKey(), mapConf + curConf);
+                    ConsensusTuple mapConsTuple = consensus.getOrDefault(pair.getKey(), new ConsensusTuple(0, 0.0));
+                    mapConsTuple.increaseFreq();
+                    mapConsTuple.increaseConf(x[i] * pair.getValue());
+                    consensus.put(pair.getKey(), mapConsTuple);
                 }
             }
         }
@@ -109,12 +106,34 @@ public class GRNProblem extends AbstractDoubleProblem {
     }
 
     /** FitnessF1() method */
-    public double fitnessF1(double[] weights) {
-        double max = Double.NEGATIVE_INFINITY;
-        for(double cur: weights)
-            max = Math.max(max, cur);
+    public double fitnessF1(Map<String, ConsensusTuple> consensus) {
+        double max = 0.0;
+        double conf, freq;
+        for (Map.Entry<String, ConsensusTuple> pair : consensus.entrySet()) {
+            conf = pair.getValue().getConf();
+            if (conf > max) max = conf;
+        }
+        double cutOff = (2/3) * max;
 
-        return -1 * max;
+        double confSum = 0.0;
+        double freqSum = 0.0;
+        int cnt = 0;
+        for (Map.Entry<String, ConsensusTuple> pair : consensus.entrySet()) {
+            conf = pair.getValue().getConf();
+            freq = pair.getValue().getFreq();
+            if (conf > cutOff) {
+                confSum += conf;
+                freqSum += freq;
+                cnt += 1;
+            }
+        }
+
+        double f1 = cnt / consensus.size();
+        double f2 = 1 - (freqSum/cnt);
+        double f3 = 1 - (confSum/cnt);
+        double fitness = f1 + f2 + f3;
+
+        return fitness;
     }
 
     /** FitnessF2() method */
