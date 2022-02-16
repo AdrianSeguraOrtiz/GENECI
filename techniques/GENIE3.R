@@ -36,8 +36,8 @@ ex_matrix <- as.matrix(read.table(in_file, sep=",", head=T, row.names=1))
 network_RF <- GENIE3(ex_matrix, treeMethod="RF")
 conf_list_RF <- GetConfList(network_RF)
 
-# Delete all rows with confidence 0
-conf_list_RF <- conf_list_RF[conf_list_RF[,3] != 0, ]
+# Rescale and remove rows with 0 confidence
+conf_list_RF <- ProcessList(conf_list_RF)
 
 # Save list
 write.table(conf_list_RF, paste0(out_id, "_RF.csv"), sep=",", col.names=F, row.names=F, quote=F)
@@ -46,8 +46,8 @@ write.table(conf_list_RF, paste0(out_id, "_RF.csv"), sep=",", col.names=F, row.n
 network_ET <- GENIE3(ex_matrix, treeMethod="ET")
 conf_list_ET <- GetConfList(network_ET)
 
-# Delete all rows with confidence 0
-conf_list_ET <- conf_list_ET[conf_list_ET[,3] != 0, ]
+# Rescale and remove rows with 0 confidence
+conf_list_ET <- ProcessList(conf_list_ET)
 
 # Save list
 write.table(conf_list_ET, paste0(out_id, "_ET.csv"), sep=",", col.names=F, row.names=F, quote=F)

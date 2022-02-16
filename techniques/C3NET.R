@@ -31,8 +31,8 @@ ex_matrix <- read.table(in_file, sep=",", head=T, row.names=1)
 network <- c3net(ex_matrix)
 conf_list <- GetConfList(network)
 
-# Delete all rows with confidence 0
-conf_list <- conf_list[conf_list[,3] != 0, ]
+# Rescale and remove rows with 0 confidence
+conf_list <- ProcessList(conf_list)
 
 # Save list
 write.table(conf_list, paste0(out_id, ".csv"), sep=",", col.names=F, row.names=F, quote=F)

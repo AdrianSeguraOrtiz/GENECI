@@ -113,7 +113,7 @@ public class GRNProblem extends AbstractDoubleProblem {
             conf = pair.getValue().getConf();
             if (conf > max) max = conf;
         }
-        double cutOff = (2/3) * max;
+        double cutOff = (2.0/3.0) * max;
 
         double confSum = 0.0;
         double freqSum = 0.0;
@@ -128,8 +128,8 @@ public class GRNProblem extends AbstractDoubleProblem {
             }
         }
 
-        double f1 = cnt / consensus.size();
-        double f2 = 1 - (freqSum/cnt);
+        double f1 = (double) cnt / consensus.size();
+        double f2 = 1 - (freqSum/cnt)/getNumberOfVariables();
         double f3 = 1 - (confSum/cnt);
         double fitness = f1 + f2 + f3;
 

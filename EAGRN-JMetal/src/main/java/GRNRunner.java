@@ -51,10 +51,10 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             strMutation = args[2];
             strRepairer = args[3];
         } else {
-            networkFolder = "/mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/dream4_010_01_exp/";
+            networkFolder = "/mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/dream4_100_01_exp/";
             strCrossover = "SBXCrossover";
-            strMutation = "UniformMutation";
-            strRepairer = "GreedyRepair";
+            strMutation = "PolynomialMutation";
+            strRepairer = "StandardizationRepairer";
         }
 
         switch (strRepairer) {
