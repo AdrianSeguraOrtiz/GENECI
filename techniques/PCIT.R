@@ -15,6 +15,9 @@ if (length(ARGS) >= 2) {
   stop("More arguments required, write --help to see the options \n", call. = FALSE)
 }
 
+# Load functions
+source("./functions/functions.R")
+
 # Install BiocManager if not already installed
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")

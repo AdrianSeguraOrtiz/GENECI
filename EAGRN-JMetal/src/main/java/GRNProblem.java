@@ -95,7 +95,7 @@ public class GRNProblem extends AbstractDoubleProblem {
             if (x[i] > 0) {
                 for (Map.Entry<String, Double> pair : inferredNetworks[i].entrySet()) {
                     ConsensusTuple mapConsTuple = consensus.getOrDefault(pair.getKey(), new ConsensusTuple(0, 0.0));
-                    mapConsTuple.increaseFreq();
+                    if (x[i] > 0.05) mapConsTuple.increaseFreq();
                     mapConsTuple.increaseConf(x[i] * pair.getValue());
                     consensus.put(pair.getKey(), mapConsTuple);
                 }
