@@ -42,16 +42,19 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         String referenceParetoFront = "";
 
         String networkFolder;
+        int numberOfNodes;
         String strCrossover;
         String strMutation;
         String strRepairer;
-        if (args.length == 3) {
+        if (args.length == 5) {
             networkFolder = args[0];
-            strCrossover = args[1];
-            strMutation = args[2];
-            strRepairer = args[3];
+            numberOfNodes = Integer.parseInt(args[1]);
+            strCrossover = args[2];
+            strMutation = args[3];
+            strRepairer = args[4];
         } else {
             networkFolder = "/mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/dream4_100_01_exp/";
+            numberOfNodes = 100;
             strCrossover = "SBXCrossover";
             strMutation = "PolynomialMutation";
             strRepairer = "StandardizationRepairer";
@@ -68,7 +71,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         File dir = new File(networkFolder);
         FileFilter fileFilter = new WildcardFileFilter("*.csv");
         File[] files = dir.listFiles(fileFilter);
-        problem = new GRNProblem(files, repairer);
+        problem = new GRNProblem(files, numberOfNodes, repairer);
 
         double crossoverProbability = 0.9;
         double crossoverDistributionIndex = 20.0;

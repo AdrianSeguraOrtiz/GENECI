@@ -12,11 +12,13 @@ import java.util.*;
 
 public class GRNProblem extends AbstractDoubleProblem {
     private Map<String, Double>[] inferredNetworks;
+    private int numberOfNodes;
     private WeightRepairer initialPopulationRepairer;
 
     /** Constructor Creates a default instance of the GRN problem */
-    public GRNProblem(File[] inferredNetworkFiles, WeightRepairer initialPopulationRepairer) {
+    public GRNProblem(File[] inferredNetworkFiles, int numberOfNodes, WeightRepairer initialPopulationRepairer) {
         this.inferredNetworks = readAll(inferredNetworkFiles);
+        this.numberOfNodes = numberOfNodes;
         this.initialPopulationRepairer = initialPopulationRepairer;
         setNumberOfVariables(inferredNetworkFiles.length);
         setNumberOfObjectives(1);
@@ -107,42 +109,23 @@ public class GRNProblem extends AbstractDoubleProblem {
 
     /** FitnessF1() method */
     public double fitnessF1(Map<String, ConsensusTuple> consensus) {
-        double max = 0.0;
-        double conf, freq;
-        for (Map.Entry<String, ConsensusTuple> pair : consensus.entrySet()) {
-            conf = pair.getValue().getConf();
-            if (conf > max) max = conf;
-        }
-        double cutOff = (2.0/3.0) * max;
 
-        double confSum = 0.0;
-        double freqSum = 0.0;
-        int cnt = 0;
+        double conf, confSum = 0;
+        double freq, freqSum = 0;
         for (Map.Entry<String, ConsensusTuple> pair : consensus.entrySet()) {
             conf = pair.getValue().getConf();
+            confSum += conf;
             freq = pair.getValue().getFreq();
-            if (conf > cutOff) {
-                confSum += conf;
-                freqSum += freq;
-                cnt += 1;
-            }
+            freqSum += freq;
         }
 
-        double f1 = (double) cnt / consensus.size();
-        double f2 = 1 - (freqSum/cnt)/getNumberOfVariables();
-        double f3 = 1 - (confSum/cnt);
-        double fitness = f1 + f2 + f3;
+        double numberOfLinks = (double) (numberOfNodes * (numberOfNodes - 1))/2;
+        double f1 = 1.0 - (double) consensus.size() / numberOfLinks;
+        double f2 = 1.0 - freqSum/(numberOfLinks * getNumberOfVariables());
+        double f3 = 1.0 - confSum/numberOfLinks;
+        double fitness = (f1 + f2 + f3)/3;
 
         return fitness;
-    }
-
-    /** FitnessF2() method */
-    public double fitnessF2(double[] weights) {
-        double min = Double.POSITIVE_INFINITY;
-        for(double cur: weights)
-            min = Math.min(min, cur);
-
-        return min;
     }
 
 }
