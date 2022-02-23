@@ -1,4 +1,4 @@
-public class ConsensusTuple {
+public class ConsensusTuple implements Comparable<ConsensusTuple> {
     private int freq;
     private double conf;
 
@@ -15,9 +15,6 @@ public class ConsensusTuple {
         conf += partialConf;
     }
 
-    public String toString() {
-        return "Freq: " + freq + ", Conf: " + conf;
-    }
 
     public double getConf() {
         return conf;
@@ -25,5 +22,16 @@ public class ConsensusTuple {
 
     public int getFreq() {
         return freq;
+    }
+
+    public String toString() {
+        return "Freq: " + freq + ", Conf: " + conf;
+    }
+
+    @Override
+    public int compareTo(ConsensusTuple o) {
+        if (this.conf > o.conf) return -1;
+        if (this.conf < o.conf) return 1;
+        return 0;
     }
 }

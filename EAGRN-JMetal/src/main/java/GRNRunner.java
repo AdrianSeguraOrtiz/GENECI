@@ -42,19 +42,19 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         String referenceParetoFront = "";
 
         String networkFolder;
-        int numberOfNodes;
+        String[] geneNames;
         String strCrossover;
         String strMutation;
         String strRepairer;
         if (args.length == 5) {
             networkFolder = args[0];
-            numberOfNodes = Integer.parseInt(args[1]);
+            geneNames = args[1].split(",");
             strCrossover = args[2];
             strMutation = args[3];
             strRepairer = args[4];
         } else {
-            networkFolder = "/mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/dream4_100_01_exp/";
-            numberOfNodes = 100;
+            networkFolder = "/mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/dream4_010_01_exp/";
+            geneNames = new String[]{"G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9", "G10"};
             strCrossover = "SBXCrossover";
             strMutation = "PolynomialMutation";
             strRepairer = "StandardizationRepairer";
@@ -71,7 +71,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         File dir = new File(networkFolder);
         FileFilter fileFilter = new WildcardFileFilter("*.csv");
         File[] files = dir.listFiles(fileFilter);
-        problem = new GRNProblem(files, numberOfNodes, repairer);
+        problem = new GRNProblem(files, geneNames, repairer);
 
         double crossoverProbability = 0.9;
         double crossoverDistributionIndex = 20.0;
@@ -124,10 +124,10 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
         selection = new BinaryTournamentSelection<>(new RankingAndCrowdingDistanceComparator<>());
 
-        int populationSize = 100;
+        int populationSize = 6;
         algorithm = new NSGAIIBuilder<>(problem, crossover, mutation, populationSize)
                         .setSelectionOperator(selection)
-                        .setMaxEvaluations(100000)
+                        .setMaxEvaluations(12)
                         .build();
 
         AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute();

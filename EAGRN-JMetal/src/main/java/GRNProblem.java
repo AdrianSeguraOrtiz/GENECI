@@ -1,10 +1,7 @@
-import com.sun.xml.bind.v2.schemagen.xmlschema.Union;
-import generic.Tuple;
 import operator.repairer.WeightRepairer;
 import org.uma.jmetal.problem.doubleproblem.impl.AbstractDoubleProblem;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 import org.uma.jmetal.solution.doublesolution.impl.DefaultDoubleSolution;
-import smile.timeseries.AR;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -12,13 +9,15 @@ import java.util.*;
 
 public class GRNProblem extends AbstractDoubleProblem {
     private Map<String, Double>[] inferredNetworks;
+    private ArrayList<String> geneNames;
     private int numberOfNodes;
     private WeightRepairer initialPopulationRepairer;
 
     /** Constructor Creates a default instance of the GRN problem */
-    public GRNProblem(File[] inferredNetworkFiles, int numberOfNodes, WeightRepairer initialPopulationRepairer) {
+    public GRNProblem(File[] inferredNetworkFiles, String[] geneNames, WeightRepairer initialPopulationRepairer) {
         this.inferredNetworks = readAll(inferredNetworkFiles);
-        this.numberOfNodes = numberOfNodes;
+        this.geneNames = new ArrayList<String>(List.of(geneNames));
+        this.numberOfNodes = geneNames.length;
         this.initialPopulationRepairer = initialPopulationRepairer;
         setNumberOfVariables(inferredNetworkFiles.length);
         setNumberOfObjectives(1);
@@ -52,7 +51,12 @@ public class GRNProblem extends AbstractDoubleProblem {
         }
 
         Map<String, ConsensusTuple> consensus = makeConsensus(x);
-        solution.objectives()[0] = fitnessF1(consensus);
+        double f1 = fitnessF1(consensus);
+
+        int [][] binaryNetwork = getNetworkFromList(consensus);
+        double f2 = fitnessF2(binaryNetwork);
+
+        solution.objectives()[0] = 0.5*f1 + 0.5*f2;
         return solution;
     }
 
@@ -107,6 +111,29 @@ public class GRNProblem extends AbstractDoubleProblem {
         return consensus;
     }
 
+    /** GetNetworkFromList() method */
+    public int[][] getNetworkFromList (Map<String, ConsensusTuple> consensus) {
+        int[][] network = new int[numberOfNodes][numberOfNodes];
+        double cutOff = 0.2 * numberOfNodes;
+
+        List<Map.Entry<String, ConsensusTuple>> list = new ArrayList<>(consensus.entrySet());
+        list.sort(Map.Entry.comparingByValue());
+
+        Iterator<Map.Entry<String, ConsensusTuple>> iterator = list.iterator();
+        int row, col, cnt = 0;
+        String key;
+        while (cnt < cutOff) {
+            key = iterator.next().getKey();
+            String [] vKeySplit = key.split("-");
+            row = geneNames.indexOf(vKeySplit[0]);
+            col = geneNames.indexOf(vKeySplit[1]);
+            network[row][col] = 1;
+            cnt += 1;
+        }
+
+        return network;
+    }
+
     /** FitnessF1() method */
     public double fitnessF1(Map<String, ConsensusTuple> consensus) {
 
@@ -124,6 +151,20 @@ public class GRNProblem extends AbstractDoubleProblem {
         double f2 = 1.0 - freqSum/(numberOfLinks * getNumberOfVariables());
         double f3 = 1.0 - confSum/numberOfLinks;
         double fitness = (f1 + f2 + f3)/3;
+
+        return fitness;
+    }
+
+    /** FitnessF2() method */
+    public double fitnessF2(int[][] network) {
+        double fitness = 0;
+        int[] degrees = new int[numberOfNodes];
+
+        for (int i = 0; i < numberOfNodes; i++) {
+            for (int j = 0; j < numberOfNodes; j++) {
+                degrees[i] += network[i][j];
+            }
+        }
 
         return fitness;
     }
