@@ -53,7 +53,13 @@ public class GRNProblem extends AbstractDoubleProblem {
         Map<String, ConsensusTuple> consensus = makeConsensus(x);
         double f1 = fitnessF1(consensus);
 
-        int [][] binaryNetwork = getNetworkFromList(consensus);
+        /**
+        int k = (int) Math.round(0.2 * numberOfNodes);
+        int [][] binaryNetwork = getNetworkFromListWithK(consensus, k);
+         */
+
+        double percMaxConf = 0.5;
+        int [][] binaryNetwork = getNetworkFromListWithConf(consensus, percMaxConf);
         double f2 = fitnessF2(binaryNetwork);
 
         solution.objectives()[0] = 0.5*f1 + 0.5*f2;
@@ -111,10 +117,9 @@ public class GRNProblem extends AbstractDoubleProblem {
         return consensus;
     }
 
-    /** GetNetworkFromList() method */
-    public int[][] getNetworkFromList (Map<String, ConsensusTuple> consensus) {
+    /** GetNetworkFromListWithK() method */
+    public int[][] getNetworkFromListWithK (Map<String, ConsensusTuple> consensus, int k) {
         int[][] network = new int[numberOfNodes][numberOfNodes];
-        double cutOff = 0.2 * numberOfNodes;
 
         List<Map.Entry<String, ConsensusTuple>> list = new ArrayList<>(consensus.entrySet());
         list.sort(Map.Entry.comparingByValue());
@@ -122,13 +127,41 @@ public class GRNProblem extends AbstractDoubleProblem {
         Iterator<Map.Entry<String, ConsensusTuple>> iterator = list.iterator();
         int row, col, cnt = 0;
         String key;
-        while (cnt < cutOff) {
+        while (cnt < k) {
             key = iterator.next().getKey();
             String [] vKeySplit = key.split("-");
             row = geneNames.indexOf(vKeySplit[0]);
             col = geneNames.indexOf(vKeySplit[1]);
             network[row][col] = 1;
+            network[col][row] = 1;
             cnt += 1;
+        }
+
+        return network;
+    }
+
+    /** GetNetworkFromListWithConf() method */
+    public int[][] getNetworkFromListWithConf (Map<String, ConsensusTuple> consensus, double percMaxConf) {
+        int[][] network = new int[numberOfNodes][numberOfNodes];
+
+        double conf, max = 0;
+        for (Map.Entry<String, ConsensusTuple> pair : consensus.entrySet()) {
+            conf = pair.getValue().getConf();
+            if (conf > max) max = conf;
+        }
+
+        double cutOff = max * percMaxConf;
+        int row, col;
+        String key;
+        for (Map.Entry<String, ConsensusTuple> pair : consensus.entrySet()) {
+            if (pair.getValue().getConf() > cutOff) {
+                key = pair.getKey();
+                String [] vKeySplit = key.split("-");
+                row = geneNames.indexOf(vKeySplit[0]);
+                col = geneNames.indexOf(vKeySplit[1]);
+                network[row][col] = 1;
+                network[col][row] = 1;
+            }
         }
 
         return network;
@@ -157,7 +190,6 @@ public class GRNProblem extends AbstractDoubleProblem {
 
     /** FitnessF2() method */
     public double fitnessF2(int[][] network) {
-        double fitness = 0;
         int[] degrees = new int[numberOfNodes];
 
         for (int i = 0; i < numberOfNodes; i++) {
@@ -166,6 +198,18 @@ public class GRNProblem extends AbstractDoubleProblem {
             }
         }
 
+        int sum = 0;
+        for (int i = 0; i < numberOfNodes; i++) {
+            sum += degrees[i];
+        }
+        double mean = (double) sum/numberOfNodes;
+
+        int hubs = 0;
+        for (int i = 0; i < numberOfNodes; i++) {
+            if (degrees[i] > mean) hubs += 1;
+        }
+
+        double fitness = (double) hubs/numberOfNodes;
         return fitness;
     }
 

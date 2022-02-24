@@ -18,12 +18,11 @@ import org.uma.jmetal.util.errorchecking.JMetalException;
 import org.uma.jmetal.util.grouping.CollectionGrouping;
 import org.uma.jmetal.util.grouping.impl.ListLinearGrouping;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 public class GRNRunner extends AbstractAlgorithmRunner {
     /**
@@ -33,6 +32,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
      *     org.uma.jmetal.runner.multiobjective.nsgaii.NSGAIIRunner problemName [referenceFront]
      */
     public static void main(String[] args) throws JMetalException, IOException {
+        /** Declare the main execution variables */
         GRNProblem problem;
         Algorithm<List<DoubleSolution>> algorithm;
         CrossoverOperator<DoubleSolution> crossover;
@@ -41,57 +41,83 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         SelectionOperator<List<DoubleSolution>, DoubleSolution> selection;
         String referenceParetoFront = "";
 
+        /** Read input parameters */
         String networkFolder;
-        String[] geneNames;
         String strCrossover;
         String strMutation;
         String strRepairer;
-        if (args.length == 5) {
+        if (args.length == 4) {
             networkFolder = args[0];
-            geneNames = args[1].split(",");
-            strCrossover = args[2];
-            strMutation = args[3];
-            strRepairer = args[4];
+            strCrossover = args[1];
+            strMutation = args[2];
+            strRepairer = args[3];
         } else {
             networkFolder = "/mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/dream4_010_01_exp/";
-            geneNames = new String[]{"G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9", "G10"};
             strCrossover = "SBXCrossover";
             strMutation = "PolynomialMutation";
             strRepairer = "StandardizationRepairer";
         }
 
+        /** Establish the chromosome repairer */
         switch (strRepairer) {
-            case "StandardizationRepairer": repairer = new StandardizationRepairer();
+            case "StandardizationRepairer":
+                repairer = new StandardizationRepairer();
                 break;
-            case "GreedyRepair": repairer = new GreedyRepairer();
+            case "GreedyRepair":
+                repairer = new GreedyRepairer();
                 break;
-            default: throw new RuntimeException("The repairer operator entered is not available");
+            default:
+                throw new RuntimeException("The repairer operator entered is not available");
         }
 
+        /** List CSV files stored in the input folder with inferred lists of links */
         File dir = new File(networkFolder);
         FileFilter fileFilter = new WildcardFileFilter("*.csv");
         File[] files = dir.listFiles(fileFilter);
+
+        /** Extracting gene names */
+        File geneNamesFile = new File(networkFolder + "/gene_names.txt");
+        String[] geneNames;
+        try {
+            Scanner sc = new Scanner(geneNamesFile);
+            String line = sc.nextLine();
+            geneNames = line.split(" ");
+        } catch (FileNotFoundException fnfe) {
+            throw new RuntimeException(fnfe.getMessage());
+        }
+
+        /** Initialize our problem with the extracted data */
         problem = new GRNProblem(files, geneNames, repairer);
 
+        /** Set the crossover operator */
         double crossoverProbability = 0.9;
         double crossoverDistributionIndex = 20.0;
         int numPointsCrossover = 2;
+
         switch (strCrossover) {
-            case "SBXCrossover":  crossover = new SBXCrossover(crossoverProbability, crossoverDistributionIndex);;
+            case "SBXCrossover":
+                crossover = new SBXCrossover(crossoverProbability, crossoverDistributionIndex);
                 break;
-            case "BLXAlphaCrossover":  crossover = new BLXAlphaCrossover(crossoverProbability);
+            case "BLXAlphaCrossover":
+                crossover = new BLXAlphaCrossover(crossoverProbability);
                 break;
-            case "DifferentialEvolutionCrossover":  crossover = new DifferentialEvolutionCrossover();
+            case "DifferentialEvolutionCrossover":
+                crossover = new DifferentialEvolutionCrossover();
                 break;
-            case "NPointCrossover":  crossover = new NPointCrossover(crossoverProbability, numPointsCrossover);
+            case "NPointCrossover":
+                crossover = new NPointCrossover(crossoverProbability, numPointsCrossover);
                 break;
-            case "NullCrossover":  crossover = new NullCrossover();
+            case "NullCrossover":
+                crossover = new NullCrossover();
                 break;
-            case "WholeArithmeticCrossover":  crossover = new WholeArithmeticCrossover(crossoverProbability);
+            case "WholeArithmeticCrossover":
+                crossover = new WholeArithmeticCrossover(crossoverProbability);
                 break;
-            default: throw new RuntimeException("The crossover operator entered is not available");
+            default:
+                throw new RuntimeException("The crossover operator entered is not available");
         }
 
+        /** Set the mutation operator */
         double mutationProbability = 1.0 / problem.getNumberOfVariables();
         double mutationDistributionIndex = 20.0;
         double delta = 0.5;
@@ -101,35 +127,48 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         int maxMutIterations = 10;
 
         switch (strMutation) {
-            case "PolynomialMutation": mutation = new PolynomialMutationWithRepair(mutationProbability, mutationDistributionIndex, repairer);
+            case "PolynomialMutation":
+                mutation = new PolynomialMutationWithRepair(mutationProbability, mutationDistributionIndex, repairer);
                 break;
-            case "CDGMutation": mutation = new CDGMutationWithRepair(mutationProbability, delta, repairer);
+            case "CDGMutation":
+                mutation = new CDGMutationWithRepair(mutationProbability, delta, repairer);
                 break;
-            case "GroupedAndLinkedPolynomialMutation": mutation = new GroupedAndLinkedPolynomialMutationWithRepair(mutationDistributionIndex, grouping, repairer);
+            case "GroupedAndLinkedPolynomialMutation":
+                mutation = new GroupedAndLinkedPolynomialMutationWithRepair(mutationDistributionIndex, grouping, repairer);
                 break;
-            case "GroupedPolynomialMutation": mutation = new GroupedPolynomialMutationWithRepair(mutationDistributionIndex, grouping, repairer);
+            case "GroupedPolynomialMutation":
+                mutation = new GroupedPolynomialMutationWithRepair(mutationDistributionIndex, grouping, repairer);
                 break;
-            case "LinkedPolynomialMutation": mutation = new LinkedPolynomialMutationWithRepair(mutationProbability, mutationDistributionIndex, repairer);
+            case "LinkedPolynomialMutation":
+                mutation = new LinkedPolynomialMutationWithRepair(mutationProbability, mutationDistributionIndex, repairer);
                 break;
-            case "NonUniformMutation": mutation = new NonUniformMutationWithRepair(mutationProbability, perturbation, maxMutIterations, repairer);
+            case "NonUniformMutation":
+                mutation = new NonUniformMutationWithRepair(mutationProbability, perturbation, maxMutIterations, repairer);
                 break;
-            case "NullMutation": mutation = new NullMutationWithRepair(repairer);
+            case "NullMutation":
+                mutation = new NullMutationWithRepair(repairer);
                 break;
-            case "SimpleRandomMutation": mutation = new SimpleRandomMutationWithRepair(mutationProbability, repairer);
+            case "SimpleRandomMutation":
+                mutation = new SimpleRandomMutationWithRepair(mutationProbability, repairer);
                 break;
-            case "UniformMutation": mutation = new UniformMutationWithRepair(mutationProbability, perturbation, repairer);
+            case "UniformMutation":
+                mutation = new UniformMutationWithRepair(mutationProbability, perturbation, repairer);
                 break;
-            default: throw new RuntimeException("The mutation operator entered is not available");
+            default:
+                throw new RuntimeException("The mutation operator entered is not available");
         }
 
+        /** Start selection operator */
         selection = new BinaryTournamentSelection<>(new RankingAndCrowdingDistanceComparator<>());
 
-        int populationSize = 6;
+        /** Instantiate the evolutionary algorithm indicating the size of the population and the maximum number of evaluations */
+        int populationSize = 100;
         algorithm = new NSGAIIBuilder<>(problem, crossover, mutation, populationSize)
-                        .setSelectionOperator(selection)
-                        .setMaxEvaluations(12)
-                        .build();
+                .setSelectionOperator(selection)
+                .setMaxEvaluations(10000)
+                .build();
 
+        /** Execute the designed evolutionary algorithm */
         AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute();
 
         List<DoubleSolution> population = algorithm.getResult();
@@ -149,10 +188,27 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             winner[i] = population.get(0).variables().get(i);
         }
         Map<String, ConsensusTuple> consensus = problem.makeConsensus(winner);
+        double percMaxConf = 0.5;
+        int[][] binaryNetwork = problem.getNetworkFromListWithConf(consensus, percMaxConf);
 
-        consensus.entrySet().forEach(entry -> {
-            System.out.println(entry.getKey() + ": " + entry.getValue());
-        });
+        try {
+            File outputFile = new File(networkFolder + "ea_consensus/final_network.csv");
+            outputFile.getParentFile().mkdirs();
+            BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
+
+            bw.write("," + String.join(",", geneNames));
+            bw.newLine();
+            for (int i = 0; i < binaryNetwork.length; i++) {
+                bw.write(geneNames[i] + ",");
+                for (int j = 0; j < binaryNetwork[i].length; j++) {
+                    bw.write(binaryNetwork[i][j] + ((j == binaryNetwork[i].length - 1) ? "" : ","));
+                }
+                bw.newLine();
+            }
+            bw.flush();
+        } catch (IOException ioe) {
+            throw new RuntimeException(ioe.getMessage());
+        }
     }
 }
 
