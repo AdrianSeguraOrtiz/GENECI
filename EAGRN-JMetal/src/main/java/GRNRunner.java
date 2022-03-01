@@ -71,7 +71,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         }
 
         /** List CSV files stored in the input folder with inferred lists of links */
-        File dir = new File(networkFolder);
+        File dir = new File(networkFolder + "/lists/");
         FileFilter fileFilter = new WildcardFileFilter("*.csv");
         File[] files = dir.listFiles(fileFilter);
 
@@ -171,11 +171,12 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         /** Execute the designed evolutionary algorithm */
         AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute();
 
+        /** Extract the population of the last iteration and the total execution time. */
         List<DoubleSolution> population = algorithm.getResult();
         long computingTime = algorithmRunner.getComputingTime();
 
+        /** Report the execution time and return the best solution found by the algorithm. */
         JMetalLogger.logger.info("Total execution time: " + computingTime + "ms");
-
         printFinalSolutionSet(population);
         if (!referenceParetoFront.equals("")) {
             QualityIndicatorUtils.printQualityIndicators(
@@ -183,14 +184,20 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                     VectorUtils.readVectors(referenceParetoFront, ","));
         }
 
+        /** Transform the solution into a simple vector of weights. */
         double[] winner = new double[problem.getNumberOfVariables()];
         for (int i = 0; i < problem.getNumberOfVariables(); i++) {
             winner[i] = population.get(0).variables().get(i);
         }
+
+        /** Calculate the consensus list corresponding to the solution vector. */
         Map<String, ConsensusTuple> consensus = problem.makeConsensus(winner);
+
+        /** Calculate the binary matrix from the list above */
         double percMaxConf = 0.5;
         int[][] binaryNetwork = problem.getNetworkFromListWithConf(consensus, percMaxConf);
 
+        /** Write the resulting binary matrix to an output csv file */
         try {
             File outputFile = new File(networkFolder + "ea_consensus/final_network.csv");
             outputFile.getParentFile().mkdirs();

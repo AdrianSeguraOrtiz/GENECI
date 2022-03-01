@@ -3,7 +3,7 @@ parallel_inference() {
 	in_file=$2
     data_id=$(basename ${in_file%.*})
 
-    out_id="../inferred_networks/$data_id/GRN_$(basename ${technique%.*})"
+    out_id="../inferred_networks/$data_id/lists/GRN_$(basename ${technique%.*})"
     Rscript $technique $in_file $out_file $out_id
 }
 export -f parallel_inference
@@ -19,5 +19,5 @@ do
     echo ${gene_names[@]} > ../inferred_networks/$data_id/gene_names.txt
 done
 
-# parallel parallel_inference ::: ${techniques[@]} ::: ${files[@]}
+parallel parallel_inference ::: ${techniques[@]} ::: ${files[@]}
 

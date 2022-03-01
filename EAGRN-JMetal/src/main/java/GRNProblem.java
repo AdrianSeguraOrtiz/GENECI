@@ -62,37 +62,21 @@ public class GRNProblem extends AbstractDoubleProblem {
         int [][] binaryNetwork = getNetworkFromListWithConf(consensus, percMaxConf);
         double f2 = fitnessF2(binaryNetwork);
 
-        solution.objectives()[0] = 0.5*f1 + 0.5*f2;
+        solution.objectives()[0] = 0.75*f1 + 0.25*f2;
         return solution;
     }
 
     /** ReadAll() method */
     private Map<String, Double>[] readAll(File[] inferredNetworkFiles) {
+        /**
+         * It scans the lists of links offered by the different techniques and stores
+         * them in a map vector for later query during the construction of the consensus network.
+         */
+
         Map<String, Double>[] vmap = new HashMap[inferredNetworkFiles.length];
 
         for (int i = 0; i < inferredNetworkFiles.length; i++) {
-            Map<String, Double> map = new HashMap<String, Double>();
-
-            try {
-                Scanner sc = new Scanner(inferredNetworkFiles[i]);
-                while(sc.hasNextLine()){
-                    String line = sc.nextLine();
-                    String[] splitLine = line.split(",");
-
-                    String key;
-                    if(splitLine[0].compareTo(splitLine[1]) < 0) {
-                        key = splitLine[0] + "-" + splitLine[1];
-                    } else {
-                        key = splitLine[1] + "-" + splitLine[0];
-                    }
-
-                    Double value = Double.parseDouble(splitLine[2]);
-                    map.put(key, value);
-                }
-            } catch (FileNotFoundException fnfe) {
-                throw new RuntimeException(fnfe.getMessage());
-            }
-
+            Map<String, Double> map = new ListOfLinks(inferredNetworkFiles[i]).getMapWithLinks();
             vmap[i] = map;
         }
 
@@ -101,6 +85,11 @@ public class GRNProblem extends AbstractDoubleProblem {
 
     /** MakeConsensus() method */
     public Map<String, ConsensusTuple> makeConsensus(double[] x) {
+        /**
+         * Elaborate the list of consensus links from the vector of weights
+         * and the results provided by each technique.
+         */
+
         Map<String, ConsensusTuple> consensus = new HashMap<>();
 
         for (int i = 0; i < x.length; i++) {
@@ -119,6 +108,10 @@ public class GRNProblem extends AbstractDoubleProblem {
 
     /** GetNetworkFromListWithK() method */
     public int[][] getNetworkFromListWithK (Map<String, ConsensusTuple> consensus, int k) {
+        /**
+         * Constructs the Boolean matrix by setting a maximum number of links as the cut-off.
+         */
+
         int[][] network = new int[numberOfNodes][numberOfNodes];
 
         List<Map.Entry<String, ConsensusTuple>> list = new ArrayList<>(consensus.entrySet());
@@ -142,6 +135,10 @@ public class GRNProblem extends AbstractDoubleProblem {
 
     /** GetNetworkFromListWithConf() method */
     public int[][] getNetworkFromListWithConf (Map<String, ConsensusTuple> consensus, double percMaxConf) {
+        /**
+         * Construct the Boolean matrix by setting a minimum confidence value as a cut-off.
+         */
+
         int[][] network = new int[numberOfNodes][numberOfNodes];
 
         double conf, max = 0;
@@ -169,6 +166,11 @@ public class GRNProblem extends AbstractDoubleProblem {
 
     /** FitnessF1() method */
     public double fitnessF1(Map<String, ConsensusTuple> consensus) {
+        /**
+         * It tries to maximize the number of links covered by the consensus, the frequency
+         * of these links and their confidence. It should be improved to evaluate only the
+         * highest quality links.
+         */
 
         double conf, confSum = 0;
         double freq, freqSum = 0;
@@ -190,6 +192,10 @@ public class GRNProblem extends AbstractDoubleProblem {
 
     /** FitnessF2() method */
     public double fitnessF2(int[][] network) {
+        /**
+         * Try to minimize the number of nodes with a degree higher than the average.
+         */
+
         int[] degrees = new int[numberOfNodes];
 
         for (int i = 0; i < numberOfNodes; i++) {

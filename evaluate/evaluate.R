@@ -15,6 +15,8 @@ if (length(ARGS) >= 2) {
   stop("More arguments required, write --help to see the options \n", call. = FALSE)
 }
 
+# https://www.synapse.org/#!Synapse:syn2825309
+
 suppressMessages(library(pROC))
 suppressMessages(library(parallel))
 
@@ -34,6 +36,6 @@ v.gs <- unlist(mcmapply(1:nrow(gs_network), FUN = function(row) {
 }))
 
 roc_res <- roc(v.gs, v.inferred)
-pdf(paste0(dirname(inferred_file), "/auc_gs.pdf"))
+pdf(paste0(sub(pattern = "(.*)\\..*$", replacement = "\\1", inferred_file), "_auc_gs.pdf"))
 plot.roc(roc_res, print.auc = TRUE, auc.polygon = TRUE)
 dev.off()
