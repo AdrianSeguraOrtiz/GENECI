@@ -2,24 +2,23 @@ import operator.mutationwithrepair.impl.*;
 import operator.repairer.WeightRepairer;
 import operator.repairer.impl.*;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
-import org.uma.jmetal.algorithm.Algorithm;
-import org.uma.jmetal.algorithm.multiobjective.nsgaii.NSGAIIBuilder;
-import org.uma.jmetal.example.AlgorithmRunner;
+import org.uma.jmetal.experimental.componentbasedalgorithm.algorithm.singleobjective.geneticalgorithm.GeneticAlgorithm;
 import org.uma.jmetal.operator.crossover.CrossoverOperator;
 import org.uma.jmetal.operator.crossover.impl.*;
 import org.uma.jmetal.operator.mutation.MutationOperator;
-import org.uma.jmetal.operator.selection.SelectionOperator;
 import org.uma.jmetal.operator.selection.impl.BinaryTournamentSelection;
-import org.uma.jmetal.qualityindicator.QualityIndicatorUtils;
+import org.uma.jmetal.operator.selection.impl.NaryTournamentSelection;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
-import org.uma.jmetal.util.*;
+import org.uma.jmetal.util.AbstractAlgorithmRunner;
+import org.uma.jmetal.util.JMetalLogger;
 import org.uma.jmetal.util.comparator.RankingAndCrowdingDistanceComparator;
 import org.uma.jmetal.util.errorchecking.JMetalException;
 import org.uma.jmetal.util.grouping.CollectionGrouping;
 import org.uma.jmetal.util.grouping.impl.ListLinearGrouping;
+import org.uma.jmetal.util.termination.Termination;
+import org.uma.jmetal.util.termination.impl.TerminationByEvaluations;
 
 import java.io.*;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -34,28 +33,33 @@ public class GRNRunner extends AbstractAlgorithmRunner {
     public static void main(String[] args) throws JMetalException, IOException {
         /** Declare the main execution variables */
         GRNProblem problem;
-        Algorithm<List<DoubleSolution>> algorithm;
+        GeneticAlgorithm<DoubleSolution> algorithm;
         CrossoverOperator<DoubleSolution> crossover;
         MutationOperator<DoubleSolution> mutation;
         WeightRepairer repairer;
-        SelectionOperator<List<DoubleSolution>, DoubleSolution> selection;
-        String referenceParetoFront = "";
+        NaryTournamentSelection<DoubleSolution> selection;
 
         /** Read input parameters */
         String networkFolder;
         String strCrossover;
         String strMutation;
         String strRepairer;
-        if (args.length == 4) {
+        int populationSize;
+        int numEvaluations;
+        if (args.length == 6) {
             networkFolder = args[0];
             strCrossover = args[1];
             strMutation = args[2];
             strRepairer = args[3];
+            populationSize = Integer.parseInt(args[4]);
+            numEvaluations = Integer.parseInt(args[5]);
         } else {
             networkFolder = "/mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/dream4_010_01_exp/";
             strCrossover = "SBXCrossover";
             strMutation = "PolynomialMutation";
-            strRepairer = "StandardizationRepairer";
+            strRepairer = "GreedyRepair";
+            populationSize = 1000;
+            numEvaluations = 10000;
         }
 
         /** Establish the chromosome repairer */
@@ -162,27 +166,26 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         selection = new BinaryTournamentSelection<>(new RankingAndCrowdingDistanceComparator<>());
 
         /** Instantiate the evolutionary algorithm indicating the size of the population and the maximum number of evaluations */
-        int populationSize = 100;
-        algorithm = new NSGAIIBuilder<>(problem, crossover, mutation, populationSize)
-                .setSelectionOperator(selection)
-                .setMaxEvaluations(10000)
-                .build();
+        int offspringPopulationSize = populationSize;
+        Termination termination = new TerminationByEvaluations(numEvaluations);
+        algorithm = new GeneticAlgorithm <>(
+                        problem,
+                        populationSize,
+                        offspringPopulationSize,
+                        selection,
+                        crossover,
+                        mutation,
+                        termination);
+
+        /** Add observable to report the evolution of fitness values. */
+        algorithm.getObservable().register(new FitnessObserver(100));
 
         /** Execute the designed evolutionary algorithm */
-        AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute();
+        algorithm.run();
 
         /** Extract the population of the last iteration and the total execution time. */
         List<DoubleSolution> population = algorithm.getResult();
-        long computingTime = algorithmRunner.getComputingTime();
-
-        /** Report the execution time and return the best solution found by the algorithm. */
-        JMetalLogger.logger.info("Total execution time: " + computingTime + "ms");
-        printFinalSolutionSet(population);
-        if (!referenceParetoFront.equals("")) {
-            QualityIndicatorUtils.printQualityIndicators(
-                    SolutionListUtils.getMatrixWithObjectiveValues(population),
-                    VectorUtils.readVectors(referenceParetoFront, ","));
-        }
+        long computingTime = algorithm.getTotalComputingTime();
 
         /** Transform the solution into a simple vector of weights. */
         double[] winner = new double[problem.getNumberOfVariables()];
@@ -194,7 +197,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         Map<String, ConsensusTuple> consensus = problem.makeConsensus(winner);
 
         /** Calculate the binary matrix from the list above */
-        double percMaxConf = 0.5;
+        double percMaxConf = 0.15;
         int[][] binaryNetwork = problem.getNetworkFromListWithConf(consensus, percMaxConf);
 
         /** Write the resulting binary matrix to an output csv file */
@@ -216,6 +219,11 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         } catch (IOException ioe) {
             throw new RuntimeException(ioe.getMessage());
         }
+
+        /** Report the execution time and return the best solution found by the algorithm. */
+        JMetalLogger.logger.info("Total execution time: " + computingTime + "ms");
+        JMetalLogger.logger.info("The resulting binary matrix has been stored in" + networkFolder + "ea_consensus/final_network.csv");
+        printFinalSolutionSet(population);
     }
 }
 

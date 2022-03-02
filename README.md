@@ -43,3 +43,35 @@ Respecto a C3NET y BC3NET:
     - Normalización: En el TFM de Barcelona se indica que la mejor opción es utilizar lo que llaman LScale. En otros artículos aparece como CLRSum, sin embargo, no logro encontrar ningún paquete que implemente esta normalización. La fórmula se detalla en el TFM pero no consigo entenderla como para implementarla por mi cuenta.
 
     - Agregación: En los artículos que he visto suelen decantarse por la suma, lo cual también coincide con lo mostrado en la experimentación del TFM.
+
+# Commads
+
+1. Generar .jar con dependencias:
+
+```sh
+cd EAGRN-JMetal
+mvn clean compile assembly:single
+cd ..
+```
+
+2. Descargar datos simulados de expresión y sus respectivos gold standard:
+
+```sh
+bash extract_data/extract_data.sh
+```
+
+3. Inferir redes de regulación génica mediante las técnicas individuales disponibles:
+
+```sh
+bash techniques/infer_networks.sh
+```
+
+4. Evaluar individualmente la calidad de cada red inferida
+
+5. Ejecutar algoritmo evolutivo:
+
+```sh
+java -cp ./EAGRN-JMetal/target/AEGRN-1.0-SNAPSHOT-jar-with-dependencies.jar GRNRunner /mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/dream4_010_01_exp/ SBXCrossover PolynomialMutation GreedyRepair 100 10000
+```
+
+6. Evaluar la calidad de la red génica consenso

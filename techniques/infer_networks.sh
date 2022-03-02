@@ -21,3 +21,6 @@ done
 
 parallel parallel_inference ::: ${techniques[@]} ::: ${files[@]}
 
+# Añadir llamada de java
+# java -cp ./EAGRN-JMetal/target/AEGRN-1.0-SNAPSHOT-jar-with-dependencies.jar SingleNetworkRunner
+

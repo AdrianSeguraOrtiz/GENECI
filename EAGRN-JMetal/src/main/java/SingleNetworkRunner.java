@@ -29,7 +29,7 @@ public class SingleNetworkRunner {
         }
 
         Map<String, Double> map = new ListOfLinks(new File(networkStrFile)).getMapWithLinks();
-        double percMaxConf = 0.5;
+        double percMaxConf = 0.15;
         int[][] binaryNetwork = getNetworkFromListWithConf(map, geneNames, percMaxConf);
 
         /** Write the resulting binary matrix to an output csv file */
