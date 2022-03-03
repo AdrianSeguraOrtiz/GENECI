@@ -1,6 +1,6 @@
-package operator.repairer.impl;
+package eagrn.operator.repairer.impl;
 
-import operator.repairer.WeightRepairer;
+import eagrn.operator.repairer.WeightRepairer;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 
 public class GreedyRepairer implements WeightRepairer {

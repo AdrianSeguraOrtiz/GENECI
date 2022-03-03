@@ -57,13 +57,13 @@ cd ..
 2. Descargar datos simulados de expresión y sus respectivos gold standard:
 
 ```sh
-bash extract_data/extract_data.sh
+bash extract_data.sh
 ```
 
 3. Inferir redes de regulación génica mediante las técnicas individuales disponibles:
 
 ```sh
-bash techniques/infer_networks.sh
+bash infer_networks.sh
 ```
 
 4. Evaluar individualmente la calidad de cada red inferida
@@ -71,7 +71,11 @@ bash techniques/infer_networks.sh
 5. Ejecutar algoritmo evolutivo:
 
 ```sh
-java -cp ./EAGRN-JMetal/target/AEGRN-1.0-SNAPSHOT-jar-with-dependencies.jar GRNRunner /mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/dream4_010_01_exp/ SBXCrossover PolynomialMutation GreedyRepair 100 10000
+java -cp ./EAGRN-JMetal/target/AEGRN-1.0-SNAPSHOT-jar-with-dependencies.jar eagrn.GRNRunner /mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/dream4_010_01_exp/ SBXCrossover PolynomialMutation GreedyRepair 100 10000 MinConfidence 0.1
 ```
 
 6. Evaluar la calidad de la red génica consenso
+
+```sh
+Rscript evaluate/evaluate.R ./inferred_networks/dream4_010_01_exp/ea_consensus/final_network.csv ./expression_data/DREAM4/GS/dream4_010_01_gs.csv
+```

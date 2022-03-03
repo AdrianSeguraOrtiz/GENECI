@@ -1,8 +1,11 @@
+package eagrn;
+
 import org.uma.jmetal.solution.Solution;
 import org.uma.jmetal.util.JMetalLogger;
 import org.uma.jmetal.util.observable.Observable;
 import org.uma.jmetal.util.observer.Observer;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 /**
@@ -14,6 +17,7 @@ import java.util.Map;
 public class FitnessObserver implements Observer<Map<String, Object>> {
 
     private Integer frequency ;
+    private ArrayList<Double> fitnessHistory;
     /**
      * Constructor
      * value.
@@ -21,6 +25,7 @@ public class FitnessObserver implements Observer<Map<String, Object>> {
 
     public FitnessObserver(Integer frequency) {
         this.frequency = frequency ;
+        this.fitnessHistory = new ArrayList<>();
     }
 
     public FitnessObserver() {
@@ -38,15 +43,10 @@ public class FitnessObserver implements Observer<Map<String, Object>> {
 
         if (solution!=null && evaluations != null) {
             if (evaluations % frequency == 0) {
-                StringBuilder objectiveValues = new StringBuilder();
                 for (Double objective: solution.objectives()) {
-                    objectiveValues.append(objective).append(" ");
+                    fitnessHistory.add(objective);
                 }
-                System.out.println("Evaluations: " + evaluations + ". Fitness: " + objectiveValues);
             }
-        } else {
-            JMetalLogger.logger.warning(getClass().getName()+
-                    ": The algorithm has not registered yet any info related to the EVALUATIONS and BEST_SOLUTION keys");
         }
     }
 
@@ -57,5 +57,9 @@ public class FitnessObserver implements Observer<Map<String, Object>> {
     @Override
     public String toString() {
         return getName() ;
+    }
+
+    public ArrayList<Double> getFitnessHistory() {
+        return fitnessHistory;
     }
 }

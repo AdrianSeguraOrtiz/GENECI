@@ -1,3 +1,5 @@
+package eagrn;
+
 public class ConsensusTuple implements Comparable<ConsensusTuple> {
     private int freq;
     private double conf;

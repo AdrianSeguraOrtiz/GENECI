@@ -1,10 +1,12 @@
-import operator.repairer.WeightRepairer;
+package eagrn;
+
+import eagrn.cutoffcriteria.CutOffCriteria;
+import eagrn.operator.repairer.WeightRepairer;
 import org.uma.jmetal.problem.doubleproblem.impl.AbstractDoubleProblem;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 import org.uma.jmetal.solution.doublesolution.impl.DefaultDoubleSolution;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.*;
 
 public class GRNProblem extends AbstractDoubleProblem {
@@ -12,13 +14,16 @@ public class GRNProblem extends AbstractDoubleProblem {
     private ArrayList<String> geneNames;
     private int numberOfNodes;
     private WeightRepairer initialPopulationRepairer;
+    private CutOffCriteria cutOffCriteria;
 
     /** Constructor Creates a default instance of the GRN problem */
-    public GRNProblem(File[] inferredNetworkFiles, String[] geneNames, WeightRepairer initialPopulationRepairer) {
+    public GRNProblem(File[] inferredNetworkFiles, ArrayList<String> geneNames, WeightRepairer initialPopulationRepairer, CutOffCriteria cutOffCriteria) {
         this.inferredNetworks = readAll(inferredNetworkFiles);
-        this.geneNames = new ArrayList<String>(List.of(geneNames));
-        this.numberOfNodes = geneNames.length;
+        this.geneNames = geneNames;
+        this.numberOfNodes = geneNames.size();
         this.initialPopulationRepairer = initialPopulationRepairer;
+        this.cutOffCriteria = cutOffCriteria;
+
         setNumberOfVariables(inferredNetworkFiles.length);
         setNumberOfObjectives(1);
         setName("GRNProblem");
@@ -53,13 +58,7 @@ public class GRNProblem extends AbstractDoubleProblem {
         Map<String, ConsensusTuple> consensus = makeConsensus(x);
         double f1 = fitnessF1(consensus);
 
-        /**
-        int k = (int) Math.round(0.2 * numberOfNodes);
-        int [][] binaryNetwork = getNetworkFromListWithK(consensus, k);
-         */
-
-        double percMaxConf = 0.15;
-        int [][] binaryNetwork = getNetworkFromListWithConf(consensus, percMaxConf);
+        int [][] binaryNetwork = cutOffCriteria.getNetworkFromConsensusList(consensus, geneNames);
         double f2 = fitnessF2(binaryNetwork);
 
         solution.objectives()[0] = 0.75*f1 + 0.25*f2;
@@ -104,64 +103,6 @@ public class GRNProblem extends AbstractDoubleProblem {
         }
 
         return consensus;
-    }
-
-    /** GetNetworkFromListWithK() method */
-    public int[][] getNetworkFromListWithK (Map<String, ConsensusTuple> consensus, int k) {
-        /**
-         * Constructs the Boolean matrix by setting a maximum number of links as the cut-off.
-         */
-
-        int[][] network = new int[numberOfNodes][numberOfNodes];
-
-        List<Map.Entry<String, ConsensusTuple>> list = new ArrayList<>(consensus.entrySet());
-        list.sort(Map.Entry.comparingByValue());
-
-        Iterator<Map.Entry<String, ConsensusTuple>> iterator = list.iterator();
-        int row, col, cnt = 0;
-        String key;
-        while (cnt < k) {
-            key = iterator.next().getKey();
-            String [] vKeySplit = key.split("-");
-            row = geneNames.indexOf(vKeySplit[0]);
-            col = geneNames.indexOf(vKeySplit[1]);
-            network[row][col] = 1;
-            network[col][row] = 1;
-            cnt += 1;
-        }
-
-        return network;
-    }
-
-    /** GetNetworkFromListWithConf() method */
-    public int[][] getNetworkFromListWithConf (Map<String, ConsensusTuple> consensus, double percMaxConf) {
-        /**
-         * Construct the Boolean matrix by setting a minimum confidence value as a cut-off.
-         */
-
-        int[][] network = new int[numberOfNodes][numberOfNodes];
-
-        double conf, max = 0;
-        for (Map.Entry<String, ConsensusTuple> pair : consensus.entrySet()) {
-            conf = pair.getValue().getConf();
-            if (conf > max) max = conf;
-        }
-
-        double cutOff = max * percMaxConf;
-        int row, col;
-        String key;
-        for (Map.Entry<String, ConsensusTuple> pair : consensus.entrySet()) {
-            if (pair.getValue().getConf() > cutOff) {
-                key = pair.getKey();
-                String [] vKeySplit = key.split("-");
-                row = geneNames.indexOf(vKeySplit[0]);
-                col = geneNames.indexOf(vKeySplit[1]);
-                network[row][col] = 1;
-                network[col][row] = 1;
-            }
-        }
-
-        return network;
     }
 
     /** FitnessF1() method */

@@ -1,15 +1,15 @@
-package operator.mutationwithrepair.impl;
+package eagrn.operator.mutationwithrepair.impl;
 
-import operator.repairer.WeightRepairer;
-import org.uma.jmetal.operator.mutation.impl.NonUniformMutation;
+import eagrn.operator.repairer.WeightRepairer;
+import org.uma.jmetal.operator.mutation.impl.SimpleRandomMutation;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 import org.uma.jmetal.util.errorchecking.JMetalException;
 
-public class NonUniformMutationWithRepair extends NonUniformMutation {
+public class SimpleRandomMutationWithRepair extends SimpleRandomMutation {
     private WeightRepairer repairer;
 
-    public NonUniformMutationWithRepair(double mutationProbability, double perturbation, int maxIterations, WeightRepairer repairer) {
-        super(mutationProbability, perturbation, maxIterations);
+    public SimpleRandomMutationWithRepair(double mutationProbability, WeightRepairer repairer) {
+        super(mutationProbability);
         this.repairer = repairer;
     }
 
