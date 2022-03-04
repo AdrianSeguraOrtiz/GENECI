@@ -1,6 +1,6 @@
 package eagrn;
 
-import eagrn.cutoffcriteria.CutOffCriteria;
+import eagrn.cutoffcriteria.CutOffCriteriaOnlyConf;
 import eagrn.cutoffcriteria.impl.MaxNumLinksBestConfCriteria;
 import eagrn.cutoffcriteria.impl.MinConfidenceCriteria;
 
@@ -10,7 +10,7 @@ import java.util.*;
 public class SingleNetworkRunner {
     public static void main(String[] args){
         /** Declare the main execution variables */
-        CutOffCriteria cutOffCriteria;
+        CutOffCriteriaOnlyConf cutOffCriteriaOnlyConf;
 
         /** Read input parameters */
         String listOfLinksStrFile;
@@ -36,10 +36,10 @@ public class SingleNetworkRunner {
         /** Establish the cut-off criteria */
         switch (strCutOffCriteria) {
             case "MinConfidence":
-                cutOffCriteria = new MinConfidenceCriteria(cutOffValue);
+                cutOffCriteriaOnlyConf = new MinConfidenceCriteria(cutOffValue);
                 break;
             case "MaxNumLinksBestConfCriteria":
-                cutOffCriteria = new MaxNumLinksBestConfCriteria((int) cutOffValue);
+                cutOffCriteriaOnlyConf = new MaxNumLinksBestConfCriteria((int) cutOffValue);
                 break;
             default:
                 throw new RuntimeException("The cut-off criteria entered is not available");
@@ -60,7 +60,7 @@ public class SingleNetworkRunner {
         Map<String, Double> map = new ListOfLinks(new File(listOfLinksStrFile)).getMapWithLinks();
 
         /** Calculate the binary matrix according to the selected criteria */
-        int[][] binaryNetwork = cutOffCriteria.getNetworkFromList(map, geneNames);
+        int[][] binaryNetwork = cutOffCriteriaOnlyConf.getNetwork(map, geneNames);
 
         /** Write the resulting binary matrix to an output csv file */
         try {

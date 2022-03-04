@@ -58,7 +58,7 @@ public class GRNProblem extends AbstractDoubleProblem {
         Map<String, ConsensusTuple> consensus = makeConsensus(x);
         double f1 = fitnessF1(consensus);
 
-        int [][] binaryNetwork = cutOffCriteria.getNetworkFromConsensusList(consensus, geneNames);
+        int [][] binaryNetwork = cutOffCriteria.getNetworkFromConsensus(consensus, geneNames);
         double f2 = fitnessF2(binaryNetwork);
 
         solution.objectives()[0] = 0.75*f1 + 0.25*f2;
@@ -110,31 +110,31 @@ public class GRNProblem extends AbstractDoubleProblem {
         /**
          * Try to minimize the quantity of high quality links (getting as close as possible
          * to 10 percent of the total possible links in the network) and at the same time maximize
-         * the quality of these good links (maximize the product of their confidence and frequency).
+         * the quality of these good links (maximize the mean of their confidence and frequency).
          *
-         * High quality links are those whose confidence-frequency product is above average.
+         * High quality links are those whose confidence-frequency mean is above average.
          */
 
-        /** 1. Calculate the mean of the confidence-frequency products.
+        /** 1. Calculate the mean of the confidence-frequency means.
          * The frequency is divided by the total number of available techniques to scale its value
          * between 0 and 1. In this way, its value has the same range as the confidence and both concepts
-         * have the same weight in the result of the product.
+         * have the same weight in the result of the mean.
          */
         double conf, freq, confFreqSum = 0;
         for (Map.Entry<String, ConsensusTuple> pair : consensus.entrySet()) {
             conf = pair.getValue().getConf();
             freq = pair.getValue().getFreq();
-            confFreqSum += conf * (freq / getNumberOfVariables());
+            confFreqSum += (conf + (freq / getNumberOfVariables())) / 2.0;
         }
         double mean = confFreqSum / consensus.size();
 
-        /** 2. Quantify the number of high quality links and calculate the average of their confidence-frequency products */
+        /** 2. Quantify the number of high quality links and calculate the average of their confidence-frequency means */
         confFreqSum = 0;
         double confFreq, cnt = 0;
         for (Map.Entry<String, ConsensusTuple> pair : consensus.entrySet()) {
             conf = pair.getValue().getConf();
             freq = pair.getValue().getFreq();
-            confFreq = conf * (freq / getNumberOfVariables());
+            confFreq = (conf + (freq / getNumberOfVariables())) / 2.0;
             if (confFreq > mean) {
                 confFreqSum += confFreq;
                 cnt += 1;

@@ -2,6 +2,7 @@ package eagrn;
 
 import eagrn.cutoffcriteria.CutOffCriteria;
 import eagrn.cutoffcriteria.impl.MaxNumLinksBestConfCriteria;
+import eagrn.cutoffcriteria.impl.MinConfFreqCriteria;
 import eagrn.cutoffcriteria.impl.MinConfidenceCriteria;
 import eagrn.operator.mutationwithrepair.impl.*;
 import eagrn.operator.repairer.impl.GreedyRepairer;
@@ -72,20 +73,8 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             strRepairer = "GreedyRepair";
             populationSize = 100;
             numEvaluations = 10000;
-            strCutOffCriteria = "MinConfidence";
-            cutOffValue = 0.1;
-        }
-
-        /** Establish the cut-off criteria */
-        switch (strCutOffCriteria) {
-            case "MinConfidence":
-                cutOffCriteria = new MinConfidenceCriteria(cutOffValue);
-                break;
-            case "MaxNumLinksBestConfCriteria":
-                cutOffCriteria = new MaxNumLinksBestConfCriteria((int) cutOffValue);
-                break;
-            default:
-                throw new RuntimeException("The cut-off criteria entered is not available");
+            strCutOffCriteria = "MinConfFreq";
+            cutOffValue = 0.2;
         }
 
         /** Establish the chromosome repairer */
@@ -115,6 +104,21 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             geneNames = new ArrayList<>(List.of(lineSplit));
         } catch (FileNotFoundException fnfe) {
             throw new RuntimeException(fnfe.getMessage());
+        }
+
+        /** Establish the cut-off criteria */
+        switch (strCutOffCriteria) {
+            case "MinConfidence":
+                cutOffCriteria = new MinConfidenceCriteria(cutOffValue);
+                break;
+            case "MaxNumLinksBestConf":
+                cutOffCriteria = new MaxNumLinksBestConfCriteria((int) cutOffValue);
+                break;
+            case "MinConfFreq":
+                cutOffCriteria = new MinConfFreqCriteria(cutOffValue, files.length);
+                break;
+            default:
+                throw new RuntimeException("The cut-off criteria entered is not available");
         }
 
         /** Initialize our problem with the extracted data */
@@ -269,7 +273,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         }
 
         /** Calculate the binary matrix from the list above */
-        int[][] binaryNetwork = cutOffCriteria.getNetworkFromConsensusList(consensus, geneNames);
+        int[][] binaryNetwork = cutOffCriteria.getNetworkFromConsensus(consensus, geneNames);
 
         /** Write the resulting binary matrix to an output csv file */
         try {

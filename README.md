@@ -71,7 +71,7 @@ bash infer_networks.sh
 5. Ejecutar algoritmo evolutivo:
 
 ```sh
-java -cp ./EAGRN-JMetal/target/AEGRN-1.0-SNAPSHOT-jar-with-dependencies.jar eagrn.GRNRunner /mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/dream4_010_01_exp/ SBXCrossover PolynomialMutation GreedyRepair 100 10000 MinConfidence 0.1
+java -cp ./EAGRN-JMetal/target/AEGRN-1.0-SNAPSHOT-jar-with-dependencies.jar eagrn.GRNRunner /mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/dream4_010_01_exp/ SBXCrossover PolynomialMutation GreedyRepair 100 10000 MinConfFreq 0.2
 ```
 
 6. Evaluar la calidad de la red génica consenso
