@@ -8,6 +8,7 @@ license = "MIT"
 [tool.poetry.dependencies]
 python = "^3.9"
 arboreto = "^0.1.6"
+typer = "^0.4.0"
 
 [tool.poetry.dev-dependencies]
 

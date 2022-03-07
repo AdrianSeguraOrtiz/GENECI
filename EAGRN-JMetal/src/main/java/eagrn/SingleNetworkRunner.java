@@ -38,7 +38,7 @@ public class SingleNetworkRunner {
             case "MinConfidence":
                 cutOffCriteriaOnlyConf = new MinConfidenceCriteria(cutOffValue);
                 break;
-            case "MaxNumLinksBestConfCriteria":
+            case "MaxNumLinksBestConf":
                 cutOffCriteriaOnlyConf = new MaxNumLinksBestConfCriteria((int) cutOffValue);
                 break;
             default:

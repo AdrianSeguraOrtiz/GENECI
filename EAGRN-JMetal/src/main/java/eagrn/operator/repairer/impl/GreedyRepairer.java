@@ -11,7 +11,7 @@ public class GreedyRepairer implements WeightRepairer {
         double v = 0, sum = 0;
         int pos = -1;
         int numVariables = solution.variables().size();
-        int randInitialPos = (int) (Math.random() * (numVariables - 1));
+        int randInitialPos = getRandomPos(numVariables);
 
         int cnt = 0;
         while (cnt < numVariables && sum <= 1) {
@@ -46,5 +46,9 @@ public class GreedyRepairer implements WeightRepairer {
             v = Math.round((v + 1 - sum) * 10000.0) / 10000.0;
             solution.variables().set(lastPos, v);
         }
+    }
+
+    public int getRandomPos(int numVariables) {
+        return (int) (Math.random() * (numVariables - 1));
     }
 }

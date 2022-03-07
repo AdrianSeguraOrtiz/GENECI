@@ -220,7 +220,8 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             File outputFile = new File(networkFolder + "ea_consensus/fitness_evolution.txt");
             outputFile.getParentFile().mkdirs();
             BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
-            bw.write(fitnessObserver.getFitnessHistory().toString());
+            String strFitnessVector = fitnessObserver.getFitnessHistory().toString();
+            bw.write(strFitnessVector.substring(1, strFitnessVector.length() - 1));
             bw.flush();
         } catch (IOException ioe) {
             throw new RuntimeException(ioe.getMessage());
