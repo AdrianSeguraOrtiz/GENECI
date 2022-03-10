@@ -1,0 +1,23 @@
+Navigate to the matlab directory in MATLAB.
+
+For DIRECTED networks...
+
+Run:
+go.m
+go_all.m
+
+Put your predictions in 
+INPUT/my_predictions
+
+Run:
+go_all.m
+
+Note: DREAM4 was scored as a directed network.
+
+--------------------------------------------------
+
+For UNDIRECTED networks...
+
+go_undir.m
+go_all_undir.m
+
