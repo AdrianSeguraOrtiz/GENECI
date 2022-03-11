@@ -22,11 +22,10 @@ source("./functions/functions.R")
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
-# Install minet
-#BiocManager::install("minet")
-
 # Load minet
-suppressMessages(library(minet))
+tryCatch(suppressMessages(library(minet)),
+ error = function(e) BiocManager::install("minet"),
+ finally = function(f) suppressMessages(library(minet)))
 
 # Load the expression matrix
 ex_matrix <- t(read.table(in_file, sep=",", head=T, row.names=1))

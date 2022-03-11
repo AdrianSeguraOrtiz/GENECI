@@ -22,11 +22,10 @@ source("./functions/functions.R")
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
-# Install GENIE3
-#BiocManager::install("GENIE3")
-
 # Load GENIE3
-suppressMessages(library(GENIE3))
+tryCatch(suppressMessages(library(GENIE3)),
+ error = function(e) BiocManager::install("GENIE3"),
+ finally = function(f) suppressMessages(library(GENIE3)))
 
 # Load the expression matrix
 ex_matrix <- as.matrix(read.table(in_file, sep=",", head=T, row.names=1))

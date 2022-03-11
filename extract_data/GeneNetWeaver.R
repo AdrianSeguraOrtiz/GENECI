@@ -2,11 +2,10 @@
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
-# Install grndata
-#BiocManager::install("grndata")
-
 # Load grndata
-suppressMessages(library(grndata))
+tryCatch(suppressMessages(library(grndata)),
+ error = function(e) BiocManager::install("grndata"),
+ finally = function(f) suppressMessages(library(grndata)))
 
 # Select the data to be downloaded
 v.str_networks <- c("gnw1565", "gnw2000")

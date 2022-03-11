@@ -22,11 +22,10 @@ source("./functions/functions.R")
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
-# Install CeTF
-#BiocManager::install("CeTF")
-
 # Load CeTF
-suppressMessages(library(CeTF))
+tryCatch(suppressMessages(library(CeTF)),
+ error = function(e) BiocManager::install("CeTF"),
+ finally = function(f) suppressMessages(library(CeTF)))
 
 # Load the expression matrix
 ex_matrix <- read.table(in_file, sep=",", head=T, row.names=1)
