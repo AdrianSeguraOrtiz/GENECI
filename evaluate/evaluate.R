@@ -17,6 +17,11 @@ if (length(ARGS) >= 2) {
 
 # https://www.synapse.org/#!Synapse:syn2825309
 
+lbs <- c("pROC", "parallel")
+not_installed <- lbs[!(lbs %in% installed.packages()[ , "Package"])]
+if(length(not_installed)) install.packages(not_installed, repos = "http://cran.us.r-project.org")
+sapply(lbs, require, character.only=TRUE)
+
 suppressMessages(library(pROC))
 suppressMessages(library(parallel))
 

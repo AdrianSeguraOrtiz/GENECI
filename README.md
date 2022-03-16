@@ -54,10 +54,16 @@ mvn clean compile assembly:single
 cd ..
 ```
 
+2. Imagen de docker para ejecutar scripts de R
+
+```sh
+docker build . --tag inference --no-cache
+```
+
 2. Descargar datos simulados de expresión y sus respectivos gold standard:
 
 ```sh
-bash extract_data.sh
+docker run -it inference bash extract_data.sh
 ```
 
 3. Inferir redes de regulación génica mediante las técnicas individuales disponibles:
