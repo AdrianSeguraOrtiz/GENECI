@@ -1,0 +1,1 @@
+matlab -nodisplay -nosplash -nodesktop -r "run('/mnt/volumen/adriansegura/TFM/EAGRN-Inference/evaluate/matlab/go_all_undirected.m');"
