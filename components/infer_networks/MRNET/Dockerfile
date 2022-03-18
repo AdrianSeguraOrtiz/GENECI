@@ -20,4 +20,4 @@ RUN R -e "BiocManager::install('minet')"
 COPY . /usr/local/src/
 WORKDIR /usr/local/src/
 
-ENTRYPOINT ["Rscript", "--vanilla", "components/infer_networks/ARACNE/ARACNE.R"]
+ENTRYPOINT ["Rscript", "--vanilla", "components/infer_networks/MRNET/MRNET.R"]

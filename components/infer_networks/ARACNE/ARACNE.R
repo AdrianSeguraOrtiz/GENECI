@@ -13,7 +13,7 @@ if (length(ARGS) >= 1) {
 }
 
 # Load functions
-source("../functions.R")
+source("components/infer_networks/functions.R")
 
 # Install BiocManager if not already installed
 if (!requireNamespace("BiocManager", quietly = TRUE))
@@ -35,5 +35,5 @@ conf_list <- GetConfList(network)
 conf_list <- ProcessList(conf_list)
 
 # Save list
-file_id <- tools::file_path_sans_ext(basename(in_file)) 
-write.table(conf_list, paste0("./inferred_networks/", file_id, "lists/GRN_ARACNE.csv"), sep=",", col.names=F, row.names=F, quote=F)
+file_id <- tools::file_path_sans_ext(basename(in_file))
+write.table(conf_list, paste0("./inferred_networks/", file_id, "/lists/GRN_ARACNE.csv"), sep=",", col.names=F, row.names=F, quote=F)

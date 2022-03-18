@@ -15,7 +15,7 @@ Given a CSV file with differential expression data, this component infers its ge
 ## Build
 
 ```
-docker build -t eagrn-inference/infer_networks/aracne .
+docker build -t eagrn-inference/infer_networks/aracne -f components/infer_networks/ARACNE/Dockerfile .
 ```
 
 ## Run

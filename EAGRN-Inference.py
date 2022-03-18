@@ -3,6 +3,7 @@ from typing import List, Optional
 from enum import Enum
 from pathlib import Path
 import docker
+import shutil
 
 app = typer.Typer()
 
@@ -27,6 +28,9 @@ class Technique(str, Enum):
 def extract_data(database: Optional[List[Database]] = typer.Option(
         ..., case_sensitive=False, help="Databases for downloading expression data."
     )):
+    """
+        Download differential expression data from various databases such as DREAM4, SynTReN, Rogers and GeneNetWeaver.
+    """
 
     for db in database:
         Path(f'./expression_data/{db}/EXP/').mkdir(exist_ok=True, parents=True)
@@ -58,8 +62,13 @@ def infer_networks(expression_data: Path = typer.Option(
     ), technique: Optional[List[Technique]]= typer.Option(
         ..., case_sensitive=False, help="Inference techniques to be performed."
     )):
+    """
+        Infer gene regulatory networks from expression data. Several techniques are available: ARACNE, BC3NET, C3NET, CLR, GENIE3, MRNET, MRNET, MRNETB and PCIT.
+    """
 
     Path(f'./inferred_networks/{Path(expression_data).stem}/lists/').mkdir(exist_ok=True, parents=True)
+    tmp_exp_dir = f"./inferred_networks/{Path(expression_data).name}"
+    shutil.copyfile(expression_data, tmp_exp_dir)
 
     for tec in technique:
         typer.echo(f"Infer network from {expression_data} with {tec}")
@@ -68,7 +77,7 @@ def infer_networks(expression_data: Path = typer.Option(
         container = client.containers.run(
             image=f"eagrn-inference/infer_networks/{tec.lower()}",
             volumes={Path("./inferred_networks/").absolute(): {"bind": "/usr/local/src/inferred_networks", "mode": "rw"}},
-            command=str(expression_data),
+            command=tmp_exp_dir,
             detach=True,
             tty=True,
         )
@@ -80,6 +89,8 @@ def infer_networks(expression_data: Path = typer.Option(
 
         container.stop()
         container.remove(v=True)
+    
+    Path(tmp_exp_dir).unlink()
 
 
 @app.command()
