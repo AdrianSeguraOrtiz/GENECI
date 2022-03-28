@@ -23,11 +23,21 @@ class Technique(str, Enum):
     MRNETB = "MRNETB"
     PCIT = "PCIT"
 
+class CutOffCriteriaOnlyConf(str, Enum):
+    MinConfidence = "MinConfidence"
+    MaxNumLinksBestConf = "MaxNumLinksBestConf"
+
+class CutOffCriteria(str, Enum):
+    MinConfidence = "MinConfidence"
+    MaxNumLinksBestConf = "MaxNumLinksBestConf"
+    MinConfFreq = "MinConfFreq"
+
+
 
 @app.command()
-def extract_data(database: Optional[List[Database]] = typer.Option(
-        ..., case_sensitive=False, help="Databases for downloading expression data."
-    )):
+def extract_data(
+        database: Optional[List[Database]] = typer.Option(..., case_sensitive=False, help="Databases for downloading expression data.")
+    ):
     """
         Download differential expression data from various databases such as DREAM4, SynTReN, Rogers and GeneNetWeaver.
     """
@@ -57,11 +67,10 @@ def extract_data(database: Optional[List[Database]] = typer.Option(
 
 
 @app.command()
-def infer_networks(expression_data: Path = typer.Option(
-        ..., exists=True, file_okay=True, help="Path to the CSV file with the expression data. Genes are distributed in rows and experimental conditions (time series) in columns."
-    ), technique: Optional[List[Technique]]= typer.Option(
-        ..., case_sensitive=False, help="Inference techniques to be performed."
-    )):
+def infer_networks(
+        expression_data: Path = typer.Option(..., exists=True, file_okay=True, help="Path to the CSV file with the expression data. Genes are distributed in rows and experimental conditions (time series) in columns."), 
+        technique: Optional[List[Technique]]= typer.Option(..., case_sensitive=False, help="Inference techniques to be performed.")
+    ):
     """
         Infer gene regulatory networks from expression data. Several techniques are available: ARACNE, BC3NET, C3NET, CLR, GENIE3, MRNET, MRNET, MRNETB and PCIT.
     """
@@ -92,10 +101,31 @@ def infer_networks(expression_data: Path = typer.Option(
     
     Path(tmp_exp_dir).unlink()
 
+    gene_names = f'./inferred_networks/{Path(expression_data).stem}/gene_names.txt'
+    if (not Path(gene_names).is_file()):
+        with open(expression_data, "r") as f:
+            gene_list = [row.split(",")[0].replace('\"', '') for row in f]
+            if gene_list[0] == "": 
+                del gene_list[0]
+
+        with open(gene_names, "w") as f:
+            f.write(",".join(gene_list))
+
 
 @app.command()
-def apply_cut(confidence_list: str, cut_off_criteria: str, cut_off_value: str):
+def apply_cut(
+        confidence_list: Path = typer.Option(..., exists=True, file_okay=True, help="Path to the CSV file with the list of trusted values."), 
+        gene_names: Path = typer.Option(..., exists=True, file_okay=True, help="Path to the TXT file with the name of the contemplated genes separated by comma and without space."),
+        cut_off_criteria: CutOffCriteriaOnlyConf = typer.Option(..., case_sensitive=False, help="Criteria for determining which links will be part of the final binary matrix."), 
+        cut_off_value: float = typer.Option(..., help="Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10")
+    ):
+    """
+    Converts a list of confidence values into a binary matrix that represents the final gene network.
+    """
+    # Asegurarse de organizar correctamente la carpeta de entrada antes de llamar al jar y después deshacer.
+
     typer.echo(f"Apply cut to {confidence_list} with {cut_off_criteria} and value {cut_off_value}")
+    
 
 
 @app.command()
@@ -109,7 +139,7 @@ def evaluate(undirected_network: str, undirected_gold_standard: str):
 
 
 @app.command()
-def run(expression_data: str, techniques: str, crossover: str, mutation: str, repairer: str, population_size: str, num_evaluations: str, cut_off_criteria: str, cut_off_value: str):
+def run(expression_data: str, technique: str, crossover: str, mutation: str, repairer: str, population_size: str, num_evaluations: str, cut_off_criteria: str, cut_off_value: str):
     typer.echo(f"Run algorithm for {expression_data}")
 
 

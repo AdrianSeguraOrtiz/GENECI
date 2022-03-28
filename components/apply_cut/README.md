@@ -15,11 +15,11 @@ This component is responsible for downloading differential expression data from 
 ## Build
 
 ```
-docker build -t eagrn-inference/extract_data -f components/extract_data/Dockerfile .
+docker build -t eagrn-inference/apply_cut -f components/apply_cut/Dockerfile .
 ```
 
 ## Run
 
 ```
-docker run -v $(pwd)/expression_data:/usr/local/src/expression_data/ eagrn-inference/extract_data DREAM4
+docker run -v $(pwd)/inferred_networks:/usr/local/src/inferred_networks/ eagrn-inference/apply_cut inferred_networks/dream4_010_01_exp/lists/GRN_ARACNE.csv MinConfidence 0.5
 ```
