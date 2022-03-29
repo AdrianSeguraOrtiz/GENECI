@@ -50,7 +50,7 @@ public class SingleNetworkRunner {
         try {
             Scanner sc = new Scanner(new File(geneNamesStrFile));
             String line = sc.nextLine();
-            String[] lineSplit = line.split(" ");
+            String[] lineSplit = line.split(",");
             geneNames = new ArrayList<>(List.of(lineSplit));
         } catch (FileNotFoundException fnfe) {
             throw new RuntimeException(fnfe.getMessage());
@@ -78,6 +78,7 @@ public class SingleNetworkRunner {
                 bw.newLine();
             }
             bw.flush();
+            bw.close();
         } catch (IOException ioe) {
             throw new RuntimeException(ioe.getMessage());
         }

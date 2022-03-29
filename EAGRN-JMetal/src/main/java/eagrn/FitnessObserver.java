@@ -1,7 +1,6 @@
 package eagrn;
 
 import org.uma.jmetal.solution.Solution;
-import org.uma.jmetal.util.JMetalLogger;
 import org.uma.jmetal.util.observable.Observable;
 import org.uma.jmetal.util.observer.Observer;
 

@@ -54,34 +54,34 @@ mvn clean compile assembly:single
 cd ..
 ```
 
-2. Imagen de docker para ejecutar scripts de R
+2. Generar imágenes
 
 ```sh
-docker build . --tag inference --no-cache
+bash generate_images.sh
 ```
 
-2. Descargar datos simulados de expresión y sus respectivos gold standard:
+3. Descargar datos simulados de expresión y sus respectivos gold standard:
 
 ```sh
-docker run -it inference bash extract_data.sh
+python EAGRN-Inference.py extract-data --database DREAM4 --database SynTReN --database Rogers --database GeneNetWeaver
 ```
 
 3. Inferir redes de regulación génica mediante las técnicas individuales disponibles:
 
 ```sh
-bash infer_networks.sh MinConfidence 0.2
+
 ```
 
 4. Evaluar individualmente la calidad de cada red inferida
 
 ```sh
-bash evaluate/evaluate_techniques.sh
+
 ```
 
 5. Ejecutar algoritmo evolutivo:
 
 ```sh
-java -cp ./EAGRN-JMetal/target/AEGRN-1.0-SNAPSHOT-jar-with-dependencies.jar eagrn.GRNRunner /mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/dream4_010_01_exp/ SBXCrossover PolynomialMutation GreedyRepair 100 10000 MinConfFreq 0.2
+
 ```
 
 6. Graficar la evolución de los valores de fitness

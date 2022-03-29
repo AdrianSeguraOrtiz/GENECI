@@ -32,6 +32,7 @@ public class ListOfLinks {
                 Double value = Double.parseDouble(splitLine[2]);
                 map.put(key, value);
             }
+            sc.close();
         } catch (FileNotFoundException fnfe) {
             throw new RuntimeException(fnfe.getMessage());
         }

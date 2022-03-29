@@ -100,8 +100,9 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         try {
             Scanner sc = new Scanner(geneNamesFile);
             String line = sc.nextLine();
-            String[] lineSplit = line.split(" ");
+            String[] lineSplit = line.split(",");
             geneNames = new ArrayList<>(List.of(lineSplit));
+            sc.close();
         } catch (FileNotFoundException fnfe) {
             throw new RuntimeException(fnfe.getMessage());
         }
@@ -223,6 +224,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             String strFitnessVector = fitnessObserver.getFitnessHistory().toString();
             bw.write(strFitnessVector.substring(1, strFitnessVector.length() - 1));
             bw.flush();
+            bw.close();
         } catch (IOException ioe) {
             throw new RuntimeException(ioe.getMessage());
         }
@@ -250,6 +252,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 bw.newLine();
             }
             bw.flush();
+            bw.close();
         } catch (IOException ioe) {
             throw new RuntimeException(ioe.getMessage());
         }
@@ -269,6 +272,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 bw.newLine();
             }
             bw.flush();
+            bw.close();
         } catch (IOException ioe) {
             throw new RuntimeException(ioe.getMessage());
         }
@@ -292,6 +296,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 bw.newLine();
             }
             bw.flush();
+            bw.close();
         } catch (IOException ioe) {
             throw new RuntimeException(ioe.getMessage());
         }
