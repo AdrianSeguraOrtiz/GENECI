@@ -69,7 +69,7 @@ python EAGRN-Inference.py extract-data --database DREAM4 --database SynTReN --da
 3. Inferir redes de regulación génica mediante las técnicas individuales disponibles:
 
 ```sh
-
+python EAGRN-Inference.py infer-network --expression-data expression_data/DREAM4/EXP/dream4_010_01_exp.csv --technique aracne --technique bc3net --technique c3net --technique clr --technique genie3 --technique mrnet --technique mrnetb --technique pcit
 ```
 
 4. Evaluar individualmente la calidad de cada red inferida
@@ -81,7 +81,7 @@ python EAGRN-Inference.py extract-data --database DREAM4 --database SynTReN --da
 5. Ejecutar algoritmo evolutivo:
 
 ```sh
-
+python EAGRN-Inference.py optimize-ensemble --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_ARACNE.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_BC3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_C3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_CLR.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNETB.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_PCIT.csv
 ```
 
 6. Graficar la evolución de los valores de fitness

@@ -241,7 +241,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
         /** Write the list of weights assigned to each technique in an output txt file */
         try {
-            File outputFile = new File(networkFolder + "ea_consensus/final_weights.text");
+            File outputFile = new File(networkFolder + "ea_consensus/final_weights.txt");
             outputFile.getParentFile().mkdirs();
             BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
 
