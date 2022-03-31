@@ -28,7 +28,7 @@ Evolutionary algorithm for determining the optimal ensemble of unsupervised lear
 - PCIT
     - R: http://www.bioconductor.org/packages/release/bioc/html/CeTF.html (PCIT.R) (NC)
 
-# Annotations
+## Annotations
 
 Respecto a GENIE3, CLR, ARACNE, MRNET y MRNETB:
  - GENIE3 se implementa en el paquete GENIE3
@@ -38,13 +38,7 @@ Respecto a GENIE3, CLR, ARACNE, MRNET y MRNETB:
 Respecto a C3NET y BC3NET:
  - Tienen muchos parámetros que no entiendo, preguntar cuáles combinaciones se podrían probar
 
-# Consensus
-
- - Normalización: En el TFM de Barcelona se indica que la mejor opción es utilizar lo que llaman LScale. En otros artículos aparece como CLRSum, sin embargo, no logro encontrar ningún paquete que implemente esta normalización. La fórmula se detalla en el TFM pero no consigo entenderla como para implementarla por mi cuenta.
-
- - Agregación: En los artículos que he visto suelen decantarse por la suma, lo cual también coincide con lo mostrado en la experimentación del TFM.
-
-# Commads
+# Example procedure
 
 1. Generar .jar con dependencias:
 
@@ -66,32 +60,171 @@ bash generate_images.sh
 python EAGRN-Inference.py extract-data --database DREAM4 --database SynTReN --database Rogers --database GeneNetWeaver
 ```
 
-3. Inferir redes de regulación génica mediante las técnicas individuales disponibles:
+4. Ejecutar algoritmo para un conjunto de datos de expresión concreto:
+
+```sh
+python EAGRN-Inference.py run --expression-data expression_data/DREAM4/EXP/dream4_010_02_exp.csv --technique aracne --technique bc3net --technique c3net --technique clr --technique genie3 --technique mrnet --technique mrnetb --technique pcit
+```
+
+Este proceso también se puede dividir en dos partes:
+
+4.1. Inferir redes de regulación génica mediante las técnicas individuales disponibles:
 
 ```sh
 python EAGRN-Inference.py infer-network --expression-data expression_data/DREAM4/EXP/dream4_010_01_exp.csv --technique aracne --technique bc3net --technique c3net --technique clr --technique genie3 --technique mrnet --technique mrnetb --technique pcit
 ```
 
-4. Evaluar individualmente la calidad de cada red inferida
+4.2. Optimizar el ensemble de las listas de confianza resultantes del comando anterior:
 
 ```sh
-
+python EAGRN-Inference.py optimize-ensemble --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_ARACNE.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_BC3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_C3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_CLR.csv
+--confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_RF.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_ET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNETB.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_PCIT.csv --gene_names inferred_networks/dream4_010_01_exp/gene_names.txt
 ```
 
-5. Ejecutar algoritmo evolutivo:
+5. Evaluar la calidad de la red génica inferida respecto a la gold standard
 
 ```sh
-python EAGRN-Inference.py optimize-ensemble --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_ARACNE.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_BC3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_C3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_CLR.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNETB.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_PCIT.csv
+# Pendiente de implementar
+python EAGRN-Inference.py evaluate --undirected-network inferred_networks/dream4_010_01_exp/ea_consensus/final_network.csv --gold-standard expression_data/DREAM4/GS/dream4_010_01_gs.csv
 ```
 
-6. Graficar la evolución de los valores de fitness
+# Console script
 
-```sh
-python plot_fitness/plot_fitness.py --input-file ./inferred_networks/dream4_010_01_exp/ea_consensus/fitness_evolution.txt
+**Usage**:
+
+```console
+$ [OPTIONS] COMMAND [ARGS]...
 ```
 
-7. Evaluar la calidad de la red génica consenso
+**Options**:
 
-```sh
-Rscript evaluate/evaluate.R ./inferred_networks/dream4_010_01_exp/ea_consensus/final_network.csv ./expression_data/DREAM4/GS/dream4_010_01_gs.csv
+* `--install-completion`: Install completion for the current shell.
+* `--show-completion`: Show completion for the current shell, to copy it or customize the installation.
+* `--help`: Show this message and exit.
+
+**Commands**:
+
+* `apply-cut`: Converts a list of confidence values into a...
+* `evaluate`
+* `extract-data`: Download differential expression data from...
+* `infer-network`: Infer gene regulatory networks from...
+* `optimize-ensemble`: Analyzes several trust lists and builds a...
+* `run`
+
+## `apply-cut`
+
+Converts a list of confidence values into a binary matrix that represents the final gene network.
+
+**Usage**:
+
+```console
+$ apply-cut [OPTIONS]
 ```
+
+**Options**:
+
+* `--confidence-list PATH`: Path to the CSV file with the list of trusted values.  [required]
+* `--gene-names PATH`: Path to the TXT file with the name of the contemplated genes separated by comma and without space. If not specified, only the genes specified in the list of trusts will be considered.
+* `--cut-off-criteria [MinConfidence|MaxNumLinksBestConf]`: Criteria for determining which links will be part of the final binary matrix.  [required]
+* `--cut-off-value FLOAT`: Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10  [required]
+* `--output-file PATH`: Path to the output CSV file that will contain the binary matrix resulting from the cutting operation.  [default: <<conf_list_path>>/../networks/<<conf_list_name>>.csv]
+* `--help`: Show this message and exit.
+
+## `evaluate`
+
+**Usage**:
+
+```console
+$ evaluate [OPTIONS] UNDIRECTED_NETWORK UNDIRECTED_GOLD_STANDARD
+```
+
+**Arguments**:
+
+* `UNDIRECTED_NETWORK`: [required]
+* `UNDIRECTED_GOLD_STANDARD`: [required]
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+## `extract-data`
+
+Download differential expression data from various databases such as DREAM4, SynTReN, Rogers and GeneNetWeaver.
+
+**Usage**:
+
+```console
+$ extract-data [OPTIONS]
+```
+
+**Options**:
+
+* `--database [DREAM4|SynTReN|Rogers|GeneNetWeaver]`: Databases for downloading expression data.  [required]
+* `--output-dir PATH`: Path to the output folder.  [default: expression_data]
+* `--help`: Show this message and exit.
+
+## `infer-network`
+
+Infer gene regulatory networks from expression data. Several techniques are available: ARACNE, BC3NET, C3NET, CLR, GENIE3, MRNET, MRNET, MRNETB and PCIT.
+
+**Usage**:
+
+```console
+$ infer-network [OPTIONS]
+```
+
+**Options**:
+
+* `--expression-data PATH`: Path to the CSV file with the expression data. Genes are distributed in rows and experimental conditions (time series) in columns.  [required]
+* `--technique [ARACNE|BC3NET|C3NET|CLR|GENIE3|MRNET|MRNETB|PCIT]`: Inference techniques to be performed.  [required]
+* `--output-dir PATH`: Path to the output folder.  [default: inferred_networks]
+* `--help`: Show this message and exit.
+
+## `optimize-ensemble`
+
+Analyzes several trust lists and builds a consensus network by applying an evolutionary algorithm
+
+**Usage**:
+
+```console
+$ optimize-ensemble [OPTIONS]
+```
+
+**Options**:
+
+* `--confidence-list TEXT`: Paths of the CSV files with the confidence lists to be agreed upon.  [required]
+* `--gene-names PATH`: Path to the TXT file with the name of the contemplated genes separated by comma and without space. If not specified, only the genes specified in the lists of trusts will be considered.
+* `--crossover [SBXCrossover|BLXAlphaCrossover|DifferentialEvolutionCrossover|NPointCrossover|NullCrossover|WholeArithmeticCrossover]`: Crossover operator  [default: SBXCrossover]
+* `--mutation [PolynomialMutation|CDGMutation|GroupedAndLinkedPolynomialMutation|GroupedPolynomialMutation|LinkedPolynomialMutation|NonUniformMutation|NullMutation|SimpleRandomMutation|UniformMutation]`: Mutation operator  [default: PolynomialMutation]
+* `--repairer [StandardizationRepairer|GreedyRepair]`: Solution repairer to keep the sum of weights equal to 1  [default: GreedyRepair]
+* `--population-size INTEGER`: Population size  [default: 100]
+* `--num-evaluations INTEGER`: Number of evaluations  [default: 10000]
+* `--cut-off-criteria [MinConfidence|MaxNumLinksBestConf|MinConfFreq]`: Criteria for determining which links will be part of the final binary matrix.  [default: MinConfFreq]
+* `--cut-off-value FLOAT`: Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfFreq = 0.2  [default: 0.2]
+* `--no-graphics / --no-no-graphics`: Indicate if you do not want to represent the evolution of the fitness value.  [default: False]
+* `--output-dir PATH`: Path to the output folder.  [default: <<conf_list_path>>/../ea_consensus]
+* `--help`: Show this message and exit.
+
+## `run`
+
+**Usage**:
+
+```console
+$ run [OPTIONS]
+```
+
+**Options**:
+
+* `--expression-data PATH`: Path to the CSV file with the expression data. Genes are distributed in rows and experimental conditions (time series) in columns.  [required]
+* `--technique [ARACNE|BC3NET|C3NET|CLR|GENIE3|MRNET|MRNETB|PCIT]`: Inference techniques to be performed.  [required]
+* `--crossover [SBXCrossover|BLXAlphaCrossover|DifferentialEvolutionCrossover|NPointCrossover|NullCrossover|WholeArithmeticCrossover]`: Crossover operator  [default: SBXCrossover]
+* `--mutation [PolynomialMutation|CDGMutation|GroupedAndLinkedPolynomialMutation|GroupedPolynomialMutation|LinkedPolynomialMutation|NonUniformMutation|NullMutation|SimpleRandomMutation|UniformMutation]`: Mutation operator  [default: PolynomialMutation]
+* `--repairer [StandardizationRepairer|GreedyRepair]`: Solution repairer to keep the sum of weights equal to 1  [default: GreedyRepair]
+* `--population-size INTEGER`: Population size  [default: 100]
+* `--num-evaluations INTEGER`: Number of evaluations  [default: 10000]
+* `--cut-off-criteria [MinConfidence|MaxNumLinksBestConf|MinConfFreq]`: Criteria for determining which links will be part of the final binary matrix.  [default: MinConfFreq]
+* `--cut-off-value FLOAT`: Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfFreq = 0.2  [default: 0.2]
+* `--no-graphics / --no-no-graphics`: Indicate if you do not want to represent the evolution of the fitness value.  [default: False]
+* `--output-dir PATH`: Path to the output folder.  [default: inferred_networks]
+* `--help`: Show this message and exit.
+
