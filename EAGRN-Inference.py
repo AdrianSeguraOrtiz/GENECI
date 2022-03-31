@@ -267,7 +267,6 @@ def optimize_ensemble(
 
     if str(output_dir) == "<<conf_list_path>>/../ea_consensus":
         output_dir = Path(f"{Path(confidence_list[0]).parents[1]}/ea_consensus")
-        print(output_dir)
 
     output_dir.mkdir(exist_ok=True, parents=True)
     for f in Path("tmp/ea_consensus").glob('*'):
@@ -276,8 +275,14 @@ def optimize_ensemble(
     
 
 @app.command()
-def evaluate(undirected_network: str, undirected_gold_standard: str):
-    typer.echo(f"Evaluate {undirected_network} comparing with {undirected_gold_standard}")
+def evaluate(
+        undirected_network: Path = typer.Option(..., exists=True, file_okay=True, help=""),
+        gold_standard: Path = typer.Option(..., exists=True, file_okay=True, help=""),
+    ):
+    """
+    Evaluate the accuracy of the inferred gene network compared to the gold standard provided.
+    """
+    typer.echo(f"Evaluate {undirected_network} comparing with {gold_standard}")
 
 
 @app.command()
@@ -294,7 +299,9 @@ def run(
         no_graphics: bool = typer.Option(False, help="Indicate if you do not want to represent the evolution of the fitness value."),
         output_dir: Path = typer.Option(Path("./inferred_networks"), help="Path to the output folder."),
     ):
-
+    """
+        Infer gene regulatory network from expression data by employing multiple unsupervised learning techniques and applying a genetic algorithm for consensus optimization.
+    """
     typer.echo(f"Run algorithm for {expression_data}")
     
     infer_network(
