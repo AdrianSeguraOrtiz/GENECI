@@ -24,13 +24,13 @@
 clear all
 
 %% predictions to be evaluated
-testfile = '../../../inferred_networks/dream4_010_05_exp/ea_consensus/final_list.csv';
+testfile = './inferred_networks/dream4_010_05_exp/ea_consensus/final_list.csv';
 
 %% the gold standard that corresponds to the testfile
-goldfile = '../INPUT/gold_standards/10/DREAM4_GoldStandard_InSilico_Size10_5.tsv';
+goldfile = './evaluate/DREAM4/INPUT/gold_standards/10/DREAM4_GoldStandard_InSilico_Size10_5.tsv';
 
 %% precomputed probability density that corresponds to the testfile
-pdffile = '../INPUT/probability_densities/pdf_size10_5.mat';
+pdffile = './evaluate/DREAM4/INPUT/probability_densities/pdf_size10_5.mat';
 
 %% load gold standard
 gold_data = load_dream_network(goldfile);

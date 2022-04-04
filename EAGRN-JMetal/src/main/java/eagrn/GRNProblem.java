@@ -142,7 +142,7 @@ public class GRNProblem extends AbstractDoubleProblem {
         }
 
         /** 3. Calculate fitness value */
-        double numberOfLinks = (double) (numberOfNodes * (numberOfNodes - 1))/2;
+        double numberOfLinks = (double) (numberOfNodes * numberOfNodes);
         double f1 = Math.abs(cnt - 0.1 * numberOfLinks)/((1 - 0.1) * numberOfLinks);
         double f2 = 1.0 - confFreqSum/cnt;
         double fitness = (f1 + f2)/2;

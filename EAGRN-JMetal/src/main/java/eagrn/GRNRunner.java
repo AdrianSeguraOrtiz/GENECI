@@ -27,9 +27,11 @@ import org.uma.jmetal.util.termination.impl.TerminationByEvaluations;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class GRNRunner extends AbstractAlgorithmRunner {
     /**
@@ -258,7 +260,12 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         }
 
         /** Calculate the consensus list corresponding to the solution vector. */
-        Map<String, ConsensusTuple> consensus = problem.makeConsensus(winner);
+        Map<String, ConsensusTuple> consensus = problem.makeConsensus(winner)
+            .entrySet()
+            .stream()
+            .sorted(Map.Entry.<String, ConsensusTuple>comparingByValue())
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                (e1, e2) -> e1, LinkedHashMap::new));
 
         /** Write the resulting list of links to an output csv file */
         try {

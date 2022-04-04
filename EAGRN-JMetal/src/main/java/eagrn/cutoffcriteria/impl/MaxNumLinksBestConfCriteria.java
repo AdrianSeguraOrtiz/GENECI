@@ -52,7 +52,6 @@ public class MaxNumLinksBestConfCriteria implements CutOffCriteriaOnlyConf {
                 g2 = geneNames.indexOf(parts[1]);
                 if (g1 != -1 && g2 != -1) {
                     network[g1][g2] = 1;
-                    network[g2][g1] = 1;
                 }
                 cnt += 1;
             }

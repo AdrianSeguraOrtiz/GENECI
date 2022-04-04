@@ -28,8 +28,8 @@ public class MinConfFreqCriteriaTest {
         int[][] matrix = minConfFreqCriteria.getNetworkFromConsensus(links, geneNames);
 
         assertArrayEquals(new int[]{0, 1, 0}, matrix[0]);
-        assertArrayEquals(new int[]{1, 0, 1}, matrix[1]);
-        assertArrayEquals(new int[]{0, 1, 0}, matrix[2]);
+        assertArrayEquals(new int[]{0, 0, 1}, matrix[1]);
+        assertArrayEquals(new int[]{0, 0, 0}, matrix[2]);
     }
 
     @Test
@@ -50,7 +50,7 @@ public class MinConfFreqCriteriaTest {
 
         assertArrayEquals(new int[]{0, 0, 1}, matrix[0]);
         assertArrayEquals(new int[]{0, 0, 0}, matrix[1]);
-        assertArrayEquals(new int[]{1, 0, 0}, matrix[2]);
+        assertArrayEquals(new int[]{0, 0, 0}, matrix[2]);
     }
 
 }
