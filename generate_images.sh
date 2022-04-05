@@ -9,3 +9,4 @@ docker build -t eagrn-inference/infer_network/mrnetb -f components/infer_network
 docker build -t eagrn-inference/infer_network/pcit -f components/infer_network/PCIT/Dockerfile .
 docker build -t eagrn-inference/apply_cut -f components/apply_cut/Dockerfile .
 docker build -t eagrn-inference/optimize_ensemble -f components/optimize_ensemble/Dockerfile .
+docker build -t eagrn-inference/evaluate/dream_prediction -f components/evaluate/dream_prediction/Dockerfile .

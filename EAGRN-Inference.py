@@ -8,6 +8,8 @@ import shutil
 import matplotlib.pyplot as plt
 
 app = typer.Typer()
+evaluate_app = typer.Typer()
+app.add_typer(evaluate_app, name="evaluate")
 
 class Database(str, Enum):
     DREAM4 = "DREAM4"
@@ -57,6 +59,10 @@ class Repairer(str, Enum):
     StandardizationRepairer = "StandardizationRepairer"
     GreedyRepair = "GreedyRepair"
 
+class Challenge(str, Enum):
+    D4C2 = "D4C2"
+
+
 def get_gene_names(conf_list):
     gene_list = set()
     with open(conf_list, "r") as f:
@@ -65,6 +71,7 @@ def get_gene_names(conf_list):
             gene_list.add(row_list[0])
             gene_list.add(row_list[1])
     return gene_list
+
 
 @app.command()
 def extract_data(
@@ -274,15 +281,42 @@ def optimize_ensemble(
     shutil.rmtree("tmp")
     
 
-@app.command()
-def evaluate(
-        undirected_network: Path = typer.Option(..., exists=True, file_okay=True, help=""),
-        gold_standard: Path = typer.Option(..., exists=True, file_okay=True, help=""),
+@evaluate_app.command()
+def dream_prediction(
+        challenge: Challenge = typer.Option(..., help="DREAM challenge to which the inferred network belongs"),
+        network_id: str = typer.Option(..., help="Predicted network identifier. Ex: 10_1"),
+        mat_file: Path = typer.Option(..., exists=True, file_okay=True, help="Path to the .mat file required for performance evaluation. To download this file you need to register at https://www.synapse.org/# and download it manually."),
+        confidence_list: Path = typer.Option(..., exists=True, file_okay=True, help="Path to the CSV file with the list of trusted values."), 
     ):
     """
-    Evaluate the accuracy of the inferred gene network compared to the gold standard provided.
+    Evaluate the accuracy with which networks belonging to the DREAM challenges are predicted.
     """
-    typer.echo(f"Evaluate {undirected_network} comparing with {gold_standard}")
+    typer.echo(f"Evaluate {confidence_list} prediction for {network_id} network in {challenge.name} challenge")
+
+    Path("tmp").mkdir(exist_ok=True, parents=True)
+    tmp_confidence_list_dir = f"tmp/{Path(confidence_list).name}"
+    tmp_mat_file_dir = f"tmp/{Path(mat_file).name}"
+    shutil.copyfile(confidence_list, tmp_confidence_list_dir)
+    shutil.copyfile(mat_file, tmp_mat_file_dir)
+
+    client = docker.from_env()
+    container = client.containers.run(
+        image="eagrn-inference/evaluate/dream_prediction",
+        volumes={Path(f"./tmp/").absolute(): {"bind": f"/usr/local/src/tmp", "mode": "rw"}},
+        command=f"--challenge {challenge.name} --network-id {network_id} --mat-file {tmp_mat_file_dir} --confidence-list {tmp_confidence_list_dir}",
+        detach=True,
+        tty=True,
+    )
+
+    r = container.wait()
+    logs = container.logs()
+    if logs:
+        typer.echo(logs.decode("utf-8"))
+
+    container.stop()
+    container.remove(v=True)
+
+    shutil.rmtree("tmp")
 
 
 @app.command()
