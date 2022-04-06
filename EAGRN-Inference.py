@@ -120,6 +120,7 @@ def infer_network(
     tmp_exp_dir = f"./{output_dir}/{expression_data.name}"
     shutil.copyfile(expression_data, tmp_exp_dir)
 
+    containers = list()
     for tec in technique:
         typer.echo(f"Infer network from {expression_data} with {tec}")
 
@@ -131,7 +132,9 @@ def infer_network(
             detach=True,
             tty=True,
         )
+        containers.append(container)
 
+    for container in containers:
         r = container.wait()
         logs = container.logs()
         if logs:
