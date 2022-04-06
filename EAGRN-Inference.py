@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 app = typer.Typer()
 evaluate_app = typer.Typer()
-app.add_typer(evaluate_app, name="evaluate")
+app.add_typer(evaluate_app, name="evaluate", help="Evaluate the accuracy of the inferred network with respect to its gold standard.")
 
 class Database(str, Enum):
     DREAM4 = "DREAM4"

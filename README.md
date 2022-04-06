@@ -83,8 +83,7 @@ python EAGRN-Inference.py optimize-ensemble --confidence-list inferred_networks/
 5. Evaluar la calidad de la red génica inferida respecto a la gold standard
 
 ```sh
-# Pendiente de implementar
-python EAGRN-Inference.py evaluate --undirected-network inferred_networks/dream4_010_01_exp/ea_consensus/final_network.csv --gold-standard expression_data/DREAM4/GS/dream4_010_01_gs.csv
+python EAGRN-Inference.py evaluate dream-prediction --challenge D4C2 --network-id 10_1 --mat-file components/evaluate/dream_prediction/D4C2/pdf_size10_1.mat --confidence-list inferred_networks/dream4_010_01_exp/ea_consensus/final_list.csv
 ```
 
 # Console script
@@ -104,11 +103,11 @@ $ [OPTIONS] COMMAND [ARGS]...
 **Commands**:
 
 * `apply-cut`: Converts a list of confidence values into a...
-* `evaluate`
+* `evaluate`: Evaluate the accuracy of the inferred network...
 * `extract-data`: Download differential expression data from...
 * `infer-network`: Infer gene regulatory networks from...
 * `optimize-ensemble`: Analyzes several trust lists and builds a...
-* `run`
+* `run`: Infer gene regulatory network from expression...
 
 ## `apply-cut`
 
@@ -131,19 +130,38 @@ $ apply-cut [OPTIONS]
 
 ## `evaluate`
 
+Evaluate the accuracy of the inferred network with respect to its gold standard.
+
 **Usage**:
 
 ```console
-$ evaluate [OPTIONS] UNDIRECTED_NETWORK UNDIRECTED_GOLD_STANDARD
+$ evaluate [OPTIONS] COMMAND [ARGS]...
 ```
-
-**Arguments**:
-
-* `UNDIRECTED_NETWORK`: [required]
-* `UNDIRECTED_GOLD_STANDARD`: [required]
 
 **Options**:
 
+* `--help`: Show this message and exit.
+
+**Commands**:
+
+* `dream-prediction`: Evaluate the accuracy with which networks...
+
+### `evaluate dream-prediction`
+
+Evaluate the accuracy with which networks belonging to the DREAM challenges are predicted.
+
+**Usage**:
+
+```console
+$ evaluate dream-prediction [OPTIONS]
+```
+
+**Options**:
+
+* `--challenge [D4C2]`: DREAM challenge to which the inferred network belongs  [required]
+* `--network-id TEXT`: Predicted network identifier. Ex: 10_1  [required]
+* `--mat-file PATH`: Path to the .mat file required for performance evaluation. To download this file you need to register at https://www.synapse.org/# and download it manually.  [required]
+* `--confidence-list PATH`: Path to the CSV file with the list of trusted values.  [required]
 * `--help`: Show this message and exit.
 
 ## `extract-data`
@@ -205,6 +223,8 @@ $ optimize-ensemble [OPTIONS]
 * `--help`: Show this message and exit.
 
 ## `run`
+
+Infer gene regulatory network from expression data by employing multiple unsupervised learning techniques and applying a genetic algorithm for consensus optimization.
 
 **Usage**:
 
