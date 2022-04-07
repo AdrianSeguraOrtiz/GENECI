@@ -22,10 +22,13 @@ class Technique(str, Enum):
     BC3NET = "BC3NET"
     C3NET = "C3NET"
     CLR = "CLR"
-    GENIE3 = "GENIE3"
+    GENIE3_RF = "GENIE3_RF"
+    GENIE3_GBM = "GENIE3_GBM"
+    GENIE3_ET = "GENIE3_ET"
     MRNET = "MRNET"
     MRNETB = "MRNETB"
     PCIT = "PCIT"
+    TIGRESS = "TIGRESS"
 
 class CutOffCriteriaOnlyConf(str, Enum):
     MinConfidence = "MinConfidence"
@@ -124,11 +127,24 @@ def infer_network(
     for tec in technique:
         typer.echo(f"Infer network from {expression_data} with {tec}")
 
+        if tec.lower() == "genie3_rf":
+            image = f"eagrn-inference/infer_network/genie3"
+            variant = "RF"
+        elif tec.lower() == "genie3_gbm":
+            image = f"eagrn-inference/infer_network/genie3"
+            variant = "GBM"
+        elif tec.lower() == "genie3_et":
+            image = f"eagrn-inference/infer_network/genie3"
+            variant = "ET"
+        else:
+            image = f"eagrn-inference/infer_network/{tec.lower()}"
+            variant = None
+
         client = docker.from_env()
         container = client.containers.run(
-            image=f"eagrn-inference/infer_network/{tec.lower()}",
+            image=image,
             volumes={Path(f"./{output_dir}/").absolute(): {"bind": f"/usr/local/src/{output_dir}", "mode": "rw"}},
-            command=f"{tmp_exp_dir} {output_dir}",
+            command=f"{tmp_exp_dir} {output_dir} {variant}",
             detach=True,
             tty=True,
         )

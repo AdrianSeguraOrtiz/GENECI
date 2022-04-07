@@ -1,4 +1,4 @@
-FROM r-base:4.1.2
+FROM python:3.10.2
 
 LABEL Khaos Research Group <khaos.uma.es>
 
@@ -10,14 +10,13 @@ RUN apt-get update && apt-get install -y \
    libcurl4-openssl-dev \
    libxml2-dev
 
-# CRAN packages
-RUN R -e "install.packages('BiocManager', repos='http://cran.us.r-project.org')" \
-   && R -e "install.packages('gdata', repos='http://cran.us.r-project.org')"
+# Update pip command
+RUN pip install --upgrade pip
 
-# Bioconductor packages
-RUN R -e "BiocManager::install('GENIE3')"
+# Install packages
+RUN pip install typer pandas arboreto 
 
 COPY . /usr/local/src/
 WORKDIR /usr/local/src/
 
-ENTRYPOINT ["Rscript", "--vanilla", "components/infer_network/GENIE3/GENIE3.R"]
+ENTRYPOINT ["python", "components/infer_network/GENIE3/GENIE3.py"]

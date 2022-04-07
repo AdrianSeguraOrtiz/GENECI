@@ -132,7 +132,7 @@ dmypy.json
 expression_data/
 
 # Dask folder
-techniques/dask-worker-space
+dask-worker-space/
 
 # Java project
 EAGRN-JMetal/.idea
