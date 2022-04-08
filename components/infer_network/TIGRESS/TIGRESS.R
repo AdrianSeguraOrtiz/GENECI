@@ -34,7 +34,17 @@ ex_matrix <- t(read.table(in_file, sep=",", head=T, row.names=1))
 
 # Infer gene regulatory network
 network <- tigress(ex_matrix, allsteps=FALSE)
-conf_list <- GetConfList(network)
+dt.cl <- GetConfList(network)
+colnames(dt.cl)[3] <- paste0(colnames(dt.cl)[3], "_1")
+
+for (i in 2:11) {
+    network <- tigress(ex_matrix, allsteps=FALSE)
+    conf_list_i <- GetConfList(network)
+    dt.cl <- merge(dt.cl, conf_list_i, by=c(1,2), all.x=TRUE, all.y=TRUE, suffixes = c("", paste0("_", i)))
+}
+
+dt.cl$Conf <- apply(dt.cl[,-c(1,2)], 1, median)
+conf_list <- dt.cl[, c(1,2,ncol(dt.cl))]
 
 # Rescale and remove rows with 0 confidence
 conf_list <- ProcessList(conf_list)

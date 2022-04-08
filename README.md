@@ -3,14 +3,12 @@ Evolutionary algorithm for determining the optimal ensemble of unsupervised lear
 
 # Techniques contemplated 
 - GENIE3:
-    - Python: https://arboreto.readthedocs.io/en/latest/ (GENIE3.py) --> Te permite RF, ET y GBM (Tiene una opción adicional)
-    - R: https://bioconductor.org/packages/release/bioc/html/GENIE3.html (GENIE3.R) (C) --> Te permite RF, ET (Va mucho más rapido)
+    - Python: https://arboreto.readthedocs.io/en/latest/ (GENIE3.py) (C) --> Te permite RF, ET y GBM
 
 - CLR: 
     - R: https://www.bioconductor.org/packages/release/bioc/html/minet.html (CLR.R) (NC)
 
-- ARACNE: 
-    - Python SH: https://github.com/jyyulab/SJARACNe (No sé instalarlo pero está muy bien)
+- ARACNE:
     - R: https://www.bioconductor.org/packages/release/bioc/html/minet.html (ARACNE.R) (NC)
 
 - MRNET:
@@ -29,7 +27,10 @@ Evolutionary algorithm for determining the optimal ensemble of unsupervised lear
     - R: http://www.bioconductor.org/packages/release/bioc/html/CeTF.html (PCIT.R) (NC)
 
 - TIGRESS
-    - R: https://github.com/jpvert/tigress (TIGRESS.R)
+    - R: https://github.com/jpvert/tigress (TIGRESS.R) (C)
+
+- KBOOST
+    - R: http://www.bioconductor.org/packages/release/bioc/html/KBoost.html (KBOOST.R) (NC)
 
 ## Annotations
 
@@ -66,7 +67,7 @@ python EAGRN-Inference.py extract-data --database DREAM4 --database SynTReN --da
 4. Ejecutar algoritmo para un conjunto de datos de expresión concreto:
 
 ```sh
-python EAGRN-Inference.py run --expression-data expression_data/DREAM4/EXP/dream4_010_01_exp.csv --technique aracne --technique bc3net --technique c3net --technique clr --technique genie3_rf --technique genie3_gbm --technique genie3_et --technique mrnet --technique mrnetb --technique pcit --technique tigress
+python EAGRN-Inference.py run --expression-data expression_data/DREAM4/EXP/dream4_010_01_exp.csv --technique aracne --technique bc3net --technique c3net --technique clr --technique genie3_rf --technique genie3_gbm --technique genie3_et --technique mrnet --technique mrnetb --technique pcit --technique tigress --technique kboost
 ```
 
 Este proceso también se puede dividir en dos partes:
@@ -74,13 +75,13 @@ Este proceso también se puede dividir en dos partes:
 4.1. Inferir redes de regulación génica mediante las técnicas individuales disponibles:
 
 ```sh
-python EAGRN-Inference.py infer-network --expression-data expression_data/DREAM4/EXP/dream4_010_01_exp.csv --technique aracne --technique bc3net --technique c3net --technique clr --technique genie3_rf --technique genie3_gbm --technique genie3_et --technique mrnet --technique mrnetb --technique pcit --technique tigress
+python EAGRN-Inference.py infer-network --expression-data expression_data/DREAM4/EXP/dream4_010_01_exp.csv --technique aracne --technique bc3net --technique c3net --technique clr --technique genie3_rf --technique genie3_gbm --technique genie3_et --technique mrnet --technique mrnetb --technique pcit --technique tigress --technique kboost
 ```
 
 4.2. Optimizar el ensemble de las listas de confianza resultantes del comando anterior:
 
 ```sh
-python EAGRN-Inference.py optimize-ensemble --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_ARACNE.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_BC3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_C3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_CLR.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_RF.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_GBM.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_ET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNETB.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_PCIT.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_TIGRESS.csv --gene-names inferred_networks/dream4_010_01_exp/gene_names.txt
+python EAGRN-Inference.py optimize-ensemble --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_ARACNE.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_BC3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_C3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_CLR.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_RF.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_GBM.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_ET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNETB.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_PCIT.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_TIGRESS.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_KBOOST.csv --gene-names inferred_networks/dream4_010_01_exp/gene_names.txt
 ```
 
 5. Evaluar la calidad de la red génica inferida respecto a la gold standard

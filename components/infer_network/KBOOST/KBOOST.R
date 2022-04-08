@@ -6,7 +6,7 @@ if (length(ARGS) >= 2) {
     output_folder <- ARGS[2]
 } else if (length(ARGS) == 1 && ARGS[1] == "--help") {
     cat("Usage: \n")
-    cat("Rscript BC3NET.R input.csv path/to/output_folder \n") 
+    cat("Rscript KBOOST.R input.csv path/to/output_folder \n") 
     cat("Arguments required: \n")
     cat("\t 1) CSV input file \n")
     cat("\t 2) Path to output folder \n")
@@ -18,32 +18,25 @@ if (length(ARGS) >= 2) {
 # Load functions
 source("components/infer_network/functions.R")
 
-# Install bc3net if not already installed
-if(! "bc3net" %in% installed.packages()[,"Package"]) install.packages("bc3net")
+# Install BiocManager if not already installed
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
 
-# Load bc3net
-suppressMessages(library(bc3net))
+# Load kboost
+tryCatch(suppressMessages(library(KBoost)),
+ error = function(e) BiocManager::install("KBoost"),
+ finally = function(f) suppressMessages(library(KBoost)))
 
 # Load the expression matrix
-ex_matrix <- read.table(in_file, sep=",", head=T, row.names=1)
+ex_matrix <- t(read.table(in_file, sep=",", head=T, row.names=1))
 
 # Infer gene regulatory network
-network <- bc3net(ex_matrix, igraph=F)
-dt.cl <- GetConfList(network)
-colnames(dt.cl)[3] <- paste0(colnames(dt.cl)[3], "_1")
-
-for (i in 2:11) {
-    network <- bc3net(ex_matrix, igraph=F)
-    conf_list_i <- GetConfList(network)
-    dt.cl <- merge(dt.cl, conf_list_i, by=c(1,2), all.x=TRUE, all.y=TRUE, suffixes = c("", paste0("_", i)))
-}
-
-dt.cl$Conf <- apply(dt.cl[,-c(1,2)], 1, median)
-conf_list <- dt.cl[, c(1,2,ncol(dt.cl))]
+network <- kboost(ex_matrix)[["GRN"]]
+conf_list <- GetConfList(network)
 
 # Rescale and remove rows with 0 confidence
 conf_list <- ProcessList(conf_list)
 
 # Save list
 file_id <- tools::file_path_sans_ext(basename(in_file))
-write.table(conf_list, paste0("./", output_folder, "/", file_id, "/lists/GRN_BC3NET.csv"), sep=",", col.names=F, row.names=F, quote=F)
+write.table(conf_list, paste0("./", output_folder, "/", file_id, "/lists/GRN_KBOOST.csv"), sep=",", col.names=F, row.names=F, quote=F)

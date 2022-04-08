@@ -153,7 +153,8 @@ public class GRNProblem extends AbstractDoubleProblem {
     /** FitnessF2() method */
     public double fitnessF2(int[][] network) {
         /**
-         * Try to minimize the number of nodes with a degree higher than the average.
+         * The aim is to minimize the number of nodes whose degree is higher than the 
+         * average while trying to maximize the degree of these nodes.
          */
 
         int[] degrees = new int[numberOfNodes];
@@ -171,11 +172,19 @@ public class GRNProblem extends AbstractDoubleProblem {
         double mean = (double) sum/numberOfNodes;
 
         int hubs = 0;
+        int hubsDegreesSum = 0;
         for (int i = 0; i < numberOfNodes; i++) {
-            if (degrees[i] > mean) hubs += 1;
+            if (degrees[i] > mean) {
+                hubs += 1;
+                hubsDegreesSum += degrees[i];
+            } 
         }
 
-        double fitness = (double) hubs/numberOfNodes;
+        double f1 = Math.abs(hubs - 0.1 * numberOfNodes)/((1 - 0.1) * numberOfNodes);
+        double f2 = 1.0;
+        if (hubs > 0) f2 = 1.0 - (double) (hubsDegreesSum/hubs)/(numberOfNodes - 1);
+        double fitness = (f1 + f2)/2;
+
         return fitness;
     }
 

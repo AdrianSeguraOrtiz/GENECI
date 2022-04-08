@@ -29,6 +29,7 @@ class Technique(str, Enum):
     MRNETB = "MRNETB"
     PCIT = "PCIT"
     TIGRESS = "TIGRESS"
+    KBOOST = "KBOOST"
 
 class CutOffCriteriaOnlyConf(str, Enum):
     MinConfidence = "MinConfidence"
@@ -232,7 +233,7 @@ def optimize_ensemble(
         mutation: Mutation = typer.Option("PolynomialMutation", help="Mutation operator"), 
         repairer: Repairer = typer.Option("GreedyRepair", help="Solution repairer to keep the sum of weights equal to 1"), 
         population_size: int = typer.Option(100, help="Population size"), 
-        num_evaluations: int = typer.Option(10000, help="Number of evaluations"), 
+        num_evaluations: int = typer.Option(100000, help="Number of evaluations"), 
         cut_off_criteria: CutOffCriteria = typer.Option("MinConfFreq", case_sensitive=False, help="Criteria for determining which links will be part of the final binary matrix."), 
         cut_off_value: float = typer.Option(0.2, help="Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfFreq = 0.2"),
         no_graphics: bool = typer.Option(False, help="Indicate if you do not want to represent the evolution of the fitness value."),
@@ -346,7 +347,7 @@ def run(
         mutation: Mutation = typer.Option("PolynomialMutation", help="Mutation operator"), 
         repairer: Repairer = typer.Option("GreedyRepair", help="Solution repairer to keep the sum of weights equal to 1"), 
         population_size: int = typer.Option(100, help="Population size"), 
-        num_evaluations: int = typer.Option(10000, help="Number of evaluations"), 
+        num_evaluations: int = typer.Option(100000, help="Number of evaluations"), 
         cut_off_criteria: CutOffCriteria = typer.Option("MinConfFreq", case_sensitive=False, help="Criteria for determining which links will be part of the final binary matrix."), 
         cut_off_value: float = typer.Option(0.2, help="Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfFreq = 0.2"),
         no_graphics: bool = typer.Option(False, help="Indicate if you do not want to represent the evolution of the fitness value."),
