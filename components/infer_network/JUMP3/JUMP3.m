@@ -1,8 +1,5 @@
 path(path,'jump3_code')
 
-%load exampleData.mat
-%who
-
 input_file = '../../../expression_data/DREAM4/EXP/dream4_010_01_exp.csv';
 time_series_ids = ["perturbation.1", "perturbation.2", "perturbation.3", "perturbation.4"];
 time_step = 50;

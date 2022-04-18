@@ -21,5 +21,5 @@ docker build -t eagrn-inference/infer_network/jump3 -f components/infer_network/
 ## Run
 
 ```
-docker run -v $(pwd)/inferred_networks:/usr/local/src/inferred_networks/ eagrn-inference/infer_network/jump3 expression_data.csv inferred_networks
+docker run -v /mnt/home/adrian/.matlab/R2022a_licenses/license_workstation-15_1071290_R2022a.lic:/licenses/license.lic -e MLM_LICENSE_FILE=/licenses/license.lic eagrn-inference/infer_network/jump3 expression_data.csv inferred_networks
 ```

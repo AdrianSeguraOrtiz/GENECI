@@ -42,6 +42,12 @@ Respecto a GENIE3, CLR, ARACNE, MRNET y MRNETB:
 Respecto a C3NET y BC3NET:
  - Tienen muchos parámetros que no entiendo, preguntar cuáles combinaciones se podrían probar
 
+ Respecto a JUMP3:
+ - Se ha intentado utilizar el código del siguiente repositorio: https://github.com/vahuynh/Jump3.
+ - En local y con la última versión de Matlab dá error en una función random.
+ - Para probar con otras versiones de Matlab empecé a usar contenedores pero al requerir licencia es muy complicado. En primer lugar, el id del ordenador donde se instala la licencia debe ser el mismo que donde se ejecuta el script, por lo que su uso dentro de docker no me funciona. Además habría que añadir parámetros adicionales al script principal únicamente requeridos en caso de escoger esta técnica de inferencia. 
+ - En caso de lograr que se ejecutase y saber solventar el problema de la licencia, no tengo ni idea de como poder pasarle los parámetros de entrada al script de matlab.
+
 # Example procedure
 
 1. Generar .jar con dependencias:
@@ -197,7 +203,7 @@ $ infer-network [OPTIONS]
 **Options**:
 
 * `--expression-data PATH`: Path to the CSV file with the expression data. Genes are distributed in rows and experimental conditions (time series) in columns.  [required]
-* `--technique [ARACNE|BC3NET|C3NET|CLR|GENIE3|MRNET|MRNETB|PCIT]`: Inference techniques to be performed.  [required]
+* `--technique [ARACNE|BC3NET|C3NET|CLR|GENIE3_RF|GENIE3_GBM|GENIE3_ET|MRNET|MRNETB|PCIT|TIGRESS|KBOOST]`: Inference techniques to be performed.  [required]
 * `--output-dir PATH`: Path to the output folder.  [default: inferred_networks]
 * `--help`: Show this message and exit.
 
@@ -219,7 +225,7 @@ $ optimize-ensemble [OPTIONS]
 * `--mutation [PolynomialMutation|CDGMutation|GroupedAndLinkedPolynomialMutation|GroupedPolynomialMutation|LinkedPolynomialMutation|NonUniformMutation|NullMutation|SimpleRandomMutation|UniformMutation]`: Mutation operator  [default: PolynomialMutation]
 * `--repairer [StandardizationRepairer|GreedyRepair]`: Solution repairer to keep the sum of weights equal to 1  [default: GreedyRepair]
 * `--population-size INTEGER`: Population size  [default: 100]
-* `--num-evaluations INTEGER`: Number of evaluations  [default: 10000]
+* `--num-evaluations INTEGER`: Number of evaluations  [default: 100000]
 * `--cut-off-criteria [MinConfidence|MaxNumLinksBestConf|MinConfFreq]`: Criteria for determining which links will be part of the final binary matrix.  [default: MinConfFreq]
 * `--cut-off-value FLOAT`: Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfFreq = 0.2  [default: 0.2]
 * `--no-graphics / --no-no-graphics`: Indicate if you do not want to represent the evolution of the fitness value.  [default: False]
@@ -239,15 +245,14 @@ $ run [OPTIONS]
 **Options**:
 
 * `--expression-data PATH`: Path to the CSV file with the expression data. Genes are distributed in rows and experimental conditions (time series) in columns.  [required]
-* `--technique [ARACNE|BC3NET|C3NET|CLR|GENIE3|MRNET|MRNETB|PCIT]`: Inference techniques to be performed.  [required]
+* `--technique [ARACNE|BC3NET|C3NET|CLR|GENIE3_RF|GENIE3_GBM|GENIE3_ET|MRNET|MRNETB|PCIT|TIGRESS|KBOOST]`: Inference techniques to be performed.  [required]
 * `--crossover [SBXCrossover|BLXAlphaCrossover|DifferentialEvolutionCrossover|NPointCrossover|NullCrossover|WholeArithmeticCrossover]`: Crossover operator  [default: SBXCrossover]
 * `--mutation [PolynomialMutation|CDGMutation|GroupedAndLinkedPolynomialMutation|GroupedPolynomialMutation|LinkedPolynomialMutation|NonUniformMutation|NullMutation|SimpleRandomMutation|UniformMutation]`: Mutation operator  [default: PolynomialMutation]
 * `--repairer [StandardizationRepairer|GreedyRepair]`: Solution repairer to keep the sum of weights equal to 1  [default: GreedyRepair]
 * `--population-size INTEGER`: Population size  [default: 100]
-* `--num-evaluations INTEGER`: Number of evaluations  [default: 10000]
+* `--num-evaluations INTEGER`: Number of evaluations  [default: 100000]
 * `--cut-off-criteria [MinConfidence|MaxNumLinksBestConf|MinConfFreq]`: Criteria for determining which links will be part of the final binary matrix.  [default: MinConfFreq]
 * `--cut-off-value FLOAT`: Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfFreq = 0.2  [default: 0.2]
 * `--no-graphics / --no-no-graphics`: Indicate if you do not want to represent the evolution of the fitness value.  [default: False]
 * `--output-dir PATH`: Path to the output folder.  [default: inferred_networks]
 * `--help`: Show this message and exit.
-

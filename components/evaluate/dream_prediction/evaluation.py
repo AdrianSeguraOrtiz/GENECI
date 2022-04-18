@@ -1,6 +1,5 @@
 from pathlib import Path
-from enum import Enum
-from dreamtools import D4C2
+from dreamtools import D4C2, D5C1
 import pandas as pd 
 import argparse
 import shutil
@@ -17,6 +16,8 @@ args = parser.parse_args()
 s = None
 if args.challenge == "D4C2":
     s = D4C2(download=False)
+elif args.challenge == "D5C1":
+    s = D5C1(download=False)
 else:
     raise Exception("The challenge entered is invalid or not implemented.")
 
