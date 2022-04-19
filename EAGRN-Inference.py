@@ -13,6 +13,7 @@ app.add_typer(evaluate_app, name="evaluate", help="Evaluate the accuracy of the 
 
 class Database(str, Enum):
     DREAM4 = "DREAM4"
+    DREAM5 = "DREAM5"
     SynTReN = "SynTReN"
     Rogers = "Rogers"
     GeneNetWeaver = "GeneNetWeaver"
@@ -65,6 +66,7 @@ class Repairer(str, Enum):
 
 class Challenge(str, Enum):
     D4C2 = "D4C2"
+    D5C4 = "D5C4"
 
 
 def get_gene_names(conf_list):
@@ -92,14 +94,35 @@ def extract_data(
 
         typer.echo(f"Extracting data from {db}")
 
-        client = docker.from_env()
-        container = client.containers.run(
-            image="eagrn-inference/extract_data",
-            volumes={Path(f"./{output_dir}/").absolute(): {"bind": f"/usr/local/src/{output_dir}", "mode": "rw"}},
-            command=f"{db} {output_dir}",
-            detach=True,
-            tty=True,
-        )
+        if db == "DREAM4":
+            client = docker.from_env()
+            container = client.containers.run(
+                image="eagrn-inference/extract_data/dream4",
+                volumes={Path(f"./{output_dir}/").absolute(): {"bind": f"/usr/local/src/{output_dir}", "mode": "rw"}},
+                command=f"{output_dir}",
+                detach=True,
+                tty=True,
+            )
+
+        elif db == "DREAM5":
+            client = docker.from_env()
+            container = client.containers.run(
+                image="eagrn-inference/extract_data/dream5",
+                volumes={Path(f"./{output_dir}/").absolute(): {"bind": f"/usr/local/src/{output_dir}", "mode": "rw"}},
+                command=f"{output_dir} TFM-SynapseAccount TFM-SynapsePassword",
+                detach=True,
+                tty=True,
+            )
+
+        else:
+            client = docker.from_env()
+            container = client.containers.run(
+                image="eagrn-inference/extract_data/grndata",
+                volumes={Path(f"./{output_dir}/").absolute(): {"bind": f"/usr/local/src/{output_dir}", "mode": "rw"}},
+                command=f"{db} {output_dir}",
+                detach=True,
+                tty=True,
+            )
 
         r = container.wait()
         logs = container.logs()
@@ -305,7 +328,7 @@ def optimize_ensemble(
 def dream_prediction(
         challenge: Challenge = typer.Option(..., help="DREAM challenge to which the inferred network belongs"),
         network_id: str = typer.Option(..., help="Predicted network identifier. Ex: 10_1"),
-        mat_file: Path = typer.Option(..., exists=True, file_okay=True, help="Path to the .mat file required for performance evaluation. To download this file you need to register at https://www.synapse.org/# and download it manually."),
+        synapse_file: List[Path] = typer.Option(..., help="Paths to files from synapse needed to perform inference evaluation. To download these files you need to register at https://www.synapse.org/# and download it manually."),
         confidence_list: Path = typer.Option(..., exists=True, file_okay=True, help="Path to the CSV file with the list of trusted values."), 
     ):
     """
@@ -313,17 +336,20 @@ def dream_prediction(
     """
     typer.echo(f"Evaluate {confidence_list} prediction for {network_id} network in {challenge.name} challenge")
 
-    Path("tmp").mkdir(exist_ok=True, parents=True)
+    Path("tmp/synapse/").mkdir(exist_ok=True, parents=True)
+
     tmp_confidence_list_dir = f"tmp/{Path(confidence_list).name}"
-    tmp_mat_file_dir = f"tmp/{Path(mat_file).name}"
     shutil.copyfile(confidence_list, tmp_confidence_list_dir)
-    shutil.copyfile(mat_file, tmp_mat_file_dir)
+
+    tmp_synapse_files_dir = "tmp/synapse/"
+    for f in synapse_file:
+        shutil.copyfile(f, tmp_synapse_files_dir + Path(f).name)
 
     client = docker.from_env()
     container = client.containers.run(
         image="eagrn-inference/evaluate/dream_prediction",
         volumes={Path(f"./tmp/").absolute(): {"bind": f"/usr/local/src/tmp", "mode": "rw"}},
-        command=f"--challenge {challenge.name} --network-id {network_id} --mat-file {tmp_mat_file_dir} --confidence-list {tmp_confidence_list_dir}",
+        command=f"--challenge {challenge.name} --network-id {network_id} --synapse-folder {tmp_synapse_files_dir} --confidence-list {tmp_confidence_list_dir}",
         detach=True,
         tty=True,
     )

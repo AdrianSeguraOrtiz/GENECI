@@ -14,11 +14,10 @@ RUN apt-get update && apt-get install -y \
 RUN R -e "install.packages('BiocManager', repos='http://cran.us.r-project.org')"
 
 # Bioconductor packages
-RUN R -e "BiocManager::install('DREAM4')" \
-  && R -e "BiocManager::install('grndata')"
+RUN R -e "BiocManager::install('DREAM4')"
 
 
 COPY . /usr/local/src/
 WORKDIR /usr/local/src/
 
-ENTRYPOINT ["Rscript", "--vanilla", "components/extract_data/extract_data.R"]
+ENTRYPOINT ["Rscript", "--vanilla", "components/extract_data/DREAM4/DREAM4.R"]

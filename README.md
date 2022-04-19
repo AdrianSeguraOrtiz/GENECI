@@ -93,7 +93,11 @@ python EAGRN-Inference.py optimize-ensemble --confidence-list inferred_networks/
 5. Evaluar la calidad de la red génica inferida respecto a la gold standard
 
 ```sh
-python EAGRN-Inference.py evaluate dream-prediction --challenge D4C2 --network-id 10_1 --mat-file components/evaluate/dream_prediction/D4C2/pdf_size10_1.mat --confidence-list inferred_networks/dream4_010_01_exp/ea_consensus/final_list.csv
+# DREAM 4
+python EAGRN-Inference.py evaluate dream-prediction --challenge D4C2 --network-id 10_1 --synapse-file components/evaluate/dream_prediction/D4C2/pdf_size10_1.mat --confidence-list inferred_networks/dream4_010_01_exp/ea_consensus/final_list.csv
+
+# DREAM 5
+python EAGRN-Inference.py evaluate dream-prediction --challenge D5C4 --network-id 1 --synapse-file components/evaluate/dream_prediction/D5C4/DREAM5_NetworkInference_Edges_Network1.tsv --synapse-file components/evaluate/dream_prediction/D5C4/DREAM5_NetworkInference_GoldStandard_Network1.tsv --synapse-file components/evaluate/dream_prediction/D5C4/Network1_AUPR.mat --synapse-file components/evaluate/dream_prediction/D5C4/Network1_AUROC.mat --confidence-list inferred_networks/net1_exp/lists/GRN_ARACNE.csv
 ```
 
 # Console script

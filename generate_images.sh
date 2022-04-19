@@ -1,4 +1,6 @@
-docker build -t eagrn-inference/extract_data -f components/extract_data/Dockerfile .
+docker build -t eagrn-inference/extract_data -f components/extract_data/grndata/Dockerfile .
+docker build -t eagrn-inference/extract_data -f components/extract_data/DREAM4/Dockerfile .
+docker build -t eagrn-inference/extract_data -f components/extract_data/DREAM5/Dockerfile .
 docker build -t eagrn-inference/infer_network/aracne -f components/infer_network/ARACNE/Dockerfile .
 docker build -t eagrn-inference/infer_network/bc3net -f components/infer_network/BC3NET/Dockerfile .
 docker build -t eagrn-inference/infer_network/c3net -f components/infer_network/C3NET/Dockerfile .
