@@ -1,17 +1,20 @@
 ARGS <- commandArgs(trailingOnly = TRUE)
-if (length(ARGS) >= 2) { 
+if (length(ARGS) >= 3) { 
     cat("ARGS == 1: the argument will be treated as database name \n")
     database <- ARGS[1]
-    cat("ARGS == 2: the argument will be treated as output folder \n")
-    output_folder <- ARGS[2]
+    cat("ARGS == 2: the argument will be treated as category \n")
+    category <- ARGS[2]
+    cat("ARGS == 3: the argument will be treated as output folder \n")
+    output_folder <- ARGS[3]
 } else if (length(ARGS) == 1 && ARGS[1] == "--help") {
     cat("Usage: \n")
-    cat("Rscript GRNDATA.R database_name path/to/output_folder \n") 
+    cat("Rscript GRNDATA.R database_name category path/to/output_folder \n") 
     cat("Arguments required: \n")
     cat("\t 1) Database name: SynTReN|Rogers|GeneNetWeaver \n")
-    cat("\t 2) Path to output folder \n")
+    cat("\t 2) Category: ExpressionData|GoldStandard \n")
+    cat("\t 3) Path to output folder \n")
     stop("", call. = FALSE)
-} else if (length(ARGS) < 2) {
+} else if (length(ARGS) < 3) {
   stop("More arguments required, write --help to see the options \n", call. = FALSE)
 }
 
@@ -40,15 +43,18 @@ for (str_n in v.str_networks) {
     # Get data
     l.data <- getData(datasource.name=str_n)
 
-    # Extract expression data
-    mtx.exp <- t(l.data[[1]])
+    if (category == "ExpressionData") {
+        # Extract expression data
+        mtx.exp <- t(l.data[[1]])
 
-    # Save expression data
-    write.table(mtx.exp, paste0("./", output_folder, "/", database, "/EXP/", str_n, "_exp.csv"), sep=",", col.names = NA)
+        # Save expression data
+        write.table(mtx.exp, paste0("./", output_folder, "/", database, "/EXP/", str_n, "_exp.csv"), sep=",", col.names = NA)
 
-    # Extract gold standard adjacency matrix
-    mtx.gs <- l.data[[2]]
+    } else if (category == "GoldStandard") {
+        # Extract gold standard adjacency matrix
+        mtx.gs <- l.data[[2]]
 
-    # Save gold standard
-    write.table(mtx.gs, paste0("./", output_folder, "/", database, "/GS/", str_n, "_gs.csv"), sep=",", col.names = NA)
+        # Save gold standard
+        write.table(mtx.gs, paste0("./", output_folder, "/", database, "/GS/", str_n, "_gs.csv"), sep=",", col.names = NA)
+    }
 }

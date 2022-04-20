@@ -8,7 +8,7 @@ Adrián Segura Ortiz
 
 ## DESCRIPTION
 
-This component is responsible for downloading differential expression data from various databases such as SynTReN, Rogers and GeneNetWeaver.
+This component is responsible for downloading differential expression data and gold standards from various databases such as SynTReN, Rogers and GeneNetWeaver.
 
 # DOCKER
 
@@ -21,5 +21,5 @@ docker build -t eagrn-inference/extract_data/grndata -f components/extract_data/
 ## Run
 
 ```
-docker run -v $(pwd)/expression_data:/usr/local/src/expression_data/ eagrn-inference/extract_data/grndata SynTReN expression_data
+docker run -v $(pwd)/expression_data:/usr/local/src/expression_data/ eagrn-inference/extract_data/grndata SynTReN ExpressionData expression_data
 ```

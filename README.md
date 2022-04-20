@@ -67,7 +67,7 @@ bash generate_images.sh
 3. Descargar datos simulados de expresión y sus respectivos gold standard:
 
 ```sh
-python EAGRN-Inference.py extract-data --database DREAM4 --database SynTReN --database Rogers --database GeneNetWeaver
+python EAGRN-Inference.py extract-data --database DREAM4 --database DREAM5 --database SynTReN --database Rogers --database GeneNetWeaver
 ```
 
 4. Ejecutar algoritmo para un conjunto de datos de expresión concreto:

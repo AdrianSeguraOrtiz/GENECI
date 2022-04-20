@@ -20,4 +20,4 @@ RUN R -e "BiocManager::install('DREAM4')"
 COPY . /usr/local/src/
 WORKDIR /usr/local/src/
 
-ENTRYPOINT ["Rscript", "--vanilla", "components/extract_data/DREAM4/DREAM4.R"]
+ENTRYPOINT ["Rscript", "--vanilla", "components/extract_data/DREAM4/EXPGS/DREAM4.R"]

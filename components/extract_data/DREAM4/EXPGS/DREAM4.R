@@ -1,14 +1,17 @@
 ARGS <- commandArgs(trailingOnly = TRUE)
-if (length(ARGS) >= 1) {
-    cat("ARGS == 1: the argument will be treated as output folder \n")
-    output_folder <- ARGS[1]
+if (length(ARGS) >= 2) { 
+    cat("ARGS == 1: the argument will be treated as category \n")
+    category <- ARGS[1]
+    cat("ARGS == 2: the argument will be treated as output folder \n")
+    output_folder <- ARGS[2]
 } else if (length(ARGS) == 1 && ARGS[1] == "--help") {
     cat("Usage: \n")
-    cat("Rscript DREAM4.R path/to/output_folder \n") 
+    cat("Rscript DREAM4.R category path/to/output_folder \n") 
     cat("Arguments required: \n")
-    cat("\t 1) Path to output folder \n")
+    cat("\t 1) Category: ExpressionData|GoldStandard \n")
+    cat("\t 2) Path to output folder \n")
     stop("", call. = FALSE)
-} else if (length(ARGS) < 1) {
+} else if (length(ARGS) < 2) {
   stop("More arguments required, write --help to see the options \n", call. = FALSE)
 }
 
@@ -40,18 +43,21 @@ for (str_n in v.str_networks) {
     # Get data
     n <- l.networks[[str_n]]
 
-    # Extract expression data
-    mtx.exp <- assays(n)[[1]]
+    if (category == "ExpressionData") {
+        # Extract expression data
+        mtx.exp <- assays(n)[[1]]
 
-    # Delete columns that do not contain time series data
-    mtx.exp <- mtx.exp[, grep("\\.t", colnames(mtx.exp))]
+        # Delete columns that do not contain time series data
+        mtx.exp <- mtx.exp[, grep("\\.t", colnames(mtx.exp))]
 
-    # Save expression data
-    write.table(mtx.exp, paste0("./", output_folder, "/DREAM4/EXP/", str_n, "_exp.csv"), sep=",", col.names = NA)
+        # Save expression data
+        write.table(mtx.exp, paste0("./", output_folder, "/DREAM4/EXP/", str_n, "_exp.csv"), sep=",", col.names = NA)
 
-    # Extract gold standard adjacency matrix
-    mtx.gs <- metadata(n)[[1]]
+    } else if (category == "GoldStandard") {
+        # Extract gold standard adjacency matrix
+        mtx.gs <- metadata(n)[[1]]
 
-    # Save gold standard
-    write.table(mtx.gs, paste0("./", output_folder, "/DREAM4/GS/", str_n, "_gs.csv"), sep=",", col.names = NA)
+        # Save gold standard
+        write.table(mtx.gs, paste0("./", output_folder, "/DREAM4/GS/", str_n, "_gs.csv"), sep=",", col.names = NA)
+    }
 }

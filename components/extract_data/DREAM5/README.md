@@ -8,7 +8,7 @@ Adrián Segura Ortiz
 
 ## DESCRIPTION
 
-This component is responsible for downloading differential expression data from DREAM5 challenge.
+This component is responsible for downloading differential expression data, gold standards and evaluation data from DREAM5 challenge.
 
 # DOCKER
 
@@ -21,5 +21,5 @@ docker build -t eagrn-inference/extract_data/dream5 -f components/extract_data/D
 ## Run
 
 ```
-docker run -v $(pwd)/expression_data:/usr/local/src/expression_data/ eagrn-inference/extract_data/dream5 expression_data username password
+docker run -v $(pwd)/expression_data:/usr/local/src/expression_data/ eagrn-inference/extract_data/dream5 --category ExpressionData --output-folder expression_data --username TFM-SynapseAccount --password TFM-SynapsePassword
 ```
