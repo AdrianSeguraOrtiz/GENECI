@@ -129,7 +129,7 @@ dmypy.json
 .pyre/
 
 # Expression data folder
-expression_data/
+input_data/
 
 # Dask folder
 dask-worker-space/

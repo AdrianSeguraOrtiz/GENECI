@@ -21,5 +21,5 @@ docker build -t eagrn-inference/extract_data/dream4/expgs -f components/extract_
 ## Run
 
 ```
-docker run -v $(pwd)/expression_data:/usr/local/src/expression_data/ eagrn-inference/extract_data/dream4/expgs ExpressionData expression_data
+docker run -v $(pwd)/input_data:/usr/local/src/input_data/ eagrn-inference/extract_data/dream4/expgs ExpressionData input_data
 ```

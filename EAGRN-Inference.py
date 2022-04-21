@@ -10,13 +10,22 @@ import matplotlib.pyplot as plt
 app = typer.Typer()
 evaluate_app = typer.Typer()
 app.add_typer(evaluate_app, name="evaluate", help="Evaluate the accuracy of the inferred network with respect to its gold standard.")
+extract_data_app = typer.Typer()
+app.add_typer(extract_data_app, name="extract-data", help="Extract data from different simulators and known challenges. These include DREAM3, DREAM4, DREAM5, SynTReN, Rogers, GeneNetWeaver and IRMA.")
 
 class Database(str, Enum):
+    DREAM3 = "DREAM3"
     DREAM4 = "DREAM4"
     DREAM5 = "DREAM5"
     SynTReN = "SynTReN"
     Rogers = "Rogers"
     GeneNetWeaver = "GeneNetWeaver"
+    IRMA = "IRMA"
+
+class EvalDatabase(str, Enum):
+    DREAM3 = "DREAM3"
+    DREAM4 = "DREAM4"
+    DREAM5 = "DREAM5"
 
 class Technique(str, Enum):
     ARACNE = "ARACNE"
@@ -65,6 +74,7 @@ class Repairer(str, Enum):
     GreedyRepair = "GreedyRepair"
 
 class Challenge(str, Enum):
+    D3C4 = "D3C4"
     D4C2 = "D4C2"
     D5C4 = "D5C4"
 
@@ -79,27 +89,42 @@ def get_gene_names(conf_list):
     return gene_list
 
 
-@app.command()
-def extract_data(
+@extract_data_app.command()
+def expression_data(
         database: Optional[List[Database]] = typer.Option(..., case_sensitive=False, help="Databases for downloading expression data."),
-        output_dir: Path = typer.Option(Path("./expression_data"), help="Path to the output folder."), 
+        output_dir: Path = typer.Option(Path("./input_data"), help="Path to the output folder."), 
+        username: str = typer.Option(None, help="Synapse account username. Only necessary when selecting DREAM3 or DREAM5."),
+        password: str = typer.Option(None, help="Synapse account password. Only necessary when selecting DREAM3 or DREAM5."),
     ):
     """
-        Download differential expression data from various databases such as DREAM4, SynTReN, Rogers and GeneNetWeaver.
+        Download differential expression data from various databases such as DREAM3, DREAM4, DREAM5, SynTReN, Rogers, GeneNetWeaver and IRMA.
     """
+
+    if (Database.DREAM3 in database or Database.DREAM5 in database) and (not username or not password):
+        typer.echo("You must enter your Synapse credentials in order to download some of the selected data.")
+        raise typer.Exit()
 
     for db in database:
         Path(f'./{output_dir}/{db}/EXP/').mkdir(exist_ok=True, parents=True)
-        Path(f'./{output_dir}/{db}/GS/').mkdir(exist_ok=True, parents=True)
 
-        typer.echo(f"Extracting data from {db}")
+        typer.echo(f"Extracting expression data from {db}")
 
-        if db == "DREAM4":
+        if db == "DREAM3":
             client = docker.from_env()
             container = client.containers.run(
-                image="eagrn-inference/extract_data/dream4",
+                image="eagrn-inference/extract_data/dream3",
                 volumes={Path(f"./{output_dir}/").absolute(): {"bind": f"/usr/local/src/{output_dir}", "mode": "rw"}},
-                command=f"{output_dir}",
+                command=f"--category ExpressionData --output-folder {output_dir} --username {username} --password {password}",
+                detach=True,
+                tty=True,
+            )
+
+        elif db == "DREAM4":
+            client = docker.from_env()
+            container = client.containers.run(
+                image="eagrn-inference/extract_data/dream4/expgs",
+                volumes={Path(f"./{output_dir}/").absolute(): {"bind": f"/usr/local/src/{output_dir}", "mode": "rw"}},
+                command=f"ExpressionData {output_dir}",
                 detach=True,
                 tty=True,
             )
@@ -109,7 +134,17 @@ def extract_data(
             container = client.containers.run(
                 image="eagrn-inference/extract_data/dream5",
                 volumes={Path(f"./{output_dir}/").absolute(): {"bind": f"/usr/local/src/{output_dir}", "mode": "rw"}},
-                command=f"{output_dir} TFM-SynapseAccount TFM-SynapsePassword",
+                command=f"--category ExpressionData --output-folder {output_dir} --username {username} --password {password}",
+                detach=True,
+                tty=True,
+            )
+        
+        elif db == "IRMA":
+            client = docker.from_env()
+            container = client.containers.run(
+                image="eagrn-inference/extract_data/irma",
+                volumes={Path(f"./{output_dir}/").absolute(): {"bind": f"/usr/local/src/{output_dir}", "mode": "rw"}},
+                command=f"ExpressionData {output_dir}",
                 detach=True,
                 tty=True,
             )
@@ -119,7 +154,139 @@ def extract_data(
             container = client.containers.run(
                 image="eagrn-inference/extract_data/grndata",
                 volumes={Path(f"./{output_dir}/").absolute(): {"bind": f"/usr/local/src/{output_dir}", "mode": "rw"}},
-                command=f"{db} {output_dir}",
+                command=f"{db} ExpressionData {output_dir}",
+                detach=True,
+                tty=True,
+            )
+
+        r = container.wait()
+        logs = container.logs()
+        if logs:
+            typer.echo(logs.decode("utf-8"))
+
+        container.stop()
+        container.remove(v=True)
+
+@extract_data_app.command()
+def gold_standard(
+        database: Optional[List[Database]] = typer.Option(..., case_sensitive=False, help="Databases for downloading gold standards."),
+        output_dir: Path = typer.Option(Path("./input_data"), help="Path to the output folder."), 
+        username: str = typer.Option(None, help="Synapse account username. Only necessary when selecting DREAM3 or DREAM5."),
+        password: str = typer.Option(None, help="Synapse account password. Only necessary when selecting DREAM3 or DREAM5."),
+    ):
+    """
+        Download gold standards from various databases such as DREAM3, DREAM4, DREAM5, SynTReN, Rogers, GeneNetWeaver and IRMA.
+    """
+
+    if (Database.DREAM3 in database or Database.DREAM5 in database) and (not username or not password):
+        typer.echo("You must enter your Synapse credentials in order to download some of the selected data.")
+        raise typer.Exit()
+
+    for db in database:
+        Path(f'./{output_dir}/{db}/GS/').mkdir(exist_ok=True, parents=True)
+
+        typer.echo(f"Extracting gold standards from {db}")
+
+        if db == "DREAM3":
+            client = docker.from_env()
+            container = client.containers.run(
+                image="eagrn-inference/extract_data/dream3",
+                volumes={Path(f"./{output_dir}/").absolute(): {"bind": f"/usr/local/src/{output_dir}", "mode": "rw"}},
+                command=f"--category GoldStandard --output-folder {output_dir} --username {username} --password {password}",
+                detach=True,
+                tty=True,
+            )
+
+        elif db == "DREAM4":
+            client = docker.from_env()
+            container = client.containers.run(
+                image="eagrn-inference/extract_data/dream4/expgs",
+                volumes={Path(f"./{output_dir}/").absolute(): {"bind": f"/usr/local/src/{output_dir}", "mode": "rw"}},
+                command=f"GoldStandard {output_dir}",
+                detach=True,
+                tty=True,
+            )
+
+        elif db == "DREAM5":
+            client = docker.from_env()
+            container = client.containers.run(
+                image="eagrn-inference/extract_data/dream5",
+                volumes={Path(f"./{output_dir}/").absolute(): {"bind": f"/usr/local/src/{output_dir}", "mode": "rw"}},
+                command=f"--category GoldStandard --output-folder {output_dir} --username {username} --password {password}",
+                detach=True,
+                tty=True,
+            )
+        
+        elif db == "IRMA":
+            client = docker.from_env()
+            container = client.containers.run(
+                image="eagrn-inference/extract_data/irma",
+                volumes={Path(f"./{output_dir}/").absolute(): {"bind": f"/usr/local/src/{output_dir}", "mode": "rw"}},
+                command=f"GoldStandard {output_dir}",
+                detach=True,
+                tty=True,
+            )
+
+        else:
+            client = docker.from_env()
+            container = client.containers.run(
+                image="eagrn-inference/extract_data/grndata",
+                volumes={Path(f"./{output_dir}/").absolute(): {"bind": f"/usr/local/src/{output_dir}", "mode": "rw"}},
+                command=f"{db} GoldStandard {output_dir}",
+                detach=True,
+                tty=True,
+            )
+
+        r = container.wait()
+        logs = container.logs()
+        if logs:
+            typer.echo(logs.decode("utf-8"))
+
+        container.stop()
+        container.remove(v=True)
+
+@extract_data_app.command()
+def evaluation_data(
+        database: Optional[List[EvalDatabase]] = typer.Option(..., case_sensitive=False, help="Databases for downloading evaluation data."),
+        output_dir: Path = typer.Option(Path("./input_data"), help="Path to the output folder."), 
+        username: str = typer.Option(..., help="Synapse account username."),
+        password: str = typer.Option(..., help="Synapse account password."),
+    ):
+    """
+        Download evaluation data from various DREAM challenges.
+    """
+
+    for db in database:
+        Path(f'./{output_dir}/{db}/EVAL/').mkdir(exist_ok=True, parents=True)
+
+        typer.echo(f"Extracting evaluation data from {db}")
+
+        if db == "DREAM3":
+            client = docker.from_env()
+            container = client.containers.run(
+                image="eagrn-inference/extract_data/dream3",
+                volumes={Path(f"./{output_dir}/").absolute(): {"bind": f"/usr/local/src/{output_dir}", "mode": "rw"}},
+                command=f"--category EvaluationData --output-folder {output_dir} --username {username} --password {password}",
+                detach=True,
+                tty=True,
+            )
+
+        elif db == "DREAM4":
+            client = docker.from_env()
+            container = client.containers.run(
+                image="eagrn-inference/extract_data/dream4/eval",
+                volumes={Path(f"./{output_dir}/").absolute(): {"bind": f"/usr/local/src/{output_dir}", "mode": "rw"}},
+                command=f"--output-folder {output_dir} --username {username} --password {password}",
+                detach=True,
+                tty=True,
+            )
+
+        elif db == "DREAM5":
+            client = docker.from_env()
+            container = client.containers.run(
+                image="eagrn-inference/extract_data/dream5",
+                volumes={Path(f"./{output_dir}/").absolute(): {"bind": f"/usr/local/src/{output_dir}", "mode": "rw"}},
+                command=f"--category EvaluationData --output-folder {output_dir} --username {username} --password {password}",
                 detach=True,
                 tty=True,
             )
@@ -151,13 +318,13 @@ def infer_network(
     for tec in technique:
         typer.echo(f"Infer network from {expression_data} with {tec}")
 
-        if tec.lower() == "genie3_rf":
+        if tec == "GENIE3_RF":
             image = f"eagrn-inference/infer_network/genie3"
             variant = "RF"
-        elif tec.lower() == "genie3_gbm":
+        elif tec == "GENIE3_GBM":
             image = f"eagrn-inference/infer_network/genie3"
             variant = "GBM"
-        elif tec.lower() == "genie3_et":
+        elif tec == "GENIE3_ET":
             image = f"eagrn-inference/infer_network/genie3"
             variant = "ET"
         else:
@@ -328,7 +495,7 @@ def optimize_ensemble(
 def dream_prediction(
         challenge: Challenge = typer.Option(..., help="DREAM challenge to which the inferred network belongs"),
         network_id: str = typer.Option(..., help="Predicted network identifier. Ex: 10_1"),
-        synapse_file: List[Path] = typer.Option(..., help="Paths to files from synapse needed to perform inference evaluation. To download these files you need to register at https://www.synapse.org/# and download it manually."),
+        synapse_file: List[Path] = typer.Option(..., help="Paths to files from synapse needed to perform inference evaluation. To download these files you need to register at https://www.synapse.org/# and download them manually or run the command extract-data evaluation-data."),
         confidence_list: Path = typer.Option(..., exists=True, file_okay=True, help="Path to the CSV file with the list of trusted values."), 
     ):
     """

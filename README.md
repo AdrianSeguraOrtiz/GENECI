@@ -67,13 +67,15 @@ bash generate_images.sh
 3. Descargar datos simulados de expresión y sus respectivos gold standard:
 
 ```sh
-python EAGRN-Inference.py extract-data --database DREAM4 --database DREAM5 --database SynTReN --database Rogers --database GeneNetWeaver
+python EAGRN-Inference.py extract-data expression-data --database DREAM3 --database DREAM4 --database DREAM5 --database SynTReN --database Rogers --database GeneNetWeaver --database IRMA --username TFM-SynapseAccount --password TFM-SynapsePassword
+
+python EAGRN-Inference.py extract-data gold-standard --database DREAM3 --database DREAM4 --database DREAM5 --database SynTReN --database Rogers --database GeneNetWeaver --database IRMA --username TFM-SynapseAccount --password TFM-SynapsePassword
 ```
 
 4. Ejecutar algoritmo para un conjunto de datos de expresión concreto:
 
 ```sh
-python EAGRN-Inference.py run --expression-data expression_data/DREAM4/EXP/dream4_010_01_exp.csv --technique aracne --technique bc3net --technique c3net --technique clr --technique genie3_rf --technique genie3_gbm --technique genie3_et --technique mrnet --technique mrnetb --technique pcit --technique tigress --technique kboost
+python EAGRN-Inference.py run --expression-data input_data/DREAM4/EXP/dream4_010_01_exp.csv --technique aracne --technique bc3net --technique c3net --technique clr --technique genie3_rf --technique genie3_gbm --technique genie3_et --technique mrnet --technique mrnetb --technique pcit --technique tigress --technique kboost
 ```
 
 Este proceso también se puede dividir en dos partes:
@@ -81,7 +83,7 @@ Este proceso también se puede dividir en dos partes:
 4.1. Inferir redes de regulación génica mediante las técnicas individuales disponibles:
 
 ```sh
-python EAGRN-Inference.py infer-network --expression-data expression_data/DREAM4/EXP/dream4_010_01_exp.csv --technique aracne --technique bc3net --technique c3net --technique clr --technique genie3_rf --technique genie3_gbm --technique genie3_et --technique mrnet --technique mrnetb --technique pcit --technique tigress --technique kboost
+python EAGRN-Inference.py infer-network --expression-data input_data/DREAM4/EXP/dream4_010_01_exp.csv --technique aracne --technique bc3net --technique c3net --technique clr --technique genie3_rf --technique genie3_gbm --technique genie3_et --technique mrnet --technique mrnetb --technique pcit --technique tigress --technique kboost
 ```
 
 4.2. Optimizar el ensemble de las listas de confianza resultantes del comando anterior:
@@ -93,11 +95,20 @@ python EAGRN-Inference.py optimize-ensemble --confidence-list inferred_networks/
 5. Evaluar la calidad de la red génica inferida respecto a la gold standard
 
 ```sh
+# DREAM 3
+python EAGRN-Inference.py extract-data evaluation-data --database DREAM3 --username TFM-SynapseAccount --password TFM-SynapsePassword
+
+python EAGRN-Inference.py evaluate dream-prediction --challenge D3C4 --network-id 10_Yeast1 --synapse-file input_data/DREAM3/EVAL/PDF_InSilicoSize10_Yeast1.mat --synapse-file input_data/DREAM3/EVAL/DREAM3GoldStandard_InSilicoSize10_Yeast1.txt --confidence-list inferred_networks/InSilicoSize10-Yeast1-trajectories_exp/ea_consensus/final_list.csv
+
 # DREAM 4
-python EAGRN-Inference.py evaluate dream-prediction --challenge D4C2 --network-id 10_1 --synapse-file components/evaluate/dream_prediction/D4C2/pdf_size10_1.mat --confidence-list inferred_networks/dream4_010_01_exp/ea_consensus/final_list.csv
+python EAGRN-Inference.py extract-data evaluation-data --database DREAM4 --username TFM-SynapseAccount --password TFM-SynapsePassword
+
+python EAGRN-Inference.py evaluate dream-prediction --challenge D4C2 --network-id 10_1 --synapse-file input_data/DREAM4/EVAL/pdf_size10_1.mat --confidence-list inferred_networks/dream4_010_01_exp/ea_consensus/final_list.csv
 
 # DREAM 5
-python EAGRN-Inference.py evaluate dream-prediction --challenge D5C4 --network-id 1 --synapse-file components/evaluate/dream_prediction/D5C4/DREAM5_NetworkInference_Edges_Network1.tsv --synapse-file components/evaluate/dream_prediction/D5C4/DREAM5_NetworkInference_GoldStandard_Network1.tsv --synapse-file components/evaluate/dream_prediction/D5C4/Network1_AUPR.mat --synapse-file components/evaluate/dream_prediction/D5C4/Network1_AUROC.mat --confidence-list inferred_networks/net1_exp/lists/GRN_ARACNE.csv
+python EAGRN-Inference.py extract-data evaluation-data --database DREAM5 --username TFM-SynapseAccount --password TFM-SynapsePassword
+
+python EAGRN-Inference.py evaluate dream-prediction --challenge D5C4 --network-id 1 --synapse-file input_data/DREAM5/EVAL/DREAM5_NetworkInference_Edges_Network1.tsv --synapse-file input_data/DREAM5/EVAL/DREAM5_NetworkInference_GoldStandard_Network1.tsv --synapse-file input_data/DREAM5/EVAL/Network1_AUPR.mat --synapse-file input_data/DREAM5/EVAL/Network1_AUROC.mat --confidence-list inferred_networks/net1_exp/lists/GRN_ARACNE.csv
 ```
 
 # Console script
@@ -191,7 +202,7 @@ $ extract-data [OPTIONS]
 **Options**:
 
 * `--database [DREAM4|SynTReN|Rogers|GeneNetWeaver]`: Databases for downloading expression data.  [required]
-* `--output-dir PATH`: Path to the output folder.  [default: expression_data]
+* `--output-dir PATH`: Path to the output folder.  [default: input_data]
 * `--help`: Show this message and exit.
 
 ## `infer-network`

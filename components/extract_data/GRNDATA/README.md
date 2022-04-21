@@ -21,5 +21,5 @@ docker build -t eagrn-inference/extract_data/grndata -f components/extract_data/
 ## Run
 
 ```
-docker run -v $(pwd)/expression_data:/usr/local/src/expression_data/ eagrn-inference/extract_data/grndata SynTReN ExpressionData expression_data
+docker run -v $(pwd)/input_data:/usr/local/src/input_data/ eagrn-inference/extract_data/grndata SynTReN ExpressionData input_data
 ```

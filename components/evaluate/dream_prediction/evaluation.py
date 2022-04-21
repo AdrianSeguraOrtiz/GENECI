@@ -1,10 +1,14 @@
 from pathlib import Path
-from dreamtools import D4C2, D5C4
+from dreamtools import D3C4, D4C2, D5C4
 import pandas as pd 
 import argparse
 import shutil
 from easydev import Progress
 import numpy as np
+
+class MyD3C4(D3C4):
+    def _init(self):
+        return
 
 class MyD5C4(D5C4):
     def _get_G(self, gold):
@@ -73,7 +77,13 @@ csv_table.to_csv(tsv_filename, sep="\t", index=False)
 folder = "/root/.config/dreamtools/dream" + args.challenge[1] + "/" + args.challenge + "/"
 shutil.copytree(str(args.synapse_folder), folder)
 
-if args.challenge == "D4C2":
+if args.challenge == "D3C4":
+    s = MyD3C4(download=False)
+    measures = s.score_prediction(filename = tsv_filename, subname = args.network_id)
+    print("AUPR: " + str(measures["AUPR"]))
+    print("AUROC: " + str(measures["AUROC"]))
+
+elif args.challenge == "D4C2":
     s = D4C2(download=False)
     measures = s.score_prediction(filename = tsv_filename, subname = args.network_id)
     print("AUPR: " + str(measures["AUPR"]))
