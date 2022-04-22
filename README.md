@@ -1,53 +1,6 @@
 # EAGRN-Inference
 Evolutionary algorithm for determining the optimal ensemble of unsupervised learning techniques for gene network inference.
 
-# Techniques contemplated 
-- GENIE3:
-    - Python: https://arboreto.readthedocs.io/en/latest/ (GENIE3.py) (C) --> Te permite RF, ET y GBM
-
-- CLR: 
-    - R: https://www.bioconductor.org/packages/release/bioc/html/minet.html (CLR.R) (NC)
-
-- ARACNE:
-    - R: https://www.bioconductor.org/packages/release/bioc/html/minet.html (ARACNE.R) (NC)
-
-- MRNET:
-    - R: https://www.bioconductor.org/packages/release/bioc/html/minet.html (MRNET.R) (NC)
-
-- MRNETB:
-    - R: https://www.bioconductor.org/packages/release/bioc/html/minet.html (MRNETB.R) (NC)
-
-- C3NET
-    - R: https://cran.rstudio.com/web/packages/c3net/index.html (C3NET.R) (NC)
-
-- BC3NET 
-    - R: https://cran.rstudio.com/web/packages/bc3net/index.html (BC3NET.R) (C)
-
-- PCIT
-    - R: http://www.bioconductor.org/packages/release/bioc/html/CeTF.html (PCIT.R) (NC)
-
-- TIGRESS
-    - R: https://github.com/jpvert/tigress (TIGRESS.R) (C)
-
-- KBOOST
-    - R: http://www.bioconductor.org/packages/release/bioc/html/KBoost.html (KBOOST.R) (NC)
-
-## Annotations
-
-Respecto a GENIE3, CLR, ARACNE, MRNET y MRNETB:
- - GENIE3 se implementa en el paquete GENIE3
- - CLR, ARACNE, MRNET y MRNETB se implementan en minet
- - BioNERO es un paquete reciente de R/Bioconductor pero llama a los dos anteriores para usar GENIE3, CLR y ARACNE. Aunque sea más actual, simplemente llama a librerías antiguas simplificando los parámetros de entrada (lo cual no nos interesa). Además de que no implementa ni MRNET ni MRNETB, por eso se han escogido los paquetes antiguos.
-
-Respecto a C3NET y BC3NET:
- - Tienen muchos parámetros que no entiendo, preguntar cuáles combinaciones se podrían probar
-
- Respecto a JUMP3:
- - Se ha intentado utilizar el código del siguiente repositorio: https://github.com/vahuynh/Jump3.
- - En local y con la última versión de Matlab dá error en una función random.
- - Para probar con otras versiones de Matlab empecé a usar contenedores pero al requerir licencia es muy complicado. En primer lugar, el id del ordenador donde se instala la licencia debe ser el mismo que donde se ejecuta el script, por lo que su uso dentro de docker no me funciona. Además habría que añadir parámetros adicionales al script principal únicamente requeridos en caso de escoger esta técnica de inferencia. 
- - En caso de lograr que se ejecutase y saber solventar el problema de la licencia, no tengo ni idea de como poder pasarle los parámetros de entrada al script de matlab.
-
 # Example procedure
 
 1. Generar .jar con dependencias:
@@ -129,7 +82,7 @@ $ [OPTIONS] COMMAND [ARGS]...
 
 * `apply-cut`: Converts a list of confidence values into a...
 * `evaluate`: Evaluate the accuracy of the inferred network...
-* `extract-data`: Download differential expression data from...
+* `extract-data`: Extract data from different simulators and...
 * `infer-network`: Infer gene regulatory networks from...
 * `optimize-ensemble`: Analyzes several trust lists and builds a...
 * `run`: Infer gene regulatory network from expression...
@@ -183,26 +136,84 @@ $ evaluate dream-prediction [OPTIONS]
 
 **Options**:
 
-* `--challenge [D4C2]`: DREAM challenge to which the inferred network belongs  [required]
+* `--challenge [D3C4|D4C2|D5C4]`: DREAM challenge to which the inferred network belongs  [required]
 * `--network-id TEXT`: Predicted network identifier. Ex: 10_1  [required]
-* `--mat-file PATH`: Path to the .mat file required for performance evaluation. To download this file you need to register at https://www.synapse.org/# and download it manually.  [required]
+* `--synapse-file PATH`: Paths to files from synapse needed to perform inference evaluation. To download these files you need to register at https://www.synapse.org/# and download them manually or run the command extract-data evaluation-data.  [required]
 * `--confidence-list PATH`: Path to the CSV file with the list of trusted values.  [required]
 * `--help`: Show this message and exit.
 
 ## `extract-data`
 
-Download differential expression data from various databases such as DREAM4, SynTReN, Rogers and GeneNetWeaver.
+Extract data from different simulators and known challenges. These include DREAM3, DREAM4, DREAM5, SynTReN, Rogers, GeneNetWeaver and IRMA.
 
 **Usage**:
 
 ```console
-$ extract-data [OPTIONS]
+$ extract-data [OPTIONS] COMMAND [ARGS]...
 ```
 
 **Options**:
 
-* `--database [DREAM4|SynTReN|Rogers|GeneNetWeaver]`: Databases for downloading expression data.  [required]
+* `--help`: Show this message and exit.
+
+**Commands**:
+
+* `evaluation-data`: Download evaluation data from various DREAM...
+* `expression-data`: Download differential expression data from...
+* `gold-standard`: Download gold standards from various...
+
+### `extract-data evaluation-data`
+
+Download evaluation data from various DREAM challenges.
+
+**Usage**:
+
+```console
+$ extract-data evaluation-data [OPTIONS]
+```
+
+**Options**:
+
+* `--database [DREAM3|DREAM4|DREAM5]`: Databases for downloading evaluation data.  [required]
 * `--output-dir PATH`: Path to the output folder.  [default: input_data]
+* `--username TEXT`: Synapse account username.  [required]
+* `--password TEXT`: Synapse account password.  [required]
+* `--help`: Show this message and exit.
+
+### `extract-data expression-data`
+
+Download differential expression data from various databases such as DREAM3, DREAM4, DREAM5, SynTReN, Rogers, GeneNetWeaver and IRMA.
+
+**Usage**:
+
+```console
+$ extract-data expression-data [OPTIONS]
+```
+
+**Options**:
+
+* `--database [DREAM3|DREAM4|DREAM5|SynTReN|Rogers|GeneNetWeaver|IRMA]`: Databases for downloading expression data.  [required]
+* `--output-dir PATH`: Path to the output folder.  [default: input_data]
+* `--username TEXT`: Synapse account username. Only necessary when selecting DREAM3 or DREAM5.
+* `--password TEXT`: Synapse account password. Only necessary when selecting DREAM3 or DREAM5.
+* `--help`: Show this message and exit.
+
+### `extract-data gold-standard`
+
+Download gold standards from various databases such as DREAM3, DREAM4, DREAM5, SynTReN, Rogers, GeneNetWeaver and IRMA.
+
+**Usage**:
+
+```console
+$ extract-data gold-standard [OPTIONS]
+```
+
+**Options**:
+
+* `--database [DREAM3|DREAM4|DREAM5|SynTReN|Rogers|GeneNetWeaver|IRMA]`: Databases for downloading gold standards.  [required]
+* `--output-dir PATH`: Path to the output folder.  [default: input_data]
+* `--username TEXT`: Synapse account username. Only necessary when selecting DREAM3 or DREAM5.
+* `--password TEXT`: Synapse account password. Only necessary when selecting DREAM3 or DREAM5.
 * `--help`: Show this message and exit.
 
 ## `infer-network`
@@ -271,3 +282,51 @@ $ run [OPTIONS]
 * `--no-graphics / --no-no-graphics`: Indicate if you do not want to represent the evolution of the fitness value.  [default: False]
 * `--output-dir PATH`: Path to the output folder.  [default: inferred_networks]
 * `--help`: Show this message and exit.
+
+
+# Techniques contemplated 
+- GENIE3:
+    - Python: https://arboreto.readthedocs.io/en/latest/ (GENIE3.py) (C) --> Te permite RF, ET y GBM
+
+- CLR: 
+    - R: https://www.bioconductor.org/packages/release/bioc/html/minet.html (CLR.R) (NC)
+
+- ARACNE:
+    - R: https://www.bioconductor.org/packages/release/bioc/html/minet.html (ARACNE.R) (NC)
+
+- MRNET:
+    - R: https://www.bioconductor.org/packages/release/bioc/html/minet.html (MRNET.R) (NC)
+
+- MRNETB:
+    - R: https://www.bioconductor.org/packages/release/bioc/html/minet.html (MRNETB.R) (NC)
+
+- C3NET
+    - R: https://cran.rstudio.com/web/packages/c3net/index.html (C3NET.R) (NC)
+
+- BC3NET 
+    - R: https://cran.rstudio.com/web/packages/bc3net/index.html (BC3NET.R) (C)
+
+- PCIT
+    - R: http://www.bioconductor.org/packages/release/bioc/html/CeTF.html (PCIT.R) (NC)
+
+- TIGRESS
+    - R: https://github.com/jpvert/tigress (TIGRESS.R) (C)
+
+- KBOOST
+    - R: http://www.bioconductor.org/packages/release/bioc/html/KBoost.html (KBOOST.R) (NC)
+
+## Annotations
+
+Respecto a GENIE3, CLR, ARACNE, MRNET y MRNETB:
+ - GENIE3 se implementa en el paquete GENIE3
+ - CLR, ARACNE, MRNET y MRNETB se implementan en minet
+ - BioNERO es un paquete reciente de R/Bioconductor pero llama a los dos anteriores para usar GENIE3, CLR y ARACNE. Aunque sea más actual, simplemente llama a librerías antiguas simplificando los parámetros de entrada (lo cual no nos interesa). Además de que no implementa ni MRNET ni MRNETB, por eso se han escogido los paquetes antiguos.
+
+Respecto a C3NET y BC3NET:
+ - Tienen muchos parámetros que no entiendo, preguntar cuáles combinaciones se podrían probar
+
+ Respecto a JUMP3:
+ - Se ha intentado utilizar el código del siguiente repositorio: https://github.com/vahuynh/Jump3.
+ - En local y con la última versión de Matlab dá error en una función random.
+ - Para probar con otras versiones de Matlab empecé a usar contenedores pero al requerir licencia es muy complicado. En primer lugar, el id del ordenador donde se instala la licencia debe ser el mismo que donde se ejecuta el script, por lo que su uso dentro de docker no me funciona. Además habría que añadir parámetros adicionales al script principal únicamente requeridos en caso de escoger esta técnica de inferencia. 
+ - En caso de lograr que se ejecutase y saber solventar el problema de la licencia, no tengo ni idea de como poder pasarle los parámetros de entrada al script de matlab.
