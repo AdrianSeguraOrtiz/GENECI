@@ -31,19 +31,19 @@ docker build -t eagrn-inference/optimize_ensemble -f components/optimize_ensembl
 ## Aplicación de criterio de corte (lista de confianzas -> red binaria)
 docker build -t eagrn-inference/apply_cut -f components/apply_cut/Dockerfile .
 
-## Evaluación de redes inferidas correspondientes a los restos de DREAM
+## Evaluación de redes inferidas correspondientes a los retos de DREAM
 docker build -t eagrn-inference/evaluate/dream_prediction -f components/evaluate/dream_prediction/Dockerfile .
 
 # 3. Extraemos datos de las redes que queremos estudiar
 
 ## Datos de expresión
-python EAGRN-Inference.py extract-data expression-data --database DREAM3 --database DREAM4 --database DREAM5 --database IRMA --username TFM-SynapseAccount --password TFM-SynapsePassword
+python EAGRN-Inference.py extract-data expression-data --database DREAM3 --database DREAM4 --database IRMA --username TFM-SynapseAccount --password TFM-SynapsePassword
 
 ## Gold standards
-python EAGRN-Inference.py extract-data gold-standard --database DREAM3 --database DREAM4 --database DREAM5 --database IRMA --username TFM-SynapseAccount --password TFM-SynapsePassword
+python EAGRN-Inference.py extract-data gold-standard --database DREAM3 --database DREAM4 --database IRMA --username TFM-SynapseAccount --password TFM-SynapsePassword
 
 ## Datos de evaluación 
-python EAGRN-Inference.py extract-data evaluation-data --database DREAM3 --database DREAM4 --database DREAM5 --username TFM-SynapseAccount --password TFM-SynapsePassword
+python EAGRN-Inference.py extract-data evaluation-data --database DREAM3 --database DREAM4 --username TFM-SynapseAccount --password TFM-SynapsePassword
 
 # 4. Inferimos las redes de regulación génica a partir de todos los datos de expresión empleando todas las técnicas disponibles
 

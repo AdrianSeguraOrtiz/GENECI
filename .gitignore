@@ -143,3 +143,4 @@ EAGRN-JMetal/*.log
 
 # Inferred Networks
 inferred_networks/
+inferred_networks_D5/
