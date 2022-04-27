@@ -37,13 +37,13 @@ docker build -t eagrn-inference/evaluate/dream_prediction -f components/evaluate
 # 3. Extraemos datos de las redes que queremos estudiar
 
 ## Datos de expresión
-python EAGRN-Inference.py extract-data expression-data --database DREAM3 --database DREAM4 --database IRMA --username TFM-SynapseAccount --password TFM-SynapsePassword
+python EAGRN-Inference.py extract-data expression-data --database DREAM3 --database DREAM4 --database DREAM5 --database IRMA --username TFM-SynapseAccount --password TFM-SynapsePassword
 
 ## Gold standards
-python EAGRN-Inference.py extract-data gold-standard --database DREAM3 --database DREAM4 --database IRMA --username TFM-SynapseAccount --password TFM-SynapsePassword
+python EAGRN-Inference.py extract-data gold-standard --database DREAM3 --database DREAM4 --database DREAM5 --database IRMA --username TFM-SynapseAccount --password TFM-SynapsePassword
 
 ## Datos de evaluación 
-python EAGRN-Inference.py extract-data evaluation-data --database DREAM3 --database DREAM4 --username TFM-SynapseAccount --password TFM-SynapsePassword
+python EAGRN-Inference.py extract-data evaluation-data --database DREAM3 --database DREAM4 --database DREAM5 --username TFM-SynapseAccount --password TFM-SynapsePassword
 
 # 4. Inferimos las redes de regulación génica a partir de todos los datos de expresión empleando todas las técnicas disponibles
 
@@ -168,4 +168,34 @@ do
     do 
         python EAGRN-Inference.py evaluate dream-prediction --challenge D5C4 --network-id $id --synapse-file input_data/DREAM5/EVAL/DREAM5_NetworkInference_Edges_Network${id}.tsv --synapse-file input_data/DREAM5/EVAL/DREAM5_NetworkInference_GoldStandard_Network${id}.tsv --synapse-file input_data/DREAM5/EVAL/Network${id}_AUPR.mat --synapse-file input_data/DREAM5/EVAL/Network${id}_AUROC.mat --confidence-list $consensus_list >> $network_folder/gs_scores/consensus.txt
     done
+done
+
+# 7. Para las redes procedentes de DREAM creamos los excel con los resultados de precisión
+
+## DREAM3
+for network_folder in inferred_networks/*-trajectories_exp/
+do
+    id=$(echo $(basename $network_folder) | cut -d "-" -f 2)
+    size=$(echo $(basename $network_folder) | cut -d "-" -f 1)
+    size=${size#"InSilicoSize"}
+
+    name="D3_${size}_${id}"
+    file=$network_folder/gs_scores/${name}-gs_table.csv
+    echo "$name;;" > $file
+    echo "Technique;AUPR;AUROC" >> $file
+
+    tecs=($(grep -Po "(?<=GRN_).*(?=.csv)" $network_folder/gs_scores/techniques.txt))
+    aupr=($(grep -o "AUPR: 0.[0-9]*" $network_folder/gs_scores/techniques.txt | cut -d " " -f 2))
+    auroc=($(grep -o "AUROC: 0.[0-9]*" $network_folder/gs_scores/techniques.txt | cut -d " " -f 2))
+
+    for (( i=0; i<${#tecs[@]}; i++ ))
+    do
+        echo "${tecs[$i]};${aupr[$i]};${auroc[$i]}" >> $file
+    done
+
+    cons_aupr=($(grep -o "AUPR: 0.[0-9]*" $network_folder/gs_scores/consensus.txt | cut -d " " -f 2))
+    median_aupr=$(python -c "import sys; import statistics; print(statistics.median([float(i) for i in sys.argv[1:]]))" ${cons_aupr[@]})
+    cons_auroc=($(grep -o "AUROC: 0.[0-9]*" $network_folder/gs_scores/consensus.txt | cut -d " " -f 2))
+    median_auroc=$(python -c "import sys; import statistics; print(statistics.median([float(i) for i in sys.argv[1:]]))" ${cons_auroc[@]})
+    echo "Median Consensus;$median_aupr;$median_auroc" >> $file
 done
