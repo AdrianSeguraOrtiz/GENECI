@@ -199,3 +199,60 @@ do
     median_auroc=$(python -c "import sys; import statistics; print(statistics.median([float(i) for i in sys.argv[1:]]))" ${cons_auroc[@]})
     echo "Median Consensus;$median_aupr;$median_auroc" >> $file
 done
+
+## DREAM4
+for network_folder in inferred_networks/dream4*_exp/
+do
+    id=$(echo $(basename $network_folder) | cut -d "_" -f 3)
+    id=${id#"0"}
+    size=$(echo $(basename $network_folder) | cut -d "_" -f 2)
+    size=${size#"0"}
+
+    name="D4_${size}_${id}"
+    file=$network_folder/gs_scores/${name}-gs_table.csv
+    echo "$name;;" > $file
+    echo "Technique;AUPR;AUROC" >> $file
+
+    tecs=($(grep -Po "(?<=GRN_).*(?=.csv)" $network_folder/gs_scores/techniques.txt))
+    aupr=($(grep -o "AUPR: 0.[0-9]*" $network_folder/gs_scores/techniques.txt | cut -d " " -f 2))
+    auroc=($(grep -o "AUROC: 0.[0-9]*" $network_folder/gs_scores/techniques.txt | cut -d " " -f 2))
+
+    for (( i=0; i<${#tecs[@]}; i++ ))
+    do
+        echo "${tecs[$i]};${aupr[$i]};${auroc[$i]}" >> $file
+    done
+
+    cons_aupr=($(grep -o "AUPR: 0.[0-9]*" $network_folder/gs_scores/consensus.txt | cut -d " " -f 2))
+    median_aupr=$(python -c "import sys; import statistics; print(statistics.median([float(i) for i in sys.argv[1:]]))" ${cons_aupr[@]})
+    cons_auroc=($(grep -o "AUROC: 0.[0-9]*" $network_folder/gs_scores/consensus.txt | cut -d " " -f 2))
+    median_auroc=$(python -c "import sys; import statistics; print(statistics.median([float(i) for i in sys.argv[1:]]))" ${cons_auroc[@]})
+    echo "Median Consensus;$median_aupr;$median_auroc" >> $file
+done
+
+## DREAM5
+for network_folder in inferred_networks/net*_exp/
+do
+    id=$(basename $network_folder)
+    id=${id#"net"}
+    id=${id%"_exp"}
+
+    name="D5_${id}"
+    file=$network_folder/gs_scores/${name}-gs_table.csv
+    echo "$name;;" > $file
+    echo "Technique;AUPR;AUROC" >> $file
+
+    tecs=($(grep -Po "(?<=GRN_).*(?=.csv)" $network_folder/gs_scores/techniques.txt))
+    aupr=($(grep -o "AUPR: 0.[0-9]*" $network_folder/gs_scores/techniques.txt | cut -d " " -f 2))
+    auroc=($(grep -o "AUROC: 0.[0-9]*" $network_folder/gs_scores/techniques.txt | cut -d " " -f 2))
+
+    for (( i=0; i<${#tecs[@]}; i++ ))
+    do
+        echo "${tecs[$i]};${aupr[$i]};${auroc[$i]}" >> $file
+    done
+
+    cons_aupr=($(grep -o "AUPR: 0.[0-9]*" $network_folder/gs_scores/consensus.txt | cut -d " " -f 2))
+    median_aupr=$(python -c "import sys; import statistics; print(statistics.median([float(i) for i in sys.argv[1:]]))" ${cons_aupr[@]})
+    cons_auroc=($(grep -o "AUROC: 0.[0-9]*" $network_folder/gs_scores/consensus.txt | cut -d " " -f 2))
+    median_auroc=$(python -c "import sys; import statistics; print(statistics.median([float(i) for i in sys.argv[1:]]))" ${cons_auroc[@]})
+    echo "Median Consensus;$median_aupr;$median_auroc" >> $file
+done

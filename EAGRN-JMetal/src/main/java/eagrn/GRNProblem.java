@@ -15,14 +15,23 @@ public class GRNProblem extends AbstractDoubleProblem {
     private int numberOfNodes;
     private WeightRepairer initialPopulationRepairer;
     private CutOffCriteria cutOffCriteria;
+    private double f1Weight;
+    private double f2Weight;
 
     /** Constructor Creates a default instance of the GRN problem */
-    public GRNProblem(File[] inferredNetworkFiles, ArrayList<String> geneNames, WeightRepairer initialPopulationRepairer, CutOffCriteria cutOffCriteria) {
+    public GRNProblem(File[] inferredNetworkFiles, ArrayList<String> geneNames, WeightRepairer initialPopulationRepairer, CutOffCriteria cutOffCriteria, double f1Weight, double f2Weight) {
+        /** if the weights do not add up to 1 an error is thrown */
+        if (f1Weight + f2Weight != 1.0) {
+            throw new RuntimeException("The weights of both functions must add up to 1");
+        }
+        
         this.inferredNetworks = readAll(inferredNetworkFiles);
         this.geneNames = geneNames;
         this.numberOfNodes = geneNames.size();
         this.initialPopulationRepairer = initialPopulationRepairer;
         this.cutOffCriteria = cutOffCriteria;
+        this.f1Weight = f1Weight;
+        this.f2Weight = f2Weight;
 
         setNumberOfVariables(inferredNetworkFiles.length);
         setNumberOfObjectives(1);
@@ -61,7 +70,7 @@ public class GRNProblem extends AbstractDoubleProblem {
         int [][] binaryNetwork = cutOffCriteria.getNetworkFromConsensus(consensus, geneNames);
         double f2 = fitnessF2(binaryNetwork);
 
-        solution.objectives()[0] = 0.75*f1 + 0.25*f2;
+        solution.objectives()[0] = this.f1Weight*f1 + this.f2Weight*f2;
         return solution;
     }
 

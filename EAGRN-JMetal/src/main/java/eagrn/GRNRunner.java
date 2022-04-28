@@ -59,7 +59,9 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         int numEvaluations;
         String strCutOffCriteria;
         double cutOffValue;
-        if (args.length == 8) {
+        double f1Weight;
+        double f2Weight;
+        if (args.length == 10) {
             networkFolder = args[0];
             strCrossover = args[1];
             strMutation = args[2];
@@ -68,6 +70,8 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             numEvaluations = Integer.parseInt(args[5]);
             strCutOffCriteria = args[6];
             cutOffValue = Double.parseDouble(args[7]);
+            f1Weight = Double.parseDouble(args[8]);
+            f2Weight = Double.parseDouble(args[9]);
         } else {
             networkFolder = "/mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/dream4_010_01_exp/";
             strCrossover = "SBXCrossover";
@@ -77,6 +81,8 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             numEvaluations = 10000;
             strCutOffCriteria = "MinConfFreq";
             cutOffValue = 0.2;
+            f1Weight = 0.75;
+            f2Weight = 0.25;
         }
 
         /** Establish the chromosome repairer */
@@ -125,7 +131,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         }
 
         /** Initialize our problem with the extracted data */
-        problem = new GRNProblem(files, geneNames, repairer, cutOffCriteria);
+        problem = new GRNProblem(files, geneNames, repairer, cutOffCriteria, f1Weight, f2Weight);
 
         /** Set the crossover operator */
         double crossoverProbability = 0.9;
