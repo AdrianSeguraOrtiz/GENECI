@@ -1,4 +1,3 @@
-from email.policy import default
 import typer
 from typing import List, Optional
 from enum import Enum
@@ -6,6 +5,7 @@ from pathlib import Path
 import docker
 import shutil
 import matplotlib.pyplot as plt
+import multiprocessing
 
 app = typer.Typer()
 evaluate_app = typer.Typer()
@@ -428,6 +428,7 @@ def optimize_ensemble(
         cut_off_value: float = typer.Option(0.2, help="Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfFreq = 0.2"),
         f1_weight: float = typer.Option(0.75, help="Weight associated with the first function of the optimization process. This function tries to maximize the quality of good links (improve trust and frequency of appearance) while minimizing their quantity. It tries to establish some contrast between good and bad links so that the links finally reported are of high reliability."),
         f2_weight: float = typer.Option(0.25, help="Weight associated with the second function of the optimization process. This function tries to increase the degree (number of links) of those genes with a high potential to be considered as hubs. At the same time, it is intended that the number of genes that meet this condition should be relatively low, since this is what is usually observed in real gene networks. The objective is to promote the approximation of the network to a scale-free configuration and to move away from random structure."),
+        threads: int = typer.Option(multiprocessing.cpu_count(), help="Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used."),
         no_graphics: bool = typer.Option(False, help="Indicate if you do not want to represent the evolution of the fitness value."),
         output_dir: Path = typer.Option("<<conf_list_path>>/../ea_consensus", help="Path to the output folder."),
     ):
@@ -462,7 +463,7 @@ def optimize_ensemble(
     container = client.containers.run(
         image="eagrn-inference/optimize_ensemble",
         volumes={Path(f"./tmp/").absolute(): {"bind": f"/usr/local/src/tmp", "mode": "rw"}},
-        command=f"tmp/ {crossover} {mutation} {repairer} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {f1_weight} {f2_weight}",
+        command=f"tmp/ {crossover} {mutation} {repairer} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {f1_weight} {f2_weight} {threads}",
         detach=True,
         tty=True,
     )
@@ -551,6 +552,7 @@ def run(
         cut_off_value: float = typer.Option(0.2, help="Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfFreq = 0.2"),
         f1_weight: float = typer.Option(0.75, help="Weight associated with the first function of the optimization process. This function tries to maximize the quality of good links (improve trust and frequency of appearance) while minimizing their quantity. It tries to establish some contrast between good and bad links so that the links finally reported are of high reliability."),
         f2_weight: float = typer.Option(0.25, help="Weight associated with the second function of the optimization process. This function tries to increase the degree (number of links) of those genes with a high potential to be considered as hubs. At the same time, it is intended that the number of genes that meet this condition should be relatively low, since this is what is usually observed in real gene networks. The objective is to promote the approximation of the network to a scale-free configuration and to move away from random structure."),
+        threads: int = typer.Option(multiprocessing.cpu_count(), help="Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used."),
         no_graphics: bool = typer.Option(False, help="Indicate if you do not want to represent the evolution of the fitness value."),
         output_dir: Path = typer.Option(Path("./inferred_networks"), help="Path to the output folder."),
     ):
@@ -580,6 +582,7 @@ def run(
         cut_off_value,
         f1_weight,
         f2_weight,
+        threads,
         no_graphics,
         output_dir="<<conf_list_path>>/../ea_consensus"
     )

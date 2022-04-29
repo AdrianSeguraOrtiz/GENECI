@@ -9,15 +9,18 @@ import eagrn.operator.repairer.impl.GreedyRepairer;
 import eagrn.operator.repairer.impl.StandardizationRepairer;
 import eagrn.operator.repairer.WeightRepairer;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
-import org.uma.jmetal.experimental.componentbasedalgorithm.algorithm.singleobjective.geneticalgorithm.GeneticAlgorithm;
+import org.uma.jmetal.experimental.componentbasedalgorithm.catalogue.replacement.Replacement;
+import org.uma.jmetal.experimental.componentbasedalgorithm.catalogue.replacement.impl.MuPlusLambdaReplacement;
 import org.uma.jmetal.operator.crossover.CrossoverOperator;
 import org.uma.jmetal.operator.crossover.impl.*;
 import org.uma.jmetal.operator.mutation.MutationOperator;
 import org.uma.jmetal.operator.selection.impl.BinaryTournamentSelection;
 import org.uma.jmetal.operator.selection.impl.NaryTournamentSelection;
+import org.uma.jmetal.parallel.asynchronous.algorithm.impl.AsynchronousMultiThreadedGeneticAlgorithm;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 import org.uma.jmetal.util.AbstractAlgorithmRunner;
 import org.uma.jmetal.util.JMetalLogger;
+import org.uma.jmetal.util.comparator.ObjectiveComparator;
 import org.uma.jmetal.util.comparator.RankingAndCrowdingDistanceComparator;
 import org.uma.jmetal.util.errorchecking.JMetalException;
 import org.uma.jmetal.util.grouping.CollectionGrouping;
@@ -43,7 +46,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
     public static void main(String[] args) throws JMetalException, IOException {
         /** Declare the main execution variables */
         GRNProblem problem;
-        GeneticAlgorithm<DoubleSolution> algorithm;
+        AsynchronousMultiThreadedGeneticAlgorithm<DoubleSolution> algorithm;
         CrossoverOperator<DoubleSolution> crossover;
         MutationOperator<DoubleSolution> mutation;
         WeightRepairer repairer;
@@ -61,28 +64,37 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         double cutOffValue;
         double f1Weight;
         double f2Weight;
-        if (args.length == 10) {
+        int numOfThreads;
+
+        if (args.length > 0) {
             networkFolder = args[0];
-            strCrossover = args[1];
-            strMutation = args[2];
-            strRepairer = args[3];
-            populationSize = Integer.parseInt(args[4]);
-            numEvaluations = Integer.parseInt(args[5]);
-            strCutOffCriteria = args[6];
-            cutOffValue = Double.parseDouble(args[7]);
-            f1Weight = Double.parseDouble(args[8]);
-            f2Weight = Double.parseDouble(args[9]);
+
+            if (args.length == 11) {
+                strCrossover = args[1];
+                strMutation = args[2];
+                strRepairer = args[3];
+                populationSize = Integer.parseInt(args[4]);
+                numEvaluations = Integer.parseInt(args[5]);
+                strCutOffCriteria = args[6];
+                cutOffValue = Double.parseDouble(args[7]);
+                f1Weight = Double.parseDouble(args[8]);
+                f2Weight = Double.parseDouble(args[9]);
+                numOfThreads = Integer.parseInt(args[10]);
+                
+            } else {
+                strCrossover = "SBXCrossover";
+                strMutation = "PolynomialMutation";
+                strRepairer = "GreedyRepair";
+                populationSize = 100;
+                numEvaluations = 10000;
+                strCutOffCriteria = "MinConfFreq";
+                cutOffValue = 0.2;
+                f1Weight = 0.75;
+                f2Weight = 0.25;
+                numOfThreads = Runtime.getRuntime().availableProcessors();
+            }
         } else {
-            networkFolder = "/mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/dream4_010_01_exp/";
-            strCrossover = "SBXCrossover";
-            strMutation = "PolynomialMutation";
-            strRepairer = "GreedyRepair";
-            populationSize = 100;
-            numEvaluations = 10000;
-            strCutOffCriteria = "MinConfFreq";
-            cutOffValue = 0.2;
-            f1Weight = 0.75;
-            f2Weight = 0.25;
+            throw new RuntimeException("At least the folder with the input trust lists must be provided.");
         }
 
         /** Establish the chromosome repairer */
@@ -205,24 +217,32 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         /** Start selection operator */
         selection = new BinaryTournamentSelection<>(new RankingAndCrowdingDistanceComparator<>());
 
+        /** Activate stopwatch */
+        long initTime = System.currentTimeMillis();
+
         /** Instantiate the evolutionary algorithm indicating the size of the population and the maximum number of evaluations */
-        int offspringPopulationSize = populationSize;
         Termination termination = new TerminationByEvaluations(numEvaluations);
-        algorithm = new GeneticAlgorithm <>(
+        Replacement<DoubleSolution> replacement = new MuPlusLambdaReplacement<>(new ObjectiveComparator<>(0)) ;
+        algorithm = new AsynchronousMultiThreadedGeneticAlgorithm <DoubleSolution>(
+                        numOfThreads,
                         problem,
                         populationSize,
-                        offspringPopulationSize,
-                        selection,
                         crossover,
                         mutation,
+                        selection,
+                        replacement,
                         termination);
 
         /** Add observable to report the evolution of fitness values. */
-        FitnessObserver fitnessObserver = new FitnessObserver(100);
+        FitnessObserver fitnessObserver = new FitnessObserver(populationSize);
         algorithm.getObservable().register(fitnessObserver);
 
         /** Execute the designed evolutionary algorithm */
         algorithm.run();
+
+        /** Stop stopwatch and calculate the total execution time */
+        long endTime = System.currentTimeMillis();
+        long computingTime = endTime - initTime;
 
         /** Write the evolution of fitness values to an output txt file */
         try {
@@ -237,11 +257,10 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             throw new RuntimeException(ioe.getMessage());
         }
 
-        /** Extract the population of the last iteration and the total execution time. */
+        /** Extract the population of the last iteration */
         List<DoubleSolution> population = algorithm.getResult();
-        long computingTime = algorithm.getTotalComputingTime();
 
-        /** Transform the solution into a simple vector of weights. */
+        /** Transform the solution into a simple vector of weights */
         double[] winner = new double[problem.getNumberOfVariables()];
         for (int i = 0; i < problem.getNumberOfVariables(); i++) {
             winner[i] = population.get(0).variables().get(i);
@@ -315,11 +334,13 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         }
 
         /** Report the execution time and return the best solution found by the algorithm. */
+        JMetalLogger.logger.info("Threads used: " + numOfThreads);
         JMetalLogger.logger.info("Total execution time: " + computingTime + "ms");
         JMetalLogger.logger.info("The resulting list of links has been stored in" + networkFolder + "ea_consensus/final_list.csv");
         JMetalLogger.logger.info("The resulting binary matrix has been stored in" + networkFolder + "ea_consensus/final_network.csv");
         JMetalLogger.logger.info("The evolution of fitness values has been stored in" + networkFolder + "ea_consensus/fitness_evolution.txt");
         JMetalLogger.logger.info("List of the weights assigned to each technique has been stored in" + networkFolder + "ea_consensus/final_weights.txt");
+        System.exit(0);
     }
 }
 

@@ -38,6 +38,12 @@
             <artifactId>jmetal-experimental</artifactId>
             <version>5.11</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.uma.jmetal/jmetal-parallel -->
+        <dependency>
+            <groupId>org.uma.jmetal</groupId>
+            <artifactId>jmetal-parallel</artifactId>
+            <version>5.11</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
