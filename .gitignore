@@ -137,9 +137,11 @@ dask-worker-space/
 
 # Java project
 EAGRN-JMetal/.idea
-EAGRN-JMetal/target
 EAGRN-JMetal/*.csv
 EAGRN-JMetal/*.log
 
 # Inferred Networks
 inferred_networks*/
+
+# Temp folder
+tmp/
