@@ -1,3 +1,6 @@
+python3 EAGRN-Inference.py optimize-ensemble --num-evaluations 200 --confidence-list inferred_networks/net1_exp/lists/GRN_ARACNE.csv --confidence-list inferred_networks/net1_exp/lists/GRN_BC3NET.csv --confidence-list inferred_networks/net1_exp/lists/GRN_C3NET.csv --confidence-list inferred_networks/net1_exp/lists/GRN_CLR.csv --confidence-list inferred_networks/net1_exp/lists/GRN_GENIE3_RF.csv --confidence-list inferred_networks/net1_exp/lists/GRN_GENIE3_GBM.csv --confidence-list inferred_networks/net1_exp/lists/GRN_GENIE3_ET.csv --confidence-list inferred_networks/net1_exp/lists/GRN_MRNET.csv --confidence-list inferred_networks/net1_exp/lists/GRN_MRNETB.csv --confidence-list inferred_networks/net1_exp/lists/GRN_PCIT.csv --confidence-list inferred_networks/net1_exp/lists/GRN_KBOOST.csv --gene-names inferred_networks/net1_exp/gene_names.txt
+exit
+
 for network_folder in inferred_networks/*/
 do
     str=""
@@ -8,7 +11,7 @@ do
 
     for i in {1..25}
     do
-        python EAGRN-Inference.py optimize-ensemble $str --gene-names $network_folder/gene_names.txt --population-size 100 --num-evaluations 25000 --output-dir $network_folder/ea_consensus_$i
+        python3 EAGRN-Inference.py optimize-ensemble $str --gene-names $network_folder/gene_names.txt --population-size 100 --num-evaluations 25000 --output-dir $network_folder/ea_consensus_$i
     done
 done
 
@@ -23,7 +26,7 @@ do
 
     for consensus_list in $network_folder/ea_consensus_*/final_list.csv
     do 
-        python EAGRN-Inference.py evaluate dream-prediction --challenge D5C4 --network-id $id --synapse-file input_data/DREAM5/EVAL/DREAM5_NetworkInference_Edges_Network${id}.tsv --synapse-file input_data/DREAM5/EVAL/DREAM5_NetworkInference_GoldStandard_Network${id}.tsv --synapse-file input_data/DREAM5/EVAL/Network${id}_AUPR.mat --synapse-file input_data/DREAM5/EVAL/Network${id}_AUROC.mat --confidence-list $consensus_list >> $network_folder/gs_scores/consensus.txt
+        python3 EAGRN-Inference.py evaluate dream-prediction --challenge D5C4 --network-id $id --synapse-file input_data/DREAM5/EVAL/DREAM5_NetworkInference_Edges_Network${id}.tsv --synapse-file input_data/DREAM5/EVAL/DREAM5_NetworkInference_GoldStandard_Network${id}.tsv --synapse-file input_data/DREAM5/EVAL/Network${id}_AUPR.mat --synapse-file input_data/DREAM5/EVAL/Network${id}_AUROC.mat --confidence-list $consensus_list >> $network_folder/gs_scores/consensus.txt
     done
 done
 
@@ -48,8 +51,8 @@ do
     done
 
     cons_aupr=($(grep -o "AUPR: 0.[0-9]*" $network_folder/gs_scores/consensus.txt | cut -d " " -f 2))
-    median_aupr=$(python -c "import sys; import statistics; print(statistics.median([float(i) for i in sys.argv[1:]]))" ${cons_aupr[@]})
+    median_aupr=$(python3 -c "import sys; import statistics; print(statistics.median([float(i) for i in sys.argv[1:]]))" ${cons_aupr[@]})
     cons_auroc=($(grep -o "AUROC: 0.[0-9]*" $network_folder/gs_scores/consensus.txt | cut -d " " -f 2))
-    median_auroc=$(python -c "import sys; import statistics; print(statistics.median([float(i) for i in sys.argv[1:]]))" ${cons_auroc[@]})
+    median_auroc=$(python3 -c "import sys; import statistics; print(statistics.median([float(i) for i in sys.argv[1:]]))" ${cons_auroc[@]})
     echo "Median Consensus;$median_aupr;$median_auroc" >> $file
 done

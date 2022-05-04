@@ -10,7 +10,7 @@ import java.io.File;
 import java.util.*;
 
 public class GRNProblem extends AbstractDoubleProblem {
-    private Map<String, Double>[] inferredNetworks;
+    private Map<String, Double[]> inferredNetworks;
     private ArrayList<String> geneNames;
     private int numberOfNodes;
     private WeightRepairer initialPopulationRepairer;
@@ -75,20 +75,28 @@ public class GRNProblem extends AbstractDoubleProblem {
     }
 
     /** ReadAll() method */
-    private Map<String, Double>[] readAll(File[] inferredNetworkFiles) {
+    private Map<String, Double[]> readAll(File[] inferredNetworkFiles) {
         /**
-         * It scans the lists of links offered by the different techniques and stores
-         * them in a map vector for later query during the construction of the consensus network.
+         * It scans the lists of links offered by the different techniques and stores them in a map 
+         * with vector values for later query during the construction of the consensus network.
          */
 
-        Map<String, Double>[] vmap = new HashMap[inferredNetworkFiles.length];
+        Map<String, Double[]> res = new HashMap<String, Double[]>();
+        Double[] initialValue = new Double[inferredNetworkFiles.length];
+        Arrays.fill(initialValue, 0.0);
 
         for (int i = 0; i < inferredNetworkFiles.length; i++) {
             Map<String, Double> map = new ListOfLinks(inferredNetworkFiles[i]).getMapWithLinks();
-            vmap[i] = map;
+
+            for (Map.Entry<String, Double> entry : map.entrySet()) {
+                Double[] value = res.getOrDefault(entry.getKey(), initialValue);
+                value[i] = entry.getValue();
+                res.put(entry.getKey(), value);
+            }
         }
 
-        return vmap;
+        res.forEach((k,v)->System.out.println("Key : " + k + " Value : " + Arrays.toString(v)));
+        return res;
     }
 
     /** MakeConsensus() method */
@@ -100,15 +108,15 @@ public class GRNProblem extends AbstractDoubleProblem {
 
         Map<String, ConsensusTuple> consensus = new HashMap<>();
 
-        for (int i = 0; i < x.length; i++) {
-            if (x[i] > 0) {
-                for (Map.Entry<String, Double> pair : inferredNetworks[i].entrySet()) {
-                    ConsensusTuple mapConsTuple = consensus.getOrDefault(pair.getKey(), new ConsensusTuple(0, 0.0));
-                    if (x[i] > 0.05) mapConsTuple.increaseFreq();
-                    mapConsTuple.increaseConf(x[i] * pair.getValue());
-                    consensus.put(pair.getKey(), mapConsTuple);
-                }
+        for (Map.Entry<String, Double[]> pair : inferredNetworks.entrySet()) {
+            ConsensusTuple mapConsTuple = new ConsensusTuple(0, 0.0);
+
+            for (int i = 0; i < x.length; i++) {
+                if (x[i] > 0.05) mapConsTuple.increaseFreq();
+                mapConsTuple.increaseConf(x[i] * pair.getValue()[i]);
             }
+
+            consensus.put(pair.getKey(), mapConsTuple);
         }
 
         return consensus;

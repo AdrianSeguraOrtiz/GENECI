@@ -19,4 +19,4 @@ USER appuser
 COPY . /usr/local/src/
 WORKDIR /usr/local/src/
 
-ENTRYPOINT ["java",  "-cp",  "EAGRN-JMetal/target/AEGRN-1.0-SNAPSHOT-jar-with-dependencies.jar", "eagrn.GRNRunner"]
+ENTRYPOINT ["java",  "-cp",  "EAGRN-JMetal/target/AEGRN-1.0-SNAPSHOT-jar-with-dependencies.jar", "eagrn.GRNRunnerSingleThread"]

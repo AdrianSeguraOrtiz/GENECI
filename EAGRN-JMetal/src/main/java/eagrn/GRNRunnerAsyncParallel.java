@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
-public class GRNRunner extends AbstractAlgorithmRunner {
+public class GRNRunnerAsyncParallel extends AbstractAlgorithmRunner {
     /**
      * @param args Command line arguments.
      * @throws JMetalException
@@ -246,7 +246,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
         /** Write the evolution of fitness values to an output txt file */
         try {
-            File outputFile = new File(networkFolder + "ea_consensus/fitness_evolution.txt");
+            File outputFile = new File(networkFolder + "/ea_consensus/fitness_evolution.txt");
             outputFile.getParentFile().mkdirs();
             BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
             String strFitnessVector = fitnessObserver.getFitnessHistory().toString();
@@ -268,7 +268,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
         /** Write the list of weights assigned to each technique in an output txt file */
         try {
-            File outputFile = new File(networkFolder + "ea_consensus/final_weights.txt");
+            File outputFile = new File(networkFolder + "/ea_consensus/final_weights.txt");
             outputFile.getParentFile().mkdirs();
             BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
 
@@ -294,7 +294,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
         /** Write the resulting list of links to an output csv file */
         try {
-            File outputFile = new File(networkFolder + "ea_consensus/final_list.csv");
+            File outputFile = new File(networkFolder + "/ea_consensus/final_list.csv");
             outputFile.getParentFile().mkdirs();
             BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
 
@@ -314,7 +314,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
         /** Write the resulting binary matrix to an output csv file */
         try {
-            File outputFile = new File(networkFolder + "ea_consensus/final_network.csv");
+            File outputFile = new File(networkFolder + "/ea_consensus/final_network.csv");
             outputFile.getParentFile().mkdirs();
             BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
 
@@ -336,10 +336,10 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         /** Report the execution time and return the best solution found by the algorithm. */
         JMetalLogger.logger.info("Threads used: " + numOfThreads);
         JMetalLogger.logger.info("Total execution time: " + computingTime + "ms");
-        JMetalLogger.logger.info("The resulting list of links has been stored in" + networkFolder + "ea_consensus/final_list.csv");
-        JMetalLogger.logger.info("The resulting binary matrix has been stored in" + networkFolder + "ea_consensus/final_network.csv");
-        JMetalLogger.logger.info("The evolution of fitness values has been stored in" + networkFolder + "ea_consensus/fitness_evolution.txt");
-        JMetalLogger.logger.info("List of the weights assigned to each technique has been stored in" + networkFolder + "ea_consensus/final_weights.txt");
+        JMetalLogger.logger.info("The resulting list of links has been stored in" + networkFolder + "/ea_consensus/final_list.csv");
+        JMetalLogger.logger.info("The resulting binary matrix has been stored in" + networkFolder + "/ea_consensus/final_network.csv");
+        JMetalLogger.logger.info("The evolution of fitness values has been stored in" + networkFolder + "/ea_consensus/fitness_evolution.txt");
+        JMetalLogger.logger.info("List of the weights assigned to each technique has been stored in" + networkFolder + "/ea_consensus/final_weights.txt");
         System.exit(0);
     }
 }
