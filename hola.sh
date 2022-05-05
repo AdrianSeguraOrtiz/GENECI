@@ -1,6 +1,3 @@
-python3 EAGRN-Inference.py optimize-ensemble --num-evaluations 200 --confidence-list inferred_networks/net1_exp/lists/GRN_ARACNE.csv --confidence-list inferred_networks/net1_exp/lists/GRN_BC3NET.csv --confidence-list inferred_networks/net1_exp/lists/GRN_C3NET.csv --confidence-list inferred_networks/net1_exp/lists/GRN_CLR.csv --confidence-list inferred_networks/net1_exp/lists/GRN_GENIE3_RF.csv --confidence-list inferred_networks/net1_exp/lists/GRN_GENIE3_GBM.csv --confidence-list inferred_networks/net1_exp/lists/GRN_GENIE3_ET.csv --confidence-list inferred_networks/net1_exp/lists/GRN_MRNET.csv --confidence-list inferred_networks/net1_exp/lists/GRN_MRNETB.csv --confidence-list inferred_networks/net1_exp/lists/GRN_PCIT.csv --confidence-list inferred_networks/net1_exp/lists/GRN_KBOOST.csv --gene-names inferred_networks/net1_exp/gene_names.txt
-exit
-
 for network_folder in inferred_networks/*/
 do
     str=""
@@ -9,9 +6,23 @@ do
         str+="--confidence-list $confidence_list "
     done
 
+    id=$(basename $network_folder)
+    id=${id#"net"}
+    id=${id%"_exp"}
+
+    if [ $id == 1 ]
+    then 
+        threads=64
+    elif [ $id == 3 ]
+    then
+        threads=16
+    else
+        threads=8
+    fi
+
     for i in {1..25}
     do
-        python3 EAGRN-Inference.py optimize-ensemble $str --gene-names $network_folder/gene_names.txt --population-size 100 --num-evaluations 25000 --output-dir $network_folder/ea_consensus_$i
+        python3 EAGRN-Inference.py optimize-ensemble $str --gene-names $network_folder/gene_names.txt --population-size 100 --num-evaluations 25000 --output-dir $network_folder/ea_consensus_$i --threads $threads
     done
 done
 

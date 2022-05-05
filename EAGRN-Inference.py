@@ -445,6 +445,14 @@ def optimize_ensemble(
         typer.echo("The weights of both fitness functions must add up to 1")
         raise typer.Abort()
 
+    if threads < 1:
+        typer.echo("The number of threads must be at least 1")
+        raise typer.Abort()
+    elif threads == 1:
+        algorithm = "SingleThread"
+    else:
+        algorithm = "AsyncParallel"
+
     for file in confidence_list:
         Path("tmp/lists").mkdir(exist_ok=True, parents=True)
         shutil.copyfile(file, f"tmp/lists/{Path(file).name}")
@@ -463,7 +471,7 @@ def optimize_ensemble(
     container = client.containers.run(
         image="eagrn-inference/optimize_ensemble",
         volumes={Path(f"./tmp/").absolute(): {"bind": f"/usr/local/src/tmp", "mode": "rw"}},
-        command=f"tmp/ {crossover} {mutation} {repairer} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {f1_weight} {f2_weight} {threads}",
+        command=f"tmp/ {crossover} {mutation} {repairer} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {f1_weight} {f2_weight} {algorithm} {threads}",
         detach=True,
         tty=True,
     )

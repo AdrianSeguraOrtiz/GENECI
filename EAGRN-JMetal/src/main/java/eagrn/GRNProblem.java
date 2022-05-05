@@ -89,13 +89,12 @@ public class GRNProblem extends AbstractDoubleProblem {
             Map<String, Double> map = new ListOfLinks(inferredNetworkFiles[i]).getMapWithLinks();
 
             for (Map.Entry<String, Double> entry : map.entrySet()) {
-                Double[] value = res.getOrDefault(entry.getKey(), initialValue);
+                Double[] value = res.getOrDefault(entry.getKey(), initialValue.clone());
                 value[i] = entry.getValue();
                 res.put(entry.getKey(), value);
             }
         }
 
-        res.forEach((k,v)->System.out.println("Key : " + k + " Value : " + Arrays.toString(v)));
         return res;
     }
 

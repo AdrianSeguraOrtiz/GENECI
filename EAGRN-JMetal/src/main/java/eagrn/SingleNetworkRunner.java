@@ -5,6 +5,8 @@ import eagrn.cutoffcriteria.impl.MaxNumLinksBestConfCriteria;
 import eagrn.cutoffcriteria.impl.MinConfidenceCriteria;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class SingleNetworkRunner {
@@ -65,7 +67,7 @@ public class SingleNetworkRunner {
         /** Write the resulting binary matrix to an output csv file */
         try {
             File outputFile = new File(outputStrFile);
-            outputFile.getParentFile().mkdirs();
+            Files.createDirectories(outputFile.toPath().getParent());
             BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
 
             bw.write("," + String.join(",", geneNames));

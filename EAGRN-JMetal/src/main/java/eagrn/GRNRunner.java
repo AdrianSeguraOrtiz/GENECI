@@ -9,6 +9,9 @@ import eagrn.operator.repairer.impl.GreedyRepairer;
 import eagrn.operator.repairer.impl.StandardizationRepairer;
 import eagrn.operator.repairer.WeightRepairer;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.uma.jmetal.experimental.componentbasedalgorithm.algorithm.ComponentBasedEvolutionaryAlgorithm;
+import org.uma.jmetal.experimental.componentbasedalgorithm.algorithm.singleobjective.geneticalgorithm.GeneticAlgorithm;
+import org.uma.jmetal.experimental.componentbasedalgorithm.catalogue.evaluation.impl.MultithreadedEvaluation;
 import org.uma.jmetal.experimental.componentbasedalgorithm.catalogue.replacement.Replacement;
 import org.uma.jmetal.experimental.componentbasedalgorithm.catalogue.replacement.impl.MuPlusLambdaReplacement;
 import org.uma.jmetal.operator.crossover.CrossoverOperator;
@@ -29,31 +32,36 @@ import org.uma.jmetal.util.termination.Termination;
 import org.uma.jmetal.util.termination.impl.TerminationByEvaluations;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-public class GRNRunnerAsyncParallel extends AbstractAlgorithmRunner {
+public class GRNRunner extends AbstractAlgorithmRunner {
     /**
      * @param args Command line arguments.
      * @throws JMetalException
      * @throws FileNotFoundException Invoking command: java
      *     org.uma.jmetal.runner.multiobjective.nsgaii.NSGAIIRunner problemName [referenceFront]
-     */
+    . */
     public static void main(String[] args) throws JMetalException, IOException {
-        /** Declare the main execution variables */
+        /** Declare the main execution variables. */
         GRNProblem problem;
-        AsynchronousMultiThreadedGeneticAlgorithm<DoubleSolution> algorithm;
         CrossoverOperator<DoubleSolution> crossover;
         MutationOperator<DoubleSolution> mutation;
         WeightRepairer repairer;
         NaryTournamentSelection<DoubleSolution> selection;
         CutOffCriteria cutOffCriteria;
 
-        /** Read input parameters */
+        /** Read input parameters. */
         String networkFolder;
         String strCrossover;
         String strMutation;
@@ -64,12 +72,13 @@ public class GRNRunnerAsyncParallel extends AbstractAlgorithmRunner {
         double cutOffValue;
         double f1Weight;
         double f2Weight;
+        String strAlgorithm;
         int numOfThreads;
 
         if (args.length > 0) {
             networkFolder = args[0];
 
-            if (args.length == 11) {
+            if (args.length == 12) {
                 strCrossover = args[1];
                 strMutation = args[2];
                 strRepairer = args[3];
@@ -79,7 +88,8 @@ public class GRNRunnerAsyncParallel extends AbstractAlgorithmRunner {
                 cutOffValue = Double.parseDouble(args[7]);
                 f1Weight = Double.parseDouble(args[8]);
                 f2Weight = Double.parseDouble(args[9]);
-                numOfThreads = Integer.parseInt(args[10]);
+                strAlgorithm = args[10];
+                numOfThreads = Integer.parseInt(args[11]);
                 
             } else {
                 strCrossover = "SBXCrossover";
@@ -91,13 +101,14 @@ public class GRNRunnerAsyncParallel extends AbstractAlgorithmRunner {
                 cutOffValue = 0.2;
                 f1Weight = 0.75;
                 f2Weight = 0.25;
+                strAlgorithm = "AsyncParallel";
                 numOfThreads = Runtime.getRuntime().availableProcessors();
             }
         } else {
             throw new RuntimeException("At least the folder with the input trust lists must be provided.");
         }
 
-        /** Establish the chromosome repairer */
+        /** Establish the chromosome repairer. */
         switch (strRepairer) {
             case "StandardizationRepairer":
                 repairer = new StandardizationRepairer();
@@ -109,12 +120,12 @@ public class GRNRunnerAsyncParallel extends AbstractAlgorithmRunner {
                 throw new RuntimeException("The repairer operator entered is not available");
         }
 
-        /** List CSV files stored in the input folder with inferred lists of links */
+        /** List CSV files stored in the input folder with inferred lists of links. */
         File dir = new File(networkFolder + "/lists/");
         FileFilter fileFilter = new WildcardFileFilter("*.csv");
         File[] files = dir.listFiles(fileFilter);
 
-        /** Extracting gene names */
+        /** Extracting gene names. */
         File geneNamesFile = new File(networkFolder + "/gene_names.txt");
         ArrayList<String> geneNames;
         try {
@@ -127,7 +138,7 @@ public class GRNRunnerAsyncParallel extends AbstractAlgorithmRunner {
             throw new RuntimeException(fnfe.getMessage());
         }
 
-        /** Establish the cut-off criteria */
+        /** Establish the cut-off criteria. */
         switch (strCutOffCriteria) {
             case "MinConfidence":
                 cutOffCriteria = new MinConfidenceCriteria(cutOffValue);
@@ -142,10 +153,10 @@ public class GRNRunnerAsyncParallel extends AbstractAlgorithmRunner {
                 throw new RuntimeException("The cut-off criteria entered is not available");
         }
 
-        /** Initialize our problem with the extracted data */
+        /** Initialize our problem with the extracted data. */
         problem = new GRNProblem(files, geneNames, repairer, cutOffCriteria, f1Weight, f2Weight);
 
-        /** Set the crossover operator */
+        /** Set the crossover operator. */
         double crossoverProbability = 0.9;
         double crossoverDistributionIndex = 20.0;
         int numPointsCrossover = 2;
@@ -173,7 +184,7 @@ public class GRNRunnerAsyncParallel extends AbstractAlgorithmRunner {
                 throw new RuntimeException("The crossover operator entered is not available");
         }
 
-        /** Set the mutation operator */
+        /** Set the mutation operator. */
         double mutationProbability = 1.0 / problem.getNumberOfVariables();
         double mutationDistributionIndex = 20.0;
         double delta = 0.5;
@@ -214,16 +225,29 @@ public class GRNRunnerAsyncParallel extends AbstractAlgorithmRunner {
                 throw new RuntimeException("The mutation operator entered is not available");
         }
 
-        /** Start selection operator */
+        /** Start selection operator. */
         selection = new BinaryTournamentSelection<>(new RankingAndCrowdingDistanceComparator<>());
 
-        /** Activate stopwatch */
-        long initTime = System.currentTimeMillis();
+        /** Add observable to report the evolution of fitness values. */
+        FitnessObserver fitnessObserver = new FitnessObserver(populationSize);
 
-        /** Instantiate the evolutionary algorithm indicating the size of the population and the maximum number of evaluations */
+        /** Declare variable to contain the runtime and another to store the last generation of individuals. */
+        long computingTime;
+        List<DoubleSolution> population;
+
+        /** Instantiate some variables needed for the different algorithms. */
         Termination termination = new TerminationByEvaluations(numEvaluations);
-        Replacement<DoubleSolution> replacement = new MuPlusLambdaReplacement<>(new ObjectiveComparator<>(0)) ;
-        algorithm = new AsynchronousMultiThreadedGeneticAlgorithm <DoubleSolution>(
+        Replacement<DoubleSolution> replacement = new MuPlusLambdaReplacement<>(new ObjectiveComparator<>(0));
+        int offspringPopulationSize = populationSize;
+
+        /** Configure the specified evolutionary algorithm. */
+        if (strAlgorithm.equals("AsyncParallel")) {
+            /** Activate stopwatch. */
+            long initTime = System.currentTimeMillis();
+
+            /** Instantiate the evolutionary algorithm. */
+            AsynchronousMultiThreadedGeneticAlgorithm<DoubleSolution> algorithm
+                 = new AsynchronousMultiThreadedGeneticAlgorithm <DoubleSolution>(
                         numOfThreads,
                         problem,
                         populationSize,
@@ -232,44 +256,101 @@ public class GRNRunnerAsyncParallel extends AbstractAlgorithmRunner {
                         selection,
                         replacement,
                         termination);
+            
+            /** Register observable. */
+            algorithm.getObservable().register(fitnessObserver);
 
-        /** Add observable to report the evolution of fitness values. */
-        FitnessObserver fitnessObserver = new FitnessObserver(populationSize);
-        algorithm.getObservable().register(fitnessObserver);
+            /** Execute the designed evolutionary algorithm. */
+            algorithm.run();
+    
+            /** Stop stopwatch and calculate the total execution time. */
+            long endTime = System.currentTimeMillis();
+            computingTime = endTime - initTime;
 
-        /** Execute the designed evolutionary algorithm */
-        algorithm.run();
+            /** Extract the population of the last iteration. */
+            population = algorithm.getResult();
 
-        /** Stop stopwatch and calculate the total execution time */
-        long endTime = System.currentTimeMillis();
-        long computingTime = endTime - initTime;
+        } else if (strAlgorithm.equals("SyncParallel")) {
+            /** Instantiate the evolutionary algorithm. */
+            ComponentBasedEvolutionaryAlgorithm<DoubleSolution> algorithm
+                 = new GeneticAlgorithm <DoubleSolution>(
+                        problem,
+                        populationSize,
+                        offspringPopulationSize,
+                        selection,
+                        crossover,
+                        mutation,
+                        termination).withEvaluation(new MultithreadedEvaluation<>(numOfThreads, problem));
 
-        /** Write the evolution of fitness values to an output txt file */
+            /** Register observable. */
+            algorithm.getObservable().register(fitnessObserver);
+
+            /** Execute the designed evolutionary algorithm. */
+            algorithm.run();
+
+            /** Extract the total execution time. */
+            computingTime = algorithm.getTotalComputingTime();
+
+            /** Extract the population of the last iteration. */
+            population = algorithm.getResult();
+
+        } else if (strAlgorithm.equals("SingleThread")) {
+            /** Instantiate the evolutionary algorithm. */
+            GeneticAlgorithm<DoubleSolution> algorithm 
+                = new GeneticAlgorithm <DoubleSolution>(
+                        problem,
+                        populationSize,
+                        offspringPopulationSize,
+                        selection,
+                        crossover,
+                        mutation,
+                        termination);
+            
+            /** Register observable. */
+            algorithm.getObservable().register(fitnessObserver);
+
+            /** Execute the designed evolutionary algorithm. */
+            algorithm.run();
+
+            /** Extract the total execution time. */
+            computingTime = algorithm.getTotalComputingTime();
+
+            /** Extract the population of the last iteration. */
+            population = algorithm.getResult();
+
+        } else {
+            throw new RuntimeException("The algorithm name entered is not available");
+        }
+
+        /** Create output folder. */
+        String outputFolder = networkFolder + "/ea_consensus/";
         try {
-            File outputFile = new File(networkFolder + "/ea_consensus/fitness_evolution.txt");
-            outputFile.getParentFile().mkdirs();
+            Files.createDirectories(Paths.get(outputFolder));
+        } catch (IOException ioe) {
+            throw new RuntimeException(ioe);
+        }
+
+        /** Write the evolution of fitness values to an output txt file. */
+        try {
+            File outputFile = new File(outputFolder + "/fitness_evolution.txt");
             BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
             String strFitnessVector = fitnessObserver.getFitnessHistory().toString();
             bw.write(strFitnessVector.substring(1, strFitnessVector.length() - 1));
             bw.flush();
             bw.close();
         } catch (IOException ioe) {
-            throw new RuntimeException(ioe.getMessage());
+            throw new RuntimeException(ioe);
         }
 
-        /** Extract the population of the last iteration */
-        List<DoubleSolution> population = algorithm.getResult();
-
-        /** Transform the solution into a simple vector of weights */
+        /** Transform the solution into a simple vector of weights. */
         double[] winner = new double[problem.getNumberOfVariables()];
         for (int i = 0; i < problem.getNumberOfVariables(); i++) {
             winner[i] = population.get(0).variables().get(i);
         }
 
-        /** Write the list of weights assigned to each technique in an output txt file */
+        /** Write the list of weights assigned to each technique in an output txt file. */
         try {
-            File outputFile = new File(networkFolder + "/ea_consensus/final_weights.txt");
-            outputFile.getParentFile().mkdirs();
+            File outputFile = new File(outputFolder + "/final_weights.txt");
             BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
 
             String filename;
@@ -292,10 +373,9 @@ public class GRNRunnerAsyncParallel extends AbstractAlgorithmRunner {
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                 (e1, e2) -> e1, LinkedHashMap::new));
 
-        /** Write the resulting list of links to an output csv file */
+        /** Write the resulting list of links to an output csv file. */
         try {
-            File outputFile = new File(networkFolder + "/ea_consensus/final_list.csv");
-            outputFile.getParentFile().mkdirs();
+            File outputFile = new File(outputFolder + "/final_list.csv");
             BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
 
             for (Map.Entry<String, ConsensusTuple> pair : consensus.entrySet()) {
@@ -309,13 +389,12 @@ public class GRNRunnerAsyncParallel extends AbstractAlgorithmRunner {
             throw new RuntimeException(ioe.getMessage());
         }
 
-        /** Calculate the binary matrix from the list above */
+        /** Calculate the binary matrix from the list above. */
         int[][] binaryNetwork = cutOffCriteria.getNetworkFromConsensus(consensus, geneNames);
 
-        /** Write the resulting binary matrix to an output csv file */
+        /** Write the resulting binary matrix to an output csv file. */
         try {
-            File outputFile = new File(networkFolder + "/ea_consensus/final_network.csv");
-            outputFile.getParentFile().mkdirs();
+            File outputFile = new File(outputFolder + "/final_network.csv");
             BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
 
             bw.write("," + String.join(",", geneNames));
@@ -334,12 +413,13 @@ public class GRNRunnerAsyncParallel extends AbstractAlgorithmRunner {
         }
 
         /** Report the execution time and return the best solution found by the algorithm. */
+        JMetalLogger.logger.info("Evolutionary algorithm executed: " + strAlgorithm);
         JMetalLogger.logger.info("Threads used: " + numOfThreads);
         JMetalLogger.logger.info("Total execution time: " + computingTime + "ms");
-        JMetalLogger.logger.info("The resulting list of links has been stored in" + networkFolder + "/ea_consensus/final_list.csv");
-        JMetalLogger.logger.info("The resulting binary matrix has been stored in" + networkFolder + "/ea_consensus/final_network.csv");
-        JMetalLogger.logger.info("The evolution of fitness values has been stored in" + networkFolder + "/ea_consensus/fitness_evolution.txt");
-        JMetalLogger.logger.info("List of the weights assigned to each technique has been stored in" + networkFolder + "/ea_consensus/final_weights.txt");
+        JMetalLogger.logger.info("The resulting list of links has been stored in" + outputFolder + "/final_list.csv");
+        JMetalLogger.logger.info("The resulting binary matrix has been stored in" + outputFolder + "/final_network.csv");
+        JMetalLogger.logger.info("The evolution of fitness values has been stored in" + outputFolder + "/fitness_evolution.txt");
+        JMetalLogger.logger.info("List of the weights assigned to each technique has been stored in" + outputFolder + "/final_weights.txt");
         System.exit(0);
     }
 }
