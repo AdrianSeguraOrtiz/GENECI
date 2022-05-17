@@ -1,6 +1,6 @@
 ## NAME
 
-Extract Data
+Apply Cut
 
 ## AUTHOR
 
@@ -8,7 +8,7 @@ Adrián Segura Ortiz
 
 ## DESCRIPTION
 
-This component is responsible for downloading differential expression data from various databases such as DREAM4, SynTReN, Rogers and GeneNetWeaver.
+This component is in charge of converting confidence lists into binary matrices by applying various criteria.
 
 # DOCKER
 
