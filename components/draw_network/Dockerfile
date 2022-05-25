@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
 RUN pip install --upgrade pip
 
 # Install packages
-RUN pip install typer networkx
+RUN pip install typer networkx matplotlib plotly scipy
 
 COPY . /usr/local/src/
 WORKDIR /usr/local/src/

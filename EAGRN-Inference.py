@@ -78,6 +78,17 @@ class Challenge(str, Enum):
     D4C2 = "D4C2"
     D5C4 = "D5C4"
 
+class NodesDistribution(str, Enum):
+    Spring = "Spring"
+    Circular = "Circular"
+    Bipartite = "Bipartite"
+    Kamada_Kawai = "Kamada_kawai"
+
+class Mode(str, Enum):
+    Static2D = "Static2D"
+    Interactive3D = "Interactive3D"
+    Both = "Both"
+
 
 def get_gene_names(conf_list):
     gene_list = set()
@@ -502,7 +513,7 @@ def optimize_ensemble(
 
     output_dir.mkdir(exist_ok=True, parents=True)
     for f in Path("tmp/ea_consensus").glob('*'):
-        shutil.move(f, output_dir/f.name)
+        shutil.move(f, f"{output_dir}/{f.name}")
     shutil.rmtree("tmp")
     
 
@@ -594,6 +605,60 @@ def run(
         no_graphics,
         output_dir="<<conf_list_path>>/../ea_consensus"
     )
+
+@app.command()
+def draw_network(
+        confidence_list: Optional[List[str]] = typer.Option(
+            ..., help="Paths of the CSV files with the confidence lists to be represented"
+        ),
+        mode: Mode = typer.Option("Both", help="Mode of representation"),
+        nodes_distribution: NodesDistribution = typer.Option(
+            "Spring", help="Node distribution in graph"
+        ),
+        output_folder: str = typer.Option("<<conf_list_path>>/../network_graphics", help="Path to output folder"),
+    ):
+    """
+        Draw gene regulatory networks from confidence lists.
+    """
+    typer.echo(f"Draw gene regulatory networks for {', '.join(confidence_list)}")
+
+    tmp_input_folder = "tmp/input"
+    Path(tmp_input_folder).mkdir(exist_ok=True, parents=True)
+
+    tmp_output_folder = "tmp/output"
+    Path(tmp_output_folder).mkdir(exist_ok=True, parents=True)
+
+    command = ""
+    for file in confidence_list:
+        tmp_file_dir = f"{tmp_input_folder}/{Path(file).name}"
+        command += f"--confidence-list {tmp_file_dir} "
+        shutil.copyfile(file, tmp_file_dir)
+
+    client = docker.from_env()
+    container = client.containers.run(
+        image="eagrn-inference/draw_network",
+        volumes={Path(f"./tmp/").absolute(): {"bind": f"/usr/local/src/tmp", "mode": "rw"}},
+        command=f"{command} --mode {mode} --nodes-distribution {nodes_distribution} --output-folder {tmp_output_folder}",
+        detach=True,
+        tty=True,
+    )
+
+    r = container.wait()
+    logs = container.logs()
+    if logs:
+        typer.echo(logs.decode("utf-8"))
+
+    container.stop()
+    container.remove(v=True)
+
+    if str(output_folder) == "<<conf_list_path>>/../network_graphics":
+        output_folder = Path(f"{Path(confidence_list[0]).parents[1]}/network_graphics/")
+    
+    output_folder.mkdir(exist_ok=True, parents=True)
+    for f in Path(tmp_output_folder).glob('*'):
+        shutil.move(f, f"{output_folder}/{f.name}")
+    shutil.rmtree("tmp")
+
 
 if __name__ == "__main__":
     app()

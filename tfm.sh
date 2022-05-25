@@ -34,6 +34,9 @@ docker build -t eagrn-inference/apply_cut -f components/apply_cut/Dockerfile .
 ## Evaluación de redes inferidas correspondientes a los retos de DREAM
 docker build -t eagrn-inference/evaluate/dream_prediction -f components/evaluate/dream_prediction/Dockerfile .
 
+## Representación gráfica de redes
+docker build -t eagrn-inference/draw_network -f components/draw_network/Dockerfile .
+
 # 3. Extraemos datos de las redes que queremos estudiar
 
 ## Datos de expresión
@@ -119,7 +122,19 @@ do
     done
 done
 
-# 7. Para las redes procedentes de DREAM evaluamos la precisión de los ensembles generados 
+# 7. Representamos las listas de confianza junto con uno de los consensuados obtenidos
+
+for network_folder in inferred_networks/*/
+do
+    str="--confidence-list $network_folder/ea_consensus_1/final_list.csv "
+    for confidence_list in $network_folder/lists/*.csv
+    do 
+        str+="--confidence-list $confidence_list "
+    done
+    python EAGRN-Inference.py draw-network $str
+done
+
+# 8. Para las redes procedentes de DREAM evaluamos la precisión de los ensembles generados 
 
 ## DREAM3
 for network_folder in inferred_networks/*-trajectories_exp/
@@ -170,7 +185,7 @@ do
     done
 done
 
-# 7. Para las redes procedentes de DREAM creamos los excel con los resultados de precisión
+# 9. Para las redes procedentes de DREAM creamos los excel con los resultados de precisión
 
 ## DREAM3
 for network_folder in inferred_networks/*-trajectories_exp/

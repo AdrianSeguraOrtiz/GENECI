@@ -1,8 +1,14 @@
-import typer
 import csv
+import itertools
+from enum import Enum
+from pathlib import Path
 from typing import List, Optional
-import networkx as nx
+
 import matplotlib.pyplot as plt
+import networkx as nx
+import plotly.graph_objects as go
+import typer
+
 
 def my_draw_networkx_edge_labels(
     G,
@@ -20,7 +26,7 @@ def my_draw_networkx_edge_labels(
     ax=None,
     rotate=True,
     clip_on=True,
-    rad=0
+    rad=0,
 ):
     """Draw edge labels.
 
@@ -114,13 +120,13 @@ def my_draw_networkx_edge_labels(
         )
         pos_1 = ax.transData.transform(np.array(pos[n1]))
         pos_2 = ax.transData.transform(np.array(pos[n2]))
-        linear_mid = 0.5*pos_1 + 0.5*pos_2
+        linear_mid = 0.5 * pos_1 + 0.5 * pos_2
         d_pos = pos_2 - pos_1
-        rotation_matrix = np.array([(0,1), (-1,0)])
-        ctrl_1 = linear_mid + rad*rotation_matrix@d_pos
-        ctrl_mid_1 = 0.5*pos_1 + 0.5*ctrl_1
-        ctrl_mid_2 = 0.5*pos_2 + 0.5*ctrl_1
-        bezier_mid = 0.5*ctrl_mid_1 + 0.5*ctrl_mid_2
+        rotation_matrix = np.array([(0, 1), (-1, 0)])
+        ctrl_1 = linear_mid + rad * rotation_matrix @ d_pos
+        ctrl_mid_1 = 0.5 * pos_1 + 0.5 * ctrl_1
+        ctrl_mid_2 = 0.5 * pos_2 + 0.5 * ctrl_1
+        bezier_mid = 0.5 * ctrl_mid_1 + 0.5 * ctrl_mid_2
         (x, y) = ax.transData.inverted().transform(bezier_mid)
 
         if rotate:
@@ -174,71 +180,229 @@ def my_draw_networkx_edge_labels(
 
     return text_items
 
+
+class NodesDistribution(str, Enum):
+    Spring = "Spring"
+    Circular = "Circular"
+    Bipartite = "Bipartite"
+    Kamada_Kawai = "Kamada_kawai"
+
+
+class Mode(str, Enum):
+    Static2D = "Static2D"
+    Interactive3D = "Interactive3D"
+    Both = "Both"
+
+
 def draw_network(
-        confidence_list: Optional[List[str]] = typer.Option(..., help="Paths of the CSV files with the confidence lists to be represented."),
-    ):
+    confidence_list: Optional[List[str]] = typer.Option(
+        ..., help="Paths of the CSV files with the confidence lists to be represented"
+    ),
+    mode: Mode = typer.Option("Both", help="Mode of representation"),
+    nodes_distribution: NodesDistribution = typer.Option(
+        "Spring", help="Node distribution in graph"
+    ),
+    output_folder: str = typer.Option(..., help="Path to output folder"),
+):
 
-    if len(confidence_list) == 1:
-        print("Make DiGraph")
+    if mode == Mode.Interactive3D or mode == Mode.Both:
+        list_colors = [
+            "#ffadad",
+            "#ffd6a5",
+            "#fdffb6",
+            "#caffbf",
+            "#9bf6ff",
+            "#a0c4ff",
+            "#bdb2ff",
+            "#ffc6ff",
+            "#e27396",
+            "#84dcc6",
+        ]
+        iter_colors = itertools.cycle(list_colors)
+        tuples = list()
 
-        with open(confidence_list[0], "r") as f:
-            reader = csv.reader(f)
-            tuples = [(row[0], row[1], float(row[2])) for row in reader]
+        for conf_list in confidence_list:
+            with open(conf_list, "r") as f:
+                reader = csv.reader(f)
+                tuples += [(row[0], row[1], float(row[2])) for row in reader]
 
         DG = nx.DiGraph()
         DG.add_weighted_edges_from(tuples)
-        dict_edge_weights = nx.get_edge_attributes(DG, "weight")
 
-        curved_edges = [edge for edge in DG.edges() if reversed(edge) in DG.edges()]
-        straight_edges = list(set(DG.edges()) - set(curved_edges))
+        match nodes_distribution:
+            case "Spring":
+                spring_3D = nx.spring_layout(DG, dim=3, seed=5)
+            case "Circular":
+                spring_3D = nx.circular_layout(DG, dim=3)
+            case "Bipartite":
+                spring_3D = nx.bipartite_layout(DG, dim=3)
+            case "Kamada_kawai":
+                spring_3D = nx.kamada_kawai_layout(DG, dim=3)
 
-        curved_edges_very_large = [k for k,v in dict_edge_weights.items() if v > 0.75 and k in curved_edges]
-        straight_edges_very_large = [k for k,v in dict_edge_weights.items() if v > 0.75 and k in straight_edges]
-        
-        curved_edges_large = [k for k,v in dict_edge_weights.items() if v <= 0.75 and v > 0.5 and k in curved_edges]
-        straight_edges_large = [k for k,v in dict_edge_weights.items() if v <= 0.75 and v > 0.5 and k in straight_edges]
-        
-        curved_edges_small = [k for k,v in dict_edge_weights.items() if v <= 0.5 and v > 0.25 and k in curved_edges]
-        straight_edges_small = [k for k,v in dict_edge_weights.items() if v <= 0.5 and v > 0.25 and k in straight_edges]
-        
-        curved_edges_very_small = [k for k,v in dict_edge_weights.items() if v <= 0.25 and k in curved_edges]
-        straight_edges_very_small = [k for k,v in dict_edge_weights.items() if v <= 0.25 and k in straight_edges]
+        x_nodes = [spring_3D[i][0] for i in DG.nodes()]
+        y_nodes = [spring_3D[i][1] for i in DG.nodes()]
+        z_nodes = [spring_3D[i][2] for i in DG.nodes()]
 
-        pos = nx.spring_layout(DG, seed=7)
+        traces = {}
+        traces["trace_nodes"] = go.Scatter3d(
+            x=x_nodes,
+            y=y_nodes,
+            z=z_nodes,
+            mode="markers+text",
+            marker=dict(
+                symbol="circle",
+                size=5,
+                color="black",
+                line=dict(color="black", width=2),
+            ),
+            text=list(DG.nodes()),
+            textposition="top center",
+            hoverinfo="none",
+            showlegend=False,
+        )
 
-        # nodes
-        nx.draw_networkx_nodes(DG, pos)
-        # node labels
-        nx.draw_networkx_labels(DG, pos, font_size=10)
+        for conf_list in confidence_list:
+            with open(conf_list, "r") as f:
+                reader = csv.reader(f)
+                tuples = [(row[0], row[1], float(row[2])) for row in reader]
 
-        # edges
-        nx.draw_networkx_edges(DG, pos, edgelist=curved_edges_very_large, width=4, connectionstyle=f'arc3, rad = 0.2')
-        nx.draw_networkx_edges(DG, pos, edgelist=straight_edges_very_large, width=4)
+            DG = nx.DiGraph()
+            DG.add_weighted_edges_from(tuples)
+            color = next(iter_colors)
 
-        nx.draw_networkx_edges(DG, pos, edgelist=curved_edges_large, width=3, connectionstyle=f'arc3, rad = 0.2')
-        nx.draw_networkx_edges(DG, pos, edgelist=straight_edges_large, width=3)
+            edge_list = DG.edges()
+            x_edges = []
+            y_edges = []
+            z_edges = []
+            for edge in edge_list:
+                x_coords = [spring_3D[edge[0]][0], spring_3D[edge[1]][0], None]
+                x_edges.append(x_coords)
 
-        nx.draw_networkx_edges(DG, pos, edgelist=curved_edges_small, width=2, connectionstyle=f'arc3, rad = 0.2')
-        nx.draw_networkx_edges(DG, pos, edgelist=straight_edges_small, width=2)
+                y_coords = [spring_3D[edge[0]][1], spring_3D[edge[1]][1], None]
+                y_edges.append(y_coords)
 
-        nx.draw_networkx_edges(DG, pos, edgelist=curved_edges_very_small, width=0.25, connectionstyle=f'arc3, rad = 0.2')
-        nx.draw_networkx_edges(DG, pos, edgelist=straight_edges_very_small, width=0.25)
+                z_coords = [spring_3D[edge[0]][2], spring_3D[edge[1]][2], None]
+                z_edges.append(z_coords)
 
-        # edge weight labels
-        curved_edge_labels = {key : round(dict_edge_weights[key], 2) for key in dict_edge_weights if key in curved_edges_very_large + curved_edges_large + curved_edges_small}
-        straight_edge_labels = {key : round(dict_edge_weights[key], 2) for key in dict_edge_weights if key in straight_edges_very_large + straight_edges_large + straight_edges_small}
-        my_draw_networkx_edge_labels(DG, pos, edge_labels=curved_edge_labels, rotate=False, rad = 0.2, font_size=6)
-        nx.draw_networkx_edge_labels(DG, pos, edge_labels=straight_edge_labels, rotate=False, font_size=6)
+            weights = list(nx.get_edge_attributes(DG, "weight").values())
+            visible = len(traces) == 1
+            for i in range(DG.number_of_edges()):
+                traces[f"trace_edge_{i}_of_{Path(conf_list).name}"] = go.Scatter3d(
+                    x=x_edges[i],
+                    y=y_edges[i],
+                    z=z_edges[i],
+                    legendgroup=f"{Path(conf_list).name}",
+                    name=f"{Path(conf_list).name}",
+                    showlegend=i == 0,
+                    line=dict(width=weights[i] * 10, color=color),
+                    text=f"{list(DG.edges())[i]}: {round(weights[i], 2)}",
+                    hoverinfo="text",
+                    visible=True if visible else "legendonly",
+                )
 
-        ax = plt.gca()
-        ax.margins(0.08)
-        plt.axis("off")
-        plt.tight_layout()
-        plt.savefig("weight_network.png")
+        axis = dict(
+            showbackground=False,
+            showline=False,
+            zeroline=False,
+            showgrid=False,
+            showticklabels=False,
+            showspikes=False,
+            title="",
+        )
 
-    else:
-        print("Make MultiGraph")
+        layout = go.Layout(
+            title=f"Networks of all input files",
+            showlegend=True,
+            scene=dict(
+                xaxis=dict(axis),
+                yaxis=dict(axis),
+                zaxis=dict(axis),
+            ),
+            margin=dict(t=100),
+        )
 
+        data = list(traces.values())
+        fig = go.Figure(data=data, layout=layout)
+        fig.write_html(f"{output_folder}/interactive_3D_network.html")
+
+    if mode == Mode.Static2D or mode == Mode.Both:
+        for conf_list in confidence_list:
+            with open(conf_list, "r") as f:
+                reader = csv.reader(f)
+                tuples = [(row[0], row[1], float(row[2])) for row in reader]
+
+            DG = nx.DiGraph()
+            DG.add_weighted_edges_from(tuples)
+
+            dict_edge_weights = nx.get_edge_attributes(DG, "weight")
+
+            curved_edges = [edge for edge in DG.edges() if reversed(edge) in DG.edges()]
+            straight_edges = list(set(DG.edges()) - set(curved_edges))
+
+            curved_weights = [
+                4 * v for k, v in dict_edge_weights.items() if k in curved_edges
+            ]
+            straight_weights = [
+                4 * v for k, v in dict_edge_weights.items() if k in straight_edges
+            ]
+
+            node_sizes = [v * 75 for k, v in DG.degree(weight="weight")]
+
+            match nodes_distribution:
+                case "Spring":
+                    pos = nx.spring_layout(DG, seed=5)
+                case "Circular":
+                    pos = nx.circular_layout(DG)
+                case "Bipartite":
+                    pos = nx.bipartite_layout(DG)
+                case "Kamada_kawai":
+                    pos = nx.kamada_kawai_layout(DG)
+
+            # nodes
+            nx.draw_networkx_nodes(DG, pos, node_size=node_sizes)
+            # node labels
+            nx.draw_networkx_labels(DG, pos, font_size=10)
+
+            # edges
+            nx.draw_networkx_edges(
+                DG,
+                pos,
+                edgelist=curved_edges,
+                width=curved_weights,
+                connectionstyle=f"arc3, rad = 0.2",
+            )
+            nx.draw_networkx_edges(
+                DG, pos, edgelist=straight_edges, width=straight_weights
+            )
+
+            # edge weight labels
+            if DG.number_of_nodes() < 15:
+                curved_edge_labels = {
+                    k: round(v, 2)
+                    for k, v in dict_edge_weights.items()
+                    if k in curved_edges and v > 0.5
+                }
+                straight_edge_labels = {
+                    k: round(v, 2)
+                    for k, v in dict_edge_weights.items()
+                    if k in straight_edges and v > 0.5
+                }
+                my_draw_networkx_edge_labels(
+                    DG,
+                    pos,
+                    edge_labels=curved_edge_labels,
+                    rotate=False,
+                    rad=0.2,
+                    font_size=6,
+                )
+                nx.draw_networkx_edge_labels(
+                    DG, pos, edge_labels=straight_edge_labels, rotate=False, font_size=6
+                )
+
+            plt.axis("off")
+            plt.title(f"Static network for {Path(conf_list).name} file")
+            plt.savefig(f"{output_folder}/{Path(conf_list).stem}_network.png")
+            plt.close()
 
 
 if __name__ == "__main__":

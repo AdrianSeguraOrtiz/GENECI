@@ -45,7 +45,13 @@ python EAGRN-Inference.py infer-network --expression-data input_data/DREAM4/EXP/
 python EAGRN-Inference.py optimize-ensemble --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_ARACNE.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_BC3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_C3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_CLR.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_RF.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_GBM.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_ET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNETB.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_PCIT.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_TIGRESS.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_KBOOST.csv --gene-names inferred_networks/dream4_010_01_exp/gene_names.txt
 ```
 
-5. Evaluar la calidad de la red génica inferida respecto a la gold standard
+5. Representar las redes inferidas mediante gráficas tanto estáticas 2D como interactivas 3D que facilitan el estudio de intersecciones y comparaciones entre técnicas
+
+```sh
+python EAGRN-Inference.py draw-network --confidence-list inferred_networks/dream4_010_01_exp/ea_consensus_1/final_list.csv optimize-ensemble --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_ARACNE.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_BC3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_C3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_CLR.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_RF.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_GBM.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_ET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNETB.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_PCIT.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_TIGRESS.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_KBOOST.csv
+```
+
+6. Evaluar la calidad de la red génica inferida respecto a la gold standard
 
 ```sh
 # DREAM 3
@@ -81,6 +87,7 @@ $ [OPTIONS] COMMAND [ARGS]...
 **Commands**:
 
 * `apply-cut`: Converts a list of confidence values into a...
+* `draw-network`: Draw gene regulatory networks from confidence...
 * `evaluate`: Evaluate the accuracy of the inferred network...
 * `extract-data`: Extract data from different simulators and...
 * `infer-network`: Infer gene regulatory networks from...
@@ -104,6 +111,24 @@ $ apply-cut [OPTIONS]
 * `--cut-off-criteria [MinConfidence|MaxNumLinksBestConf]`: Criteria for determining which links will be part of the final binary matrix.  [required]
 * `--cut-off-value FLOAT`: Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10  [required]
 * `--output-file PATH`: Path to the output CSV file that will contain the binary matrix resulting from the cutting operation.  [default: <<conf_list_path>>/../networks/<<conf_list_name>>.csv]
+* `--help`: Show this message and exit.
+
+## `draw-network`
+
+Draw gene regulatory networks from confidence lists.
+
+**Usage**:
+
+```console
+$ draw-network [OPTIONS]
+```
+
+**Options**:
+
+* `--confidence-list TEXT`: Paths of the CSV files with the confidence lists to be represented  [required]
+* `--mode [Static2D|Interactive3D|Both]`: Mode of representation  [default: Both]
+* `--nodes-distribution [Spring|Circular|Bipartite|Kamada_kawai]`: Node distribution in graph  [default: Spring]
+* `--output-folder TEXT`: Path to output folder  [default: <<conf_list_path>>/../network_graphics]
 * `--help`: Show this message and exit.
 
 ## `evaluate`

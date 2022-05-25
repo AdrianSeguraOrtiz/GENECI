@@ -25,3 +25,6 @@ docker build -t eagrn-inference/optimize_ensemble -f components/optimize_ensembl
 
 
 docker build -t eagrn-inference/evaluate/dream_prediction -f components/evaluate/dream_prediction/Dockerfile .
+
+
+docker build -t eagrn-inference/draw_network -f components/draw_network/Dockerfile .

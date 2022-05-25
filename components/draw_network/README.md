@@ -21,5 +21,5 @@ docker build -t eagrn-inference/draw_network -f components/draw_network/Dockerfi
 ## Run
 
 ```
-docker run -v $(pwd)/tmp:/usr/local/src/tmp/ eagrn-inference/draw_network --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_ARACNE.csv
+docker run -v $(pwd)/tmp:/usr/local/src/tmp/ eagrn-inference/draw_network --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_ARACNE.csv --output-folder network_graphics
 ```
