@@ -431,7 +431,9 @@ def optimize_ensemble(
         confidence_list: Optional[List[str]] = typer.Option(..., help="Paths of the CSV files with the confidence lists to be agreed upon."),
         gene_names: Path = typer.Option(None, exists=True, file_okay=True, help="Path to the TXT file with the name of the contemplated genes separated by comma and without space. If not specified, only the genes specified in the lists of trusts will be considered."),
         crossover: Crossover = typer.Option("SBXCrossover", help="Crossover operator"), 
+        crossover_probability: float = typer.Option(0.9, help="Crossover probability"),
         mutation: Mutation = typer.Option("PolynomialMutation", help="Mutation operator"), 
+        mutation_probability: float = typer.Option(-1, help="Mutation probability. [default: 1/len(files)]", show_default=False),
         repairer: Repairer = typer.Option("GreedyRepair", help="Solution repairer to keep the sum of weights equal to 1"), 
         population_size: int = typer.Option(100, help="Population size"), 
         num_evaluations: int = typer.Option(100000, help="Number of evaluations"), 
@@ -464,6 +466,9 @@ def optimize_ensemble(
     else:
         algorithm = "AsyncParallel"
 
+    if mutation_probability == -1:
+        mutation_probability = 1/len(confidence_list)
+
     for file in confidence_list:
         Path("tmp/lists").mkdir(exist_ok=True, parents=True)
         shutil.copyfile(file, f"tmp/lists/{Path(file).name}")
@@ -482,7 +487,7 @@ def optimize_ensemble(
     container = client.containers.run(
         image="eagrn-inference/optimize_ensemble",
         volumes={Path(f"./tmp/").absolute(): {"bind": f"/usr/local/src/tmp", "mode": "rw"}},
-        command=f"tmp/ {crossover} {mutation} {repairer} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {f1_weight} {f2_weight} {algorithm} {threads}",
+        command=f"tmp/ {crossover} {crossover_probability} {mutation} {mutation_probability} {repairer} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {f1_weight} {f2_weight} {algorithm} {threads}",
         detach=True,
         tty=True,
     )
@@ -563,7 +568,9 @@ def run(
         expression_data: Path = typer.Option(..., exists=True, file_okay=True, help="Path to the CSV file with the expression data. Genes are distributed in rows and experimental conditions (time series) in columns."), 
         technique: Optional[List[Technique]] = typer.Option(..., case_sensitive=False, help="Inference techniques to be performed."),
         crossover: Crossover = typer.Option("SBXCrossover", help="Crossover operator"), 
+        crossover_probability: float = typer.Option(0.9, help="Crossover probability"),
         mutation: Mutation = typer.Option("PolynomialMutation", help="Mutation operator"), 
+        mutation_probability: float = typer.Option(-1, help="Mutation probability. [default: 1/len(files)]", show_default=False),
         repairer: Repairer = typer.Option("GreedyRepair", help="Solution repairer to keep the sum of weights equal to 1"), 
         population_size: int = typer.Option(100, help="Population size"), 
         num_evaluations: int = typer.Option(100000, help="Number of evaluations"), 
@@ -593,7 +600,9 @@ def run(
         confidence_list,
         gene_names,
         crossover, 
+        crossover_probability,
         mutation, 
+        mutation_probability,
         repairer, 
         population_size, 
         num_evaluations, 

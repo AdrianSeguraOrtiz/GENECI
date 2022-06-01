@@ -34,15 +34,11 @@ import org.uma.jmetal.util.termination.impl.TerminationByEvaluations;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class GRNRunner extends AbstractAlgorithmRunner {
@@ -64,7 +60,9 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         /** Read input parameters. */
         String networkFolder;
         String strCrossover;
+        double crossoverProbability;
         String strMutation;
+        double mutationProbability;
         String strRepairer;
         int populationSize;
         int numEvaluations;
@@ -78,22 +76,26 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         if (args.length > 0) {
             networkFolder = args[0];
 
-            if (args.length == 12) {
+            if (args.length == 14) {
                 strCrossover = args[1];
-                strMutation = args[2];
-                strRepairer = args[3];
-                populationSize = Integer.parseInt(args[4]);
-                numEvaluations = Integer.parseInt(args[5]);
-                strCutOffCriteria = args[6];
-                cutOffValue = Double.parseDouble(args[7]);
-                f1Weight = Double.parseDouble(args[8]);
-                f2Weight = Double.parseDouble(args[9]);
-                strAlgorithm = args[10];
-                numOfThreads = Integer.parseInt(args[11]);
+                crossoverProbability = Double.parseDouble(args[2]);
+                strMutation = args[3];
+                mutationProbability = Double.parseDouble(args[4]);
+                strRepairer = args[5];
+                populationSize = Integer.parseInt(args[6]);
+                numEvaluations = Integer.parseInt(args[7]);
+                strCutOffCriteria = args[8];
+                cutOffValue = Double.parseDouble(args[9]);
+                f1Weight = Double.parseDouble(args[10]);
+                f2Weight = Double.parseDouble(args[11]);
+                strAlgorithm = args[12];
+                numOfThreads = Integer.parseInt(args[13]);
                 
             } else {
                 strCrossover = "SBXCrossover";
+                crossoverProbability = 0.9;
                 strMutation = "PolynomialMutation";
+                mutationProbability = 0.05;
                 strRepairer = "GreedyRepair";
                 populationSize = 100;
                 numEvaluations = 10000;
@@ -157,7 +159,6 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         problem = new GRNProblem(files, geneNames, repairer, cutOffCriteria, f1Weight, f2Weight);
 
         /** Set the crossover operator. */
-        double crossoverProbability = 0.9;
         double crossoverDistributionIndex = 20.0;
         int numPointsCrossover = 2;
 
@@ -185,7 +186,6 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         }
 
         /** Set the mutation operator. */
-        double mutationProbability = 1.0 / problem.getNumberOfVariables();
         double mutationDistributionIndex = 20.0;
         double delta = 0.5;
         int numberOfGroups = 4;
