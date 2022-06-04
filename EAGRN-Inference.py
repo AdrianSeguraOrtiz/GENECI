@@ -434,15 +434,15 @@ def optimize_ensemble(
         crossover_probability: float = typer.Option(0.9, help="Crossover probability"),
         mutation: Mutation = typer.Option("PolynomialMutation", help="Mutation operator"), 
         mutation_probability: float = typer.Option(-1, help="Mutation probability. [default: 1/len(files)]", show_default=False),
-        repairer: Repairer = typer.Option("GreedyRepair", help="Solution repairer to keep the sum of weights equal to 1"), 
+        repairer: Repairer = typer.Option("StandardizationRepairer", help="Solution repairer to keep the sum of weights equal to 1"), 
         population_size: int = typer.Option(100, help="Population size"), 
-        num_evaluations: int = typer.Option(100000, help="Number of evaluations"), 
+        num_evaluations: int = typer.Option(25000, help="Number of evaluations"), 
         cut_off_criteria: CutOffCriteria = typer.Option("MinConfFreq", case_sensitive=False, help="Criteria for determining which links will be part of the final binary matrix."), 
         cut_off_value: float = typer.Option(0.2, help="Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfFreq = 0.2"),
         f1_weight: float = typer.Option(0.75, help="Weight associated with the first function of the optimization process. This function tries to maximize the quality of good links (improve trust and frequency of appearance) while minimizing their quantity. It tries to establish some contrast between good and bad links so that the links finally reported are of high reliability."),
         f2_weight: float = typer.Option(0.25, help="Weight associated with the second function of the optimization process. This function tries to increase the degree (number of links) of those genes with a high potential to be considered as hubs. At the same time, it is intended that the number of genes that meet this condition should be relatively low, since this is what is usually observed in real gene networks. The objective is to promote the approximation of the network to a scale-free configuration and to move away from random structure."),
         threads: int = typer.Option(multiprocessing.cpu_count(), help="Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used."),
-        no_graphics: bool = typer.Option(False, help="Indicate if you do not want to represent the evolution of the fitness value."),
+        graphics: bool = typer.Option(True, help="Indicate if you do not want to represent the evolution of the fitness value."),
         output_dir: Path = typer.Option("<<conf_list_path>>/../ea_consensus", help="Path to the output folder."),
     ):
     """
@@ -500,7 +500,7 @@ def optimize_ensemble(
     container.stop()
     container.remove(v=True)
 
-    if not no_graphics:
+    if graphics:
         f = open("tmp/ea_consensus/fitness_evolution.txt", "r")
         str_line = f.readline()
         str_vector = str_line.split(", ")
@@ -571,15 +571,15 @@ def run(
         crossover_probability: float = typer.Option(0.9, help="Crossover probability"),
         mutation: Mutation = typer.Option("PolynomialMutation", help="Mutation operator"), 
         mutation_probability: float = typer.Option(-1, help="Mutation probability. [default: 1/len(files)]", show_default=False),
-        repairer: Repairer = typer.Option("GreedyRepair", help="Solution repairer to keep the sum of weights equal to 1"), 
+        repairer: Repairer = typer.Option("StandardizationRepairer", help="Solution repairer to keep the sum of weights equal to 1"), 
         population_size: int = typer.Option(100, help="Population size"), 
-        num_evaluations: int = typer.Option(100000, help="Number of evaluations"), 
+        num_evaluations: int = typer.Option(25000, help="Number of evaluations"), 
         cut_off_criteria: CutOffCriteria = typer.Option("MinConfFreq", case_sensitive=False, help="Criteria for determining which links will be part of the final binary matrix."), 
         cut_off_value: float = typer.Option(0.2, help="Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfFreq = 0.2"),
         f1_weight: float = typer.Option(0.75, help="Weight associated with the first function of the optimization process. This function tries to maximize the quality of good links (improve trust and frequency of appearance) while minimizing their quantity. It tries to establish some contrast between good and bad links so that the links finally reported are of high reliability."),
         f2_weight: float = typer.Option(0.25, help="Weight associated with the second function of the optimization process. This function tries to increase the degree (number of links) of those genes with a high potential to be considered as hubs. At the same time, it is intended that the number of genes that meet this condition should be relatively low, since this is what is usually observed in real gene networks. The objective is to promote the approximation of the network to a scale-free configuration and to move away from random structure."),
         threads: int = typer.Option(multiprocessing.cpu_count(), help="Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used."),
-        no_graphics: bool = typer.Option(False, help="Indicate if you do not want to represent the evolution of the fitness value."),
+        graphics: bool = typer.Option(True, help="Indicate if you do not want to represent the evolution of the fitness value."),
         output_dir: Path = typer.Option(Path("./inferred_networks"), help="Path to the output folder."),
     ):
     """
@@ -611,7 +611,7 @@ def run(
         f1_weight,
         f2_weight,
         threads,
-        no_graphics,
+        graphics,
         output_dir="<<conf_list_path>>/../ea_consensus"
     )
 

@@ -48,7 +48,7 @@ python EAGRN-Inference.py optimize-ensemble --confidence-list inferred_networks/
 5. Representar las redes inferidas mediante gráficas tanto estáticas 2D como interactivas 3D que facilitan el estudio de intersecciones y comparaciones entre técnicas
 
 ```sh
-python EAGRN-Inference.py draw-network --confidence-list inferred_networks/dream4_010_01_exp/ea_consensus_1/final_list.csv optimize-ensemble --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_ARACNE.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_BC3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_C3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_CLR.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_RF.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_GBM.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_ET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNETB.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_PCIT.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_TIGRESS.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_KBOOST.csv
+python EAGRN-Inference.py draw-network --confidence-list inferred_networks/dream4_010_01_exp/ea_consensus_1/final_list.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_ARACNE.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_BC3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_C3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_CLR.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_RF.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_GBM.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_ET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNETB.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_PCIT.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_TIGRESS.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_KBOOST.csv
 ```
 
 6. Evaluar la calidad de la red génica inferida respecto a la gold standard
@@ -273,16 +273,18 @@ $ optimize-ensemble [OPTIONS]
 * `--confidence-list TEXT`: Paths of the CSV files with the confidence lists to be agreed upon.  [required]
 * `--gene-names PATH`: Path to the TXT file with the name of the contemplated genes separated by comma and without space. If not specified, only the genes specified in the lists of trusts will be considered.
 * `--crossover [SBXCrossover|BLXAlphaCrossover|DifferentialEvolutionCrossover|NPointCrossover|NullCrossover|WholeArithmeticCrossover]`: Crossover operator  [default: SBXCrossover]
+* `--crossover-probability FLOAT`: Crossover probability  [default: 0.9]
 * `--mutation [PolynomialMutation|CDGMutation|GroupedAndLinkedPolynomialMutation|GroupedPolynomialMutation|LinkedPolynomialMutation|NonUniformMutation|NullMutation|SimpleRandomMutation|UniformMutation]`: Mutation operator  [default: PolynomialMutation]
-* `--repairer [StandardizationRepairer|GreedyRepair]`: Solution repairer to keep the sum of weights equal to 1  [default: GreedyRepair]
+* `--mutation-probability FLOAT`: Mutation probability. [default: 1/len(files)]
+* `--repairer [StandardizationRepairer|GreedyRepair]`: Solution repairer to keep the sum of weights equal to 1  [default: StandardizationRepairer]
 * `--population-size INTEGER`: Population size  [default: 100]
-* `--num-evaluations INTEGER`: Number of evaluations  [default: 100000]
+* `--num-evaluations INTEGER`: Number of evaluations  [default: 25000]
 * `--cut-off-criteria [MinConfidence|MaxNumLinksBestConf|MinConfFreq]`: Criteria for determining which links will be part of the final binary matrix.  [default: MinConfFreq]
 * `--cut-off-value FLOAT`: Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfFreq = 0.2  [default: 0.2]
 * `--f1-weight FLOAT`: Weight associated with the first function of the optimization process. This function tries to maximize the quality of good links (improve trust and frequency of appearance) while minimizing their quantity. It tries to establish some contrast between good and bad links so that the links finally reported are of high reliability.  [default: 0.75]
 * `--f2-weight FLOAT`: Weight associated with the second function of the optimization process. This function tries to increase the degree (number of links) of those genes with a high potential to be considered as hubs. At the same time, it is intended that the number of genes that meet this condition should be relatively low, since this is what is usually observed in real gene networks. The objective is to promote the approximation of the network to a scale-free configuration and to move away from random structure.  [default: 0.25]
 * `--threads INTEGER`: Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.  [default: 8]
-* `--no-graphics / --no-no-graphics`: Indicate if you do not want to represent the evolution of the fitness value.  [default: False]
+* `--graphics / --no-graphics`: Indicate if you do not want to represent the evolution of the fitness value.  [default: True]
 * `--output-dir PATH`: Path to the output folder.  [default: <<conf_list_path>>/../ea_consensus]
 * `--help`: Show this message and exit.
 
@@ -301,16 +303,18 @@ $ run [OPTIONS]
 * `--expression-data PATH`: Path to the CSV file with the expression data. Genes are distributed in rows and experimental conditions (time series) in columns.  [required]
 * `--technique [ARACNE|BC3NET|C3NET|CLR|GENIE3_RF|GENIE3_GBM|GENIE3_ET|MRNET|MRNETB|PCIT|TIGRESS|KBOOST]`: Inference techniques to be performed.  [required]
 * `--crossover [SBXCrossover|BLXAlphaCrossover|DifferentialEvolutionCrossover|NPointCrossover|NullCrossover|WholeArithmeticCrossover]`: Crossover operator  [default: SBXCrossover]
+* `--crossover-probability FLOAT`: Crossover probability  [default: 0.9]
 * `--mutation [PolynomialMutation|CDGMutation|GroupedAndLinkedPolynomialMutation|GroupedPolynomialMutation|LinkedPolynomialMutation|NonUniformMutation|NullMutation|SimpleRandomMutation|UniformMutation]`: Mutation operator  [default: PolynomialMutation]
-* `--repairer [StandardizationRepairer|GreedyRepair]`: Solution repairer to keep the sum of weights equal to 1  [default: GreedyRepair]
+* `--mutation-probability FLOAT`: Mutation probability. [default: 1/len(files)]
+* `--repairer [StandardizationRepairer|GreedyRepair]`: Solution repairer to keep the sum of weights equal to 1  [default: StandardizationRepairer]
 * `--population-size INTEGER`: Population size  [default: 100]
-* `--num-evaluations INTEGER`: Number of evaluations  [default: 100000]
+* `--num-evaluations INTEGER`: Number of evaluations  [default: 25000]
 * `--cut-off-criteria [MinConfidence|MaxNumLinksBestConf|MinConfFreq]`: Criteria for determining which links will be part of the final binary matrix.  [default: MinConfFreq]
 * `--cut-off-value FLOAT`: Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfFreq = 0.2  [default: 0.2]
 * `--f1-weight FLOAT`: Weight associated with the first function of the optimization process. This function tries to maximize the quality of good links (improve trust and frequency of appearance) while minimizing their quantity. It tries to establish some contrast between good and bad links so that the links finally reported are of high reliability.  [default: 0.75]
 * `--f2-weight FLOAT`: Weight associated with the second function of the optimization process. This function tries to increase the degree (number of links) of those genes with a high potential to be considered as hubs. At the same time, it is intended that the number of genes that meet this condition should be relatively low, since this is what is usually observed in real gene networks. The objective is to promote the approximation of the network to a scale-free configuration and to move away from random structure.  [default: 0.25]
 * `--threads INTEGER`: Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.  [default: 8]
-* `--no-graphics / --no-no-graphics`: Indicate if you do not want to represent the evolution of the fitness value.  [default: False]
+* `--graphics / --no-graphics`: Indicate if you do not want to represent the evolution of the fitness value.  [default: True]
 * `--output-dir PATH`: Path to the output folder.  [default: inferred_networks]
 * `--help`: Show this message and exit.
 
