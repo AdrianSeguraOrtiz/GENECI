@@ -2,7 +2,7 @@ package eagrn;
 
 import eagrn.cutoffcriteria.CutOffCriteria;
 import eagrn.cutoffcriteria.impl.MaxNumLinksBestConfCriteria;
-import eagrn.cutoffcriteria.impl.MinConfFreqCriteria;
+import eagrn.cutoffcriteria.impl.MinConfDistCriteria;
 import eagrn.cutoffcriteria.impl.MinConfidenceCriteria;
 import eagrn.operator.mutationwithrepair.impl.*;
 import eagrn.operator.repairer.impl.GreedyRepairer;
@@ -148,8 +148,8 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             case "MaxNumLinksBestConf":
                 cutOffCriteria = new MaxNumLinksBestConfCriteria((int) cutOffValue);
                 break;
-            case "MinConfFreq":
-                cutOffCriteria = new MinConfFreqCriteria(cutOffValue, files.length);
+            case "MinConfDist":
+                cutOffCriteria = new MinConfDistCriteria(cutOffValue);
                 break;
             default:
                 throw new RuntimeException("The cut-off criteria entered is not available");

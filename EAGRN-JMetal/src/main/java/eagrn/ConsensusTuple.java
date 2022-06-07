@@ -1,33 +1,32 @@
 package eagrn;
 
 public class ConsensusTuple implements Comparable<ConsensusTuple> {
-    private int freq;
     private double conf;
+    private double dist;
 
-    public ConsensusTuple (int freq, double conf) {
-        this.freq = freq;
+    public ConsensusTuple (double conf, double dist) {
         this.conf = conf;
-    }
-
-    public void increaseFreq() {
-        freq += 1;
+        this.dist = dist;
     }
 
     public void increaseConf(double partialConf) {
-        conf += partialConf;
+        this.conf += partialConf;
     }
 
+    public void setDist(double dist) {
+        this.dist = dist;
+    }
 
     public double getConf() {
-        return conf;
+        return this.conf;
     }
 
-    public int getFreq() {
-        return freq;
+    public double getDist() {
+        return this.dist;
     }
 
     public String toString() {
-        return "Freq: " + freq + ", Conf: " + conf;
+        return "Conf: " + this.conf + ", Dist: " + this.dist;
     }
 
     @Override

@@ -2,15 +2,17 @@ package eagrn;
 
 import eagrn.cutoffcriteria.CutOffCriteria;
 import eagrn.operator.repairer.WeightRepairer;
+import java.io.File;
+import java.util.*;
+
 import org.uma.jmetal.problem.doubleproblem.impl.AbstractDoubleProblem;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 import org.uma.jmetal.solution.doublesolution.impl.DefaultDoubleSolution;
 
-import java.io.File;
-import java.util.*;
 
 public class GRNProblem extends AbstractDoubleProblem {
     private Map<String, Double[]> inferredNetworks;
+    private Map<String, MedianTuple> medianInterval;
     private ArrayList<String> geneNames;
     private int numberOfNodes;
     private WeightRepairer initialPopulationRepairer;
@@ -26,6 +28,7 @@ public class GRNProblem extends AbstractDoubleProblem {
         }
         
         this.inferredNetworks = readAll(inferredNetworkFiles);
+        this.medianInterval = calculateMedian(inferredNetworks);
         this.geneNames = geneNames;
         this.numberOfNodes = geneNames.size();
         this.initialPopulationRepairer = initialPopulationRepairer;
@@ -98,6 +101,36 @@ public class GRNProblem extends AbstractDoubleProblem {
         return res;
     }
 
+    /** CalculateMedian() method */
+    private Map<String, MedianTuple> calculateMedian(Map<String, Double[]> inferredNetworks) {
+        /**
+         * 
+         */
+
+        Map<String, MedianTuple> res = new HashMap<String, MedianTuple>();
+
+        for (Map.Entry<String, Double[]> entry : inferredNetworks.entrySet()) {
+            Double[] confidences = entry.getValue();
+            Arrays.sort(confidences);
+
+            int middle = confidences.length / 2;
+            double median;
+            if (confidences.length % 2 == 0) {
+                median = (confidences[middle - 1] + confidences[middle]) / 2.0;
+            } else {
+                median = confidences[middle];
+            }
+
+            double min = Collections.min(Arrays.asList(confidences));
+            double max = Collections.max(Arrays.asList(confidences));
+            double interval = Math.max(median - min, max - median);
+
+            MedianTuple value = new MedianTuple(median, interval);
+            res.put(entry.getKey(), value);
+        }
+        return res;
+    }
+
     /** MakeConsensus() method */
     public Map<String, ConsensusTuple> makeConsensus(double[] x) {
         /**
@@ -108,13 +141,24 @@ public class GRNProblem extends AbstractDoubleProblem {
         Map<String, ConsensusTuple> consensus = new HashMap<>();
 
         for (Map.Entry<String, Double[]> pair : inferredNetworks.entrySet()) {
-            ConsensusTuple mapConsTuple = new ConsensusTuple(0, 0.0);
+            ConsensusTuple mapConsTuple = new ConsensusTuple(0.0, 0.0);
+            MedianTuple medInt = medianInterval.get(pair.getKey());
+            Double[] weightDistances = new Double[x.length];
 
             for (int i = 0; i < x.length; i++) {
-                if (x[i] > 0.05) mapConsTuple.increaseFreq();
                 mapConsTuple.increaseConf(x[i] * pair.getValue()[i]);
+                weightDistances[i] = ((Math.abs(medInt.getMedian() - pair.getValue()[i]) / medInt.getInterval()) + x[i]) / 2.0;
             }
 
+            double totalDistance = 0;
+            for (int i = 0; i < weightDistances.length; i++) {
+                double distance = 0;
+                for (int j = 0; j < weightDistances.length; j++) {
+                    distance += Math.abs(weightDistances[i] - weightDistances[j]);
+                }
+                totalDistance += distance / (weightDistances.length - 1);
+            }
+            mapConsTuple.setDist(totalDistance / weightDistances.length);
             consensus.put(pair.getKey(), mapConsTuple);
         }
 
@@ -136,23 +180,23 @@ public class GRNProblem extends AbstractDoubleProblem {
          * between 0 and 1. In this way, its value has the same range as the confidence and both concepts
          * have the same weight in the result of the mean.
          */
-        double conf, freq, confFreqSum = 0;
+        double conf, dist, confDistSum = 0;
         for (Map.Entry<String, ConsensusTuple> pair : consensus.entrySet()) {
             conf = pair.getValue().getConf();
-            freq = pair.getValue().getFreq();
-            confFreqSum += (conf + (freq / getNumberOfVariables())) / 2.0;
+            dist = pair.getValue().getDist();
+            confDistSum += conf * 0.5 + (1 - dist) * 0.5;
         }
-        double mean = confFreqSum / consensus.size();
+        double mean = confDistSum / consensus.size();
 
         /** 2. Quantify the number of high quality links and calculate the average of their confidence-frequency means */
-        confFreqSum = 0;
-        double confFreq, cnt = 0;
+        confDistSum = 0;
+        double confDist, cnt = 0;
         for (Map.Entry<String, ConsensusTuple> pair : consensus.entrySet()) {
             conf = pair.getValue().getConf();
-            freq = pair.getValue().getFreq();
-            confFreq = (conf + (freq / getNumberOfVariables())) / 2.0;
-            if (confFreq > mean) {
-                confFreqSum += confFreq;
+            dist = pair.getValue().getDist();
+            confDist = conf * 0.5 + (1 - dist) * 0.5;
+            if (confDist > mean) {
+                confDistSum += confDist;
                 cnt += 1;
             }
         }
@@ -160,7 +204,7 @@ public class GRNProblem extends AbstractDoubleProblem {
         /** 3. Calculate fitness value */
         double numberOfLinks = (double) (numberOfNodes * numberOfNodes);
         double f1 = Math.abs(cnt - 0.1 * numberOfLinks)/((1 - 0.1) * numberOfLinks);
-        double f2 = 1.0 - confFreqSum/cnt;
+        double f2 = 1.0 - confDistSum/cnt;
         double fitness = (f1 + f2)/2;
 
         return fitness;

@@ -6,13 +6,11 @@ import eagrn.cutoffcriteria.CutOffCriteria;
 import java.util.ArrayList;
 import java.util.Map;
 
-public class MinConfFreqCriteria implements CutOffCriteria {
+public class MinConfDistCriteria implements CutOffCriteria {
     private final double min;
-    private final int numOfTechniques;
 
-    public MinConfFreqCriteria(double min, int numOfTechniques) {
+    public MinConfDistCriteria(double min) {
         this.min = min;
-        this.numOfTechniques = numOfTechniques;
     }
 
     /**
@@ -31,9 +29,9 @@ public class MinConfFreqCriteria implements CutOffCriteria {
         for (Map.Entry<String, ConsensusTuple> entry : links.entrySet()) {
             String pair = entry.getKey();
             double conf = entry.getValue().getConf();
-            double freq = entry.getValue().getFreq();
-            double confFreq = (conf + (freq / numOfTechniques)) / 2.0;
-            if (confFreq > min) {
+            double dist = entry.getValue().getDist();
+            double confDist = conf * 0.5 + (1 - dist) * 0.5;
+            if (confDist > min) {
                 String[] parts = pair.split("-");
                 if (parts.length > 1) {
                     g1 = geneNames.indexOf(parts[0]);

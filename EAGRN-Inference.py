@@ -48,7 +48,7 @@ class CutOffCriteriaOnlyConf(str, Enum):
 class CutOffCriteria(str, Enum):
     MinConfidence = "MinConfidence"
     MaxNumLinksBestConf = "MaxNumLinksBestConf"
-    MinConfFreq = "MinConfFreq"
+    MinConfDist = "MinConfDist"
 
 class Crossover(str, Enum):
     SBXCrossover = "SBXCrossover"
@@ -437,8 +437,8 @@ def optimize_ensemble(
         repairer: Repairer = typer.Option("StandardizationRepairer", help="Solution repairer to keep the sum of weights equal to 1"), 
         population_size: int = typer.Option(100, help="Population size"), 
         num_evaluations: int = typer.Option(25000, help="Number of evaluations"), 
-        cut_off_criteria: CutOffCriteria = typer.Option("MinConfFreq", case_sensitive=False, help="Criteria for determining which links will be part of the final binary matrix."), 
-        cut_off_value: float = typer.Option(0.2, help="Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfFreq = 0.2"),
+        cut_off_criteria: CutOffCriteria = typer.Option("MinConfDist", case_sensitive=False, help="Criteria for determining which links will be part of the final binary matrix."), 
+        cut_off_value: float = typer.Option(0.5, help="Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfDist = 0.2"),
         f1_weight: float = typer.Option(0.75, help="Weight associated with the first function of the optimization process. This function tries to maximize the quality of good links (improve trust and frequency of appearance) while minimizing their quantity. It tries to establish some contrast between good and bad links so that the links finally reported are of high reliability."),
         f2_weight: float = typer.Option(0.25, help="Weight associated with the second function of the optimization process. This function tries to increase the degree (number of links) of those genes with a high potential to be considered as hubs. At the same time, it is intended that the number of genes that meet this condition should be relatively low, since this is what is usually observed in real gene networks. The objective is to promote the approximation of the network to a scale-free configuration and to move away from random structure."),
         threads: int = typer.Option(multiprocessing.cpu_count(), help="Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used."),
@@ -562,6 +562,42 @@ def dream_prediction(
 
     shutil.rmtree("tmp")
 
+@evaluate_app.command()
+def generic_prediction(
+        inferred_binary_matrix: Path = typer.Option(..., exists=True, file_okay=True, help=""),
+        gs_binary_matrix: Path = typer.Option(..., exists=True, file_okay=True, help=""), 
+    ):
+    """
+    Evaluate the accuracy with which any generic network has been predicted with respect to a given gold standard. To do so, it approaches the case as a binary classification problem between 0 and 1.
+    """
+
+    typer.echo(f"Evaluate {inferred_binary_matrix} prediction with respect {gs_binary_matrix} gold standard")
+
+    Path("tmp/").mkdir(exist_ok=True)
+    tmp_ibm_dir = f"tmp/{Path(inferred_binary_matrix).name}"
+    shutil.copyfile(inferred_binary_matrix, tmp_ibm_dir)
+    tmp_gsbm_dir = f"tmp/{Path(gs_binary_matrix).name}"
+    shutil.copyfile(gs_binary_matrix, tmp_gsbm_dir)
+
+    client = docker.from_env()
+    container = client.containers.run(
+        image="eagrn-inference/evaluate/generic_prediction",
+        volumes={Path(f"./tmp/").absolute(): {"bind": f"/usr/local/src/tmp", "mode": "rw"}},
+        command=f"{tmp_ibm_dir} {tmp_gsbm_dir}",
+        detach=True,
+        tty=True,
+    )
+
+    r = container.wait()
+    logs = container.logs()
+    if logs:
+        typer.echo(logs.decode("utf-8"))
+
+    container.stop()
+    container.remove(v=True)
+
+    shutil.rmtree("tmp")
+
 
 @app.command()
 def run(
@@ -574,8 +610,8 @@ def run(
         repairer: Repairer = typer.Option("StandardizationRepairer", help="Solution repairer to keep the sum of weights equal to 1"), 
         population_size: int = typer.Option(100, help="Population size"), 
         num_evaluations: int = typer.Option(25000, help="Number of evaluations"), 
-        cut_off_criteria: CutOffCriteria = typer.Option("MinConfFreq", case_sensitive=False, help="Criteria for determining which links will be part of the final binary matrix."), 
-        cut_off_value: float = typer.Option(0.2, help="Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfFreq = 0.2"),
+        cut_off_criteria: CutOffCriteria = typer.Option("MinConfDist", case_sensitive=False, help="Criteria for determining which links will be part of the final binary matrix."), 
+        cut_off_value: float = typer.Option(0.5, help="Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfDist = 0.2"),
         f1_weight: float = typer.Option(0.75, help="Weight associated with the first function of the optimization process. This function tries to maximize the quality of good links (improve trust and frequency of appearance) while minimizing their quantity. It tries to establish some contrast between good and bad links so that the links finally reported are of high reliability."),
         f2_weight: float = typer.Option(0.25, help="Weight associated with the second function of the optimization process. This function tries to increase the degree (number of links) of those genes with a high potential to be considered as hubs. At the same time, it is intended that the number of genes that meet this condition should be relatively low, since this is what is usually observed in real gene networks. The objective is to promote the approximation of the network to a scale-free configuration and to move away from random structure."),
         threads: int = typer.Option(multiprocessing.cpu_count(), help="Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used."),
