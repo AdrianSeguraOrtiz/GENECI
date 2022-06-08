@@ -31,7 +31,8 @@ docker build -t eagrn-inference/optimize_ensemble -f components/optimize_ensembl
 ## Aplicación de criterio de corte (lista de confianzas -> red binaria)
 docker build -t eagrn-inference/apply_cut -f components/apply_cut/Dockerfile .
 
-## Evaluación de redes inferidas correspondientes a los retos de DREAM
+## Evaluación de redes
+docker build -t eagrn-inference/evaluate/generic_prediction -f components/evaluate/generic_prediction/Dockerfile .
 docker build -t eagrn-inference/evaluate/dream_prediction -f components/evaluate/dream_prediction/Dockerfile .
 
 ## Representación gráfica de redes
@@ -55,7 +56,7 @@ do
     python EAGRN-Inference.py infer-network --expression-data $exp_file --technique aracne --technique bc3net --technique c3net --technique clr --technique genie3_rf --technique genie3_gbm --technique genie3_et --technique mrnet --technique mrnetb --technique pcit --technique tigress --technique kboost
 done
 
-# 5. Para las redes procedentes de DREAM evaluamos la precisión de cada una de las técnicas empleadas
+# 5. Para las redes de tipo benchmark evaluamos la precisión de cada una de las técnicas empleadas
 
 ## DREAM3
 for network_folder in inferred_networks/*-trajectories_exp/
@@ -106,6 +107,19 @@ do
     done
 done
 
+## IRMA
+for network_folder in inferred_networks/switch-*_exp/
+do
+    mkdir $network_folder/gs_scores
+    > $network_folder/gs_scores/techniques.txt
+
+    for confidence_list in $network_folder/lists/*.csv
+    do 
+        python EAGRN-Inference.py apply-cut --confidence-list $confidence_list --gene-names $network_folder/gene_names.txt --cut-off-criteria MinConfidence --cut-off-value 0.4
+        python EAGRN-Inference.py evaluate generic-prediction --inferred-binary-matrix $network_folder/networks/$(basename $confidence_list) --gs-binary-matrix ./input_data/IRMA/GS/irma_gs.csv >> $network_folder/gs_scores/techniques.txt
+    done
+done
+
 # 6. Optimizamos el ensemble de las listas de confianza resultantes del paso anterior mediante 25 ejecuciones independientes de cada una de ellas
 
 for network_folder in inferred_networks/*/
@@ -118,7 +132,7 @@ do
 
     for i in {1..25}
     do
-        python EAGRN-Inference.py optimize-ensemble $str --gene-names $network_folder/gene_names.txt --population-size 100 --num-evaluations 100000 --output-dir $network_folder/ea_consensus_$i
+        python EAGRN-Inference.py optimize-ensemble $str --gene-names $network_folder/gene_names.txt --population-size 100 --num-evaluations 50000 --output-dir $network_folder/ea_consensus_$i
     done
 done
 
@@ -134,7 +148,7 @@ do
     python EAGRN-Inference.py draw-network $str
 done
 
-# 8. Para las redes procedentes de DREAM evaluamos la precisión de los ensembles generados 
+# 8. Para las redes de tipo benchmark evaluamos la precisión de los ensembles generados 
 
 ## DREAM3
 for network_folder in inferred_networks/*-trajectories_exp/
@@ -185,6 +199,19 @@ do
     done
 done
 
+## IRMA
+for network_folder in inferred_networks/switch-*_exp/
+do
+    mkdir $network_folder/gs_scores
+    > $network_folder/gs_scores/consensus.txt
+
+    for consensus_list in $network_folder/ea_consensus_*/final_list.csv
+    do 
+        python EAGRN-Inference.py apply-cut --confidence-list $consensus_list --gene-names $network_folder/gene_names.txt --cut-off-criteria MinConfidence --cut-off-value 0.4
+        python EAGRN-Inference.py evaluate generic-prediction --inferred-binary-matrix $network_folder/networks/$(basename $consensus_list) --gs-binary-matrix ./input_data/IRMA/GS/irma_gs.csv >> $network_folder/gs_scores/consensus.txt
+    done
+done
+
 # 9. Para las redes procedentes de DREAM creamos los excel con los resultados de precisión
 
 ## DREAM3
@@ -199,7 +226,7 @@ do
     echo "$name;;" > $file
     echo "Technique;AUPR;AUROC" >> $file
 
-    tecs=($(grep -Po "(?<=GRN_).*(?=.csv)" $network_folder/gs_scores/techniques.txt))
+    tecs=($(grep -Po "(?<=GRN_)[^ ]*(?=.csv)" $network_folder/gs_scores/techniques.txt))
     aupr=($(grep -o "AUPR: 0.[0-9]*" $network_folder/gs_scores/techniques.txt | cut -d " " -f 2))
     auroc=($(grep -o "AUROC: 0.[0-9]*" $network_folder/gs_scores/techniques.txt | cut -d " " -f 2))
 
@@ -228,7 +255,7 @@ do
     echo "$name;;" > $file
     echo "Technique;AUPR;AUROC" >> $file
 
-    tecs=($(grep -Po "(?<=GRN_).*(?=.csv)" $network_folder/gs_scores/techniques.txt))
+    tecs=($(grep -Po "(?<=GRN_)[^ ]*(?=.csv)" $network_folder/gs_scores/techniques.txt))
     aupr=($(grep -o "AUPR: 0.[0-9]*" $network_folder/gs_scores/techniques.txt | cut -d " " -f 2))
     auroc=($(grep -o "AUROC: 0.[0-9]*" $network_folder/gs_scores/techniques.txt | cut -d " " -f 2))
 
@@ -256,7 +283,34 @@ do
     echo "$name;;" > $file
     echo "Technique;AUPR;AUROC" >> $file
 
-    tecs=($(grep -Po "(?<=GRN_).*(?=.csv)" $network_folder/gs_scores/techniques.txt))
+    tecs=($(grep -Po "(?<=GRN_)[^ ]*(?=.csv)" $network_folder/gs_scores/techniques.txt))
+    aupr=($(grep -o "AUPR: 0.[0-9]*" $network_folder/gs_scores/techniques.txt | cut -d " " -f 2))
+    auroc=($(grep -o "AUROC: 0.[0-9]*" $network_folder/gs_scores/techniques.txt | cut -d " " -f 2))
+
+    for (( i=0; i<${#tecs[@]}; i++ ))
+    do
+        echo "${tecs[$i]};${aupr[$i]};${auroc[$i]}" >> $file
+    done
+
+    cons_aupr=($(grep -o "AUPR: 0.[0-9]*" $network_folder/gs_scores/consensus.txt | cut -d " " -f 2))
+    median_aupr=$(python -c "import sys; import statistics; print(statistics.median([float(i) for i in sys.argv[1:]]))" ${cons_aupr[@]})
+    cons_auroc=($(grep -o "AUROC: 0.[0-9]*" $network_folder/gs_scores/consensus.txt | cut -d " " -f 2))
+    median_auroc=$(python -c "import sys; import statistics; print(statistics.median([float(i) for i in sys.argv[1:]]))" ${cons_auroc[@]})
+    echo "Median Consensus;$median_aupr;$median_auroc" >> $file
+done
+
+## IRMA
+for network_folder in inferred_networks/switch-*_exp/
+do
+    id=$(basename $network_folder)
+    id=${id%"_exp"}
+
+    name="IRMA_${id}"
+    file=$network_folder/gs_scores/${name}-gs_table.csv
+    echo "$name;;" > $file
+    echo "Technique;AUPR;AUROC" >> $file
+
+    tecs=($(grep -Po "(?<=GRN_)[^ ]*(?=.csv)" $network_folder/gs_scores/techniques.txt))
     aupr=($(grep -o "AUPR: 0.[0-9]*" $network_folder/gs_scores/techniques.txt | cut -d " " -f 2))
     auroc=($(grep -o "AUROC: 0.[0-9]*" $network_folder/gs_scores/techniques.txt | cut -d " " -f 2))
 
