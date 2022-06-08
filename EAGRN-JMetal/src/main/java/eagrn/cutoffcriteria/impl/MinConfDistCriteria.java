@@ -30,7 +30,7 @@ public class MinConfDistCriteria implements CutOffCriteria {
             String pair = entry.getKey();
             double conf = entry.getValue().getConf();
             double dist = entry.getValue().getDist();
-            double confDist = conf * 0.5 + (1 - dist) * 0.5;
+            double confDist = (conf + (1 - dist)) / 2.0;
             if (confDist > min) {
                 String[] parts = pair.split("-");
                 if (parts.length > 1) {

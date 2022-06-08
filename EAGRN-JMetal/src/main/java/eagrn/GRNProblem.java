@@ -150,16 +150,24 @@ public class GRNProblem extends AbstractDoubleProblem {
                 weightDistances[i] = ((Math.abs(medInt.getMedian() - pair.getValue()[i]) / medInt.getInterval()) + x[i]) / 2.0;
             }
 
+            double min = Collections.min(Arrays.asList(weightDistances));
+            double max = Collections.max(Arrays.asList(weightDistances));
+
+            mapConsTuple.setDist(max - min);
+            consensus.put(pair.getKey(), mapConsTuple);
+
+            /**
             double totalDistance = 0;
             for (int i = 0; i < weightDistances.length; i++) {
                 double distance = 0;
                 for (int j = 0; j < weightDistances.length; j++) {
-                    distance += Math.abs(weightDistances[i] - weightDistances[j]);
+                    distance += Math.pow(weightDistances[i] - weightDistances[j], 2);
                 }
                 totalDistance += distance / (weightDistances.length - 1);
             }
             mapConsTuple.setDist(totalDistance / weightDistances.length);
             consensus.put(pair.getKey(), mapConsTuple);
+            */
         }
 
         return consensus;
@@ -184,7 +192,7 @@ public class GRNProblem extends AbstractDoubleProblem {
         for (Map.Entry<String, ConsensusTuple> pair : consensus.entrySet()) {
             conf = pair.getValue().getConf();
             dist = pair.getValue().getDist();
-            confDistSum += conf * 0.5 + (1 - dist) * 0.5;
+            confDistSum += (conf + (1 - dist)) / 2.0;
         }
         double mean = confDistSum / consensus.size();
 
@@ -194,7 +202,7 @@ public class GRNProblem extends AbstractDoubleProblem {
         for (Map.Entry<String, ConsensusTuple> pair : consensus.entrySet()) {
             conf = pair.getValue().getConf();
             dist = pair.getValue().getDist();
-            confDist = conf * 0.5 + (1 - dist) * 0.5;
+            confDist = (conf + (1 - dist)) / 2.0;
             if (confDist > mean) {
                 confDistSum += confDist;
                 cnt += 1;
