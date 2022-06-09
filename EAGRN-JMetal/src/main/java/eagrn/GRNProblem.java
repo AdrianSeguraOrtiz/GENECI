@@ -213,7 +213,7 @@ public class GRNProblem extends AbstractDoubleProblem {
         double numberOfLinks = (double) (numberOfNodes * numberOfNodes);
         double f1 = Math.abs(cnt - 0.1 * numberOfLinks)/((1 - 0.1) * numberOfLinks);
         double f2 = 1.0 - confDistSum/cnt;
-        double fitness = (f1 + f2)/2;
+        double fitness = 0.25*f1 + 0.75*f2;
 
         return fitness;
     }
