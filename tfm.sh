@@ -212,7 +212,7 @@ do
     done
 done
 
-# 9. Para las redes procedentes de DREAM creamos los excel con los resultados de precisión
+# 9. Para las redes de tipo benchmark creamos los excel con los resultados de precisión
 
 ## DREAM3
 for network_folder in inferred_networks/*-trajectories_exp/
@@ -325,3 +325,19 @@ do
     median_auroc=$(python -c "import sys; import statistics; print(statistics.median([float(i) for i in sys.argv[1:]]))" ${cons_auroc[@]})
     echo "Median Consensus;$median_aupr;$median_auroc" >> $file
 done
+
+## 10. Genero las tablas para su exposición en latex
+# DREAM 3
+python csvs2latex.py --csv-table inferred_networks/InSilicoSize10-Ecoli1-trajectories_exp/gs_scores/D3_10_Ecoli1-gs_table.csv --csv-table inferred_networks/InSilicoSize10-Ecoli2-trajectories_exp/gs_scores/D3_10_Ecoli2-gs_table.csv --csv-table inferred_networks/InSilicoSize10-Yeast1-trajectories_exp/gs_scores/D3_10_Yeast1-gs_table.csv --csv-table inferred_networks/InSilicoSize10-Yeast2-trajectories_exp/gs_scores/D3_10_Yeast2-gs_table.csv --csv-table inferred_networks/InSilicoSize10-Yeast3-trajectories_exp/gs_scores/D3_10_Yeast3-gs_table.csv
+
+python csvs2latex.py --csv-table inferred_networks/InSilicoSize50-Ecoli1-trajectories_exp/gs_scores/D3_50_Ecoli1-gs_table.csv --csv-table inferred_networks/InSilicoSize50-Ecoli2-trajectories_exp/gs_scores/D3_50_Ecoli2-gs_table.csv --csv-table inferred_networks/InSilicoSize50-Yeast1-trajectories_exp/gs_scores/D3_50_Yeast1-gs_table.csv --csv-table inferred_networks/InSilicoSize50-Yeast2-trajectories_exp/gs_scores/D3_50_Yeast2-gs_table.csv --csv-table inferred_networks/InSilicoSize50-Yeast3-trajectories_exp/gs_scores/D3_50_Yeast3-gs_table.csv
+
+python csvs2latex.py --csv-table inferred_networks/InSilicoSize100-Ecoli1-trajectories_exp/gs_scores/D3_100_Ecoli1-gs_table.csv --csv-table inferred_networks/InSilicoSize100-Ecoli2-trajectories_exp/gs_scores/D3_100_Ecoli2-gs_table.csv --csv-table inferred_networks/InSilicoSize100-Yeast1-trajectories_exp/gs_scores/D3_100_Yeast1-gs_table.csv --csv-table inferred_networks/InSilicoSize100-Yeast2-trajectories_exp/gs_scores/D3_100_Yeast2-gs_table.csv --csv-table inferred_networks/InSilicoSize100-Yeast3-trajectories_exp/gs_scores/D3_100_Yeast3-gs_table.csv
+
+# DREAM 4
+python csvs2latex.py --csv-table inferred_networks/dream4_010_01_exp/gs_scores/D4_10_1-gs_table.csv --csv-table inferred_networks/dream4_010_02_exp/gs_scores/D4_10_2-gs_table.csv --csv-table inferred_networks/dream4_010_03_exp/gs_scores/D4_10_3-gs_table.csv --csv-table inferred_networks/dream4_010_04_exp/gs_scores/D4_10_4-gs_table.csv --csv-table inferred_networks/dream4_010_05_exp/gs_scores/D4_10_5-gs_table.csv
+
+python csvs2latex.py --csv-table inferred_networks/dream4_100_01_exp/gs_scores/D4_100_1-gs_table.csv --csv-table inferred_networks/dream4_100_02_exp/gs_scores/D4_100_2-gs_table.csv --csv-table inferred_networks/dream4_100_03_exp/gs_scores/D4_100_3-gs_table.csv --csv-table inferred_networks/dream4_100_04_exp/gs_scores/D4_100_4-gs_table.csv --csv-table inferred_networks/dream4_100_05_exp/gs_scores/D4_100_5-gs_table.csv
+
+# IRMA
+python csvs2latex.py --csv-table inferred_networks/switch-off_exp/gs_scores/IRMA_switch-off-gs_table.csv --csv-table inferred_networks/switch-on_exp/gs_scores/IRMA_switch-on-gs_table.csv
