@@ -21,9 +21,11 @@ public class GRNProblem extends AbstractDoubleProblem {
     private double f2Weight;
     private int cntEvaluations;
     private double bestFitness;
+    private ArrayList<Double> fitnessList;
     private double f1BestFitness;
+    private ArrayList<Double> f1List;
     private double f2BestFitness;
-    private Map<String, ArrayList<Double>> fitnessEvolution;
+    private ArrayList<Double> f2List;
     private int populationSize;
 
     /** Constructor Creates a default instance of the GRN problem */
@@ -43,9 +45,11 @@ public class GRNProblem extends AbstractDoubleProblem {
         this.f2Weight = f2Weight;
         this.cntEvaluations = 0;
         this.bestFitness = 1;
+        this.fitnessList = new ArrayList<>();
         this.f1BestFitness = 1;
+        this.f1List = new ArrayList<>();
         this.f2BestFitness = 1;
-        this.fitnessEvolution = new HashMap<String, ArrayList<Double>>();
+        this.f2List = new ArrayList<>();
         this.populationSize = 0;
 
         setNumberOfVariables(inferredNetworkFiles.length);
@@ -96,15 +100,9 @@ public class GRNProblem extends AbstractDoubleProblem {
             this.f2BestFitness = f2;
         }
         if (this.cntEvaluations % this.populationSize == 0){
-            ArrayList<Double> fitnessList = this.fitnessEvolution.getOrDefault("Fitness", new ArrayList<Double>());
-            fitnessList.add(this.bestFitness);
-            this.fitnessEvolution.put("Fitness", fitnessList);
-            ArrayList<Double> f1List = this.fitnessEvolution.getOrDefault("F1", new ArrayList<Double>());
-            f1List.add(this.f1BestFitness);
-            this.fitnessEvolution.put("F1", f1List);
-            ArrayList<Double> f2List = this.fitnessEvolution.getOrDefault("F2", new ArrayList<Double>());
-            f2List.add(this.f2BestFitness);
-            this.fitnessEvolution.put("F2", f2List);
+            this.fitnessList.add(this.bestFitness);
+            this.f1List.add(this.f1BestFitness);
+            this.f2List.add(this.f2BestFitness);
         }
 
         return solution;
@@ -277,7 +275,11 @@ public class GRNProblem extends AbstractDoubleProblem {
     }
 
     public Map<String, ArrayList<Double>> getFitnessEvolution() {
-        return this.fitnessEvolution;
+        Map<String, ArrayList<Double>> fitnessEvolution = new HashMap<String, ArrayList<Double>>();
+        fitnessEvolution.put("Fitness", this.fitnessList);
+        fitnessEvolution.put("F1", this.f1List);
+        fitnessEvolution.put("F2", this.f2List);
+        return fitnessEvolution;
     }
 
 }
