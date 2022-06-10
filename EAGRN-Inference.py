@@ -81,8 +81,7 @@ class Challenge(str, Enum):
 class NodesDistribution(str, Enum):
     Spring = "Spring"
     Circular = "Circular"
-    Bipartite = "Bipartite"
-    Kamada_Kawai = "Kamada_kawai"
+    Kamada_kawai = "Kamada_kawai"
 
 class Mode(str, Enum):
     Static2D = "Static2D"

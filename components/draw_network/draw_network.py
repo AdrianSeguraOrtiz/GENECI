@@ -184,8 +184,7 @@ def my_draw_networkx_edge_labels(
 class NodesDistribution(str, Enum):
     Spring = "Spring"
     Circular = "Circular"
-    Bipartite = "Bipartite"
-    Kamada_Kawai = "Kamada_kawai"
+    Kamada_kawai = "Kamada_kawai"
 
 
 class Mode(str, Enum):
@@ -234,8 +233,6 @@ def draw_network(
                 spring_3D = nx.spring_layout(DG, dim=3, seed=5)
             case "Circular":
                 spring_3D = nx.circular_layout(DG, dim=3)
-            case "Bipartite":
-                spring_3D = nx.bipartite_layout(DG, dim=3)
             case "Kamada_kawai":
                 spring_3D = nx.kamada_kawai_layout(DG, dim=3)
 
@@ -353,8 +350,6 @@ def draw_network(
                     pos = nx.spring_layout(DG, seed=5)
                 case "Circular":
                     pos = nx.circular_layout(DG)
-                case "Bipartite":
-                    pos = nx.bipartite_layout(DG)
                 case "Kamada_kawai":
                     pos = nx.kamada_kawai_layout(DG)
 
