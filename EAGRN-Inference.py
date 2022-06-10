@@ -501,14 +501,22 @@ def optimize_ensemble(
 
     if graphics:
         f = open("tmp/ea_consensus/fitness_evolution.txt", "r")
-        str_line = f.readline()
-        str_vector = str_line.split(", ")
-        vector = [float(i) for i in str_vector]
+        str_lines = f.readlines()
+        str_fitness = str_lines[0].split(", ")
+        fitness = [float(i) for i in str_fitness]
+        str_f1 = str_lines[1].split(", ")
+        f1 = [float(i) for i in str_f1]
+        str_f2 = str_lines[2].split(", ")
+        f2 = [float(i) for i in str_f2]
         
-        plt.plot(vector)
+        
+        plt.plot(fitness, label="Fitness")
+        plt.plot(f1, label="Function 1")
+        plt.plot(f2, label="Function 2")
         plt.title("Fitness evolution")
         plt.ylabel("Fitness")
         plt.xlabel("Generation")
+        plt.legend()
         plt.savefig("tmp/ea_consensus/fitness_evolution.pdf")
 
 

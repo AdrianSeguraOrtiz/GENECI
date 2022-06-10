@@ -19,6 +19,12 @@ public class GRNProblem extends AbstractDoubleProblem {
     private CutOffCriteria cutOffCriteria;
     private double f1Weight;
     private double f2Weight;
+    private int cntEvaluations;
+    private double bestFitness;
+    private double f1BestFitness;
+    private double f2BestFitness;
+    private Map<String, ArrayList<Double>> fitnessEvolution;
+    private int populationSize;
 
     /** Constructor Creates a default instance of the GRN problem */
     public GRNProblem(File[] inferredNetworkFiles, ArrayList<String> geneNames, WeightRepairer initialPopulationRepairer, CutOffCriteria cutOffCriteria, double f1Weight, double f2Weight) {
@@ -35,6 +41,12 @@ public class GRNProblem extends AbstractDoubleProblem {
         this.cutOffCriteria = cutOffCriteria;
         this.f1Weight = f1Weight;
         this.f2Weight = f2Weight;
+        this.cntEvaluations = 0;
+        this.bestFitness = 1;
+        this.f1BestFitness = 1;
+        this.f2BestFitness = 1;
+        this.fitnessEvolution = new HashMap<String, ArrayList<Double>>();
+        this.populationSize = 0;
 
         setNumberOfVariables(inferredNetworkFiles.length);
         setNumberOfObjectives(1);
@@ -56,6 +68,7 @@ public class GRNProblem extends AbstractDoubleProblem {
     public DoubleSolution createSolution() {
         DefaultDoubleSolution solution = new DefaultDoubleSolution(this.getNumberOfObjectives(), this.getNumberOfConstraints(), this.getBoundsForVariables());
         initialPopulationRepairer.repairSolution(solution);
+        this.populationSize += 1;
         return solution;
     }
 
@@ -73,7 +86,27 @@ public class GRNProblem extends AbstractDoubleProblem {
         int [][] binaryNetwork = cutOffCriteria.getNetworkFromConsensus(consensus, geneNames);
         double f2 = fitnessF2(binaryNetwork);
 
-        solution.objectives()[0] = this.f1Weight*f1 + this.f2Weight*f2;
+        double f = this.f1Weight*f1 + this.f2Weight*f2;
+        solution.objectives()[0] = f;
+
+        this.cntEvaluations += 1;
+        if (f < this.bestFitness) {
+            this.bestFitness = f;
+            this.f1BestFitness = f1;
+            this.f2BestFitness = f2;
+        }
+        if (this.cntEvaluations % this.populationSize == 0){
+            ArrayList<Double> fitnessList = this.fitnessEvolution.getOrDefault("Fitness", new ArrayList<Double>());
+            fitnessList.add(this.bestFitness);
+            this.fitnessEvolution.put("Fitness", fitnessList);
+            ArrayList<Double> f1List = this.fitnessEvolution.getOrDefault("F1", new ArrayList<Double>());
+            f1List.add(this.f1BestFitness);
+            this.fitnessEvolution.put("F1", f1List);
+            ArrayList<Double> f2List = this.fitnessEvolution.getOrDefault("F2", new ArrayList<Double>());
+            f2List.add(this.f2BestFitness);
+            this.fitnessEvolution.put("F2", f2List);
+        }
+
         return solution;
     }
 
@@ -155,19 +188,6 @@ public class GRNProblem extends AbstractDoubleProblem {
 
             mapConsTuple.setDist(max - min);
             consensus.put(pair.getKey(), mapConsTuple);
-
-            /**
-            double totalDistance = 0;
-            for (int i = 0; i < weightDistances.length; i++) {
-                double distance = 0;
-                for (int j = 0; j < weightDistances.length; j++) {
-                    distance += Math.pow(weightDistances[i] - weightDistances[j], 2);
-                }
-                totalDistance += distance / (weightDistances.length - 1);
-            }
-            mapConsTuple.setDist(totalDistance / weightDistances.length);
-            consensus.put(pair.getKey(), mapConsTuple);
-            */
         }
 
         return consensus;
@@ -254,6 +274,10 @@ public class GRNProblem extends AbstractDoubleProblem {
         double fitness = (f1 + f2)/2;
 
         return fitness;
+    }
+
+    public Map<String, ArrayList<Double>> getFitnessEvolution() {
+        return this.fitnessEvolution;
     }
 
 }

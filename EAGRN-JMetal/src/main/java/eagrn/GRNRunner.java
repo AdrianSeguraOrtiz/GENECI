@@ -228,9 +228,6 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         /** Start selection operator. */
         selection = new BinaryTournamentSelection<>(new RankingAndCrowdingDistanceComparator<>());
 
-        /** Add observable to report the evolution of fitness values. */
-        FitnessObserver fitnessObserver = new FitnessObserver(populationSize);
-
         /** Declare variable to contain the runtime and another to store the last generation of individuals. */
         long computingTime;
         List<DoubleSolution> population;
@@ -256,9 +253,6 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                         selection,
                         replacement,
                         termination);
-            
-            /** Register observable. */
-            algorithm.getObservable().register(fitnessObserver);
 
             /** Execute the designed evolutionary algorithm. */
             algorithm.run();
@@ -282,9 +276,6 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                         mutation,
                         termination).withEvaluation(new MultithreadedEvaluation<>(numOfThreads, problem));
 
-            /** Register observable. */
-            algorithm.getObservable().register(fitnessObserver);
-
             /** Execute the designed evolutionary algorithm. */
             algorithm.run();
 
@@ -305,9 +296,6 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                         crossover,
                         mutation,
                         termination);
-            
-            /** Register observable. */
-            algorithm.getObservable().register(fitnessObserver);
 
             /** Execute the designed evolutionary algorithm. */
             algorithm.run();
@@ -334,8 +322,18 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         try {
             File outputFile = new File(outputFolder + "/fitness_evolution.txt");
             BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
-            String strFitnessVector = fitnessObserver.getFitnessHistory().toString();
-            bw.write(strFitnessVector.substring(1, strFitnessVector.length() - 1));
+
+            Map<String, ArrayList<Double>> fitnessEvolution = problem.getFitnessEvolution();
+
+            String strFitnessVector = fitnessEvolution.get("Fitness").toString();
+            bw.write(strFitnessVector.substring(1, strFitnessVector.length() - 1) + "\n");
+
+            String strF1Vector = fitnessEvolution.get("F1").toString();
+            bw.write(strF1Vector.substring(1, strF1Vector.length() - 1) + "\n");
+            
+            String strF2Vector = fitnessEvolution.get("F2").toString();
+            bw.write(strF2Vector.substring(1, strF2Vector.length() - 1) + "\n");
+
             bw.flush();
             bw.close();
         } catch (IOException ioe) {
