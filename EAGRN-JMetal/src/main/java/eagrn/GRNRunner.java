@@ -35,6 +35,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -323,15 +324,15 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             File outputFile = new File(outputFolder + "/fitness_evolution.txt");
             BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
 
-            Map<String, ArrayList<Double>> fitnessEvolution = problem.getFitnessEvolution();
+            Map<String, Double[]> fitnessEvolution = problem.getFitnessEvolution();
 
-            String strFitnessVector = fitnessEvolution.get("Fitness").toString();
+            String strFitnessVector = Arrays.toString(fitnessEvolution.get("Fitness"));
             bw.write(strFitnessVector.substring(1, strFitnessVector.length() - 1) + "\n");
 
-            String strF1Vector = fitnessEvolution.get("F1").toString();
+            String strF1Vector = Arrays.toString(fitnessEvolution.get("F1"));
             bw.write(strF1Vector.substring(1, strF1Vector.length() - 1) + "\n");
             
-            String strF2Vector = fitnessEvolution.get("F2").toString();
+            String strF2Vector = Arrays.toString(fitnessEvolution.get("F2"));
             bw.write(strF2Vector.substring(1, strF2Vector.length() - 1) + "\n");
 
             bw.flush();

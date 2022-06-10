@@ -274,11 +274,11 @@ public class GRNProblem extends AbstractDoubleProblem {
         return fitness;
     }
 
-    public Map<String, ArrayList<Double>> getFitnessEvolution() {
-        Map<String, ArrayList<Double>> fitnessEvolution = new HashMap<String, ArrayList<Double>>();
-        fitnessEvolution.put("Fitness", this.fitnessList);
-        fitnessEvolution.put("F1", this.f1List);
-        fitnessEvolution.put("F2", this.f2List);
+    public Map<String, Double[]> getFitnessEvolution() {
+        Map<String, Double[]> fitnessEvolution = new HashMap<String, Double[]>();
+        fitnessEvolution.put("Fitness", this.fitnessList.toArray(new Double[this.fitnessList.size()]));
+        fitnessEvolution.put("F1", this.f1List.toArray(new Double[this.f1List.size()]));
+        fitnessEvolution.put("F2", this.f2List.toArray(new Double[this.f2List.size()]));
         return fitnessEvolution;
     }
 
