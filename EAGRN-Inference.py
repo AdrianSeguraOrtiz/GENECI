@@ -441,7 +441,7 @@ def optimize_ensemble(
         quality_weight: float = typer.Option(0.75, help="Weight associated with the first term of the fitness function. This term tries to maximize the quality of good links (improve trust and frequency of appearance) while minimizing their quantity. It tries to establish some contrast between good and bad links so that the links finally reported are of high reliability."),
         topology_weight: float = typer.Option(0.25, help="Weight associated with the second term of the fitness function. This term tries to increase the degree (number of links) of those genes with a high potential to be considered as hubs. At the same time, it is intended that the number of genes that meet this condition should be relatively low, since this is what is usually observed in real gene networks. The objective is to promote the approximation of the network to a scale-free configuration and to move away from random structure."),
         threads: int = typer.Option(multiprocessing.cpu_count(), help="Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used."),
-        graphics: bool = typer.Option(True, help="Indicate if you do not want to represent the evolution of the fitness value."),
+        graphics: bool = typer.Option(True, help="Indicate if you want to represent the evolution of the fitness value."),
         output_dir: Path = typer.Option("<<conf_list_path>>/../ea_consensus", help="Path to the output folder."),
     ):
     """
@@ -622,7 +622,7 @@ def run(
         quality_weight: float = typer.Option(0.75, help="Weight associated with the first term of the fitness function. This term tries to maximize the quality of good links (improve trust and frequency of appearance) while minimizing their quantity. It tries to establish some contrast between good and bad links so that the links finally reported are of high reliability."),
         topology_weight: float = typer.Option(0.25, help="Weight associated with the second term of the fitness function. This term tries to increase the degree (number of links) of those genes with a high potential to be considered as hubs. At the same time, it is intended that the number of genes that meet this condition should be relatively low, since this is what is usually observed in real gene networks. The objective is to promote the approximation of the network to a scale-free configuration and to move away from random structure."),
         threads: int = typer.Option(multiprocessing.cpu_count(), help="Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used."),
-        graphics: bool = typer.Option(True, help="Indicate if you do not want to represent the evolution of the fitness value."),
+        graphics: bool = typer.Option(True, help="Indicate if you want to represent the evolution of the fitness value."),
         output_dir: Path = typer.Option(Path("./inferred_networks"), help="Path to the output folder."),
     ):
     """
