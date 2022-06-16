@@ -3,7 +3,7 @@ Evolutionary algorithm for determining the optimal ensemble of unsupervised lear
 
 # Example procedure
 
-1. Generar .jar con dependencias:
+1. Generate .jar with dependencies:
 
 ```sh
 cd EAGRN-JMetal
@@ -11,13 +11,13 @@ mvn clean compile assembly:single
 cd ..
 ```
 
-2. Generar imágenes
+2. Generate docker images:
 
 ```sh
 bash generate_images.sh
 ```
 
-3. Descargar datos simulados de expresión y sus respectivos gold standard:
+3. Download simulated expression data and their respective gold standards:
 
 ```sh
 python EAGRN-Inference.py extract-data expression-data --database DREAM3 --database DREAM4 --database DREAM5 --database SynTReN --database Rogers --database GeneNetWeaver --database IRMA --username TFM-SynapseAccount --password TFM-SynapsePassword
@@ -25,33 +25,33 @@ python EAGRN-Inference.py extract-data expression-data --database DREAM3 --datab
 python EAGRN-Inference.py extract-data gold-standard --database DREAM3 --database DREAM4 --database DREAM5 --database SynTReN --database Rogers --database GeneNetWeaver --database IRMA --username TFM-SynapseAccount --password TFM-SynapsePassword
 ```
 
-4. Ejecutar algoritmo para un conjunto de datos de expresión concreto:
+4. Execute algorithm for a particular expression data set:
 
 ```sh
 python EAGRN-Inference.py run --expression-data input_data/DREAM4/EXP/dream4_010_01_exp.csv --technique aracne --technique bc3net --technique c3net --technique clr --technique genie3_rf --technique genie3_gbm --technique genie3_et --technique mrnet --technique mrnetb --technique pcit --technique tigress --technique kboost
 ```
 
-Este proceso también se puede dividir en dos partes:
+This process can also be divided into two parts:
 
-4.1. Inferir redes de regulación génica mediante las técnicas individuales disponibles:
+4.1. Infer gene regulatory networks using available individual techniques:
 
 ```sh
 python EAGRN-Inference.py infer-network --expression-data input_data/DREAM4/EXP/dream4_010_01_exp.csv --technique aracne --technique bc3net --technique c3net --technique clr --technique genie3_rf --technique genie3_gbm --technique genie3_et --technique mrnet --technique mrnetb --technique pcit --technique tigress --technique kboost
 ```
 
-4.2. Optimizar el ensemble de las listas de confianza resultantes del comando anterior:
+4.2. Optimise the assembly of the trusted lists resulting from the above command:
 
 ```sh
 python EAGRN-Inference.py optimize-ensemble --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_ARACNE.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_BC3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_C3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_CLR.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_RF.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_GBM.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_ET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNETB.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_PCIT.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_TIGRESS.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_KBOOST.csv --gene-names inferred_networks/dream4_010_01_exp/gene_names.txt
 ```
 
-5. Representar las redes inferidas mediante gráficas tanto estáticas 2D como interactivas 3D que facilitan el estudio de intersecciones y comparaciones entre técnicas
+5. Represent the inferred networks using both static 2D and interactive 3D plots that facilitate the study of intersections and comparisons between techniques:
 
 ```sh
 python EAGRN-Inference.py draw-network --confidence-list inferred_networks/dream4_010_01_exp/ea_consensus_1/final_list.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_ARACNE.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_BC3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_C3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_CLR.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_RF.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_GBM.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_ET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNETB.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_PCIT.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_TIGRESS.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_KBOOST.csv
 ```
 
-6. Evaluar la calidad de la red génica inferida respecto a la gold standard
+6. Evaluate the accuracy of the inferred gene network against the gold standard:
 
 ```sh
 # DREAM 3
@@ -70,7 +70,7 @@ python EAGRN-Inference.py extract-data evaluation-data --database DREAM5 --usern
 python EAGRN-Inference.py evaluate dream-prediction --challenge D5C4 --network-id 1 --synapse-file input_data/DREAM5/EVAL/DREAM5_NetworkInference_Edges_Network1.tsv --synapse-file input_data/DREAM5/EVAL/DREAM5_NetworkInference_GoldStandard_Network1.tsv --synapse-file input_data/DREAM5/EVAL/Network1_AUPR.mat --synapse-file input_data/DREAM5/EVAL/Network1_AUROC.mat --confidence-list inferred_networks/net1_exp/lists/GRN_ARACNE.csv
 ```
 
-# Console script
+# CLI
 
 **Usage**:
 
@@ -127,7 +127,7 @@ $ draw-network [OPTIONS]
 
 * `--confidence-list TEXT`: Paths of the CSV files with the confidence lists to be represented  [required]
 * `--mode [Static2D|Interactive3D|Both]`: Mode of representation  [default: Both]
-* `--nodes-distribution [Spring|Circular|Bipartite|Kamada_kawai]`: Node distribution in graph  [default: Spring]
+* `--nodes-distribution [Spring|Circular|Kamada_kawai]`: Node distribution in graph  [default: Spring]
 * `--output-folder TEXT`: Path to output folder  [default: <<conf_list_path>>/../network_graphics]
 * `--help`: Show this message and exit.
 
@@ -148,6 +148,7 @@ $ evaluate [OPTIONS] COMMAND [ARGS]...
 **Commands**:
 
 * `dream-prediction`: Evaluate the accuracy with which networks...
+* `generic-prediction`: Evaluate the accuracy with which any generic...
 
 ### `evaluate dream-prediction`
 
@@ -165,6 +166,22 @@ $ evaluate dream-prediction [OPTIONS]
 * `--network-id TEXT`: Predicted network identifier. Ex: 10_1  [required]
 * `--synapse-file PATH`: Paths to files from synapse needed to perform inference evaluation. To download these files you need to register at https://www.synapse.org/# and download them manually or run the command extract-data evaluation-data.  [required]
 * `--confidence-list PATH`: Path to the CSV file with the list of trusted values.  [required]
+* `--help`: Show this message and exit.
+
+### `evaluate generic-prediction`
+
+Evaluate the accuracy with which any generic network has been predicted with respect to a given gold standard. To do so, it approaches the case as a binary classification problem between 0 and 1.
+
+**Usage**:
+
+```console
+$ evaluate generic-prediction [OPTIONS]
+```
+
+**Options**:
+
+* `--inferred-binary-matrix PATH`: [required]
+* `--gs-binary-matrix PATH`: [required]
 * `--help`: Show this message and exit.
 
 ## `extract-data`
@@ -279,12 +296,12 @@ $ optimize-ensemble [OPTIONS]
 * `--repairer [StandardizationRepairer|GreedyRepair]`: Solution repairer to keep the sum of weights equal to 1  [default: StandardizationRepairer]
 * `--population-size INTEGER`: Population size  [default: 100]
 * `--num-evaluations INTEGER`: Number of evaluations  [default: 25000]
-* `--cut-off-criteria [MinConfidence|MaxNumLinksBestConf|MinConfFreq]`: Criteria for determining which links will be part of the final binary matrix.  [default: MinConfFreq]
-* `--cut-off-value FLOAT`: Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfFreq = 0.2  [default: 0.2]
-* `--f1-weight FLOAT`: Weight associated with the first function of the optimization process. This function tries to maximize the quality of good links (improve trust and frequency of appearance) while minimizing their quantity. It tries to establish some contrast between good and bad links so that the links finally reported are of high reliability.  [default: 0.75]
-* `--f2-weight FLOAT`: Weight associated with the second function of the optimization process. This function tries to increase the degree (number of links) of those genes with a high potential to be considered as hubs. At the same time, it is intended that the number of genes that meet this condition should be relatively low, since this is what is usually observed in real gene networks. The objective is to promote the approximation of the network to a scale-free configuration and to move away from random structure.  [default: 0.25]
+* `--cut-off-criteria [MinConfidence|MaxNumLinksBestConf|MinConfDist]`: Criteria for determining which links will be part of the final binary matrix.  [default: MinConfDist]
+* `--cut-off-value FLOAT`: Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfDist = 0.2  [default: 0.5]
+* `--quality-weight FLOAT`: Weight associated with the first term of the fitness function. This term tries to maximize the quality of good links (improve trust and frequency of appearance) while minimizing their quantity. It tries to establish some contrast between good and bad links so that the links finally reported are of high reliability.  [default: 0.75]
+* `--topology-weight FLOAT`: Weight associated with the second term of the fitness function. This term tries to increase the degree (number of links) of those genes with a high potential to be considered as hubs. At the same time, it is intended that the number of genes that meet this condition should be relatively low, since this is what is usually observed in real gene networks. The objective is to promote the approximation of the network to a scale-free configuration and to move away from random structure.  [default: 0.25]
 * `--threads INTEGER`: Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.  [default: 8]
-* `--graphics / --no-graphics`: Indicate if you do not want to represent the evolution of the fitness value.  [default: True]
+* `--graphics / --no-graphics`: Indicate if you want to represent the evolution of the fitness value.  [default: True]
 * `--output-dir PATH`: Path to the output folder.  [default: <<conf_list_path>>/../ea_consensus]
 * `--help`: Show this message and exit.
 
@@ -309,59 +326,11 @@ $ run [OPTIONS]
 * `--repairer [StandardizationRepairer|GreedyRepair]`: Solution repairer to keep the sum of weights equal to 1  [default: StandardizationRepairer]
 * `--population-size INTEGER`: Population size  [default: 100]
 * `--num-evaluations INTEGER`: Number of evaluations  [default: 25000]
-* `--cut-off-criteria [MinConfidence|MaxNumLinksBestConf|MinConfFreq]`: Criteria for determining which links will be part of the final binary matrix.  [default: MinConfFreq]
-* `--cut-off-value FLOAT`: Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfFreq = 0.2  [default: 0.2]
-* `--f1-weight FLOAT`: Weight associated with the first function of the optimization process. This function tries to maximize the quality of good links (improve trust and frequency of appearance) while minimizing their quantity. It tries to establish some contrast between good and bad links so that the links finally reported are of high reliability.  [default: 0.75]
-* `--f2-weight FLOAT`: Weight associated with the second function of the optimization process. This function tries to increase the degree (number of links) of those genes with a high potential to be considered as hubs. At the same time, it is intended that the number of genes that meet this condition should be relatively low, since this is what is usually observed in real gene networks. The objective is to promote the approximation of the network to a scale-free configuration and to move away from random structure.  [default: 0.25]
+* `--cut-off-criteria [MinConfidence|MaxNumLinksBestConf|MinConfDist]`: Criteria for determining which links will be part of the final binary matrix.  [default: MinConfDist]
+* `--cut-off-value FLOAT`: Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfDist = 0.2  [default: 0.5]
+* `--quality-weight FLOAT`: Weight associated with the first term of the fitness function. This term tries to maximize the quality of good links (improve trust and frequency of appearance) while minimizing their quantity. It tries to establish some contrast between good and bad links so that the links finally reported are of high reliability.  [default: 0.75]
+* `--topology-weight FLOAT`: Weight associated with the second term of the fitness function. This term tries to increase the degree (number of links) of those genes with a high potential to be considered as hubs. At the same time, it is intended that the number of genes that meet this condition should be relatively low, since this is what is usually observed in real gene networks. The objective is to promote the approximation of the network to a scale-free configuration and to move away from random structure.  [default: 0.25]
 * `--threads INTEGER`: Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.  [default: 8]
-* `--graphics / --no-graphics`: Indicate if you do not want to represent the evolution of the fitness value.  [default: True]
+* `--graphics / --no-graphics`: Indicate if you want to represent the evolution of the fitness value.  [default: True]
 * `--output-dir PATH`: Path to the output folder.  [default: inferred_networks]
 * `--help`: Show this message and exit.
-
-
-# Techniques contemplated 
-- GENIE3:
-    - Python: https://arboreto.readthedocs.io/en/latest/ (GENIE3.py) (C) --> Te permite RF, ET y GBM
-
-- CLR: 
-    - R: https://www.bioconductor.org/packages/release/bioc/html/minet.html (CLR.R) (NC)
-
-- ARACNE:
-    - R: https://www.bioconductor.org/packages/release/bioc/html/minet.html (ARACNE.R) (NC)
-
-- MRNET:
-    - R: https://www.bioconductor.org/packages/release/bioc/html/minet.html (MRNET.R) (NC)
-
-- MRNETB:
-    - R: https://www.bioconductor.org/packages/release/bioc/html/minet.html (MRNETB.R) (NC)
-
-- C3NET
-    - R: https://cran.rstudio.com/web/packages/c3net/index.html (C3NET.R) (NC)
-
-- BC3NET 
-    - R: https://cran.rstudio.com/web/packages/bc3net/index.html (BC3NET.R) (C)
-
-- PCIT
-    - R: http://www.bioconductor.org/packages/release/bioc/html/CeTF.html (PCIT.R) (NC)
-
-- TIGRESS
-    - R: https://github.com/jpvert/tigress (TIGRESS.R) (C)
-
-- KBOOST
-    - R: http://www.bioconductor.org/packages/release/bioc/html/KBoost.html (KBOOST.R) (NC)
-
-## Annotations
-
-Respecto a GENIE3, CLR, ARACNE, MRNET y MRNETB:
- - GENIE3 se implementa en el paquete GENIE3
- - CLR, ARACNE, MRNET y MRNETB se implementan en minet
- - BioNERO es un paquete reciente de R/Bioconductor pero llama a los dos anteriores para usar GENIE3, CLR y ARACNE. Aunque sea más actual, simplemente llama a librerías antiguas simplificando los parámetros de entrada (lo cual no nos interesa). Además de que no implementa ni MRNET ni MRNETB, por eso se han escogido los paquetes antiguos.
-
-Respecto a C3NET y BC3NET:
- - Tienen muchos parámetros que no entiendo, preguntar cuáles combinaciones se podrían probar
-
- Respecto a JUMP3:
- - Se ha intentado utilizar el código del siguiente repositorio: https://github.com/vahuynh/Jump3.
- - En local y con la última versión de Matlab dá error en una función random.
- - Para probar con otras versiones de Matlab empecé a usar contenedores pero al requerir licencia es muy complicado. En primer lugar, el id del ordenador donde se instala la licencia debe ser el mismo que donde se ejecuta el script, por lo que su uso dentro de docker no me funciona. Además habría que añadir parámetros adicionales al script principal únicamente requeridos en caso de escoger esta técnica de inferencia. 
- - En caso de lograr que se ejecutase y saber solventar el problema de la licencia, no tengo ni idea de como poder pasarle los parámetros de entrada al script de matlab.
