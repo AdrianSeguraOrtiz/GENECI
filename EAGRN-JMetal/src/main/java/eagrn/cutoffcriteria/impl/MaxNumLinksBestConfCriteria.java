@@ -46,7 +46,7 @@ public class MaxNumLinksBestConfCriteria implements CutOffCriteriaOnlyConf {
         int g1, g2, cnt = 0;
         while (cnt < max) {
             String pair = iterator.next().getKey();
-            String [] parts = pair.split("-");
+            String [] parts = pair.split(";");
             if (parts.length > 1) {
                 g1 = geneNames.indexOf(parts[0]);
                 g2 = geneNames.indexOf(parts[1]);

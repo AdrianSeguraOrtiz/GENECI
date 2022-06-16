@@ -22,7 +22,7 @@ public class ListOfLinks {
                 String line = sc.nextLine();
                 String[] splitLine = line.split(",");
 
-                String key = splitLine[0] + "-" + splitLine[1];
+                String key = splitLine[0] + ";" + splitLine[1];
                 Double value = Double.parseDouble(splitLine[2]);
                 map.put(key, value);
             }

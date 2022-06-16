@@ -46,7 +46,7 @@ public class MinConfidenceCriteria implements CutOffCriteriaOnlyConf {
             String pair = entry.getKey();
             Double conf = entry.getValue();
             if (conf > min) {
-                String[] parts = pair.split("-");
+                String[] parts = pair.split(";");
                 if (parts.length > 1) {
                     g1 = geneNames.indexOf(parts[0]);
                     g2 = geneNames.indexOf(parts[1]);

@@ -32,7 +32,7 @@ public class MinConfDistCriteria implements CutOffCriteria {
             double dist = entry.getValue().getDist();
             double confDist = (conf + (1 - dist)) / 2.0;
             if (confDist > min) {
-                String[] parts = pair.split("-");
+                String[] parts = pair.split(";");
                 if (parts.length > 1) {
                     g1 = geneNames.indexOf(parts[0]);
                     g2 = geneNames.indexOf(parts[1]);

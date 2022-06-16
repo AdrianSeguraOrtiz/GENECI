@@ -378,7 +378,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
 
             for (Map.Entry<String, ConsensusTuple> pair : consensus.entrySet()) {
-                String [] vKeySplit = pair.getKey().split("-");
+                String [] vKeySplit = pair.getKey().split(";");
                 bw.write(vKeySplit[0] + "," + vKeySplit[1] + "," + pair.getValue().getConf());
                 bw.newLine();
             }
