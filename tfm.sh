@@ -237,9 +237,12 @@ do
 
     cons_aupr=($(grep -o "AUPR: 0.[0-9]*" $network_folder/gs_scores/consensus.txt | cut -d " " -f 2))
     median_aupr=$(python -c "import sys; import statistics; print(statistics.median([float(i) for i in sys.argv[1:]]))" ${cons_aupr[@]})
+    max_aupr=$(python -c "import sys; print(max([float(i) for i in sys.argv[1:]]))" ${cons_aupr[@]})
     cons_auroc=($(grep -o "AUROC: 0.[0-9]*" $network_folder/gs_scores/consensus.txt | cut -d " " -f 2))
     median_auroc=$(python -c "import sys; import statistics; print(statistics.median([float(i) for i in sys.argv[1:]]))" ${cons_auroc[@]})
-    echo "Median Consensus;$median_aupr;$median_auroc" >> $file
+    max_auroc=$(python -c "import sys; print(max([float(i) for i in sys.argv[1:]]))" ${cons_auroc[@]})
+    echo "Median GENECI;$median_aupr;$median_auroc" >> $file
+    echo "Best GENECI;$max_aupr;$max_auroc" >> $file
 done
 
 ## DREAM4
@@ -266,9 +269,12 @@ do
 
     cons_aupr=($(grep -o "AUPR: 0.[0-9]*" $network_folder/gs_scores/consensus.txt | cut -d " " -f 2))
     median_aupr=$(python -c "import sys; import statistics; print(statistics.median([float(i) for i in sys.argv[1:]]))" ${cons_aupr[@]})
+    max_aupr=$(python -c "import sys; print(max([float(i) for i in sys.argv[1:]]))" ${cons_aupr[@]})
     cons_auroc=($(grep -o "AUROC: 0.[0-9]*" $network_folder/gs_scores/consensus.txt | cut -d " " -f 2))
     median_auroc=$(python -c "import sys; import statistics; print(statistics.median([float(i) for i in sys.argv[1:]]))" ${cons_auroc[@]})
-    echo "Median Consensus;$median_aupr;$median_auroc" >> $file
+    max_auroc=$(python -c "import sys; print(max([float(i) for i in sys.argv[1:]]))" ${cons_auroc[@]})
+    echo "Median GENECI;$median_aupr;$median_auroc" >> $file
+    echo "Best GENECI;$max_aupr;$max_auroc" >> $file
 done
 
 ## DREAM5
@@ -294,9 +300,12 @@ do
 
     cons_aupr=($(grep -o "AUPR: 0.[0-9]*" $network_folder/gs_scores/consensus.txt | cut -d " " -f 2))
     median_aupr=$(python -c "import sys; import statistics; print(statistics.median([float(i) for i in sys.argv[1:]]))" ${cons_aupr[@]})
+    max_aupr=$(python -c "import sys; print(max([float(i) for i in sys.argv[1:]]))" ${cons_aupr[@]})
     cons_auroc=($(grep -o "AUROC: 0.[0-9]*" $network_folder/gs_scores/consensus.txt | cut -d " " -f 2))
     median_auroc=$(python -c "import sys; import statistics; print(statistics.median([float(i) for i in sys.argv[1:]]))" ${cons_auroc[@]})
-    echo "Median Consensus;$median_aupr;$median_auroc" >> $file
+    max_auroc=$(python -c "import sys; print(max([float(i) for i in sys.argv[1:]]))" ${cons_auroc[@]})
+    echo "Median GENECI;$median_aupr;$median_auroc" >> $file
+    echo "Best GENECI;$max_aupr;$max_auroc" >> $file
 done
 
 ## IRMA
@@ -321,9 +330,12 @@ do
 
     cons_aupr=($(grep -o "AUPR: 0.[0-9]*" $network_folder/gs_scores/consensus.txt | cut -d " " -f 2))
     median_aupr=$(python -c "import sys; import statistics; print(statistics.median([float(i) for i in sys.argv[1:]]))" ${cons_aupr[@]})
+    max_aupr=$(python -c "import sys; print(max([float(i) for i in sys.argv[1:]]))" ${cons_aupr[@]})
     cons_auroc=($(grep -o "AUROC: 0.[0-9]*" $network_folder/gs_scores/consensus.txt | cut -d " " -f 2))
     median_auroc=$(python -c "import sys; import statistics; print(statistics.median([float(i) for i in sys.argv[1:]]))" ${cons_auroc[@]})
-    echo "Median Consensus;$median_aupr;$median_auroc" >> $file
+    max_auroc=$(python -c "import sys; print(max([float(i) for i in sys.argv[1:]]))" ${cons_auroc[@]})
+    echo "Median GENECI;$median_aupr;$median_auroc" >> $file
+    echo "Best GENECI;$max_aupr;$max_auroc" >> $file
 done
 
 ## 10. Genero las tablas para su exposición en latex
@@ -338,6 +350,9 @@ python csvs2latex.py --csv-table inferred_networks/InSilicoSize100-Ecoli1-trajec
 python csvs2latex.py --csv-table inferred_networks/dream4_010_01_exp/gs_scores/D4_10_1-gs_table.csv --csv-table inferred_networks/dream4_010_02_exp/gs_scores/D4_10_2-gs_table.csv --csv-table inferred_networks/dream4_010_03_exp/gs_scores/D4_10_3-gs_table.csv --csv-table inferred_networks/dream4_010_04_exp/gs_scores/D4_10_4-gs_table.csv --csv-table inferred_networks/dream4_010_05_exp/gs_scores/D4_10_5-gs_table.csv
 
 python csvs2latex.py --csv-table inferred_networks/dream4_100_01_exp/gs_scores/D4_100_1-gs_table.csv --csv-table inferred_networks/dream4_100_02_exp/gs_scores/D4_100_2-gs_table.csv --csv-table inferred_networks/dream4_100_03_exp/gs_scores/D4_100_3-gs_table.csv --csv-table inferred_networks/dream4_100_04_exp/gs_scores/D4_100_4-gs_table.csv --csv-table inferred_networks/dream4_100_05_exp/gs_scores/D4_100_5-gs_table.csv
+
+# DREAM 5
+python csvs2latex.py --csv-table inferred_networks/net1_exp/gs_scores/D5_1-gs_table.csv --csv-table inferred_networks/net3_exp/gs_scores/D5_3-gs_table.csv --csv-table inferred_networks/net4_exp/gs_scores/D5_4-gs_table.csv
 
 # IRMA
 python csvs2latex.py --csv-table inferred_networks/switch-off_exp/gs_scores/IRMA_switch-off-gs_table.csv --csv-table inferred_networks/switch-on_exp/gs_scores/IRMA_switch-on-gs_table.csv
