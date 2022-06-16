@@ -2,7 +2,6 @@
 GENECI (GEne NEtwork Consensus Inference) is a software package whose main functionality consists of an evolutionary algorithm to determine the optimal ensemble of machine learning techniques for genetic network inference based on the confidence levels and topological characteristics of its results.
 
 ![Alt text](./docs/diagram.svg)
-<img src="./docs/diagram.svg">
 
 # Example procedure
 
