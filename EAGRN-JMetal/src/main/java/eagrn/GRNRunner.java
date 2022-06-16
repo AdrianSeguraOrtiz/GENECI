@@ -69,8 +69,8 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         int numEvaluations;
         String strCutOffCriteria;
         double cutOffValue;
-        double f1Weight;
-        double f2Weight;
+        double qualityWeight;
+        double topologyWeight;
         String strAlgorithm;
         int numOfThreads;
 
@@ -87,8 +87,8 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 numEvaluations = Integer.parseInt(args[7]);
                 strCutOffCriteria = args[8];
                 cutOffValue = Double.parseDouble(args[9]);
-                f1Weight = Double.parseDouble(args[10]);
-                f2Weight = Double.parseDouble(args[11]);
+                qualityWeight = Double.parseDouble(args[10]);
+                topologyWeight = Double.parseDouble(args[11]);
                 strAlgorithm = args[12];
                 numOfThreads = Integer.parseInt(args[13]);
                 
@@ -102,8 +102,8 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 numEvaluations = 10000;
                 strCutOffCriteria = "MinConfFreq";
                 cutOffValue = 0.2;
-                f1Weight = 0.75;
-                f2Weight = 0.25;
+                qualityWeight = 0.75;
+                topologyWeight = 0.25;
                 strAlgorithm = "AsyncParallel";
                 numOfThreads = Runtime.getRuntime().availableProcessors();
             }
@@ -157,7 +157,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         }
 
         /** Initialize our problem with the extracted data. */
-        problem = new GRNProblem(files, geneNames, repairer, cutOffCriteria, f1Weight, f2Weight);
+        problem = new GRNProblem(files, geneNames, repairer, cutOffCriteria, qualityWeight, topologyWeight);
 
         /** Set the crossover operator. */
         double crossoverDistributionIndex = 20.0;

@@ -438,8 +438,8 @@ def optimize_ensemble(
         num_evaluations: int = typer.Option(25000, help="Number of evaluations"), 
         cut_off_criteria: CutOffCriteria = typer.Option("MinConfDist", case_sensitive=False, help="Criteria for determining which links will be part of the final binary matrix."), 
         cut_off_value: float = typer.Option(0.5, help="Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfDist = 0.2"),
-        f1_weight: float = typer.Option(0.75, help="Weight associated with the first function of the optimization process. This function tries to maximize the quality of good links (improve trust and frequency of appearance) while minimizing their quantity. It tries to establish some contrast between good and bad links so that the links finally reported are of high reliability."),
-        f2_weight: float = typer.Option(0.25, help="Weight associated with the second function of the optimization process. This function tries to increase the degree (number of links) of those genes with a high potential to be considered as hubs. At the same time, it is intended that the number of genes that meet this condition should be relatively low, since this is what is usually observed in real gene networks. The objective is to promote the approximation of the network to a scale-free configuration and to move away from random structure."),
+        quality_weight: float = typer.Option(0.75, help="Weight associated with the first term of the fitness function. This term tries to maximize the quality of good links (improve trust and frequency of appearance) while minimizing their quantity. It tries to establish some contrast between good and bad links so that the links finally reported are of high reliability."),
+        topology_weight: float = typer.Option(0.25, help="Weight associated with the second term of the fitness function. This term tries to increase the degree (number of links) of those genes with a high potential to be considered as hubs. At the same time, it is intended that the number of genes that meet this condition should be relatively low, since this is what is usually observed in real gene networks. The objective is to promote the approximation of the network to a scale-free configuration and to move away from random structure."),
         threads: int = typer.Option(multiprocessing.cpu_count(), help="Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used."),
         graphics: bool = typer.Option(True, help="Indicate if you do not want to represent the evolution of the fitness value."),
         output_dir: Path = typer.Option("<<conf_list_path>>/../ea_consensus", help="Path to the output folder."),
@@ -453,7 +453,7 @@ def optimize_ensemble(
         typer.echo("Insufficient number of confidence lists provided")
         raise typer.Abort()
     
-    if f1_weight + f2_weight != 1:
+    if quality_weight + topology_weight != 1:
         typer.echo("The weights of both fitness functions must add up to 1")
         raise typer.Abort()
 
@@ -486,7 +486,7 @@ def optimize_ensemble(
     container = client.containers.run(
         image="eagrn-inference/optimize_ensemble",
         volumes={Path(f"./tmp/").absolute(): {"bind": f"/usr/local/src/tmp", "mode": "rw"}},
-        command=f"tmp/ {crossover} {crossover_probability} {mutation} {mutation_probability} {repairer} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {f1_weight} {f2_weight} {algorithm} {threads}",
+        command=f"tmp/ {crossover} {crossover_probability} {mutation} {mutation_probability} {repairer} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {quality_weight} {topology_weight} {algorithm} {threads}",
         detach=True,
         tty=True,
     )
@@ -504,15 +504,15 @@ def optimize_ensemble(
         str_lines = f.readlines()
         str_fitness = str_lines[0].split(", ")
         fitness = [float(i) for i in str_fitness]
-        str_f1 = str_lines[1].split(", ")
-        f1 = [float(i) for i in str_f1]
-        str_f2 = str_lines[2].split(", ")
-        f2 = [float(i) for i in str_f2]
+        str_quality = str_lines[1].split(", ")
+        quality = [float(i) for i in str_quality]
+        str_topology = str_lines[2].split(", ")
+        topology = [float(i) for i in str_topology]
         
         
         plt.plot(fitness, label="Fitness")
-        plt.plot(f1, label="Function 1")
-        plt.plot(f2, label="Function 2")
+        plt.plot(quality, label="Quality")
+        plt.plot(topology, label="Topology")
         plt.title("Fitness evolution")
         plt.ylabel("Fitness")
         plt.xlabel("Generation")
@@ -619,8 +619,8 @@ def run(
         num_evaluations: int = typer.Option(25000, help="Number of evaluations"), 
         cut_off_criteria: CutOffCriteria = typer.Option("MinConfDist", case_sensitive=False, help="Criteria for determining which links will be part of the final binary matrix."), 
         cut_off_value: float = typer.Option(0.5, help="Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfDist = 0.2"),
-        f1_weight: float = typer.Option(0.75, help="Weight associated with the first function of the optimization process. This function tries to maximize the quality of good links (improve trust and frequency of appearance) while minimizing their quantity. It tries to establish some contrast between good and bad links so that the links finally reported are of high reliability."),
-        f2_weight: float = typer.Option(0.25, help="Weight associated with the second function of the optimization process. This function tries to increase the degree (number of links) of those genes with a high potential to be considered as hubs. At the same time, it is intended that the number of genes that meet this condition should be relatively low, since this is what is usually observed in real gene networks. The objective is to promote the approximation of the network to a scale-free configuration and to move away from random structure."),
+        quality_weight: float = typer.Option(0.75, help="Weight associated with the first term of the fitness function. This term tries to maximize the quality of good links (improve trust and frequency of appearance) while minimizing their quantity. It tries to establish some contrast between good and bad links so that the links finally reported are of high reliability."),
+        topology_weight: float = typer.Option(0.25, help="Weight associated with the second term of the fitness function. This term tries to increase the degree (number of links) of those genes with a high potential to be considered as hubs. At the same time, it is intended that the number of genes that meet this condition should be relatively low, since this is what is usually observed in real gene networks. The objective is to promote the approximation of the network to a scale-free configuration and to move away from random structure."),
         threads: int = typer.Option(multiprocessing.cpu_count(), help="Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used."),
         graphics: bool = typer.Option(True, help="Indicate if you do not want to represent the evolution of the fitness value."),
         output_dir: Path = typer.Option(Path("./inferred_networks"), help="Path to the output folder."),
@@ -651,8 +651,8 @@ def run(
         num_evaluations, 
         cut_off_criteria,
         cut_off_value,
-        f1_weight,
-        f2_weight,
+        quality_weight,
+        topology_weight,
         threads,
         graphics,
         output_dir="<<conf_list_path>>/../ea_consensus"

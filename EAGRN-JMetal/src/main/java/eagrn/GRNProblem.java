@@ -17,21 +17,21 @@ public class GRNProblem extends AbstractDoubleProblem {
     private int numberOfNodes;
     private WeightRepairer initialPopulationRepairer;
     private CutOffCriteria cutOffCriteria;
-    private double f1Weight;
-    private double f2Weight;
+    private double qualityWeight;
+    private double topologyWeight;
     private int cntEvaluations;
     private double bestFitness;
     private ArrayList<Double> fitnessList;
-    private double f1BestFitness;
-    private ArrayList<Double> f1List;
-    private double f2BestFitness;
-    private ArrayList<Double> f2List;
+    private double bestQuality;
+    private ArrayList<Double> qualityList;
+    private double bestTopology;
+    private ArrayList<Double> topologyList;
     private int populationSize;
 
     /** Constructor Creates a default instance of the GRN problem */
-    public GRNProblem(File[] inferredNetworkFiles, ArrayList<String> geneNames, WeightRepairer initialPopulationRepairer, CutOffCriteria cutOffCriteria, double f1Weight, double f2Weight) {
+    public GRNProblem(File[] inferredNetworkFiles, ArrayList<String> geneNames, WeightRepairer initialPopulationRepairer, CutOffCriteria cutOffCriteria, double qualityWeight, double topologyWeight) {
         /** if the weights do not add up to 1 an error is thrown */
-        if (f1Weight + f2Weight != 1.0) {
+        if (qualityWeight + topologyWeight != 1.0) {
             throw new RuntimeException("The weights of both functions must add up to 1");
         }
         
@@ -41,15 +41,15 @@ public class GRNProblem extends AbstractDoubleProblem {
         this.numberOfNodes = geneNames.size();
         this.initialPopulationRepairer = initialPopulationRepairer;
         this.cutOffCriteria = cutOffCriteria;
-        this.f1Weight = f1Weight;
-        this.f2Weight = f2Weight;
+        this.qualityWeight = qualityWeight;
+        this.topologyWeight = topologyWeight;
         this.cntEvaluations = 0;
         this.bestFitness = 1;
         this.fitnessList = new ArrayList<>();
-        this.f1BestFitness = 1;
-        this.f1List = new ArrayList<>();
-        this.f2BestFitness = 1;
-        this.f2List = new ArrayList<>();
+        this.bestQuality = 1;
+        this.qualityList = new ArrayList<>();
+        this.bestTopology = 1;
+        this.topologyList = new ArrayList<>();
         this.populationSize = 0;
 
         setNumberOfVariables(inferredNetworkFiles.length);
@@ -85,24 +85,24 @@ public class GRNProblem extends AbstractDoubleProblem {
         }
 
         Map<String, ConsensusTuple> consensus = makeConsensus(x);
-        double f1 = fitnessF1(consensus);
+        double q = quality(consensus);
 
         int [][] binaryNetwork = cutOffCriteria.getNetworkFromConsensus(consensus, geneNames);
-        double f2 = fitnessF2(binaryNetwork);
+        double t = topology(binaryNetwork);
 
-        double f = this.f1Weight*f1 + this.f2Weight*f2;
-        solution.objectives()[0] = f;
+        double fitness = this.qualityWeight*q + this.topologyWeight*t;
+        solution.objectives()[0] = fitness;
 
         this.cntEvaluations += 1;
-        if (f < this.bestFitness) {
-            this.bestFitness = f;
-            this.f1BestFitness = f1;
-            this.f2BestFitness = f2;
+        if (fitness < this.bestFitness) {
+            this.bestFitness = fitness;
+            this.bestQuality = q;
+            this.bestTopology = t;
         }
         if (this.cntEvaluations % this.populationSize == 0){
             this.fitnessList.add(this.bestFitness);
-            this.f1List.add(this.f1BestFitness);
-            this.f2List.add(this.f2BestFitness);
+            this.qualityList.add(this.bestQuality);
+            this.topologyList.add(this.bestTopology);
         }
 
         return solution;
@@ -135,7 +135,8 @@ public class GRNProblem extends AbstractDoubleProblem {
     /** CalculateMedian() method */
     private Map<String, MedianTuple> calculateMedian(Map<String, Double[]> inferredNetworks) {
         /**
-         * 
+         * For each interaction, calculate the median and the distance to the farthest point 
+         * of it for the confidence levels reported by each technique.
          */
 
         Map<String, MedianTuple> res = new HashMap<String, MedianTuple>();
@@ -191,21 +192,17 @@ public class GRNProblem extends AbstractDoubleProblem {
         return consensus;
     }
 
-    /** FitnessF1() method */
-    public double fitnessF1(Map<String, ConsensusTuple> consensus) {
+    /** Quality() method */
+    public double quality(Map<String, ConsensusTuple> consensus) {
         /**
          * Try to minimize the quantity of high quality links (getting as close as possible
          * to 10 percent of the total possible links in the network) and at the same time maximize
-         * the quality of these good links (maximize the mean of their confidence and frequency).
+         * the quality of these good links (maximize the mean of their confidence and weight adjustment).
          *
-         * High quality links are those whose confidence-frequency mean is above average.
+         * High quality links are those whose confidence-distance mean is above average.
          */
 
-        /** 1. Calculate the mean of the confidence-frequency means.
-         * The frequency is divided by the total number of available techniques to scale its value
-         * between 0 and 1. In this way, its value has the same range as the confidence and both concepts
-         * have the same weight in the result of the mean.
-         */
+        /** 1. Calculate the mean of the confidence-distance means. */
         double conf, dist, confDistSum = 0;
         for (Map.Entry<String, ConsensusTuple> pair : consensus.entrySet()) {
             conf = pair.getValue().getConf();
@@ -214,7 +211,7 @@ public class GRNProblem extends AbstractDoubleProblem {
         }
         double mean = confDistSum / consensus.size();
 
-        /** 2. Quantify the number of high quality links and calculate the average of their confidence-frequency means */
+        /** 2. Quantify the number of high quality links and calculate the average of their confidence-distance means */
         confDistSum = 0;
         double confDist, cnt = 0;
         for (Map.Entry<String, ConsensusTuple> pair : consensus.entrySet()) {
@@ -227,7 +224,7 @@ public class GRNProblem extends AbstractDoubleProblem {
             }
         }
 
-        /** 3. Calculate fitness value */
+        /** 3. Calculate first term value */
         double numberOfLinks = (double) (numberOfNodes * numberOfNodes);
         double f1 = Math.abs(cnt - 0.1 * numberOfLinks)/((1 - 0.1) * numberOfLinks);
         double f2 = 1.0 - confDistSum/cnt;
@@ -236,8 +233,8 @@ public class GRNProblem extends AbstractDoubleProblem {
         return fitness;
     }
 
-    /** FitnessF2() method */
-    public double fitnessF2(int[][] network) {
+    /** Topology() method */
+    public double topology(int[][] network) {
         /**
          * The aim is to minimize the number of nodes whose degree is higher than the 
          * average while trying to maximize the degree of these nodes.
@@ -277,8 +274,8 @@ public class GRNProblem extends AbstractDoubleProblem {
     public Map<String, Double[]> getFitnessEvolution() {
         Map<String, Double[]> fitnessEvolution = new HashMap<String, Double[]>();
         fitnessEvolution.put("Fitness", this.fitnessList.toArray(new Double[this.fitnessList.size()]));
-        fitnessEvolution.put("F1", this.f1List.toArray(new Double[this.f1List.size()]));
-        fitnessEvolution.put("F2", this.f2List.toArray(new Double[this.f2List.size()]));
+        fitnessEvolution.put("F1", this.qualityList.toArray(new Double[this.qualityList.size()]));
+        fitnessEvolution.put("F2", this.topologyList.toArray(new Double[this.topologyList.size()]));
         return fitnessEvolution;
     }
 
