@@ -1,5 +1,5 @@
-# EAGRN-Inference
-Evolutionary algorithm for determining the optimal ensemble of unsupervised learning techniques for gene network inference.
+# GENECI
+GENECI (GEne NEtwork Consensus Inference) is a software package whose main functionality consists of an evolutionary algorithm to determine the optimal ensemble of machine learning techniques for genetic network inference based on the confidence levels and topological characteristics of its results.
 
 # Example procedure
 
