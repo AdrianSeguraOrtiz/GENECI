@@ -667,7 +667,7 @@ def draw_network(
         nodes_distribution: NodesDistribution = typer.Option(
             "Spring", help="Node distribution in graph"
         ),
-        output_folder: str = typer.Option("<<conf_list_path>>/../network_graphics", help="Path to output folder"),
+        output_folder: Path = typer.Option("<<conf_list_path>>/../network_graphics", help="Path to output folder"),
     ):
     """
         Draw gene regulatory networks from confidence lists.
