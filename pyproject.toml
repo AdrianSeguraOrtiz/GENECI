@@ -1,14 +1,19 @@
 [tool.poetry]
-name = "eagrn-inference"
+name = "GENECI"
 version = "0.1.0"
-description = "Evolutionary algorithm for determining the optimal ensemble of unsupervised learning techniques for gene network inference."
+description = "Software package whose main functionality consists of an evolutionary algorithm to determine the optimal ensemble of machine learning techniques for genetic network inference based on the confidence levels and topological characteristics of its results."
 authors = ["adrian_segura <adrianseor.99@uma.es>"]
 license = "MIT"
+readme = "README.md"
+
+[tool.poetry.scripts]
+geneci = "geneci.main:app"
 
 [tool.poetry.dependencies]
-python = "^3.9"
-arboreto = "^0.1.6"
-typer = "^0.4.0"
+python = "^3.10"
+typer = {extras = ["all"], version = "^0.4.1"}
+docker = "^5.0.3"
+matplotlib = "^3.5.2"
 
 [tool.poetry.dev-dependencies]
 
