@@ -15,11 +15,11 @@ This component is responsible for drawing gene regulatory networks from confiden
 ## Build
 
 ```
-docker build -t eagrn-inference/draw_network -f components/draw_network/Dockerfile .
+docker build -t adriansegura99/geneci_draw-network -f components/draw_network/Dockerfile .
 ```
 
 ## Run
 
 ```
-docker run -v $(pwd)/tmp:/usr/local/src/tmp/ eagrn-inference/draw_network --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_ARACNE.csv --output-folder network_graphics
+docker run -v $(pwd)/tmp:/usr/local/src/tmp/ adriansegura99/geneci_draw-network --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_ARACNE.csv --output-folder network_graphics
 ```

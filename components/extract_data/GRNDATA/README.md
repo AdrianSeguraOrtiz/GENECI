@@ -15,11 +15,11 @@ This component is responsible for downloading differential expression data and g
 ## Build
 
 ```
-docker build -t eagrn-inference/extract_data/grndata -f components/extract_data/GRNDATA/Dockerfile .
+docker build -t adriansegura99/geneci_extract-data_grndata -f components/extract_data/GRNDATA/Dockerfile .
 ```
 
 ## Run
 
 ```
-docker run -v $(pwd)/input_data:/usr/local/src/input_data/ eagrn-inference/extract_data/grndata SynTReN ExpressionData input_data
+docker run -v $(pwd)/input_data:/usr/local/src/input_data/ adriansegura99/geneci_extract-data_grndata SynTReN ExpressionData input_data
 ```

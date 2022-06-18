@@ -15,11 +15,11 @@ This component is responsible for assessing the accuracy with which any generic 
 ## Build
 
 ```
-docker build -t eagrn-inference/evaluate/generic_prediction -f components/evaluate/generic_prediction/Dockerfile .
+docker build -t adriansegura99/geneci_evaluate_generic-prediction -f components/evaluate/generic_prediction/Dockerfile .
 ```
 
 ## Run
 
 ```
-docker run -v $(pwd)/tmp:/usr/local/src/tmp/ eagrn-inference/evaluate/generic_prediction inferred_networks/dream4_010_01_exp/ea_consensus/final_network.csv input_data/DREAM4/GS/dream4_010_01_gs.csv
+docker run -v $(pwd)/tmp:/usr/local/src/tmp/ adriansegura99/geneci_evaluate_generic-prediction inferred_networks/dream4_010_01_exp/ea_consensus/final_network.csv input_data/DREAM4/GS/dream4_010_01_gs.csv
 ```

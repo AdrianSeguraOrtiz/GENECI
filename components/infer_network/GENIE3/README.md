@@ -15,11 +15,11 @@ Given a CSV file with differential expression data, this component infers its ge
 ## Build
 
 ```
-docker build -t eagrn-inference/infer_network/genie3 -f components/infer_network/GENIE3/Dockerfile .
+docker build -t adriansegura99/geneci_infer-network_genie3 -f components/infer_network/GENIE3/Dockerfile .
 ```
 
 ## Run
 
 ```
-docker run -v $(pwd)/inferred_networks:/usr/local/src/inferred_networks/ eagrn-inference/infer_network/genie3 expression_data.csv inferred_networks RF
+docker run -v $(pwd)/inferred_networks:/usr/local/src/inferred_networks/ adriansegura99/geneci_infer-network_genie3 expression_data.csv inferred_networks RF
 ```

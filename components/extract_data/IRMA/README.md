@@ -15,11 +15,11 @@ This component is responsible for downloading differential expression data and g
 ## Build
 
 ```
-docker build -t eagrn-inference/extract_data/irma -f components/extract_data/IRMA/Dockerfile .
+docker build -t adriansegura99/geneci_extract-data_irma -f components/extract_data/IRMA/Dockerfile .
 ```
 
 ## Run
 
 ```
-docker run -v $(pwd)/input_data:/usr/local/src/input_data/ eagrn-inference/extract_data/irma ExpressionData input_data
+docker run -v $(pwd)/input_data:/usr/local/src/input_data/ adriansegura99/geneci_extract-data_irma ExpressionData input_data
 ```

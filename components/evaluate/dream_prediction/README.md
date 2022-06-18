@@ -15,11 +15,11 @@ This component is responsible for evaluating the accuracy with which networks be
 ## Build
 
 ```
-docker build -t eagrn-inference/evaluate/dream_prediction -f components/evaluate/dream_prediction/Dockerfile .
+docker build -t adriansegura99/geneci_evaluate_dream-prediction -f components/evaluate/dream_prediction/Dockerfile .
 ```
 
 ## Run
 
 ```
-docker run -v $(pwd)/tmp:/usr/local/src/tmp/ eagrn-inference/evaluate/dream_prediction --challenge D4C2 --network-id 10_1 synapse-folder input_data/DREAM4/EVAL --confidence-list ./tmp/final_list.csv
+docker run -v $(pwd)/tmp:/usr/local/src/tmp/ adriansegura99/geneci_evaluate_dream-prediction --challenge D4C2 --network-id 10_1 synapse-folder input_data/DREAM4/EVAL --confidence-list ./tmp/final_list.csv
 ```
