@@ -93,7 +93,7 @@ geneci evaluate dream-prediction --challenge D4C2 --network-id 10_1 \
                                  --confidence-list inferred_networks/dream4_010_01_exp/ea_consensus/final_list.csv
 ```
 
-5. Binarization of the inferred gene network. In many cases, it is useful to apply a cutoff criterion to convert a list of confidence values into a real network that asserts the specific interaction between genes. For this purpose, the apply-cut command is used, which is provided with the list of confidence values, the cutoff criterion and its corresponding threshold value.
+5. **Binarization** of the inferred gene network. In many cases, it is useful to apply a cutoff criterion to convert a list of confidence values into a real network that asserts the specific interaction between genes. For this purpose, the **apply-cut** command is used, which is provided with the list of confidence values, the cutoff criterion and its corresponding threshold value.
 
 ```sh
 geneci apply-cut --confidence-list inferred_networks/dream4_010_01_exp/ea_consensus/final_list.csv \
