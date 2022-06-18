@@ -284,8 +284,8 @@ test = ["websockets"]
 
 [metadata]
 lock-version = "1.1"
-python-versions = "^3.10"
-content-hash = "ea0596e55512ebc00657e2ec4acdc9d9e6a3f5c6afe0cc3ee4f62ce1dc875432"
+python-versions = "^3.9"
+content-hash = "4b71558b06b988df91aeec9bb593182f0eef11c0a54e5c02451ec0da145e4e5a"
 
 [metadata.files]
 certifi = [
