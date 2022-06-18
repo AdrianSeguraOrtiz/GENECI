@@ -20,18 +20,19 @@ public class SingleNetworkRunner {
         String strCutOffCriteria;
         double cutOffValue;
 
-        if (args.length == 5) {
+        if (args.length > 2) {
             listOfLinksStrFile = args[0];
             geneNamesStrFile = args[1];
             outputStrFile = args[2];
-            strCutOffCriteria = args[3];
-            cutOffValue = Double.parseDouble(args[4]);
+            if (args.length == 5) {
+                strCutOffCriteria = args[3];
+                cutOffValue = Double.parseDouble(args[4]);
+            } else {
+                strCutOffCriteria = "MinConfidence";
+                cutOffValue = 0.1;
+            }
         } else {
-            listOfLinksStrFile = "/mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_RF.csv";
-            geneNamesStrFile = "/mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/dream4_010_01_exp/gene_names.txt";
-            outputStrFile = "/mnt/volumen/adriansegura/TFM/EAGRN-Inference/inferred_networks/dream4_010_01_exp/networks/GRN_GENIE3_RF.csv";
-            strCutOffCriteria = "MinConfidence";
-            cutOffValue = 0.1;
+            throw new RuntimeException("The list of confidence values, the list of gene names and the path to the output file are three required parameters.");
         }
 
         /** Establish the cut-off criteria */
