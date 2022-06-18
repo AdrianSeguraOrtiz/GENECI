@@ -1,62 +1,25 @@
-# 1. Actualizamos jar del proyecto JMetal por si acaso
-cd EAGRN-JMetal
-mvn clean compile assembly:single
-cd ..
+# 1. Descargamos todas las imágenes necesarias
+make pull-images
 
-# 2. Generamos todas las imágenes necesarias
-
-## Extracción de datos
-docker build -t eagrn-inference/extract_data/dream3 -f components/extract_data/DREAM3/Dockerfile .
-docker build -t eagrn-inference/extract_data/dream4/expgs -f components/extract_data/DREAM4/EXPGS/Dockerfile .
-docker build -t eagrn-inference/extract_data/dream4/eval -f components/extract_data/DREAM4/EVAL/Dockerfile .
-docker build -t eagrn-inference/extract_data/dream5 -f components/extract_data/DREAM5/Dockerfile .
-docker build -t eagrn-inference/extract_data/grndata -f components/extract_data/GRNDATA/Dockerfile .
-docker build -t eagrn-inference/extract_data/irma -f components/extract_data/IRMA/Dockerfile .
-
-## Inferencia de redes
-docker build -t eagrn-inference/infer_network/aracne -f components/infer_network/ARACNE/Dockerfile .
-docker build -t eagrn-inference/infer_network/bc3net -f components/infer_network/BC3NET/Dockerfile .
-docker build -t eagrn-inference/infer_network/c3net -f components/infer_network/C3NET/Dockerfile .
-docker build -t eagrn-inference/infer_network/clr -f components/infer_network/CLR/Dockerfile .
-docker build -t eagrn-inference/infer_network/genie3 -f components/infer_network/GENIE3/Dockerfile .
-docker build -t eagrn-inference/infer_network/mrnet -f components/infer_network/MRNET/Dockerfile .
-docker build -t eagrn-inference/infer_network/mrnetb -f components/infer_network/MRNETB/Dockerfile .
-docker build -t eagrn-inference/infer_network/pcit -f components/infer_network/PCIT/Dockerfile .
-docker build -t eagrn-inference/infer_network/tigress -f components/infer_network/TIGRESS/Dockerfile .
-docker build -t eagrn-inference/infer_network/kboost -f components/infer_network/KBOOST/Dockerfile .
-
-## Optimización de ensemble
-docker build -t eagrn-inference/optimize_ensemble -f components/optimize_ensemble/Dockerfile .
-
-## Aplicación de criterio de corte (lista de confianzas -> red binaria)
-docker build -t eagrn-inference/apply_cut -f components/apply_cut/Dockerfile .
-
-## Evaluación de redes
-docker build -t eagrn-inference/evaluate/generic_prediction -f components/evaluate/generic_prediction/Dockerfile .
-docker build -t eagrn-inference/evaluate/dream_prediction -f components/evaluate/dream_prediction/Dockerfile .
-
-## Representación gráfica de redes
-docker build -t eagrn-inference/draw_network -f components/draw_network/Dockerfile .
-
-# 3. Extraemos datos de las redes que queremos estudiar
+# 2. Extraemos datos de las redes que queremos estudiar
 
 ## Datos de expresión
-python EAGRN-Inference.py extract-data expression-data --database DREAM3 --database DREAM4 --database DREAM5 --database IRMA --username TFM-SynapseAccount --password TFM-SynapsePassword
+geneci extract-data expression-data --database DREAM3 --database DREAM4 --database DREAM5 --database IRMA --username TFM-SynapseAccount --password TFM-SynapsePassword
 
 ## Gold standards
-python EAGRN-Inference.py extract-data gold-standard --database DREAM3 --database DREAM4 --database DREAM5 --database IRMA --username TFM-SynapseAccount --password TFM-SynapsePassword
+geneci extract-data gold-standard --database DREAM3 --database DREAM4 --database DREAM5 --database IRMA --username TFM-SynapseAccount --password TFM-SynapsePassword
 
 ## Datos de evaluación 
-python EAGRN-Inference.py extract-data evaluation-data --database DREAM3 --database DREAM4 --database DREAM5 --username TFM-SynapseAccount --password TFM-SynapsePassword
+geneci extract-data evaluation-data --database DREAM3 --database DREAM4 --database DREAM5 --username TFM-SynapseAccount --password TFM-SynapsePassword
 
-# 4. Inferimos las redes de regulación génica a partir de todos los datos de expresión empleando todas las técnicas disponibles
+# 3. Inferimos las redes de regulación génica a partir de todos los datos de expresión empleando todas las técnicas disponibles
 
 for exp_file in input_data/*/EXP/*.csv
 do
-    python EAGRN-Inference.py infer-network --expression-data $exp_file --technique aracne --technique bc3net --technique c3net --technique clr --technique genie3_rf --technique genie3_gbm --technique genie3_et --technique mrnet --technique mrnetb --technique pcit --technique tigress --technique kboost
+    geneci infer-network --expression-data $exp_file --technique aracne --technique bc3net --technique c3net --technique clr --technique genie3_rf --technique genie3_gbm --technique genie3_et --technique mrnet --technique mrnetb --technique pcit --technique tigress --technique kboost
 done
 
-# 5. Para las redes de tipo benchmark evaluamos la precisión de cada una de las técnicas empleadas
+# 4. Para las redes de tipo benchmark evaluamos la precisión de cada una de las técnicas empleadas
 
 ## DREAM3
 for network_folder in inferred_networks/*-trajectories_exp/
@@ -70,7 +33,7 @@ do
 
     for consensus_list in $network_folder/lists/*.csv
     do 
-        python EAGRN-Inference.py evaluate dream-prediction --challenge D3C4 --network-id ${size}_${id} --synapse-file input_data/DREAM3/EVAL/PDF_InSilicoSize${size}_${id}.mat --synapse-file input_data/DREAM3/EVAL/DREAM3GoldStandard_InSilicoSize${size}_${id}.txt --confidence-list $consensus_list >> $network_folder/gs_scores/techniques.txt
+        geneci evaluate dream-prediction --challenge D3C4 --network-id ${size}_${id} --synapse-file input_data/DREAM3/EVAL/PDF_InSilicoSize${size}_${id}.mat --synapse-file input_data/DREAM3/EVAL/DREAM3GoldStandard_InSilicoSize${size}_${id}.txt --confidence-list $consensus_list >> $network_folder/gs_scores/techniques.txt
     done
 done
 
@@ -87,7 +50,7 @@ do
 
     for confidence_list in $network_folder/lists/*.csv
     do 
-        python EAGRN-Inference.py evaluate dream-prediction --challenge D4C2 --network-id ${size}_${id} --synapse-file input_data/DREAM4/EVAL/pdf_size${size}_${id}.mat --confidence-list $confidence_list >> $network_folder/gs_scores/techniques.txt
+        geneci evaluate dream-prediction --challenge D4C2 --network-id ${size}_${id} --synapse-file input_data/DREAM4/EVAL/pdf_size${size}_${id}.mat --confidence-list $confidence_list >> $network_folder/gs_scores/techniques.txt
     done
 done
 
@@ -103,7 +66,7 @@ do
 
     for confidence_list in $network_folder/lists/*.csv
     do 
-        python EAGRN-Inference.py evaluate dream-prediction --challenge D5C4 --network-id $id --synapse-file input_data/DREAM5/EVAL/DREAM5_NetworkInference_Edges_Network${id}.tsv --synapse-file input_data/DREAM5/EVAL/DREAM5_NetworkInference_GoldStandard_Network${id}.tsv --synapse-file input_data/DREAM5/EVAL/Network${id}_AUPR.mat --synapse-file input_data/DREAM5/EVAL/Network${id}_AUROC.mat --confidence-list $confidence_list >> $network_folder/gs_scores/techniques.txt
+        geneci evaluate dream-prediction --challenge D5C4 --network-id $id --synapse-file input_data/DREAM5/EVAL/DREAM5_NetworkInference_Edges_Network${id}.tsv --synapse-file input_data/DREAM5/EVAL/DREAM5_NetworkInference_GoldStandard_Network${id}.tsv --synapse-file input_data/DREAM5/EVAL/Network${id}_AUPR.mat --synapse-file input_data/DREAM5/EVAL/Network${id}_AUROC.mat --confidence-list $confidence_list >> $network_folder/gs_scores/techniques.txt
     done
 done
 
@@ -115,12 +78,12 @@ do
 
     for confidence_list in $network_folder/lists/*.csv
     do 
-        python EAGRN-Inference.py apply-cut --confidence-list $confidence_list --gene-names $network_folder/gene_names.txt --cut-off-criteria MinConfidence --cut-off-value 0.4
-        python EAGRN-Inference.py evaluate generic-prediction --inferred-binary-matrix $network_folder/networks/$(basename $confidence_list) --gs-binary-matrix ./input_data/IRMA/GS/irma_gs.csv >> $network_folder/gs_scores/techniques.txt
+        geneci apply-cut --confidence-list $confidence_list --gene-names $network_folder/gene_names.txt --cut-off-criteria MinConfidence --cut-off-value 0.4
+        geneci evaluate generic-prediction --inferred-binary-matrix $network_folder/networks/$(basename $confidence_list) --gs-binary-matrix ./input_data/IRMA/GS/irma_gs.csv >> $network_folder/gs_scores/techniques.txt
     done
 done
 
-# 6. Optimizamos el ensemble de las listas de confianza resultantes del paso anterior mediante 25 ejecuciones independientes de cada una de ellas
+# 5. Optimizamos el ensemble de las listas de confianza resultantes del paso anterior mediante 25 ejecuciones independientes de cada una de ellas
 
 for network_folder in inferred_networks/*/
 do
@@ -132,11 +95,11 @@ do
 
     for i in {1..25}
     do
-        python EAGRN-Inference.py optimize-ensemble $str --gene-names $network_folder/gene_names.txt --population-size 100 --num-evaluations 50000 --output-dir $network_folder/ea_consensus_$i
+        geneci optimize-ensemble $str --gene-names $network_folder/gene_names.txt --population-size 100 --num-evaluations 50000 --output-dir $network_folder/ea_consensus_$i
     done
 done
 
-# 7. Representamos las listas de confianza junto con uno de los consensuados obtenidos
+# 6. Representamos las listas de confianza junto con uno de los consensuados obtenidos
 
 for network_folder in inferred_networks/*/
 do
@@ -145,10 +108,10 @@ do
     do 
         str+="--confidence-list $confidence_list "
     done
-    python EAGRN-Inference.py draw-network $str
+    geneci draw-network $str
 done
 
-# 8. Para las redes de tipo benchmark evaluamos la precisión de los ensembles generados 
+# 7. Para las redes de tipo benchmark evaluamos la precisión de los ensembles generados 
 
 ## DREAM3
 for network_folder in inferred_networks/*-trajectories_exp/
@@ -162,7 +125,7 @@ do
 
     for consensus_list in $network_folder/ea_consensus_*/final_list.csv
     do 
-        python EAGRN-Inference.py evaluate dream-prediction --challenge D3C4 --network-id ${size}_${id} --synapse-file input_data/DREAM3/EVAL/PDF_InSilicoSize${size}_${id}.mat --synapse-file input_data/DREAM3/EVAL/DREAM3GoldStandard_InSilicoSize${size}_${id}.txt --confidence-list $consensus_list >> $network_folder/gs_scores/consensus.txt
+        geneci evaluate dream-prediction --challenge D3C4 --network-id ${size}_${id} --synapse-file input_data/DREAM3/EVAL/PDF_InSilicoSize${size}_${id}.mat --synapse-file input_data/DREAM3/EVAL/DREAM3GoldStandard_InSilicoSize${size}_${id}.txt --confidence-list $consensus_list >> $network_folder/gs_scores/consensus.txt
     done
 done
 
@@ -179,7 +142,7 @@ do
 
     for consensus_list in $network_folder/ea_consensus_*/final_list.csv
     do 
-        python EAGRN-Inference.py evaluate dream-prediction --challenge D4C2 --network-id ${size}_${id} --synapse-file input_data/DREAM4/EVAL/pdf_size${size}_${id}.mat --confidence-list $consensus_list >> $network_folder/gs_scores/consensus.txt
+        geneci evaluate dream-prediction --challenge D4C2 --network-id ${size}_${id} --synapse-file input_data/DREAM4/EVAL/pdf_size${size}_${id}.mat --confidence-list $consensus_list >> $network_folder/gs_scores/consensus.txt
     done
 done
 
@@ -195,7 +158,7 @@ do
 
     for consensus_list in $network_folder/ea_consensus_*/final_list.csv
     do 
-        python EAGRN-Inference.py evaluate dream-prediction --challenge D5C4 --network-id $id --synapse-file input_data/DREAM5/EVAL/DREAM5_NetworkInference_Edges_Network${id}.tsv --synapse-file input_data/DREAM5/EVAL/DREAM5_NetworkInference_GoldStandard_Network${id}.tsv --synapse-file input_data/DREAM5/EVAL/Network${id}_AUPR.mat --synapse-file input_data/DREAM5/EVAL/Network${id}_AUROC.mat --confidence-list $consensus_list >> $network_folder/gs_scores/consensus.txt
+        geneci evaluate dream-prediction --challenge D5C4 --network-id $id --synapse-file input_data/DREAM5/EVAL/DREAM5_NetworkInference_Edges_Network${id}.tsv --synapse-file input_data/DREAM5/EVAL/DREAM5_NetworkInference_GoldStandard_Network${id}.tsv --synapse-file input_data/DREAM5/EVAL/Network${id}_AUPR.mat --synapse-file input_data/DREAM5/EVAL/Network${id}_AUROC.mat --confidence-list $consensus_list >> $network_folder/gs_scores/consensus.txt
     done
 done
 
@@ -207,12 +170,12 @@ do
 
     for consensus_list in $network_folder/ea_consensus_*/final_list.csv
     do 
-        python EAGRN-Inference.py apply-cut --confidence-list $consensus_list --gene-names $network_folder/gene_names.txt --cut-off-criteria MinConfidence --cut-off-value 0.4
-        python EAGRN-Inference.py evaluate generic-prediction --inferred-binary-matrix $network_folder/networks/$(basename $consensus_list) --gs-binary-matrix ./input_data/IRMA/GS/irma_gs.csv >> $network_folder/gs_scores/consensus.txt
+        geneci apply-cut --confidence-list $consensus_list --gene-names $network_folder/gene_names.txt --cut-off-criteria MinConfidence --cut-off-value 0.4
+        geneci evaluate generic-prediction --inferred-binary-matrix $network_folder/networks/$(basename $consensus_list) --gs-binary-matrix ./input_data/IRMA/GS/irma_gs.csv >> $network_folder/gs_scores/consensus.txt
     done
 done
 
-# 9. Para las redes de tipo benchmark creamos los excel con los resultados de precisión
+# 8. Para las redes de tipo benchmark creamos los excel con los resultados de precisión
 
 ## DREAM3
 for network_folder in inferred_networks/*-trajectories_exp/
@@ -338,7 +301,7 @@ do
     echo "Best GENECI;$max_aupr;$max_auroc" >> $file
 done
 
-## 10. Genero las tablas para su exposición en latex
+## 9. Genero las tablas para su exposición en latex
 # DREAM 3
 python csvs2latex.py --csv-table inferred_networks/InSilicoSize10-Ecoli1-trajectories_exp/gs_scores/D3_10_Ecoli1-gs_table.csv --csv-table inferred_networks/InSilicoSize10-Ecoli2-trajectories_exp/gs_scores/D3_10_Ecoli2-gs_table.csv --csv-table inferred_networks/InSilicoSize10-Yeast1-trajectories_exp/gs_scores/D3_10_Yeast1-gs_table.csv --csv-table inferred_networks/InSilicoSize10-Yeast2-trajectories_exp/gs_scores/D3_10_Yeast2-gs_table.csv --csv-table inferred_networks/InSilicoSize10-Yeast3-trajectories_exp/gs_scores/D3_10_Yeast3-gs_table.csv
 

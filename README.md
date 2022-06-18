@@ -3,73 +3,101 @@ GENECI (GEne NEtwork Consensus Inference) is a software package whose main funct
 
 ![Alt text](./docs/diagram.svg)
 
+# Prerequisites
+
+- Python => 3.10
+- Docker
+
+# Instalation
+
+```sh
+pip install geneci
+```
+
 # Example procedure
 
-1. Generate .jar with dependencies:
+1. **Download simulated expression data and their respective gold standards**. For this purpose, the **extract-data** command is used with the subcommands expression-data and gold-standard, to which the database and the output folder are specified:
 
 ```sh
-cd EAGRN-JMetal
-mvn clean compile assembly:single
-cd ..
+# Expression data
+geneci extract-data expression-data --database DREAM4
+
+# Gold standard
+geneci extract-data gold-standard --database DREAM4
 ```
 
-2. Generate docker images:
+2. **Inference and consensus** of networks for the selected expression data. To perform this task, you can make use of the **run** command or proceed to an equivalent execution consisting of the **infer-network** and **optimize-ensemble** commands. This can be very useful when you need to incorporate external trust lists or run the evolutionary algorithm with different configurations on the same files, without the need to infer them several times.
+
+- **Form 1**: Procedure prefixed by the command run
 
 ```sh
-bash generate_images.sh
+geneci run --expression-data input_data/DREAM4/EXP/dream4_010_01_exp.csv \
+           --technique aracne --technique bc3net --technique c3net \
+           --technique clr --technique genie3_rf --technique genie3_gbm \
+           --technique genie3_et --technique mrnet --technique mrnetb \
+           --technique pcit --technique tigress --technique kboost
 ```
 
-3. Download simulated expression data and their respective gold standards:
+- **Form 2**: Division of the procedure into several commands
 
 ```sh
-python EAGRN-Inference.py extract-data expression-data --database DREAM3 --database DREAM4 --database DREAM5 --database SynTReN --database Rogers --database GeneNetWeaver --database IRMA --username TFM-SynapseAccount --password TFM-SynapsePassword
+# 1. Inference using individual techniques
+geneci infer-network --expression-data input_data/DREAM4/EXP/dream4_010_01_exp.csv \
+                     --technique aracne --technique bc3net --technique c3net --technique clr --technique mrnet \
+                     --technique mrnetb --technique genie3_rf --technique genie3_gbm --technique genie3_et \
+                     --technique pcit --technique tigress --technique kboost
 
-python EAGRN-Inference.py extract-data gold-standard --database DREAM3 --database DREAM4 --database DREAM5 --database SynTReN --database Rogers --database GeneNetWeaver --database IRMA --username TFM-SynapseAccount --password TFM-SynapsePassword
+# 2. Optimize the assembly of the trust lists resulting from the above command
+geneci optimize-ensemble --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_ARACNE.csv \
+                         --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_BC3NET.csv \
+                         --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_C3NET.csv \
+                         --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_CLR.csv \
+                         --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_RF.csv \
+                         --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_GBM.csv \
+                         --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_ET.csv \
+                         --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNET.csv \
+                         --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNETB.csv \
+                         --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_PCIT.csv \
+                         --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_TIGRESS.csv \
+                         --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_KBOOST.csv \
+                         --gene-names inferred_networks/dream4_010_01_exp/gene_names.txt
 ```
 
-4. Execute algorithm for a particular expression data set:
+3. **Representation** of inferred networks using the **draw-network** command:
 
 ```sh
-python EAGRN-Inference.py run --expression-data input_data/DREAM4/EXP/dream4_010_01_exp.csv --technique aracne --technique bc3net --technique c3net --technique clr --technique genie3_rf --technique genie3_gbm --technique genie3_et --technique mrnet --technique mrnetb --technique pcit --technique tigress --technique kboost
+geneci draw-network --confidence-list inferred_networks/dream4_010_01_exp/ea_consensus/final_list.csv \
+                    --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_ARACNE.csv \
+                    --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_BC3NET.csv \
+                    --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_C3NET.csv \
+                    --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_CLR.csv \
+                    --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_RF.csv \
+                    --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_GBM.csv \
+                    --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_ET.csv \
+                    --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNET.csv \
+                    --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNETB.csv \
+                    --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_PCIT.csv \
+                    --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_TIGRESS.csv \
+                    --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_KBOOST.csv
 ```
 
-This process can also be divided into two parts:
-
-4.1. Infer gene regulatory networks using available individual techniques:
+4. **Evaluation** of the quality of the inferred gene network with respect to the gold standard. To do this, the evaluation data is previously downloaded with the **extract-data** command and the **evaluation-data** subcommand, which is provided with the database and the credentials of an account on the Synapse platform. After that, the **evaluate** command is executed with the subcommand **dream-prediction** to which the challenge identifier, the network identifier and the path to the evaluation files are given:
 
 ```sh
-python EAGRN-Inference.py infer-network --expression-data input_data/DREAM4/EXP/dream4_010_01_exp.csv --technique aracne --technique bc3net --technique c3net --technique clr --technique genie3_rf --technique genie3_gbm --technique genie3_et --technique mrnet --technique mrnetb --technique pcit --technique tigress --technique kboost
+# 1. Download evaluation data
+geneci extract-data evaluation-data --database DREAM4 --username TFM-SynapseAccount --password TFM-SynapsePassword
+
+# 2. Evaluate the accuracy of the inferred consensus network.
+geneci evaluate dream-prediction --challenge D4C2 --network-id 10_1 \
+                                 --synapse-file input_data/DREAM4/EVAL/pdf_size10_1.mat \
+                                 --confidence-list inferred_networks/dream4_010_01_exp/ea_consensus/final_list.csv
 ```
 
-4.2. Optimise the assembly of the trusted lists resulting from the above command:
+5. Binarization of the inferred gene network. In many cases, it is useful to apply a cutoff criterion to convert a list of confidence values into a real network that asserts the specific interaction between genes. For this purpose, the apply-cut command is used, which is provided with the list of confidence values, the cutoff criterion and its corresponding threshold value.
 
 ```sh
-python EAGRN-Inference.py optimize-ensemble --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_ARACNE.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_BC3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_C3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_CLR.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_RF.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_GBM.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_ET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNETB.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_PCIT.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_TIGRESS.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_KBOOST.csv --gene-names inferred_networks/dream4_010_01_exp/gene_names.txt
-```
-
-5. Represent the inferred networks using both static 2D and interactive 3D plots that facilitate the study of intersections and comparisons between techniques:
-
-```sh
-python EAGRN-Inference.py draw-network --confidence-list inferred_networks/dream4_010_01_exp/ea_consensus_1/final_list.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_ARACNE.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_BC3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_C3NET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_CLR.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_RF.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_GBM.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_ET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNET.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNETB.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_PCIT.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_TIGRESS.csv --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_KBOOST.csv
-```
-
-6. Evaluate the accuracy of the inferred gene network against the gold standard:
-
-```sh
-# DREAM 3
-python EAGRN-Inference.py extract-data evaluation-data --database DREAM3 --username TFM-SynapseAccount --password TFM-SynapsePassword
-
-python EAGRN-Inference.py evaluate dream-prediction --challenge D3C4 --network-id 10_Yeast1 --synapse-file input_data/DREAM3/EVAL/PDF_InSilicoSize10_Yeast1.mat --synapse-file input_data/DREAM3/EVAL/DREAM3GoldStandard_InSilicoSize10_Yeast1.txt --confidence-list inferred_networks/InSilicoSize10-Yeast1-trajectories_exp/ea_consensus/final_list.csv
-
-# DREAM 4
-python EAGRN-Inference.py extract-data evaluation-data --database DREAM4 --username TFM-SynapseAccount --password TFM-SynapsePassword
-
-python EAGRN-Inference.py evaluate dream-prediction --challenge D4C2 --network-id 10_1 --synapse-file input_data/DREAM4/EVAL/pdf_size10_1.mat --confidence-list inferred_networks/dream4_010_01_exp/ea_consensus/final_list.csv
-
-# DREAM 5
-python EAGRN-Inference.py extract-data evaluation-data --database DREAM5 --username TFM-SynapseAccount --password TFM-SynapsePassword
-
-python EAGRN-Inference.py evaluate dream-prediction --challenge D5C4 --network-id 1 --synapse-file input_data/DREAM5/EVAL/DREAM5_NetworkInference_Edges_Network1.tsv --synapse-file input_data/DREAM5/EVAL/DREAM5_NetworkInference_GoldStandard_Network1.tsv --synapse-file input_data/DREAM5/EVAL/Network1_AUPR.mat --synapse-file input_data/DREAM5/EVAL/Network1_AUROC.mat --confidence-list inferred_networks/net1_exp/lists/GRN_ARACNE.csv
+geneci apply-cut --confidence-list inferred_networks/dream4_010_01_exp/ea_consensus/final_list.csv \
+                 --cut-off-criteria MinConfidence --cut-off-value 0.2
 ```
 
 # CLI
