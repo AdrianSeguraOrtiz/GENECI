@@ -100,7 +100,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 strRepairer = "GreedyRepair";
                 populationSize = 100;
                 numEvaluations = 10000;
-                strCutOffCriteria = "MinConfFreq";
+                strCutOffCriteria = "MinConfDist";
                 cutOffValue = 0.2;
                 qualityWeight = 0.75;
                 topologyWeight = 0.25;
