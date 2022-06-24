@@ -22,7 +22,6 @@ import org.uma.jmetal.operator.selection.impl.NaryTournamentSelection;
 import org.uma.jmetal.parallel.asynchronous.algorithm.impl.AsynchronousMultiThreadedGeneticAlgorithm;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 import org.uma.jmetal.util.AbstractAlgorithmRunner;
-import org.uma.jmetal.util.JMetalLogger;
 import org.uma.jmetal.util.comparator.ObjectiveComparator;
 import org.uma.jmetal.util.comparator.RankingAndCrowdingDistanceComparator;
 import org.uma.jmetal.util.errorchecking.JMetalException;
@@ -412,13 +411,13 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         }
 
         /** Report the execution time and return the best solution found by the algorithm. */
-        JMetalLogger.logger.info("Evolutionary algorithm executed: " + strAlgorithm);
-        JMetalLogger.logger.info("Threads used: " + numOfThreads);
-        JMetalLogger.logger.info("Total execution time: " + computingTime + "ms");
-        JMetalLogger.logger.info("The resulting list of links has been stored in" + outputFolder + "/final_list.csv");
-        JMetalLogger.logger.info("The resulting binary matrix has been stored in" + outputFolder + "/final_network.csv");
-        JMetalLogger.logger.info("The evolution of fitness values has been stored in" + outputFolder + "/fitness_evolution.txt");
-        JMetalLogger.logger.info("List of the weights assigned to each technique has been stored in" + outputFolder + "/final_weights.txt");
+        System.out.println("Evolutionary algorithm executed: " + strAlgorithm);
+        System.out.println("Threads used: " + numOfThreads);
+        System.out.println("Total execution time: " + computingTime + "ms");
+        System.out.println("The resulting list of links has been stored in " + outputFolder + "/final_list.csv");
+        System.out.println("The resulting binary matrix has been stored in " + outputFolder + "/final_network.csv");
+        System.out.println("The evolution of fitness values has been stored in " + outputFolder + "/fitness_evolution.txt");
+        System.out.println("List of the weights assigned to each technique has been stored in " + outputFolder + "/final_weights.txt");
         System.exit(0);
     }
 }

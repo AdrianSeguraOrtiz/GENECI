@@ -21,5 +21,5 @@ docker build -t adriansegura99/geneci_optimize-ensemble -f components/optimize_e
 ## Run
 
 ```
-docker run -v $(pwd)/tmp:/usr/local/src/tmp/ adriansegura99/geneci_optimize-ensemble /mnt/volumen/adriansegura/TFM/GENECI/inferred_networks/dream4_010_01_exp/ SBXCrossover 0.9 PolynomialMutation 0.1 GreedyRepair 100 10000 MinConfDist 0.2 0.75 0.25 AsyncParallel 8
+docker run -v $(pwd)/tmp:/usr/local/src/tmp/ adriansegura99/geneci_optimize-ensemble tmp/dream4_010_01_exp/ SBXCrossover 0.9 PolynomialMutation 0.1 GreedyRepair 100 10000 MinConfDist 0.2 0.75 0.25 AsyncParallel 8
 ```

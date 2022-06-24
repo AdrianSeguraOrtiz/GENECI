@@ -1,22 +1,12 @@
-FROM openjdk:13-buster
+FROM openjdk:17-buster
 
 LABEL Khaos Research Group <khaos.uma.es>
 
 MAINTAINER Adrián Segura Ortiz <adrianseor.99@gmail.com>
 
-RUN apt-get update && apt-get install -y \
-   curl \
-   libssl-dev \
-   libcurl4-openssl-dev \
-   libxml2-dev
+WORKDIR /usr/local/src
+COPY ./tmp ./tmp
+COPY ./EAGRN-JMetal/target/AEGRN-1.0-SNAPSHOT-jar-with-dependencies.jar ./AEGRN-1.0-SNAPSHOT-jar-with-dependencies.jar
 
-RUN addgroup --system --gid 1001 appuser
-RUN adduser --system --uid 1001 --group appuser
-RUN chown -R appuser:appuser /opt
-RUN mkdir /logs && chown -R appuser:appuser /logs
-USER appuser
-
-COPY . /usr/local/src/
-WORKDIR /usr/local/src/
-
-ENTRYPOINT ["java",  "-cp",  "EAGRN-JMetal/target/AEGRN-1.0-SNAPSHOT-jar-with-dependencies.jar", "eagrn.GRNRunner"]
+RUN echo 'java -cp AEGRN-1.0-SNAPSHOT-jar-with-dependencies.jar eagrn.GRNRunner $@ && chmod -R 777 ./tmp' > myScript.sh
+ENTRYPOINT ["bash", "myScript.sh"]
