@@ -396,7 +396,7 @@ def draw_network(
 
             plt.axis("off")
             plt.title(f"Static network for {Path(conf_list).name} file")
-            plt.savefig(f"{output_folder}/{Path(conf_list).stem}_network.png")
+            plt.savefig(f"{output_folder}/{Path(conf_list).stem}_network.pdf")
             plt.close()
 
 
