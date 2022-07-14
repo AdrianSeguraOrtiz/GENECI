@@ -130,7 +130,6 @@ dmypy.json
 
 # Expression data folder
 input_data/
-expression_data/
 
 # Dask folder
 dask-worker-space/
@@ -145,4 +144,7 @@ inferred_networks*/
 
 # Temp folder
 tmp/
+
+utils/
+hola.sh
 .vscode
