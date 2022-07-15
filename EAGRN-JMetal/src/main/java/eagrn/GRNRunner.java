@@ -9,6 +9,12 @@ import eagrn.operator.repairer.impl.GreedyRepairer;
 import eagrn.operator.repairer.impl.StandardizationRepairer;
 import eagrn.operator.repairer.WeightRepairer;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.uma.jmetal.algorithm.Algorithm;
+import org.uma.jmetal.algorithm.multiobjective.nsgaii.NSGAII;
+import org.uma.jmetal.algorithm.multiobjective.nsgaii.NSGAIIBuilder;
+import org.uma.jmetal.algorithm.multiobjective.smpso.SMPSO;
+import org.uma.jmetal.algorithm.multiobjective.smpso.SMPSOBuilder;
+import org.uma.jmetal.example.AlgorithmRunner;
 import org.uma.jmetal.experimental.componentbasedalgorithm.algorithm.ComponentBasedEvolutionaryAlgorithm;
 import org.uma.jmetal.experimental.componentbasedalgorithm.algorithm.singleobjective.geneticalgorithm.GeneticAlgorithm;
 import org.uma.jmetal.experimental.componentbasedalgorithm.catalogue.evaluation.impl.MultithreadedEvaluation;
@@ -20,11 +26,19 @@ import org.uma.jmetal.operator.mutation.MutationOperator;
 import org.uma.jmetal.operator.selection.impl.BinaryTournamentSelection;
 import org.uma.jmetal.operator.selection.impl.NaryTournamentSelection;
 import org.uma.jmetal.parallel.asynchronous.algorithm.impl.AsynchronousMultiThreadedGeneticAlgorithm;
+import org.uma.jmetal.parallel.asynchronous.algorithm.impl.AsynchronousMultiThreadedNSGAII;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 import org.uma.jmetal.util.AbstractAlgorithmRunner;
+import org.uma.jmetal.util.archive.BoundedArchive;
+import org.uma.jmetal.util.archive.impl.CrowdingDistanceArchive;
 import org.uma.jmetal.util.comparator.ObjectiveComparator;
 import org.uma.jmetal.util.comparator.RankingAndCrowdingDistanceComparator;
 import org.uma.jmetal.util.errorchecking.JMetalException;
+import org.uma.jmetal.util.evaluator.SolutionListEvaluator;
+import org.uma.jmetal.util.evaluator.impl.MultiThreadedSolutionListEvaluator;
+import org.uma.jmetal.util.evaluator.impl.SequentialSolutionListEvaluator;
+import org.uma.jmetal.util.fileoutput.SolutionListOutput;
+import org.uma.jmetal.util.fileoutput.impl.DefaultFileOutputContext;
 import org.uma.jmetal.util.grouping.CollectionGrouping;
 import org.uma.jmetal.util.grouping.impl.ListLinearGrouping;
 import org.uma.jmetal.util.termination.Termination;
@@ -68,8 +82,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         int numEvaluations;
         String strCutOffCriteria;
         double cutOffValue;
-        double qualityWeight;
-        double topologyWeight;
+        String strFitnessFormulas;
         String strAlgorithm;
         int numOfThreads;
 
@@ -86,24 +99,22 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 numEvaluations = Integer.parseInt(args[7]);
                 strCutOffCriteria = args[8];
                 cutOffValue = Double.parseDouble(args[9]);
-                qualityWeight = Double.parseDouble(args[10]);
-                topologyWeight = Double.parseDouble(args[11]);
-                strAlgorithm = args[12];
-                numOfThreads = Integer.parseInt(args[13]);
+                strFitnessFormulas = args[10];
+                strAlgorithm = args[11];
+                numOfThreads = Integer.parseInt(args[12]);
                 
             } else {
                 strCrossover = "SBXCrossover";
                 crossoverProbability = 0.9;
                 strMutation = "PolynomialMutation";
-                mutationProbability = 0.05;
-                strRepairer = "GreedyRepair";
+                mutationProbability = 0.1;
+                strRepairer = "StandardizationRepairer";
                 populationSize = 100;
-                numEvaluations = 10000;
+                numEvaluations = 25000;
                 strCutOffCriteria = "MinConfDist";
-                cutOffValue = 0.2;
-                qualityWeight = 0.75;
-                topologyWeight = 0.25;
-                strAlgorithm = "AsyncParallel";
+                cutOffValue = 0.5;
+                strFitnessFormulas = "Quality;Topology";
+                strAlgorithm = "SMPSO-SyncParallel";
                 numOfThreads = Runtime.getRuntime().availableProcessors();
             }
         } else {
@@ -156,7 +167,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         }
 
         /** Initialize our problem with the extracted data. */
-        problem = new GRNProblem(files, geneNames, repairer, cutOffCriteria, qualityWeight, topologyWeight);
+        problem = new GRNProblem(files, geneNames, repairer, cutOffCriteria, strFitnessFormulas);
 
         /** Set the crossover operator. */
         double crossoverDistributionIndex = 20.0;
@@ -238,77 +249,177 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         int offspringPopulationSize = populationSize;
 
         /** Configure the specified evolutionary algorithm. */
-        if (strAlgorithm.equals("AsyncParallel")) {
-            /** Activate stopwatch. */
-            long initTime = System.currentTimeMillis();
-
-            /** Instantiate the evolutionary algorithm. */
-            AsynchronousMultiThreadedGeneticAlgorithm<DoubleSolution> algorithm
-                 = new AsynchronousMultiThreadedGeneticAlgorithm <DoubleSolution>(
-                        numOfThreads,
-                        problem,
-                        populationSize,
-                        crossover,
-                        mutation,
-                        selection,
-                        replacement,
-                        termination);
-
-            /** Execute the designed evolutionary algorithm. */
-            algorithm.run();
+        if (problem.getNumberOfObjectives() == 1) {
+            if (strAlgorithm.equals("GA-AsyncParallel")) {
+                /** Activate stopwatch. */
+                long initTime = System.currentTimeMillis();
     
-            /** Stop stopwatch and calculate the total execution time. */
-            long endTime = System.currentTimeMillis();
-            computingTime = endTime - initTime;
-
-            /** Extract the population of the last iteration. */
-            population = algorithm.getResult();
-
-        } else if (strAlgorithm.equals("SyncParallel")) {
-            /** Instantiate the evolutionary algorithm. */
-            ComponentBasedEvolutionaryAlgorithm<DoubleSolution> algorithm
-                 = new GeneticAlgorithm <DoubleSolution>(
-                        problem,
-                        populationSize,
-                        offspringPopulationSize,
-                        selection,
-                        crossover,
-                        mutation,
-                        termination).withEvaluation(new MultithreadedEvaluation<>(numOfThreads, problem));
-
-            /** Execute the designed evolutionary algorithm. */
-            algorithm.run();
-
-            /** Extract the total execution time. */
-            computingTime = algorithm.getTotalComputingTime();
-
-            /** Extract the population of the last iteration. */
-            population = algorithm.getResult();
-
-        } else if (strAlgorithm.equals("SingleThread")) {
-            /** Instantiate the evolutionary algorithm. */
-            GeneticAlgorithm<DoubleSolution> algorithm 
-                = new GeneticAlgorithm <DoubleSolution>(
-                        problem,
-                        populationSize,
-                        offspringPopulationSize,
-                        selection,
-                        crossover,
-                        mutation,
-                        termination);
-
-            /** Execute the designed evolutionary algorithm. */
-            algorithm.run();
-
-            /** Extract the total execution time. */
-            computingTime = algorithm.getTotalComputingTime();
-
-            /** Extract the population of the last iteration. */
-            population = algorithm.getResult();
-
+                /** Instantiate the evolutionary algorithm. */
+                AsynchronousMultiThreadedGeneticAlgorithm<DoubleSolution> algorithm
+                     = new AsynchronousMultiThreadedGeneticAlgorithm <DoubleSolution>(
+                            numOfThreads,
+                            problem,
+                            populationSize,
+                            crossover,
+                            mutation,
+                            selection,
+                            replacement,
+                            termination);
+    
+                /** Execute the designed evolutionary algorithm. */
+                algorithm.run();
+        
+                /** Stop stopwatch and calculate the total execution time. */
+                long endTime = System.currentTimeMillis();
+                computingTime = endTime - initTime;
+    
+                /** Extract the population of the last iteration. */
+                population = algorithm.getResult();
+    
+            } else if (strAlgorithm.equals("GA-SyncParallel")) {
+                /** Instantiate the evolutionary algorithm. */
+                ComponentBasedEvolutionaryAlgorithm<DoubleSolution> algorithm
+                     = new GeneticAlgorithm <DoubleSolution>(
+                            problem,
+                            populationSize,
+                            offspringPopulationSize,
+                            selection,
+                            crossover,
+                            mutation,
+                            termination).withEvaluation(new MultithreadedEvaluation<>(numOfThreads, problem));
+    
+                /** Execute the designed evolutionary algorithm. */
+                algorithm.run();
+    
+                /** Extract the total execution time. */
+                computingTime = algorithm.getTotalComputingTime();
+    
+                /** Extract the population of the last iteration. */
+                population = algorithm.getResult();
+    
+            } else if (strAlgorithm.equals("GA-SingleThread")) {
+                /** Instantiate the evolutionary algorithm. */
+                GeneticAlgorithm<DoubleSolution> algorithm 
+                    = new GeneticAlgorithm <DoubleSolution>(
+                            problem,
+                            populationSize,
+                            offspringPopulationSize,
+                            selection,
+                            crossover,
+                            mutation,
+                            termination);
+    
+                /** Execute the designed evolutionary algorithm. */
+                algorithm.run();
+    
+                /** Extract the total execution time. */
+                computingTime = algorithm.getTotalComputingTime();
+    
+                /** Extract the population of the last iteration. */
+                population = algorithm.getResult();
+    
+            } 
+            else {
+                throw new RuntimeException("The algorithm " + strAlgorithm + " is not available for single-objetive problems.");
+            }
         } else {
-            throw new RuntimeException("The algorithm name entered is not available");
+            if (strAlgorithm.equals("NSGAII-SingleThread")) {
+                /** Instantiate the evolutionary algorithm. */
+                Algorithm<List<DoubleSolution>> algorithm
+                    = new NSGAIIBuilder<>(problem, crossover, mutation, populationSize)
+                        .setSelectionOperator(selection)
+                        .setMaxEvaluations(numEvaluations)
+                        .build();
+
+                /** Execute the designed evolutionary algorithm. */
+                AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute();
+
+                /** Extract the total execution time. */
+                computingTime = algorithmRunner.getComputingTime();
+    
+                /** Extract the population of the last iteration. */
+                population = algorithm.getResult();
+
+                
+            } else if (strAlgorithm.equals("NSGAII-AsyncParallel")) {
+                /** Activate stopwatch. */
+                long initTime = System.currentTimeMillis();
+    
+                /** Instantiate the evolutionary algorithm. */
+                AsynchronousMultiThreadedNSGAII<DoubleSolution> algorithm
+                    = new AsynchronousMultiThreadedNSGAII<DoubleSolution>(
+                            numOfThreads, 
+                            problem, 
+                            populationSize, 
+                            crossover, 
+                            mutation, 
+                            termination);
+                
+                /** Execute the designed evolutionary algorithm. */
+                algorithm.run();
+    
+                /** Stop stopwatch and calculate the total execution time. */
+                long endTime = System.currentTimeMillis();
+                computingTime = endTime - initTime;
+    
+                /** Extract the population of the last iteration. */
+                population = algorithm.getResult();
+
+            } else if (strAlgorithm.equals("SMPSO-SingleThread")) {
+                /** Create archive */
+                BoundedArchive<DoubleSolution> archive = new CrowdingDistanceArchive<>(populationSize);
+
+                /** Instantiate the evolutionary algorithm. */
+                Algorithm<List<DoubleSolution>> algorithm
+                    = new SMPSOBuilder(problem, archive)
+                        .setMutation(mutation)
+                        .setMaxIterations(numEvaluations / populationSize)
+                        .setSwarmSize(populationSize)
+                        .setSolutionListEvaluator(new SequentialSolutionListEvaluator<DoubleSolution>())
+                        .build();
+
+                /** Execute the designed evolutionary algorithm. */
+                AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute();
+
+                /** Extract the total execution time. */
+                computingTime = algorithmRunner.getComputingTime();
+    
+                /** Extract the population of the last iteration. */
+                population = algorithm.getResult();
+
+            } else if (strAlgorithm.equals("SMPSO-SyncParallel")) {
+                /** Create archive */
+                BoundedArchive<DoubleSolution> archive = new CrowdingDistanceArchive<>(populationSize);
+
+                /** Instantiate the evaluator */
+                SolutionListEvaluator<DoubleSolution> evaluator = new MultiThreadedSolutionListEvaluator<DoubleSolution>(numOfThreads);
+
+                /** Instantiate the evolutionary algorithm. */
+                Algorithm<List<DoubleSolution>> algorithm 
+                    = new SMPSOBuilder(problem, archive)
+                        .setMutation(mutation)
+                        .setMaxIterations(numEvaluations / populationSize)
+                        .setSwarmSize(populationSize)
+                        .setSolutionListEvaluator(evaluator)
+                        .build();
+
+                /** Execute the designed evolutionary algorithm. */
+                AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute();
+
+                /** Extract the total execution time. */
+                computingTime = algorithmRunner.getComputingTime();
+    
+                /** Extract the population of the last iteration. */
+                population = algorithm.getResult();
+
+                /** Stop the evaluator */
+                evaluator.shutdown();
+
+            } else {
+                throw new RuntimeException("The algorithm " + strAlgorithm + " is not available for multi-objetive problems.");
+            }
         }
+        
 
         /** Create output folder. */
         String outputFolder = networkFolder + "/ea_consensus/";
@@ -325,20 +436,22 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
             Map<String, Double[]> fitnessEvolution = problem.getFitnessEvolution();
 
-            String strFitnessVector = Arrays.toString(fitnessEvolution.get("Fitness"));
-            bw.write(strFitnessVector.substring(1, strFitnessVector.length() - 1) + "\n");
-
-            String strF1Vector = Arrays.toString(fitnessEvolution.get("F1"));
-            bw.write(strF1Vector.substring(1, strF1Vector.length() - 1) + "\n");
-            
-            String strF2Vector = Arrays.toString(fitnessEvolution.get("F2"));
-            bw.write(strF2Vector.substring(1, strF2Vector.length() - 1) + "\n");
+            for (Map.Entry<String, Double[]> entry : fitnessEvolution.entrySet()) {
+                String strVector = Arrays.toString(entry.getValue());
+                bw.write(strVector.substring(1, strVector.length() - 1) + "\n");
+            }
 
             bw.flush();
             bw.close();
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }
+
+        /** Write the data of the last population (pareto front approximation). */
+        new SolutionListOutput(population)
+            .setVarFileOutputContext(new DefaultFileOutputContext(outputFolder + "/VAR.csv", ","))
+            .setFunFileOutputContext(new DefaultFileOutputContext(outputFolder + "/FUN.csv", ","))
+            .print();
 
         /** Transform the solution into a simple vector of weights. */
         double[] winner = new double[problem.getNumberOfVariables()];

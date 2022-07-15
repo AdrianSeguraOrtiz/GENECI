@@ -1,9 +1,13 @@
 package eagrn;
 
 import eagrn.cutoffcriteria.CutOffCriteria;
+import eagrn.fitnessfunctions.FitnessFunction;
+import eagrn.fitnessfunctions.impl.Quality;
+import eagrn.fitnessfunctions.impl.Topology;
 import eagrn.operator.repairer.WeightRepairer;
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.uma.jmetal.problem.doubleproblem.impl.AbstractDoubleProblem;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
@@ -14,46 +18,99 @@ public class GRNProblem extends AbstractDoubleProblem {
     private Map<String, Double[]> inferredNetworks;
     private Map<String, MedianTuple> medianInterval;
     private ArrayList<String> geneNames;
-    private int numberOfNodes;
     private WeightRepairer initialPopulationRepairer;
     private CutOffCriteria cutOffCriteria;
-    private double qualityWeight;
-    private double topologyWeight;
-    private int cntEvaluations;
-    private double bestFitness;
-    private ArrayList<Double> fitnessList;
-    private double bestQuality;
-    private ArrayList<Double> qualityList;
-    private double bestTopology;
-    private ArrayList<Double> topologyList;
+    private static AtomicInteger parallelCount;
+    private Double[] bestFitness;
+    private ArrayList<Double>[] fitnessList;
     private int populationSize;
+    private FitnessFunction[] fitnessFunctions;
 
     /** Constructor Creates a default instance of the GRN problem */
-    public GRNProblem(File[] inferredNetworkFiles, ArrayList<String> geneNames, WeightRepairer initialPopulationRepairer, CutOffCriteria cutOffCriteria, double qualityWeight, double topologyWeight) {
-        /** if the weights do not add up to 1 an error is thrown */
-        if (qualityWeight + topologyWeight != 1.0) {
-            throw new RuntimeException("The weights of both functions must add up to 1");
-        }
+    public GRNProblem(File[] inferredNetworkFiles, ArrayList<String> geneNames, WeightRepairer initialPopulationRepairer, CutOffCriteria cutOffCriteria, String strFitnessFormulas) {
         
         this.inferredNetworks = readAll(inferredNetworkFiles);
         this.medianInterval = calculateMedian(inferredNetworks);
         this.geneNames = geneNames;
-        this.numberOfNodes = geneNames.size();
         this.initialPopulationRepairer = initialPopulationRepairer;
         this.cutOffCriteria = cutOffCriteria;
-        this.qualityWeight = qualityWeight;
-        this.topologyWeight = topologyWeight;
-        this.cntEvaluations = 0;
-        this.bestFitness = 1;
-        this.fitnessList = new ArrayList<>();
-        this.bestQuality = 1;
-        this.qualityList = new ArrayList<>();
-        this.bestTopology = 1;
-        this.topologyList = new ArrayList<>();
+        GRNProblem.parallelCount = new AtomicInteger();
         this.populationSize = 0;
 
+        /** Parse fitness functions */
+        String[] formulas = strFitnessFormulas.split(";");
+        this.fitnessFunctions = new FitnessFunction[formulas.length];
+
+        for (int i = 0; i < formulas.length; i++) {
+            String[] subformulas = formulas[i].split("\\+");
+            FitnessFunction function;
+            if (subformulas.length == 1) {
+                String[] tuple = subformulas[0].split("\\*");
+                switch (tuple.length) {
+                    case 1:
+                        function = getFitnessFunction(tuple[0]);
+                        break;
+                    case 2:
+                        double weight;
+                        try {
+                            weight = Double.parseDouble(tuple[0]);
+                        } catch (Exception e) {
+                            throw new RuntimeException("The weight " + tuple[0] + " assigned to term " + tuple[1] + " is invalid.");
+                        }
+                        if (weight != 1) {
+                            throw new RuntimeException("If the fitness function consists of a single term, its weight must be 1. However, " + tuple[0] + " has been provided.");
+                        }
+                        function = getFitnessFunction(tuple[1]);
+                        break;
+                    default:
+                        throw new RuntimeException("Function specified with improper formatting. Remember to separate the name of the terms by the symbol +, and assign their weight by preceding them with a decimal followed by the symbol *.");
+                }
+                
+            } else {
+                FitnessFunction[] functions = new FitnessFunction[subformulas.length];
+                Double[] weights = new Double[subformulas.length];
+                double totalWeight = 0;
+
+                for (int j = 0; j < subformulas.length; j++) {
+                    String[] tuple = subformulas[j].split("\\*");
+                    if (tuple.length != 2) {
+                        throw new RuntimeException("Function specified with improper formatting. Remember to separate the name of the terms by the symbol +, and assign their weight by preceding them with a decimal followed by the symbol *.");
+                    }
+
+                    functions[j] = getFitnessFunction(tuple[1]);
+                    try {
+                        weights[j] = Double.parseDouble(tuple[0]);
+                        totalWeight += weights[j];
+                    } catch (Exception e) {
+                        throw new RuntimeException("The weight " + tuple[0] + " assigned to term " + tuple[1] + " is invalid.");
+                    }
+                }
+
+                if (totalWeight != 1) {
+                    throw new RuntimeException("The weights of all the terms in the formula must add up to 1.");
+                }
+
+                function = (Map<String, ConsensusTuple> consensus) -> {
+                    double res = 0;
+                    for (int j = 0; j < functions.length; j++) {
+                        res += weights[j] * functions[j].run(consensus);
+                    }
+                    return res;
+                };
+            }
+            this.fitnessFunctions[i] = function;
+        }
+
+        int numOfObjetives = this.fitnessFunctions.length;
+        this.bestFitness = new Double[numOfObjetives];
+        this.fitnessList = new ArrayList[numOfObjetives];
+        for (int i = 0; i < numOfObjetives; i++) {
+            this.bestFitness[i] = 1.0;
+            this.fitnessList[i] = new ArrayList<>();
+        }
+
         setNumberOfVariables(inferredNetworkFiles.length);
-        setNumberOfObjectives(1);
+        setNumberOfObjectives(numOfObjetives);
         setName("GRNProblem");
 
         List<Double> lowerLimit = new ArrayList<>(getNumberOfVariables());
@@ -85,27 +142,41 @@ public class GRNProblem extends AbstractDoubleProblem {
         }
 
         Map<String, ConsensusTuple> consensus = makeConsensus(x);
-        double q = quality(consensus);
-
-        int [][] binaryNetwork = cutOffCriteria.getNetworkFromConsensus(consensus, geneNames);
-        double t = topology(binaryNetwork);
-
-        double fitness = this.qualityWeight*q + this.topologyWeight*t;
-        solution.objectives()[0] = fitness;
-
-        this.cntEvaluations += 1;
-        if (fitness < this.bestFitness) {
-            this.bestFitness = fitness;
-            this.bestQuality = q;
-            this.bestTopology = t;
+        for (int i = 0; i < fitnessFunctions.length; i++){
+            solution.objectives()[i] = fitnessFunctions[i].run(consensus);
         }
-        if (this.cntEvaluations % this.populationSize == 0){
-            this.fitnessList.add(this.bestFitness);
-            this.qualityList.add(this.bestQuality);
-            this.topologyList.add(this.bestTopology);
+        int cnt = parallelCount.incrementAndGet();
+        for (int i = 0; i < fitnessFunctions.length; i++){
+            double fitness = solution.objectives()[i];
+            if (fitness < this.bestFitness[i]) {
+                this.bestFitness[i] = fitness;
+            }
+            if (cnt % this.populationSize == 0){
+                this.fitnessList[i].add(this.bestFitness[i]);
+            }
         }
 
         return solution;
+    }
+
+    /** GetFitnessFunction() method */
+    private FitnessFunction getFitnessFunction(String str) {
+        /** 
+         * Function to return FitnessFunction object based on a string 
+         */
+        
+        FitnessFunction res;
+        switch (str.toLowerCase()) {
+            case "topology":
+                res = new Topology(this.geneNames, this.cutOffCriteria);
+                break;
+            case "quality":
+                res = new Quality(this.geneNames.size());
+                break;
+            default:
+                throw new RuntimeException("The evaluation term " + str + " is not implemented.");
+        }
+        return res;
     }
 
     /** ReadAll() method */
@@ -192,90 +263,11 @@ public class GRNProblem extends AbstractDoubleProblem {
         return consensus;
     }
 
-    /** Quality() method */
-    public double quality(Map<String, ConsensusTuple> consensus) {
-        /**
-         * Try to minimize the quantity of high quality links (getting as close as possible
-         * to 10 percent of the total possible links in the network) and at the same time maximize
-         * the quality of these good links (maximize the mean of their confidence and weight adjustment).
-         *
-         * High quality links are those whose confidence-distance mean is above average.
-         */
-
-        /** 1. Calculate the mean of the confidence-distance means. */
-        double conf, dist, confDistSum = 0;
-        for (Map.Entry<String, ConsensusTuple> pair : consensus.entrySet()) {
-            conf = pair.getValue().getConf();
-            dist = pair.getValue().getDist();
-            confDistSum += (conf + (1 - dist)) / 2.0;
-        }
-        double mean = confDistSum / consensus.size();
-
-        /** 2. Quantify the number of high quality links and calculate the average of their confidence-distance means */
-        confDistSum = 0;
-        double confDist, cnt = 0;
-        for (Map.Entry<String, ConsensusTuple> pair : consensus.entrySet()) {
-            conf = pair.getValue().getConf();
-            dist = pair.getValue().getDist();
-            confDist = (conf + (1 - dist)) / 2.0;
-            if (confDist > mean) {
-                confDistSum += confDist;
-                cnt += 1;
-            }
-        }
-
-        /** 3. Calculate first term value */
-        double numberOfLinks = (double) (numberOfNodes * numberOfNodes);
-        double f1 = Math.abs(cnt - 0.1 * numberOfLinks)/((1 - 0.1) * numberOfLinks);
-        double f2 = 1.0 - confDistSum/cnt;
-        double fitness = 0.25*f1 + 0.75*f2;
-
-        return fitness;
-    }
-
-    /** Topology() method */
-    public double topology(int[][] network) {
-        /**
-         * The aim is to minimize the number of nodes whose degree is higher than the 
-         * average while trying to maximize the degree of these nodes.
-         */
-
-        int[] degrees = new int[numberOfNodes];
-
-        for (int i = 0; i < numberOfNodes; i++) {
-            for (int j = 0; j < numberOfNodes; j++) {
-                degrees[i] += network[i][j];
-            }
-        }
-
-        int sum = 0;
-        for (int i = 0; i < numberOfNodes; i++) {
-            sum += degrees[i];
-        }
-        double mean = (double) sum/numberOfNodes;
-
-        int hubs = 0;
-        int hubsDegreesSum = 0;
-        for (int i = 0; i < numberOfNodes; i++) {
-            if (degrees[i] > mean) {
-                hubs += 1;
-                hubsDegreesSum += degrees[i];
-            } 
-        }
-
-        double f1 = Math.abs(hubs - 0.1 * numberOfNodes)/((1 - 0.1) * numberOfNodes);
-        double f2 = 1.0;
-        if (hubs > 0) f2 = 1.0 - (double) (hubsDegreesSum/hubs)/(numberOfNodes - 1);
-        double fitness = (f1 + f2)/2;
-
-        return fitness;
-    }
-
     public Map<String, Double[]> getFitnessEvolution() {
         Map<String, Double[]> fitnessEvolution = new HashMap<String, Double[]>();
-        fitnessEvolution.put("Fitness", this.fitnessList.toArray(new Double[this.fitnessList.size()]));
-        fitnessEvolution.put("F1", this.qualityList.toArray(new Double[this.qualityList.size()]));
-        fitnessEvolution.put("F2", this.topologyList.toArray(new Double[this.topologyList.size()]));
+        for (int i = 0; i < fitnessFunctions.length; i++) {
+            fitnessEvolution.put("F" + i, this.fitnessList[i].toArray(new Double[this.fitnessList[i].size()]));
+        }
         return fitnessEvolution;
     }
 
