@@ -26,7 +26,7 @@ public class GRNProblem extends AbstractDoubleProblem {
     private int populationSize;
     private FitnessFunction[] fitnessFunctions;
 
-    /** Constructor Creates a default instance of the GRN problem */
+    /** Constructor creates a default instance of the GRN problem */
     public GRNProblem(File[] inferredNetworkFiles, ArrayList<String> geneNames, WeightRepairer initialPopulationRepairer, CutOffCriteria cutOffCriteria, String strFitnessFormulas) {
         
         this.inferredNetworks = readAll(inferredNetworkFiles);
@@ -145,6 +145,7 @@ public class GRNProblem extends AbstractDoubleProblem {
         for (int i = 0; i < fitnessFunctions.length; i++){
             solution.objectives()[i] = fitnessFunctions[i].run(consensus);
         }
+        
         int cnt = parallelCount.incrementAndGet();
         for (int i = 0; i < fitnessFunctions.length; i++){
             double fitness = solution.objectives()[i];

@@ -9,18 +9,20 @@ import matplotlib.pyplot as plt
 import typer
 
 # Applications for the definition of Typer commands and subcommands.
-app = typer.Typer()
+app = typer.Typer(rich_markup_mode="rich")
 evaluate_app = typer.Typer()
 app.add_typer(
     evaluate_app,
     name="evaluate",
     help="Evaluate the accuracy of the inferred network with respect to its gold standard.",
+    rich_help_panel="Additional commands"
 )
 extract_data_app = typer.Typer()
 app.add_typer(
     extract_data_app,
     name="extract-data",
     help="Extract data from different simulators and known challenges. These include DREAM3, DREAM4, DREAM5, SynTReN, Rogers, GeneNetWeaver and IRMA.",
+    rich_help_panel="Additional commands"
 )
 
 # Activate docker client.
@@ -115,6 +117,11 @@ class Mode(str, Enum):
     Static2D = "Static2D"
     Interactive3D = "Interactive3D"
     Both = "Both"
+
+class Algorithm(str, Enum):
+    GA = "GA"
+    NSGAII = "NSGAII"
+    SMPSO = "SMPSO"
 
 
 # Function for obtaining the list of genes from lists of confidence levels.
@@ -537,7 +544,7 @@ def evaluation_data(
 
 
 # Command for inferring networks by applying individual techniques.
-@app.command()
+@app.command(rich_help_panel="Commands for two-step main execution")
 def infer_network(
     expression_data: Path = typer.Option(
         ...,
@@ -631,7 +638,7 @@ def infer_network(
 
 
 # Command for network binarization
-@app.command()
+@app.command(rich_help_panel="Additional commands")
 def apply_cut(
     confidence_list: Path = typer.Option(
         ...,
@@ -722,56 +729,64 @@ def apply_cut(
 
 
 # Command to optimize the ensemble of techniques
-@app.command()
+@app.command(rich_help_panel="Commands for two-step main execution")
 def optimize_ensemble(
     confidence_list: Optional[List[str]] = typer.Option(
-        ..., help="Paths of the CSV files with the confidence lists to be agreed upon."
+        ..., help="Paths of the CSV files with the confidence lists to be agreed upon.",
+        rich_help_panel="Input data"
     ),
     gene_names: Path = typer.Option(
         None,
         exists=True,
         file_okay=True,
         help="Path to the TXT file with the name of the contemplated genes separated by comma and without space. If not specified, only the genes specified in the lists of trusts will be considered.",
+        rich_help_panel="Input data"
     ),
-    crossover: Crossover = typer.Option("SBXCrossover", help="Crossover operator"),
-    crossover_probability: float = typer.Option(0.9, help="Crossover probability"),
-    mutation: Mutation = typer.Option("PolynomialMutation", help="Mutation operator"),
+    crossover: Crossover = typer.Option("SBXCrossover", help="Crossover operator", rich_help_panel="Crossover"),
+    crossover_probability: float = typer.Option(0.9, help="Crossover probability", rich_help_panel="Crossover"),
+    mutation: Mutation = typer.Option("PolynomialMutation", help="Mutation operator", rich_help_panel="Mutation"),
     mutation_probability: float = typer.Option(
-        -1, help="Mutation probability. [default: 1/len(files)]", show_default=False
+        -1, help="Mutation probability. [default: 1/len(files)]", show_default=False, rich_help_panel="Mutation"
     ),
     repairer: Repairer = typer.Option(
         "StandardizationRepairer",
         help="Solution repairer to keep the sum of weights equal to 1",
+        rich_help_panel="Repairer"
     ),
-    population_size: int = typer.Option(100, help="Population size"),
-    num_evaluations: int = typer.Option(25000, help="Number of evaluations"),
+    population_size: int = typer.Option(100, help="Population size", rich_help_panel="Diversity and depth"),
+    num_evaluations: int = typer.Option(25000, help="Number of evaluations", rich_help_panel="Diversity and depth"),
     cut_off_criteria: CutOffCriteria = typer.Option(
         "MinConfDist",
         case_sensitive=False,
         help="Criteria for determining which links will be part of the final binary matrix.",
+        rich_help_panel="Cut-Off"
     ),
     cut_off_value: float = typer.Option(
         0.5,
         help="Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfDist = 0.2",
+        rich_help_panel="Cut-Off"
     ),
-    quality_weight: float = typer.Option(
-        0.75,
-        help="Weight associated with the first term of the fitness function. This term tries to maximize the quality of good links (improve trust and frequency of appearance) while minimizing their quantity. It tries to establish some contrast between good and bad links so that the links finally reported are of high reliability.",
+    function: Optional[List[str]] = typer.Option(
+        ["Quality", "Topology"], help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality and Topology.",
+        rich_help_panel="Fitness"
     ),
-    topology_weight: float = typer.Option(
-        0.25,
-        help="Weight associated with the second term of the fitness function. This term tries to increase the degree (number of links) of those genes with a high potential to be considered as hubs. At the same time, it is intended that the number of genes that meet this condition should be relatively low, since this is what is usually observed in real gene networks. The objective is to promote the approximation of the network to a scale-free configuration and to move away from random structure.",
+    algorithm: Algorithm = typer.Option(
+        "NSGAII", help="Evolutionary algorithm to be used during the optimization process. All are intended for a multi-objective approach with the exception of the genetic algorithm (GA).",
+        rich_help_panel="Orchestration"
     ),
     threads: int = typer.Option(
         multiprocessing.cpu_count(),
         help="Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.",
+        rich_help_panel="Orchestration"
     ),
     graphics: bool = typer.Option(
         True,
         help="Indicate if you want to represent the evolution of the fitness value.",
+        rich_help_panel="Graphics"
     ),
     output_dir: Path = typer.Option(
-        "<<conf_list_path>>/../ea_consensus", help="Path to the output folder."
+        "<<conf_list_path>>/../ea_consensus", help="Path to the output folder.",
+        rich_help_panel="Output"
     ),
 ):
     """
@@ -785,19 +800,8 @@ def optimize_ensemble(
         typer.echo("Insufficient number of confidence lists provided")
         raise typer.Abort()
 
-    # If the sum of the weights of the fitness function terms is not 1, an error is sent.
-    if quality_weight + topology_weight != 1:
-        typer.echo("The weights of both fitness functions must add up to 1")
-        raise typer.Abort()
-
-    # The algorithm is chosen based on the specified number of threads
-    if threads < 1:
-        typer.echo("The number of threads must be at least 1")
-        raise typer.Abort()
-    elif threads == 1:
-        algorithm = "SingleThread"
-    else:
-        algorithm = "AsyncParallel"
+    # Create the string representing the set of fitness functions to be checked in the input to the evolutionary algorithm
+    functions = ";".join(function)
 
     # If the mutation probability is the one established by default, the optimal value is chosen
     if mutation_probability == -1:
@@ -832,7 +836,7 @@ def optimize_ensemble(
         volumes={
             Path(f"./tmp/").absolute(): {"bind": f"/usr/local/src/tmp", "mode": "rw"}
         },
-        command=f"tmp/ {crossover} {crossover_probability} {mutation} {mutation_probability} {repairer} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {quality_weight} {topology_weight} {algorithm} {threads}",
+        command=f"tmp/ {crossover} {crossover_probability} {mutation} {mutation_probability} {repairer} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {functions} {algorithm} {threads}",
         detach=True,
         tty=True,
     )
@@ -850,17 +854,12 @@ def optimize_ensemble(
     # If specified, the evolution of the fitness values ​​is graphed
     if graphics:
         f = open("tmp/ea_consensus/fitness_evolution.txt", "r")
-        str_lines = f.readlines()
-        str_fitness = str_lines[0].split(", ")
-        fitness = [float(i) for i in str_fitness]
-        str_quality = str_lines[1].split(", ")
-        quality = [float(i) for i in str_quality]
-        str_topology = str_lines[2].split(", ")
-        topology = [float(i) for i in str_topology]
+        lines = f.readlines()
+        for i in range(len(lines)):
+            str_fitness = lines[i].split(", ")
+            fitness = [float(i) for i in str_fitness]
+            plt.plot(fitness, label=function[i])
 
-        plt.plot(fitness, label="Fitness")
-        plt.plot(quality, label="Quality")
-        plt.plot(topology, label="Topology")
         plt.title("Fitness evolution")
         plt.ylabel("Fitness")
         plt.xlabel("Generation")
@@ -949,9 +948,9 @@ def dream_prediction(
 @evaluate_app.command()
 def generic_prediction(
     inferred_binary_matrix: Path = typer.Option(
-        ..., exists=True, file_okay=True, help=""
+        ..., exists=True, file_okay=True, help="Binary network to be evaluated"
     ),
-    gs_binary_matrix: Path = typer.Option(..., exists=True, file_okay=True, help=""),
+    gs_binary_matrix: Path = typer.Option(..., exists=True, file_okay=True, help="Gold standard binary network"),
 ):
     """
     Evaluate the accuracy with which any generic network has been predicted with respect to a given gold standard. To do so, it approaches the case as a binary classification problem between 0 and 1.
@@ -1000,56 +999,63 @@ def generic_prediction(
 
 
 # Command that unites individual inference with consensus optimization
-@app.command()
+@app.command(rich_help_panel="Main Command")
 def run(
     expression_data: Path = typer.Option(
         ...,
         exists=True,
         file_okay=True,
         help="Path to the CSV file with the expression data. Genes are distributed in rows and experimental conditions (time series) in columns.",
+        rich_help_panel="Input data"
     ),
     technique: Optional[List[Technique]] = typer.Option(
-        ..., case_sensitive=False, help="Inference techniques to be performed."
+        ..., case_sensitive=False, help="Inference techniques to be performed.", rich_help_panel="Individual inference"
     ),
-    crossover: Crossover = typer.Option("SBXCrossover", help="Crossover operator"),
-    crossover_probability: float = typer.Option(0.9, help="Crossover probability"),
-    mutation: Mutation = typer.Option("PolynomialMutation", help="Mutation operator"),
+    crossover: Crossover = typer.Option("SBXCrossover", help="Crossover operator", rich_help_panel="Crossover"),
+    crossover_probability: float = typer.Option(0.9, help="Crossover probability", rich_help_panel="Crossover"),
+    mutation: Mutation = typer.Option("PolynomialMutation", help="Mutation operator", rich_help_panel="Mutation"),
     mutation_probability: float = typer.Option(
-        -1, help="Mutation probability. [default: 1/len(files)]", show_default=False
+        -1, help="Mutation probability. [default: 1/len(files)]", show_default=False, rich_help_panel="Mutation"
     ),
     repairer: Repairer = typer.Option(
         "StandardizationRepairer",
         help="Solution repairer to keep the sum of weights equal to 1",
+        rich_help_panel="Repairer"
     ),
-    population_size: int = typer.Option(100, help="Population size"),
-    num_evaluations: int = typer.Option(25000, help="Number of evaluations"),
+    population_size: int = typer.Option(100, help="Population size", rich_help_panel="Diversity and depth"),
+    num_evaluations: int = typer.Option(25000, help="Number of evaluations", rich_help_panel="Diversity and depth"),
     cut_off_criteria: CutOffCriteria = typer.Option(
         "MinConfDist",
         case_sensitive=False,
         help="Criteria for determining which links will be part of the final binary matrix.",
+        rich_help_panel="Cut-Off"
     ),
     cut_off_value: float = typer.Option(
         0.5,
         help="Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfDist = 0.2",
+        rich_help_panel="Cut-Off"
     ),
-    quality_weight: float = typer.Option(
-        0.75,
-        help="Weight associated with the first term of the fitness function. This term tries to maximize the quality of good links (improve trust and frequency of appearance) while minimizing their quantity. It tries to establish some contrast between good and bad links so that the links finally reported are of high reliability.",
+    function: Optional[List[str]] = typer.Option(
+        ["Quality", "Topology"], help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality and Topology.",
+        rich_help_panel="Fitness"
     ),
-    topology_weight: float = typer.Option(
-        0.25,
-        help="Weight associated with the second term of the fitness function. This term tries to increase the degree (number of links) of those genes with a high potential to be considered as hubs. At the same time, it is intended that the number of genes that meet this condition should be relatively low, since this is what is usually observed in real gene networks. The objective is to promote the approximation of the network to a scale-free configuration and to move away from random structure.",
+    algorithm: Algorithm = typer.Option(
+        "NSGAII", help="Evolutionary algorithm to be used during the optimization process. All are intended for a multi-objective approach with the exception of the genetic algorithm (GA).",
+        rich_help_panel="Orchestration"
     ),
     threads: int = typer.Option(
         multiprocessing.cpu_count(),
         help="Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.",
+        rich_help_panel="Orchestration"
     ),
     graphics: bool = typer.Option(
         True,
         help="Indicate if you want to represent the evolution of the fitness value.",
+        rich_help_panel="Graphics"
     ),
     output_dir: Path = typer.Option(
-        Path("./inferred_networks"), help="Path to the output folder."
+        Path("./inferred_networks"), help="Path to the output folder.",
+        rich_help_panel="Output"
     ),
 ):
     """
@@ -1080,8 +1086,8 @@ def run(
         num_evaluations,
         cut_off_criteria,
         cut_off_value,
-        quality_weight,
-        topology_weight,
+        function,
+        algorithm,
         threads,
         graphics,
         output_dir="<<conf_list_path>>/../ea_consensus",
@@ -1089,7 +1095,7 @@ def run(
 
 
 # Command for graphical representation of networks.
-@app.command()
+@app.command(rich_help_panel="Additional commands")
 def draw_network(
     confidence_list: Optional[List[str]] = typer.Option(
         ..., help="Paths of the CSV files with the confidence lists to be represented"

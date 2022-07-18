@@ -1,5 +1,6 @@
 package eagrn.operator.mutationwithrepair.impl;
 
+import eagrn.operator.mutationwithrepair.MutationWithRepair;
 import eagrn.operator.repairer.WeightRepairer;
 import org.uma.jmetal.operator.mutation.impl.GroupedAndLinkedPolynomialMutation;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
@@ -8,7 +9,7 @@ import org.uma.jmetal.util.grouping.CollectionGrouping;
 
 import java.util.List;
 
-public class GroupedAndLinkedPolynomialMutationWithRepair extends GroupedAndLinkedPolynomialMutation {
+public class GroupedAndLinkedPolynomialMutationWithRepair extends GroupedAndLinkedPolynomialMutation implements MutationWithRepair<DoubleSolution> {
     private WeightRepairer repairer;
 
     public GroupedAndLinkedPolynomialMutationWithRepair(double distributionIndex, CollectionGrouping<List<Double>> variableGrouping, WeightRepairer repairer) {
@@ -21,5 +22,10 @@ public class GroupedAndLinkedPolynomialMutationWithRepair extends GroupedAndLink
         DoubleSolution mutated_sol = super.execute(solution);
         repairer.repairSolution(mutated_sol);
         return mutated_sol;
+    }
+    
+    @Override
+    public WeightRepairer getRepairer() {
+        return repairer;
     }
 }

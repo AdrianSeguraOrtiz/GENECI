@@ -1,5 +1,7 @@
 package eagrn;
 
+import eagrn.algorithm.impl.AsynchronousMultiThreadedNSGAIIPareto;
+import eagrn.algorithm.impl.SMPSOCorrectMutationBuilder;
 import eagrn.cutoffcriteria.CutOffCriteria;
 import eagrn.cutoffcriteria.impl.MaxNumLinksBestConfCriteria;
 import eagrn.cutoffcriteria.impl.MinConfDistCriteria;
@@ -10,10 +12,8 @@ import eagrn.operator.repairer.impl.StandardizationRepairer;
 import eagrn.operator.repairer.WeightRepairer;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.uma.jmetal.algorithm.Algorithm;
-import org.uma.jmetal.algorithm.multiobjective.nsgaii.NSGAII;
+import org.uma.jmetal.algorithm.multiobjective.moead.MOEADBuilder;
 import org.uma.jmetal.algorithm.multiobjective.nsgaii.NSGAIIBuilder;
-import org.uma.jmetal.algorithm.multiobjective.smpso.SMPSO;
-import org.uma.jmetal.algorithm.multiobjective.smpso.SMPSOBuilder;
 import org.uma.jmetal.example.AlgorithmRunner;
 import org.uma.jmetal.experimental.componentbasedalgorithm.algorithm.ComponentBasedEvolutionaryAlgorithm;
 import org.uma.jmetal.experimental.componentbasedalgorithm.algorithm.singleobjective.geneticalgorithm.GeneticAlgorithm;
@@ -26,7 +26,6 @@ import org.uma.jmetal.operator.mutation.MutationOperator;
 import org.uma.jmetal.operator.selection.impl.BinaryTournamentSelection;
 import org.uma.jmetal.operator.selection.impl.NaryTournamentSelection;
 import org.uma.jmetal.parallel.asynchronous.algorithm.impl.AsynchronousMultiThreadedGeneticAlgorithm;
-import org.uma.jmetal.parallel.asynchronous.algorithm.impl.AsynchronousMultiThreadedNSGAII;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 import org.uma.jmetal.util.AbstractAlgorithmRunner;
 import org.uma.jmetal.util.archive.BoundedArchive;
@@ -114,11 +113,23 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 strCutOffCriteria = "MinConfDist";
                 cutOffValue = 0.5;
                 strFitnessFormulas = "Quality;Topology";
-                strAlgorithm = "SMPSO-SyncParallel";
+                strAlgorithm = "NSGAII";
                 numOfThreads = Runtime.getRuntime().availableProcessors();
             }
         } else {
             throw new RuntimeException("At least the folder with the input trust lists must be provided.");
+        }
+
+        if (numOfThreads == 1) {
+            strAlgorithm += "-SingleThread";
+        } else if (numOfThreads > 1) {
+            if (strAlgorithm == "GA" || strAlgorithm == "NSGAII") {
+                strAlgorithm += "-AsyncParallel";
+            } else {
+                strAlgorithm += "-SyncParallel";
+            }
+        } else {
+            throw new RuntimeException("The number of threads must be a positive number.");
         }
 
         /** Establish the chromosome repairer. */
@@ -130,7 +141,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 repairer = new GreedyRepairer();
                 break;
             default:
-                throw new RuntimeException("The repairer operator entered is not available");
+                throw new RuntimeException("The repairer operator entered is not available.");
         }
 
         /** List CSV files stored in the input folder with inferred lists of links. */
@@ -346,8 +357,8 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 long initTime = System.currentTimeMillis();
     
                 /** Instantiate the evolutionary algorithm. */
-                AsynchronousMultiThreadedNSGAII<DoubleSolution> algorithm
-                    = new AsynchronousMultiThreadedNSGAII<DoubleSolution>(
+                AsynchronousMultiThreadedNSGAIIPareto<DoubleSolution> algorithm
+                    = new AsynchronousMultiThreadedNSGAIIPareto<DoubleSolution>(
                             numOfThreads, 
                             problem, 
                             populationSize, 
@@ -371,7 +382,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
                 /** Instantiate the evolutionary algorithm. */
                 Algorithm<List<DoubleSolution>> algorithm
-                    = new SMPSOBuilder(problem, archive)
+                    = new SMPSOCorrectMutationBuilder(problem, archive)
                         .setMutation(mutation)
                         .setMaxIterations(numEvaluations / populationSize)
                         .setSwarmSize(populationSize)
@@ -396,7 +407,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
                 /** Instantiate the evolutionary algorithm. */
                 Algorithm<List<DoubleSolution>> algorithm 
-                    = new SMPSOBuilder(problem, archive)
+                    = new SMPSOCorrectMutationBuilder(problem, archive)
                         .setMutation(mutation)
                         .setMaxIterations(numEvaluations / populationSize)
                         .setSwarmSize(populationSize)
@@ -414,6 +425,29 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
                 /** Stop the evaluator */
                 evaluator.shutdown();
+
+            } else if (strAlgorithm.equals("MOEAD-SingleThread")) {
+                /** Instantiate the evolutionary algorithm. */
+                Algorithm<List<DoubleSolution>> algorithm
+                    = new MOEADBuilder(problem, MOEADBuilder.Variant.MOEAD)
+                        .setCrossover(crossover)
+                        .setMutation(mutation)
+                        .setMaxEvaluations(numEvaluations)
+                        .setPopulationSize(populationSize)
+                        .setResultPopulationSize(populationSize)
+                        .setNeighborhoodSelectionProbability(0.9)
+                        .setMaximumNumberOfReplacedSolutions(2)
+                        .setNeighborSize(20)
+                        .build();
+
+                /** Execute the designed evolutionary algorithm. */
+                AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute();
+
+                /** Extract the total execution time. */
+                computingTime = algorithmRunner.getComputingTime();
+    
+                /** Extract the population of the last iteration. */
+                population = algorithm.getResult();
 
             } else {
                 throw new RuntimeException("The algorithm " + strAlgorithm + " is not available for multi-objetive problems.");

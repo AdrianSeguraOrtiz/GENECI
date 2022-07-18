@@ -1,11 +1,12 @@
 package eagrn.operator.mutationwithrepair.impl;
 
+import eagrn.operator.mutationwithrepair.MutationWithRepair;
 import eagrn.operator.repairer.WeightRepairer;
 import org.uma.jmetal.operator.mutation.impl.NonUniformMutation;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 import org.uma.jmetal.util.errorchecking.JMetalException;
 
-public class NonUniformMutationWithRepair extends NonUniformMutation {
+public class NonUniformMutationWithRepair extends NonUniformMutation implements MutationWithRepair<DoubleSolution> {
     private WeightRepairer repairer;
 
     public NonUniformMutationWithRepair(double mutationProbability, double perturbation, int maxIterations, WeightRepairer repairer) {
@@ -18,5 +19,10 @@ public class NonUniformMutationWithRepair extends NonUniformMutation {
         DoubleSolution mutated_sol = super.execute(solution);
         repairer.repairSolution(mutated_sol);
         return mutated_sol;
+    }
+    
+    @Override
+    public WeightRepairer getRepairer() {
+        return repairer;
     }
 }
