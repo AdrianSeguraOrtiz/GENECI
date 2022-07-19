@@ -25,7 +25,7 @@ public class Topology implements FitnessFunction {
 
     public double run(Map<String, ConsensusTuple> consensus) {
         
-        int [][] binaryNetwork = cutOffCriteria.getNetworkFromConsensus(consensus, this.geneNames);
+        int[][] binaryNetwork = cutOffCriteria.getNetworkFromConsensus(consensus, this.geneNames);
         int[] degrees = new int[this.numberOfNodes];
 
         for (int i = 0; i < this.numberOfNodes; i++) {

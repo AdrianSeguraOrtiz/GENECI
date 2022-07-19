@@ -88,7 +88,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         if (args.length > 0) {
             networkFolder = args[0];
 
-            if (args.length == 14) {
+            if (args.length == 13) {
                 strCrossover = args[1];
                 crossoverProbability = Double.parseDouble(args[2]);
                 strMutation = args[3];
@@ -123,7 +123,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         if (numOfThreads == 1) {
             strAlgorithm += "-SingleThread";
         } else if (numOfThreads > 1) {
-            if (strAlgorithm == "GA" || strAlgorithm == "NSGAII") {
+            if (strAlgorithm.equals("GA") || strAlgorithm.equals("NSGAII")) {
                 strAlgorithm += "-AsyncParallel";
             } else {
                 strAlgorithm += "-SyncParallel";
