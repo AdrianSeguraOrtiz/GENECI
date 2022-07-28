@@ -2,6 +2,7 @@ package eagrn;
 
 import eagrn.cutoffcriteria.CutOffCriteria;
 import eagrn.fitnessfunctions.FitnessFunction;
+import eagrn.fitnessfunctions.impl.Loyalty;
 import eagrn.fitnessfunctions.impl.Quality;
 import eagrn.fitnessfunctions.impl.Topology;
 import eagrn.operator.repairer.WeightRepairer;
@@ -25,9 +26,10 @@ public class GRNProblem extends AbstractDoubleProblem {
     private ArrayList<Double>[] fitnessList;
     private int populationSize;
     private FitnessFunction[] fitnessFunctions;
+    private String strTimeSeriesFile;
 
     /** Constructor creates a default instance of the GRN problem */
-    public GRNProblem(File[] inferredNetworkFiles, ArrayList<String> geneNames, WeightRepairer initialPopulationRepairer, CutOffCriteria cutOffCriteria, String strFitnessFormulas) {
+    public GRNProblem(File[] inferredNetworkFiles, ArrayList<String> geneNames, WeightRepairer initialPopulationRepairer, CutOffCriteria cutOffCriteria, String strFitnessFormulas, String strTimeSeriesFile) {
         
         this.inferredNetworks = readAll(inferredNetworkFiles);
         this.medianInterval = calculateMedian(inferredNetworks);
@@ -36,6 +38,7 @@ public class GRNProblem extends AbstractDoubleProblem {
         this.cutOffCriteria = cutOffCriteria;
         GRNProblem.parallelCount = new AtomicInteger();
         this.populationSize = 0;
+        this.strTimeSeriesFile = strTimeSeriesFile;
 
         /** Parse fitness functions */
         String[] formulas = strFitnessFormulas.split(";");
@@ -173,6 +176,9 @@ public class GRNProblem extends AbstractDoubleProblem {
                 break;
             case "quality":
                 res = new Quality(this.geneNames.size());
+                break;
+            case "loyalty":
+                res = new Loyalty(this.strTimeSeriesFile);
                 break;
             default:
                 throw new RuntimeException("The evaluation term " + str + " is not implemented.");

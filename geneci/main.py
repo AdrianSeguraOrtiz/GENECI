@@ -3,6 +3,7 @@ import shutil
 from enum import Enum
 from pathlib import Path
 from typing import List, Optional
+from rich import print
 
 import docker
 import matplotlib.pyplot as plt
@@ -161,7 +162,7 @@ def expression_data(
     if (Database.DREAM3 in database or Database.DREAM5 in database) and (
         not username or not password
     ):
-        typer.echo(
+        print(
             "You must enter your Synapse credentials in order to download some of the selected data."
         )
         raise typer.Exit()
@@ -171,7 +172,7 @@ def expression_data(
         # Create the output folder
         Path(f"./{output_dir}/{db}/EXP/").mkdir(exist_ok=True, parents=True)
         # Report information to the user
-        typer.echo(f"Extracting expression data from {db}")
+        print(f"\n Extracting expression data from {db}")
 
         # Execute the corresponding image according to the database.
         if db == "DREAM3":
@@ -179,7 +180,7 @@ def expression_data(
             image = "adriansegura99/geneci_extract-data_dream3"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
-                typer.echo("Downloading docker image ...")
+                print("Downloading docker image ...")
                 client.images.pull(repository=image)
             # The image is executed with the parameters set by the user.
             container = client.containers.run(
@@ -200,7 +201,7 @@ def expression_data(
             image = "adriansegura99/geneci_extract-data_dream4-expgs"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
-                typer.echo("Downloading docker image ...")
+                print("Downloading docker image ...")
                 client.images.pull(repository=image)
             # The image is executed with the parameters set by the user.
             container = client.containers.run(
@@ -221,7 +222,7 @@ def expression_data(
             image = "adriansegura99/geneci_extract-data_dream5"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
-                typer.echo("Downloading docker image ...")
+                print("Downloading docker image ...")
                 client.images.pull(repository=image)
             # The image is executed with the parameters set by the user.
             container = client.containers.run(
@@ -242,7 +243,7 @@ def expression_data(
             image = "adriansegura99/geneci_extract-data_irma"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
-                typer.echo("Downloading docker image ...")
+                print("Downloading docker image ...")
                 client.images.pull(repository=image)
             # The image is executed with the parameters set by the user.
             container = client.containers.run(
@@ -263,7 +264,7 @@ def expression_data(
             image = "adriansegura99/geneci_extract-data_grndata"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
-                typer.echo("Downloading docker image ...")
+                print("Downloading docker image ...")
                 client.images.pull(repository=image)
             # The image is executed with the parameters set by the user.
             container = client.containers.run(
@@ -283,7 +284,7 @@ def expression_data(
         r = container.wait()
         logs = container.logs()
         if logs:
-            typer.echo(logs.decode("utf-8"))
+            print(logs.decode("utf-8"))
 
         # Stop and remove the container
         container.stop()
@@ -316,7 +317,7 @@ def gold_standard(
     if (Database.DREAM3 in database or Database.DREAM5 in database) and (
         not username or not password
     ):
-        typer.echo(
+        print(
             "You must enter your Synapse credentials in order to download some of the selected data."
         )
         raise typer.Exit()
@@ -326,7 +327,7 @@ def gold_standard(
         # Create the output folder
         Path(f"./{output_dir}/{db}/GS/").mkdir(exist_ok=True, parents=True)
         # Report information to the user
-        typer.echo(f"Extracting gold standards from {db}")
+        print(f"\n Extracting gold standards from {db}")
 
         # Execute the corresponding image according to the database.
         if db == "DREAM3":
@@ -334,7 +335,7 @@ def gold_standard(
             image = "adriansegura99/geneci_extract-data_dream3"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
-                typer.echo("Downloading docker image ...")
+                print("Downloading docker image ...")
                 client.images.pull(repository=image)
             # The image is executed with the parameters set by the user.
             container = client.containers.run(
@@ -355,7 +356,7 @@ def gold_standard(
             image = "adriansegura99/geneci_extract-data_dream4-expgs"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
-                typer.echo("Downloading docker image ...")
+                print("Downloading docker image ...")
                 client.images.pull(repository=image)
             # The image is executed with the parameters set by the user.
             container = client.containers.run(
@@ -376,7 +377,7 @@ def gold_standard(
             image = "adriansegura99/geneci_extract-data_dream5"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
-                typer.echo("Downloading docker image ...")
+                print("Downloading docker image ...")
                 client.images.pull(repository=image)
             # The image is executed with the parameters set by the user.
             container = client.containers.run(
@@ -397,7 +398,7 @@ def gold_standard(
             image = "adriansegura99/geneci_extract-data_irma"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
-                typer.echo("Downloading docker image ...")
+                print("Downloading docker image ...")
                 client.images.pull(repository=image)
             # The image is executed with the parameters set by the user.
             container = client.containers.run(
@@ -418,7 +419,7 @@ def gold_standard(
             image = "adriansegura99/geneci_extract-data_grndata"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
-                typer.echo("Downloading docker image ...")
+                print("Downloading docker image ...")
                 client.images.pull(repository=image)
             # The image is executed with the parameters set by the user.
             container = client.containers.run(
@@ -438,7 +439,7 @@ def gold_standard(
         r = container.wait()
         logs = container.logs()
         if logs:
-            typer.echo(logs.decode("utf-8"))
+            print(logs.decode("utf-8"))
 
         # Stop and remove the container
         container.stop()
@@ -466,7 +467,7 @@ def evaluation_data(
         # Create the output folder
         Path(f"./{output_dir}/{db}/EVAL/").mkdir(exist_ok=True, parents=True)
         # Report information to the user
-        typer.echo(f"Extracting evaluation data from {db}")
+        print(f"\n Extracting evaluation data from {db}")
 
         # Execute the corresponding image according to the database.
         if db == "DREAM3":
@@ -474,7 +475,7 @@ def evaluation_data(
             image = "adriansegura99/geneci_extract-data_dream3"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
-                typer.echo("Downloading docker image ...")
+                print("Downloading docker image ...")
                 client.images.pull(repository=image)
             # The image is executed with the parameters set by the user.
             container = client.containers.run(
@@ -495,7 +496,7 @@ def evaluation_data(
             image = "adriansegura99/geneci_extract-data_dream4-eval"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
-                typer.echo("Downloading docker image ...")
+                print("Downloading docker image ...")
                 client.images.pull(repository=image)
             # The image is executed with the parameters set by the user.
             container = client.containers.run(
@@ -516,7 +517,7 @@ def evaluation_data(
             image = "adriansegura99/geneci_extract-data_dream5"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
-                typer.echo("Downloading docker image ...")
+                print("Downloading docker image ...")
                 client.images.pull(repository=image)
             # The image is executed with the parameters set by the user.
             container = client.containers.run(
@@ -536,7 +537,7 @@ def evaluation_data(
         r = container.wait()
         logs = container.logs()
         if logs:
-            typer.echo(logs.decode("utf-8"))
+            print(logs.decode("utf-8"))
 
         # Stop and remove the container.
         container.stop()
@@ -575,7 +576,7 @@ def infer_network(
     containers = list()
     for tec in technique:
         # Report information to the user.
-        typer.echo(f"Infer network from {expression_data} with {tec}")
+        print(f"\n Infer network from {expression_data} with {tec}")
         # The image is selected according to the chosen technique.
         if tec == "GENIE3_RF":
             image = f"adriansegura99/geneci_infer-network_genie3"
@@ -592,7 +593,7 @@ def infer_network(
 
         # In case it is not available on the device, it is downloaded from the repository.
         if not image in available_images:
-            typer.echo("Downloading docker image ...")
+            print("Downloading docker image ...")
             client.images.pull(repository=image)
         # The image is executed with the parameters set by the user.
         container = client.containers.run(
@@ -616,7 +617,7 @@ def infer_network(
         r = container.wait()
         logs = container.logs()
         if logs:
-            typer.echo(logs.decode("utf-8"))
+            print(logs.decode("utf-8"))
 
         # Stop and remove the container.
         container.stop()
@@ -670,7 +671,7 @@ def apply_cut(
     Converts a list of confidence values into a binary matrix that represents the final gene network.
     """
     # Report information to the user.
-    typer.echo(
+    print(
         f"Apply cut to {confidence_list} with {cut_off_criteria} and value {cut_off_value}"
     )
 
@@ -700,7 +701,7 @@ def apply_cut(
     image = "adriansegura99/geneci_apply-cut"
     # In case it is not available on the device, it is downloaded from the repository.
     if not image in available_images:
-        typer.echo("Downloading docker image ...")
+        print("Downloading docker image ...")
         client.images.pull(repository=image)
     # The image is executed with the parameters set by the user.
     container = client.containers.run(
@@ -717,7 +718,7 @@ def apply_cut(
     r = container.wait()
     logs = container.logs()
     if logs:
-        typer.echo(logs.decode("utf-8"))
+        print(logs.decode("utf-8"))
 
     # Stop and remove the container.
     container.stop()
@@ -740,6 +741,13 @@ def optimize_ensemble(
         exists=True,
         file_okay=True,
         help="Path to the TXT file with the name of the contemplated genes separated by comma and without space. If not specified, only the genes specified in the lists of trusts will be considered.",
+        rich_help_panel="Input data"
+    ),
+    time_series: Path = typer.Option(
+        None,
+        exists=True,
+        file_okay=True,
+        help="Path to the CSV file with the time series from which the individual gene networks have been inferred. This parameter is only necessary in case of specifying the fitness function Loyalty.",
         rich_help_panel="Input data"
     ),
     crossover: Crossover = typer.Option("SBXCrossover", help="Crossover operator", rich_help_panel="Crossover"),
@@ -767,7 +775,7 @@ def optimize_ensemble(
         rich_help_panel="Cut-Off"
     ),
     function: Optional[List[str]] = typer.Option(
-        ["Quality", "Topology"], help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality and Topology.",
+        ["Quality", "Topology"], help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, Topology and Loyalty.",
         rich_help_panel="Fitness"
     ),
     algorithm: Algorithm = typer.Option(
@@ -793,11 +801,11 @@ def optimize_ensemble(
     Analyzes several trust lists and builds a consensus network by applying an evolutionary algorithm
     """
     # Report information to the user.
-    typer.echo(f"Optimize ensemble for {confidence_list}")
+    print(f"\n Optimize ensemble for {confidence_list}")
 
     # If the number of trusted lists is less than two, an error is sent
     if len(confidence_list) < 2:
-        typer.echo("Insufficient number of confidence lists provided")
+        print("[bold red]Error:[/bold red] Insufficient number of confidence lists provided")
         raise typer.Abort()
 
     # Create the string representing the set of fitness functions to be checked in the input to the evolutionary algorithm
@@ -823,12 +831,17 @@ def optimize_ensemble(
             gene_list.update(get_gene_names(file))
         with open(tmp_gene_names_dir, "w") as f:
             f.write(",".join(sorted(gene_list)))
+    
+    # Copy the file with the time series if specified
+    tmp_time_series_dir = "tmp/time_series.csv"
+    if time_series:
+        shutil.copyfile(time_series, tmp_time_series_dir)
 
     # Define docker image
     image = "adriansegura99/geneci_optimize-ensemble"
     # In case it is not available on the device, it is downloaded from the repository.
     if not image in available_images:
-        typer.echo("Downloading docker image ...")
+        print("Downloading docker image ...")
         client.images.pull(repository=image)
     # The image is executed with the parameters set by the user.
     container = client.containers.run(
@@ -845,7 +858,12 @@ def optimize_ensemble(
     r = container.wait()
     logs = container.logs()
     if logs:
-        typer.echo(logs.decode("utf-8"))
+        if "Exception in thread" in logs.decode("utf-8"):
+            print("\n" + "[bold red]Error:[/bold red] " + logs.decode("utf-8"))
+            shutil.rmtree("tmp")
+            raise typer.Abort()
+        else:
+            print("\n" + "[bold green]Ok![/bold green] \n" + logs.decode("utf-8"))
 
     # Stop and remove the container.
     container.stop()
@@ -899,7 +917,7 @@ def dream_prediction(
     Evaluate the accuracy with which networks belonging to the DREAM challenges are predicted.
     """
     # Report information to the user.
-    typer.echo(
+    print(
         f"Evaluate {confidence_list} prediction for {network_id} network in {challenge.name} challenge"
     )
 
@@ -917,7 +935,7 @@ def dream_prediction(
     image = "adriansegura99/geneci_evaluate_dream-prediction"
     # In case it is not available on the device, it is downloaded from the repository.
     if not image in available_images:
-        typer.echo("Downloading docker image ...")
+        print("Downloading docker image ...")
         client.images.pull(repository=image)
     # The image is executed with the parameters set by the user.
     container = client.containers.run(
@@ -934,7 +952,7 @@ def dream_prediction(
     r = container.wait()
     logs = container.logs()
     if logs:
-        typer.echo(logs.decode("utf-8"))
+        print(logs.decode("utf-8"))
 
     # Stop and remove the container.
     container.stop()
@@ -956,7 +974,7 @@ def generic_prediction(
     Evaluate the accuracy with which any generic network has been predicted with respect to a given gold standard. To do so, it approaches the case as a binary classification problem between 0 and 1.
     """
     # Report information to the user.
-    typer.echo(
+    print(
         f"Evaluate {inferred_binary_matrix} prediction with respect {gs_binary_matrix} gold standard"
     )
 
@@ -971,7 +989,7 @@ def generic_prediction(
     image = "adriansegura99/geneci_evaluate_generic-prediction"
     # In case it is not available on the device, it is downloaded from the repository.
     if not image in available_images:
-        typer.echo("Downloading docker image ...")
+        print("Downloading docker image ...")
         client.images.pull(repository=image)
     # The image is executed with the parameters set by the user.
     container = client.containers.run(
@@ -988,7 +1006,7 @@ def generic_prediction(
     r = container.wait()
     logs = container.logs()
     if logs:
-        typer.echo(logs.decode("utf-8"))
+        print(logs.decode("utf-8"))
 
     # Stop and remove the container.
     container.stop()
@@ -1036,7 +1054,7 @@ def run(
         rich_help_panel="Cut-Off"
     ),
     function: Optional[List[str]] = typer.Option(
-        ["Quality", "Topology"], help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality and Topology.",
+        ["Quality", "Topology"], help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, Topology and Loyalty.",
         rich_help_panel="Fitness"
     ),
     algorithm: Algorithm = typer.Option(
@@ -1062,7 +1080,7 @@ def run(
     Infer gene regulatory network from expression data by employing multiple unsupervised learning techniques and applying a genetic algorithm for consensus optimization.
     """
     # Report information to the user.
-    typer.echo(f"Run algorithm for {expression_data}")
+    print(f"\n Run algorithm for {expression_data}")
 
     # Run inference command
     infer_network(expression_data, technique, output_dir)
@@ -1112,7 +1130,7 @@ def draw_network(
     Draw gene regulatory networks from confidence lists.
     """
     # Report information to the user.
-    typer.echo(f"Draw gene regulatory networks for {', '.join(confidence_list)}")
+    print(f"\n Draw gene regulatory networks for {', '.join(confidence_list)}")
 
     # Create input temporary folder.
     tmp_input_folder = "tmp/input"
@@ -1132,7 +1150,7 @@ def draw_network(
     image = "adriansegura99/geneci_draw-network"
     # In case it is not available on the device, it is downloaded from the repository.
     if not image in available_images:
-        typer.echo("Downloading docker image ...")
+        print("Downloading docker image ...")
         client.images.pull(repository=image)
     # The image is executed with the parameters set by the user.
     container = client.containers.run(
@@ -1149,7 +1167,7 @@ def draw_network(
     r = container.wait()
     logs = container.logs()
     if logs:
-        typer.echo(logs.decode("utf-8"))
+        print(logs.decode("utf-8"))
 
     # Stop and remove the container.
     container.stop()

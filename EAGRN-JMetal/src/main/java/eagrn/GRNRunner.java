@@ -162,6 +162,12 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             throw new RuntimeException(fnfe.getMessage());
         }
 
+        /** Extract the path to the file with the time series if provided */
+        String strTimeSeriesFile = networkFolder + "/time_series.csv";
+        if (! Files.exists(Paths.get(strTimeSeriesFile))) {
+            strTimeSeriesFile = null;
+        }
+
         /** Establish the cut-off criteria. */
         switch (strCutOffCriteria) {
             case "MinConfidence":
@@ -178,7 +184,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         }
 
         /** Initialize our problem with the extracted data. */
-        problem = new GRNProblem(files, geneNames, repairer, cutOffCriteria, strFitnessFormulas);
+        problem = new GRNProblem(files, geneNames, repairer, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
 
         /** Set the crossover operator. */
         double crossoverDistributionIndex = 20.0;
