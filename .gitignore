@@ -141,6 +141,7 @@ EAGRN-JMetal/*.log
 
 # Inferred Networks
 inferred_networks*/
+tfm_results/
 
 # Temp folder
 tmp/

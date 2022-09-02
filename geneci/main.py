@@ -883,6 +883,24 @@ def optimize_ensemble(
         plt.xlabel("Generation")
         plt.legend()
         plt.savefig("tmp/ea_consensus/fitness_evolution.pdf")
+        plt.close()
+
+        if len(function) == 2:
+            f = open("tmp/ea_consensus/FUN.csv", "r")
+            lines = f.readlines()
+            x = list()
+            y = list()
+            for line in lines:
+                point = line.split(",")
+                x.append(float(point[0]))
+                y.append(float(point[1]))
+            x, y = zip(*sorted(zip(x, y)))
+            plt.plot(x, y)
+            plt.title("Pareto front")
+            plt.ylabel(function[0])
+            plt.xlabel(function[1])
+            plt.savefig("tmp/ea_consensus/pareto_front.pdf")
+            plt.close()
 
     # Define and create the output folder
     if str(output_dir) == "<<conf_list_path>>/../ea_consensus":

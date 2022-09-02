@@ -1,6 +1,5 @@
 package eagrn;
 
-import eagrn.algorithm.impl.AsynchronousMultiThreadedNSGAIIPareto;
 import eagrn.algorithm.impl.SMPSOCorrectMutationBuilder;
 import eagrn.cutoffcriteria.CutOffCriteria;
 import eagrn.cutoffcriteria.impl.MaxNumLinksBestConfCriteria;
@@ -26,6 +25,7 @@ import org.uma.jmetal.operator.mutation.MutationOperator;
 import org.uma.jmetal.operator.selection.impl.BinaryTournamentSelection;
 import org.uma.jmetal.operator.selection.impl.NaryTournamentSelection;
 import org.uma.jmetal.parallel.asynchronous.algorithm.impl.AsynchronousMultiThreadedGeneticAlgorithm;
+import org.uma.jmetal.parallel.asynchronous.algorithm.impl.AsynchronousMultiThreadedNSGAII;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 import org.uma.jmetal.util.AbstractAlgorithmRunner;
 import org.uma.jmetal.util.archive.BoundedArchive;
@@ -42,6 +42,7 @@ import org.uma.jmetal.util.grouping.CollectionGrouping;
 import org.uma.jmetal.util.grouping.impl.ListLinearGrouping;
 import org.uma.jmetal.util.termination.Termination;
 import org.uma.jmetal.util.termination.impl.TerminationByEvaluations;
+import org.uma.jmetal.util.SolutionListUtils;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -291,7 +292,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 computingTime = endTime - initTime;
     
                 /** Extract the population of the last iteration. */
-                population = algorithm.getResult();
+                population = SolutionListUtils.getNonDominatedSolutions(algorithm.getResult());
     
             } else if (strAlgorithm.equals("GA-SyncParallel")) {
                 /** Instantiate the evolutionary algorithm. */
@@ -363,8 +364,8 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 long initTime = System.currentTimeMillis();
     
                 /** Instantiate the evolutionary algorithm. */
-                AsynchronousMultiThreadedNSGAIIPareto<DoubleSolution> algorithm
-                    = new AsynchronousMultiThreadedNSGAIIPareto<DoubleSolution>(
+                AsynchronousMultiThreadedNSGAII<DoubleSolution> algorithm
+                    = new AsynchronousMultiThreadedNSGAII<DoubleSolution>(
                             numOfThreads, 
                             problem, 
                             populationSize, 
@@ -380,7 +381,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 computingTime = endTime - initTime;
     
                 /** Extract the population of the last iteration. */
-                population = algorithm.getResult();
+                population = SolutionListUtils.getNonDominatedSolutions(algorithm.getResult());
 
             } else if (strAlgorithm.equals("SMPSO-SingleThread")) {
                 /** Create archive */
@@ -493,84 +494,91 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             .setFunFileOutputContext(new DefaultFileOutputContext(outputFolder + "/FUN.csv", ","))
             .print();
 
-        /** Transform the solution into a simple vector of weights. */
-        double[] winner = new double[problem.getNumberOfVariables()];
-        for (int i = 0; i < problem.getNumberOfVariables(); i++) {
-            winner[i] = population.get(0).variables().get(i);
-        }
-
-        /** Write the list of weights assigned to each technique in an output txt file. */
-        try {
-            File outputFile = new File(outputFolder + "/final_weights.txt");
-            BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
-
-            String filename;
-            for (int i = 0; i < winner.length; i++) {
-                filename = files[i].getName();
-                bw.write(filename.substring(4, filename.lastIndexOf('.')) + ": " + winner[i]);
-                bw.newLine();
+        
+        if (problem.getNumberOfObjectives() == 1) {
+            /** Transform the solution into a simple vector of weights. */
+            double[] winner = new double[problem.getNumberOfVariables()];
+            for (int i = 0; i < problem.getNumberOfVariables(); i++) {
+                winner[i] = population.get(0).variables().get(i);
             }
-            bw.flush();
-            bw.close();
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe.getMessage());
-        }
 
-        /** Calculate the consensus list corresponding to the solution vector. */
-        Map<String, ConsensusTuple> consensus = problem.makeConsensus(winner)
-            .entrySet()
-            .stream()
-            .sorted(Map.Entry.<String, ConsensusTuple>comparingByValue())
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                (e1, e2) -> e1, LinkedHashMap::new));
+            /** Write the list of weights assigned to each technique in an output txt file. */
+            try {
+                File outputFile = new File(outputFolder + "/final_weights.txt");
+                BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
 
-        /** Write the resulting list of links to an output csv file. */
-        try {
-            File outputFile = new File(outputFolder + "/final_list.csv");
-            BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
-
-            for (Map.Entry<String, ConsensusTuple> pair : consensus.entrySet()) {
-                String [] vKeySplit = pair.getKey().split(";");
-                bw.write(vKeySplit[0] + "," + vKeySplit[1] + "," + pair.getValue().getConf());
-                bw.newLine();
-            }
-            bw.flush();
-            bw.close();
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe.getMessage());
-        }
-
-        /** Calculate the binary matrix from the list above. */
-        int[][] binaryNetwork = cutOffCriteria.getNetworkFromConsensus(consensus, geneNames);
-
-        /** Write the resulting binary matrix to an output csv file. */
-        try {
-            File outputFile = new File(outputFolder + "/final_network.csv");
-            BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
-
-            bw.write("," + String.join(",", geneNames));
-            bw.newLine();
-            for (int i = 0; i < binaryNetwork.length; i++) {
-                bw.write(geneNames.get(i) + ",");
-                for (int j = 0; j < binaryNetwork[i].length; j++) {
-                    bw.write(binaryNetwork[i][j] + ((j == binaryNetwork[i].length - 1) ? "" : ","));
+                String filename;
+                for (int i = 0; i < winner.length; i++) {
+                    filename = files[i].getName();
+                    bw.write(filename.substring(4, filename.lastIndexOf('.')) + ": " + winner[i]);
+                    bw.newLine();
                 }
-                bw.newLine();
+                bw.flush();
+                bw.close();
+            } catch (IOException ioe) {
+                throw new RuntimeException(ioe.getMessage());
             }
-            bw.flush();
-            bw.close();
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe.getMessage());
+
+            /** Calculate the consensus list corresponding to the solution vector. */
+            Map<String, ConsensusTuple> consensus = problem.makeConsensus(winner)
+                .entrySet()
+                .stream()
+                .sorted(Map.Entry.<String, ConsensusTuple>comparingByValue())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                    (e1, e2) -> e1, LinkedHashMap::new));
+
+            /** Write the resulting list of links to an output csv file. */
+            try {
+                File outputFile = new File(outputFolder + "/final_list.csv");
+                BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
+
+                for (Map.Entry<String, ConsensusTuple> pair : consensus.entrySet()) {
+                    String [] vKeySplit = pair.getKey().split(";");
+                    bw.write(vKeySplit[0] + "," + vKeySplit[1] + "," + pair.getValue().getConf());
+                    bw.newLine();
+                }
+                bw.flush();
+                bw.close();
+            } catch (IOException ioe) {
+                throw new RuntimeException(ioe.getMessage());
+            }
+
+            /** Calculate the binary matrix from the list above. */
+            int[][] binaryNetwork = cutOffCriteria.getNetworkFromConsensus(consensus, geneNames);
+
+            /** Write the resulting binary matrix to an output csv file. */
+            try {
+                File outputFile = new File(outputFolder + "/final_network.csv");
+                BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
+
+                bw.write("," + String.join(",", geneNames));
+                bw.newLine();
+                for (int i = 0; i < binaryNetwork.length; i++) {
+                    bw.write(geneNames.get(i) + ",");
+                    for (int j = 0; j < binaryNetwork[i].length; j++) {
+                        bw.write(binaryNetwork[i][j] + ((j == binaryNetwork[i].length - 1) ? "" : ","));
+                    }
+                    bw.newLine();
+                }
+                bw.flush();
+                bw.close();
+            } catch (IOException ioe) {
+                throw new RuntimeException(ioe.getMessage());
+            }
         }
 
         /** Report the execution time and return the best solution found by the algorithm. */
         System.out.println("Evolutionary algorithm executed: " + strAlgorithm);
         System.out.println("Threads used: " + numOfThreads);
         System.out.println("Total execution time: " + computingTime + "ms");
-        System.out.println("The resulting list of links has been stored in " + outputFolder + "/final_list.csv");
-        System.out.println("The resulting binary matrix has been stored in " + outputFolder + "/final_network.csv");
         System.out.println("The evolution of fitness values has been stored in " + outputFolder + "/fitness_evolution.txt");
-        System.out.println("List of the weights assigned to each technique has been stored in " + outputFolder + "/final_weights.txt");
+
+        if (problem.getNumberOfObjectives() == 1) {
+            System.out.println("The resulting list of links has been stored in " + outputFolder + "/final_list.csv");
+            System.out.println("The resulting binary matrix has been stored in " + outputFolder + "/final_network.csv");
+            System.out.println("List of the weights assigned to each technique has been stored in " + outputFolder + "/final_weights.txt");
+        }
+
         System.exit(0);
     }
 }
