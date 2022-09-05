@@ -8,7 +8,6 @@ import eagrn.fitnessfunctions.impl.Topology;
 import eagrn.operator.repairer.WeightRepairer;
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.uma.jmetal.problem.doubleproblem.impl.AbstractDoubleProblem;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
@@ -21,11 +20,7 @@ public class GRNProblem extends AbstractDoubleProblem {
     private ArrayList<String> geneNames;
     private WeightRepairer initialPopulationRepairer;
     private CutOffCriteria cutOffCriteria;
-    private static AtomicInteger parallelCount;
-    private Double[] bestFitness;
-    private ArrayList<Double>[] fitnessList;
-    private int populationSize;
-    private FitnessFunction[] fitnessFunctions;
+    protected FitnessFunction[] fitnessFunctions;
     private String strTimeSeriesFile;
 
     /** Constructor creates a default instance of the GRN problem */
@@ -36,8 +31,6 @@ public class GRNProblem extends AbstractDoubleProblem {
         this.geneNames = geneNames;
         this.initialPopulationRepairer = initialPopulationRepairer;
         this.cutOffCriteria = cutOffCriteria;
-        GRNProblem.parallelCount = new AtomicInteger();
-        this.populationSize = 0;
         this.strTimeSeriesFile = strTimeSeriesFile;
 
         /** Parse fitness functions */
@@ -104,16 +97,8 @@ public class GRNProblem extends AbstractDoubleProblem {
             this.fitnessFunctions[i] = function;
         }
 
-        int numOfObjetives = this.fitnessFunctions.length;
-        this.bestFitness = new Double[numOfObjetives];
-        this.fitnessList = new ArrayList[numOfObjetives];
-        for (int i = 0; i < numOfObjetives; i++) {
-            this.bestFitness[i] = 1.0;
-            this.fitnessList[i] = new ArrayList<>();
-        }
-
         setNumberOfVariables(inferredNetworkFiles.length);
-        setNumberOfObjectives(numOfObjetives);
+        setNumberOfObjectives(this.fitnessFunctions.length);
         setName("GRNProblem");
 
         List<Double> lowerLimit = new ArrayList<>(getNumberOfVariables());
@@ -132,7 +117,6 @@ public class GRNProblem extends AbstractDoubleProblem {
     public DoubleSolution createSolution() {
         DefaultDoubleSolution solution = new DefaultDoubleSolution(this.getNumberOfObjectives(), this.getNumberOfConstraints(), this.getBoundsForVariables());
         initialPopulationRepairer.repairSolution(solution);
-        this.populationSize += 1;
         return solution;
     }
 
@@ -147,17 +131,6 @@ public class GRNProblem extends AbstractDoubleProblem {
         Map<String, ConsensusTuple> consensus = makeConsensus(x);
         for (int i = 0; i < fitnessFunctions.length; i++){
             solution.objectives()[i] = fitnessFunctions[i].run(consensus);
-        }
-        
-        int cnt = parallelCount.incrementAndGet();
-        for (int i = 0; i < fitnessFunctions.length; i++){
-            double fitness = solution.objectives()[i];
-            if (fitness < this.bestFitness[i]) {
-                this.bestFitness[i] = fitness;
-            }
-            if (cnt % this.populationSize == 0){
-                this.fitnessList[i].add(this.bestFitness[i]);
-            }
         }
 
         return solution;
@@ -268,14 +241,6 @@ public class GRNProblem extends AbstractDoubleProblem {
         }
 
         return consensus;
-    }
-
-    public Map<String, Double[]> getFitnessEvolution() {
-        Map<String, Double[]> fitnessEvolution = new HashMap<String, Double[]>();
-        for (int i = 0; i < fitnessFunctions.length; i++) {
-            fitnessEvolution.put("F" + i, this.fitnessList[i].toArray(new Double[this.fitnessList[i].size()]));
-        }
-        return fitnessEvolution;
     }
 
 }

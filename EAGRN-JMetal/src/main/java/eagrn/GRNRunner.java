@@ -85,11 +85,12 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         String strFitnessFormulas;
         String strAlgorithm;
         int numOfThreads;
+        boolean printEvolution;
 
         if (args.length > 0) {
             networkFolder = args[0];
 
-            if (args.length == 13) {
+            if (args.length == 14) {
                 strCrossover = args[1];
                 crossoverProbability = Double.parseDouble(args[2]);
                 strMutation = args[3];
@@ -102,6 +103,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 strFitnessFormulas = args[10];
                 strAlgorithm = args[11];
                 numOfThreads = Integer.parseInt(args[12]);
+                printEvolution = Boolean.parseBoolean(args[13]);
                 
             } else {
                 strCrossover = "SBXCrossover";
@@ -116,6 +118,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 strFitnessFormulas = "Quality;Topology";
                 strAlgorithm = "NSGAII";
                 numOfThreads = Runtime.getRuntime().availableProcessors();
+                printEvolution = false;
             }
         } else {
             throw new RuntimeException("At least the folder with the input trust lists must be provided.");
@@ -185,7 +188,12 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         }
 
         /** Initialize our problem with the extracted data. */
-        problem = new GRNProblem(files, geneNames, repairer, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
+        if (printEvolution) {
+            problem = new GRNProblemFitnessEvolution(files, geneNames, repairer, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
+        } else {
+            problem = new GRNProblem(files, geneNames, repairer, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
+        }
+        
 
         /** Set the crossover operator. */
         double crossoverDistributionIndex = 20.0;
@@ -471,21 +479,23 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         }
 
         /** Write the evolution of fitness values to an output txt file. */
-        try {
-            File outputFile = new File(outputFolder + "/fitness_evolution.txt");
-            BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
-
-            Map<String, Double[]> fitnessEvolution = problem.getFitnessEvolution();
-
-            for (Map.Entry<String, Double[]> entry : fitnessEvolution.entrySet()) {
-                String strVector = Arrays.toString(entry.getValue());
-                bw.write(strVector.substring(1, strVector.length() - 1) + "\n");
+        if (printEvolution) {
+            try {
+                File outputFile = new File(outputFolder + "/fitness_evolution.txt");
+                BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
+    
+                Map<String, Double[]> fitnessEvolution = ((GRNProblemFitnessEvolution) problem).getFitnessEvolution();
+    
+                for (Map.Entry<String, Double[]> entry : fitnessEvolution.entrySet()) {
+                    String strVector = Arrays.toString(entry.getValue());
+                    bw.write(strVector.substring(1, strVector.length() - 1) + "\n");
+                }
+    
+                bw.flush();
+                bw.close();
+            } catch (IOException ioe) {
+                throw new RuntimeException(ioe);
             }
-
-            bw.flush();
-            bw.close();
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe);
         }
 
         /** Write the data of the last population (pareto front approximation). */
@@ -571,7 +581,10 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         System.out.println("Evolutionary algorithm executed: " + strAlgorithm);
         System.out.println("Threads used: " + numOfThreads);
         System.out.println("Total execution time: " + computingTime + "ms");
-        System.out.println("The evolution of fitness values has been stored in " + outputFolder + "/fitness_evolution.txt");
+
+        if (printEvolution) {
+            System.out.println("The evolution of fitness values has been stored in " + outputFolder + "/fitness_evolution.txt");
+        }
 
         if (problem.getNumberOfObjectives() == 1) {
             System.out.println("The resulting list of links has been stored in " + outputFolder + "/final_list.csv");

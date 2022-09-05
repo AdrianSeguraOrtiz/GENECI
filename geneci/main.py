@@ -787,8 +787,8 @@ def optimize_ensemble(
         help="Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.",
         rich_help_panel="Orchestration"
     ),
-    graphics: bool = typer.Option(
-        True,
+    plot_evolution: bool = typer.Option(
+        False,
         help="Indicate if you want to represent the evolution of the fitness value.",
         rich_help_panel="Graphics"
     ),
@@ -849,7 +849,7 @@ def optimize_ensemble(
         volumes={
             Path(f"./tmp/").absolute(): {"bind": f"/usr/local/src/tmp", "mode": "rw"}
         },
-        command=f"tmp/ {crossover} {crossover_probability} {mutation} {mutation_probability} {repairer} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {functions} {algorithm} {threads}",
+        command=f"tmp/ {crossover} {crossover_probability} {mutation} {mutation_probability} {repairer} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {functions} {algorithm} {threads} {plot_evolution}",
         detach=True,
         tty=True,
     )
@@ -870,7 +870,7 @@ def optimize_ensemble(
     container.remove(v=True)
 
     # If specified, the evolution of the fitness values ​​is graphed
-    if graphics:
+    if plot_evolution:
         f = open("tmp/ea_consensus/fitness_evolution.txt", "r")
         lines = f.readlines()
         for i in range(len(lines)):
@@ -885,22 +885,23 @@ def optimize_ensemble(
         plt.savefig("tmp/ea_consensus/fitness_evolution.pdf")
         plt.close()
 
-        if len(function) == 2:
-            f = open("tmp/ea_consensus/FUN.csv", "r")
-            lines = f.readlines()
-            x = list()
-            y = list()
-            for line in lines:
-                point = line.split(",")
-                x.append(float(point[0]))
-                y.append(float(point[1]))
-            x, y = zip(*sorted(zip(x, y)))
-            plt.plot(x, y)
-            plt.title("Pareto front")
-            plt.ylabel(function[0])
-            plt.xlabel(function[1])
-            plt.savefig("tmp/ea_consensus/pareto_front.pdf")
-            plt.close()
+    # If there are two objectives the pareto front is plotted
+    if len(function) == 2:
+        f = open("tmp/ea_consensus/FUN.csv", "r")
+        lines = f.readlines()
+        x = list()
+        y = list()
+        for line in lines:
+            point = line.split(",")
+            x.append(float(point[0]))
+            y.append(float(point[1]))
+        x, y = zip(*sorted(zip(x, y)))
+        plt.plot(x, y)
+        plt.title("Pareto front")
+        plt.ylabel(function[0])
+        plt.xlabel(function[1])
+        plt.savefig("tmp/ea_consensus/pareto_front.pdf")
+        plt.close()
 
     # Define and create the output folder
     if str(output_dir) == "<<conf_list_path>>/../ea_consensus":
@@ -1084,8 +1085,8 @@ def run(
         help="Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.",
         rich_help_panel="Orchestration"
     ),
-    graphics: bool = typer.Option(
-        True,
+    plot_evolution: bool = typer.Option(
+        False,
         help="Indicate if you want to represent the evolution of the fitness value.",
         rich_help_panel="Graphics"
     ),
@@ -1125,7 +1126,7 @@ def run(
         function,
         algorithm,
         threads,
-        graphics,
+        plot_evolution,
         output_dir="<<conf_list_path>>/../ea_consensus",
     )
 
