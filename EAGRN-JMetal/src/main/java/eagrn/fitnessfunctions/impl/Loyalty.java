@@ -2,7 +2,6 @@ package eagrn.fitnessfunctions.impl;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -11,8 +10,19 @@ import java.util.Set;
 import eagrn.ConsensusTuple;
 import eagrn.fitnessfunctions.FitnessFunction;
 
+/**
+ * It attempts to minimize the difference between the 
+ * input time series and the one predicted from the previous 
+ * state by using the confidence levels inferred by the 
+ * consensus algorithm.
+ */
+
 public class Loyalty implements FitnessFunction {
+    // Stores for each gene (key) the time series given in the input (value)
     private Map<String, Double[]> timeSeriesMap;
+    // Stores for each gene (key) the differences between the i+1 and i time states during the input time series (value)
+    private Map<String, Double[]> variationsMap;
+    // Stores for each gene-gene interaction (key) the direction of regulation (activation 1 or inhibition -1) calculated after a simple analysis of the input time series
     private Map<String, Double> regulationSigns;
 
     public Loyalty(String strTimeSeriesFile) {
@@ -20,6 +30,16 @@ public class Loyalty implements FitnessFunction {
             throw new RuntimeException("In case of specifying the 'Loyalty' function, the path to the file with the time series of expression levels must be provided.");
         }
         this.timeSeriesMap = readTimeSeries(strTimeSeriesFile);
+
+        this.variationsMap = new HashMap<String, Double[]>();
+        for (Map.Entry<String, Double[]> entry : this.timeSeriesMap.entrySet()) {
+            Double[] array = new Double[entry.getValue().length - 1];
+            for (int i = 0; i < entry.getValue().length - 1; i++) {
+                array[i] = entry.getValue()[i+1] - entry.getValue()[i];
+            }
+            this.variationsMap.put(entry.getKey(), array);
+        }
+
         this.regulationSigns = getRegulationSigns();
     }
 
@@ -29,22 +49,21 @@ public class Loyalty implements FitnessFunction {
         double sumSquareError = 0;
         int cnt = 0;
         for (Map.Entry<String, Double[]> tsPair : this.timeSeriesMap.entrySet()) {
-            ArrayList<Double> factors = new ArrayList<>();
+            Map<String, Double> factors = new HashMap<String, Double>();
             for (Map.Entry<String, ConsensusTuple> cPair : consensus.entrySet()) {
-                String target = cPair.getKey().split(";")[1];
-                if (tsPair.getKey().equals(target)){
-                    factors.add(cPair.getValue().getConf() * this.regulationSigns.get(cPair.getKey()));
+                String[] genes = cPair.getKey().split(";");
+                if (tsPair.getKey().equals(genes[1])){
+                    factors.put(genes[0], cPair.getValue().getConf() * this.regulationSigns.get(cPair.getKey()));
                 }
             }
             
             for (int i = 0; i < tsPair.getValue().length - 1; i++) {
                 double currExpLevel = tsPair.getValue()[i];
                 double nextExpLevel = tsPair.getValue()[i+1];
-                double prediction = 0;
-                for (int j = 0; j < factors.size(); j++){
-                    prediction += currExpLevel * factors.get(j);
+                double prediction = currExpLevel;
+                for (Map.Entry<String, Double> factor : factors.entrySet()) {
+                    prediction += factor.getValue() * this.variationsMap.get(factor.getKey())[i];
                 }
-                prediction = 1/(1 + Math.pow(Math.E, -5 * prediction));
                 sumSquareError += Math.pow(nextExpLevel - prediction, 2);
                 cnt ++;
             }
@@ -52,7 +71,12 @@ public class Loyalty implements FitnessFunction {
         return sumSquareError / (double) cnt;
     }
 
+    /** ReadTimeSeries() method */
     private Map<String, Double[]> readTimeSeries(String strTimeSeriesFile) {
+        /**
+         * It reads the file with the input time series
+         */
+
         Map<String, Double[]> res = new HashMap<String, Double[]>();
 
         try {
@@ -78,26 +102,40 @@ public class Loyalty implements FitnessFunction {
         return res;
     }
 
+    /** ReadTimeSeries() method */
     private Map<String, Double> getRegulationSigns() {
-        Map<String, Double[]> map = new HashMap<String, Double[]>();
+        /**
+         * Calculate the direction of regulation (activation 1 or inhibition -1) 
+         * for each interaction. To do so, observe whether the increase/decrease 
+         * of the factor expression has a positive or negative impact on the 
+         * expression level of the target.
+         */
 
-        for (Map.Entry<String, Double[]> entry : this.timeSeriesMap.entrySet()) {
-            Double[] array = new Double[entry.getValue().length - 1];
-            for (int i = 0; i < entry.getValue().length - 1; i++) {
-                array[i] = entry.getValue()[i+1] - entry.getValue()[i];
-            }
-            map.put(entry.getKey(), array);
-        }
-
-        Set<String> keys = map.keySet();
+        // The res map stores the sign for each interaction
+        Set<String> keys = this.variationsMap.keySet();
         String[] genes = keys.toArray(new String[keys.size()]);
         Map<String, Double> res = new HashMap<String, Double>();
 
+        /**
+         * The sign will be the one that has the result of adding the divisions 
+         * between the variations of the target and those of the factor. Thus, 
+         * from the point of view of magnitude, cases where a small change in the 
+         * factor (denominator) has a great impact on the target (numerator) will 
+         * have a greater value and, on the contrary, cases where a large change 
+         * in the factor (denominator) modifies very little the level of expression 
+         * of the target (numerator) will have a lower value. Regarding the sign, 
+         * activation will be considered in the case of variations of the same direction 
+         * in both genes and inhibition in those with opposite directions. The final sign 
+         * is calculated after the complete sum of all the divisions with their respective 
+         * magnitudes. It should be remembered that only the sign of the sum remains and 
+         * that in case there is no real interaction between two genes, this will not be 
+         * inferred by the algorithm and therefore the calculated sign will not be used.
+         */
         for (int i = 0; i < genes.length; i++) {
             for (int j = 0; j < genes.length; j++) {
                 if (j == i) continue;
-                Double[] arr1 = map.get(genes[i]);
-                Double[] arr2 = map.get(genes[j]);
+                Double[] arr1 = this.variationsMap.get(genes[i]);
+                Double[] arr2 = this.variationsMap.get(genes[j]);
                 Double sign = 0.0;
                 for (int k = 0; k < arr1.length; k++) {
                     sign += arr2[k]/arr1[k];
