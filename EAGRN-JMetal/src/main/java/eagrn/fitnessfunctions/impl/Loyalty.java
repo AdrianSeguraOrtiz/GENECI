@@ -62,7 +62,7 @@ public class Loyalty implements FitnessFunction {
                 double nextExpLevel = tsPair.getValue()[i+1];
                 double prediction = currExpLevel;
                 for (Map.Entry<String, Double> factor : factors.entrySet()) {
-                    prediction += factor.getValue() * this.variationsMap.get(factor.getKey())[i];
+                    prediction += this.variationsMap.get(factor.getKey())[i] * factor.getValue();
                 }
                 sumSquareError += Math.pow(nextExpLevel - prediction, 2);
                 cnt ++;

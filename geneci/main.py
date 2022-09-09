@@ -123,6 +123,8 @@ class Algorithm(str, Enum):
     GA = "GA"
     NSGAII = "NSGAII"
     SMPSO = "SMPSO"
+    MOEAD = "MOEAD"
+    GDE3 = "GDE3"
 
 
 # Function for obtaining the list of genes from lists of confidence levels.

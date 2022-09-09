@@ -1,5 +1,6 @@
 package eagrn;
 
+import eagrn.algorithm.impl.GDE3BuilderWithRepair;
 import eagrn.algorithm.impl.SMPSOCorrectMutationBuilder;
 import eagrn.cutoffcriteria.CutOffCriteria;
 import eagrn.cutoffcriteria.impl.MaxNumLinksBestConfCriteria;
@@ -129,6 +130,10 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         } else if (numOfThreads > 1) {
             if (strAlgorithm.equals("GA") || strAlgorithm.equals("NSGAII")) {
                 strAlgorithm += "-AsyncParallel";
+            } else if (strAlgorithm.equals("MOEAD")) {
+                System.out.println("The MOEAD algorithm is not implemented for parallel execution, so only one thread will be used during execution");
+                numOfThreads = 1;
+                strAlgorithm += "-SingleThread";
             } else {
                 strAlgorithm += "-SyncParallel";
             }
@@ -442,6 +447,10 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 evaluator.shutdown();
 
             } else if (strAlgorithm.equals("MOEAD-SingleThread")) {
+                if (!strCrossover.equals("DifferentialEvolutionCrossover")) {
+                    throw new RuntimeException("The MOEAD algorithm can only be executed by selecting the differential evolution crossover");
+                }
+
                 /** Instantiate the evolutionary algorithm. */
                 Algorithm<List<DoubleSolution>> algorithm
                     = new MOEADBuilder(problem, MOEADBuilder.Variant.MOEAD)
@@ -462,7 +471,69 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 computingTime = algorithmRunner.getComputingTime();
     
                 /** Extract the population of the last iteration. */
+                population = SolutionListUtils.getNonDominatedSolutions(algorithm.getResult());
+
+            } else if (strAlgorithm.equals("GDE3-SingleThread")) {
+                if (!strCrossover.equals("DifferentialEvolutionCrossover")) {
+                    throw new RuntimeException("The GDE3 algorithm can only be executed by selecting the differential evolution crossover");
+                }
+
+                /** Instantiate the empty mutation operator to repair solutions. */
+                mutation = new NullMutationWithRepair(repairer);
+                System.out.println("The GDE3 algorithm has its own mutation operator, so the one indicated in the input will be ignored in this case.");
+
+                /** Instantiate the evolutionary algorithm. */
+                Algorithm<List<DoubleSolution>> algorithm
+                    = new GDE3BuilderWithRepair(problem)
+                        .setCrossover((DifferentialEvolutionCrossover)crossover)
+                        .setMutation(mutation)
+                        .setMaxEvaluations(numEvaluations)
+                        .setPopulationSize(populationSize)
+                        .setSolutionSetEvaluator(new SequentialSolutionListEvaluator<>())
+                        .build();
+
+                /** Execute the designed evolutionary algorithm. */
+                AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute();
+
+                /** Extract the total execution time. */
+                computingTime = algorithmRunner.getComputingTime();
+    
+                /** Extract the population of the last iteration. */
                 population = algorithm.getResult();
+
+            } else if (strAlgorithm.equals("GDE3-SyncParallel")) {
+                if (!strCrossover.equals("DifferentialEvolutionCrossover")) {
+                    throw new RuntimeException("The GDE3 algorithm can only be executed by selecting the differential evolution crossover");
+                }
+
+                /** Instantiate the empty mutation operator to repair solutions. */
+                mutation = new NullMutationWithRepair(repairer);
+                System.out.println("The GDE3 algorithm has its own mutation operator, so the one indicated in the input will be ignored in this case.");
+
+                /** Instantiate the evaluator */
+                SolutionListEvaluator<DoubleSolution> evaluator = new MultiThreadedSolutionListEvaluator<DoubleSolution>(numOfThreads);
+
+                /** Instantiate the evolutionary algorithm. */
+                Algorithm<List<DoubleSolution>> algorithm
+                    = new GDE3BuilderWithRepair(problem)
+                        .setCrossover((DifferentialEvolutionCrossover)crossover)
+                        .setMutation(mutation)
+                        .setMaxEvaluations(numEvaluations)
+                        .setPopulationSize(populationSize)
+                        .setSolutionSetEvaluator(evaluator)
+                        .build();
+
+                /** Execute the designed evolutionary algorithm. */
+                AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute();
+
+                /** Extract the total execution time. */
+                computingTime = algorithmRunner.getComputingTime();
+    
+                /** Extract the population of the last iteration. */
+                population = algorithm.getResult();
+
+                /** Stop the evaluator */
+                evaluator.shutdown();
 
             } else {
                 throw new RuntimeException("The algorithm " + strAlgorithm + " is not available for multi-objetive problems.");
