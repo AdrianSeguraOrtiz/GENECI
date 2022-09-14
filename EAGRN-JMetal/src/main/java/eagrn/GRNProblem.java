@@ -171,7 +171,7 @@ public class GRNProblem extends AbstractDoubleProblem {
         Arrays.fill(initialValue, 0.0);
 
         for (int i = 0; i < inferredNetworkFiles.length; i++) {
-            Map<String, Double> map = new ListOfLinks(inferredNetworkFiles[i]).getMapWithLinks();
+            Map<String, Double> map = StaticUtils.getMapWithLinks(inferredNetworkFiles[i]);
 
             for (Map.Entry<String, Double> entry : map.entrySet()) {
                 Double[] value = res.getOrDefault(entry.getKey(), initialValue.clone());

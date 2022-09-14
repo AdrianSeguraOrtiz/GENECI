@@ -1,11 +1,8 @@
 package eagrn;
 
 import eagrn.cutoffcriteria.CutOffCriteriaOnlyConf;
-import eagrn.cutoffcriteria.impl.MaxNumLinksBestConfCriteria;
-import eagrn.cutoffcriteria.impl.MinConfidenceCriteria;
 
 import java.io.*;
-import java.nio.file.Files;
 import java.util.*;
 
 public class SingleNetworkRunner {
@@ -36,53 +33,18 @@ public class SingleNetworkRunner {
         }
 
         /** Establish the cut-off criteria */
-        switch (strCutOffCriteria) {
-            case "MinConfidence":
-                cutOffCriteriaOnlyConf = new MinConfidenceCriteria(cutOffValue);
-                break;
-            case "MaxNumLinksBestConf":
-                cutOffCriteriaOnlyConf = new MaxNumLinksBestConfCriteria((int) cutOffValue);
-                break;
-            default:
-                throw new RuntimeException("The cut-off criteria entered is not available");
-        }
+        cutOffCriteriaOnlyConf = (CutOffCriteriaOnlyConf) StaticUtils.getCutOffCriteriaFromString(strCutOffCriteria, cutOffValue, true);
 
         /** Extracting gene names */
-        ArrayList<String> geneNames;
-        try {
-            Scanner sc = new Scanner(new File(geneNamesStrFile));
-            String line = sc.nextLine();
-            String[] lineSplit = line.split(",");
-            geneNames = new ArrayList<>(List.of(lineSplit));
-        } catch (FileNotFoundException fnfe) {
-            throw new RuntimeException(fnfe.getMessage());
-        }
+        ArrayList<String> geneNames = StaticUtils.getGeneNames(geneNamesStrFile);
 
         /** Extract the list of links */
-        Map<String, Double> map = new ListOfLinks(new File(listOfLinksStrFile)).getMapWithLinks();
+        Map<String, Double> map = StaticUtils.getMapWithLinks(new File(listOfLinksStrFile));
 
         /** Calculate the binary matrix according to the selected criteria */
         int[][] binaryNetwork = cutOffCriteriaOnlyConf.getNetwork(map, geneNames);
 
         /** Write the resulting binary matrix to an output csv file */
-        try {
-            File outputFile = new File(outputStrFile);
-            Files.createDirectories(outputFile.toPath().getParent());
-            BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
-
-            bw.write("," + String.join(",", geneNames));
-            bw.newLine();
-            for (int i = 0; i < binaryNetwork.length; i++) {
-                bw.write(geneNames.get(i) + ",");
-                for (int j = 0; j < binaryNetwork[i].length; j++) {
-                    bw.write(binaryNetwork[i][j] + ((j == binaryNetwork[i].length - 1) ? "" : ","));
-                }
-                bw.newLine();
-            }
-            bw.flush();
-            bw.close();
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe.getMessage());
-        }
+        StaticUtils.writeBinaryNetwork(outputStrFile, binaryNetwork, geneNames);
     }
 }
