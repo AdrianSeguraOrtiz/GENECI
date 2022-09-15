@@ -265,7 +265,7 @@ public final class StaticUtils {
         }
     }
 
-    public static void writeConsensusList(String strFile, Map<String, ConsensusTuple> consensus) {
+    public static void writeWeightedConfList(String strFile, Map<String, Double> weightedConf) {
         /**
          * This function is responsible for writing the consensus list of 
          * a solution to an output csv file specified as a parameter.
@@ -274,9 +274,9 @@ public final class StaticUtils {
             File outputFile = new File(strFile);
             BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
 
-            for (Map.Entry<String, ConsensusTuple> pair : consensus.entrySet()) {
+            for (Map.Entry<String, Double> pair : weightedConf.entrySet()) {
                 String [] vKeySplit = pair.getKey().split(";");
-                bw.write(vKeySplit[0] + "," + vKeySplit[1] + "," + pair.getValue().getConf());
+                bw.write(vKeySplit[0] + "," + vKeySplit[1] + "," + pair.getValue());
                 bw.newLine();
             }
             bw.flush();
@@ -309,5 +309,46 @@ public final class StaticUtils {
         } catch (IOException ioe) {
             throw new RuntimeException(ioe.getMessage());
         }
+    }
+
+    public static Map<String, Double> getWeightedConf(double[] weights, Map<String, Double[]> inferredNetworks) {
+        /**
+         * This function calculates the weighted sum of 
+         * confidence levels based on the weights.
+         */
+        Map<String, Double> weightedConf = new HashMap<>();
+
+        for (Map.Entry<String, Double[]> pair : inferredNetworks.entrySet()) {
+            double conf = 0;
+            for (int i = 0; i < weights.length; i++) {
+                conf += weights[i] * pair.getValue()[i];
+            }
+            weightedConf.put(pair.getKey(), conf);
+        }
+
+        return weightedConf;
+    }
+
+    public static Map<String, Double[]> readAll(File[] inferredNetworkFiles) {
+        /**
+         * It scans the lists of links offered by the different techniques and stores them in a map 
+         * with vector values for later query during the construction of the consensus network.
+         */
+
+        Map<String, Double[]> res = new HashMap<String, Double[]>();
+        Double[] initialValue = new Double[inferredNetworkFiles.length];
+        Arrays.fill(initialValue, 0.0);
+
+        for (int i = 0; i < inferredNetworkFiles.length; i++) {
+            Map<String, Double> map = StaticUtils.getMapWithLinks(inferredNetworkFiles[i]);
+
+            for (Map.Entry<String, Double> entry : map.entrySet()) {
+                Double[] value = res.getOrDefault(entry.getKey(), initialValue.clone());
+                value[i] = entry.getValue();
+                res.put(entry.getKey(), value);
+            }
+        }
+
+        return res;
     }
 }

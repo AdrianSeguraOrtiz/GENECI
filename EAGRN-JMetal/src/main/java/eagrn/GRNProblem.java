@@ -26,7 +26,7 @@ public class GRNProblem extends AbstractDoubleProblem {
     /** Constructor creates a default instance of the GRN problem */
     public GRNProblem(File[] inferredNetworkFiles, ArrayList<String> geneNames, WeightRepairer initialPopulationRepairer, CutOffCriteria cutOffCriteria, String strFitnessFormulas, String strTimeSeriesFile) {
         
-        this.inferredNetworks = readAll(inferredNetworkFiles);
+        this.inferredNetworks = StaticUtils.readAll(inferredNetworkFiles);
         this.medianInterval = calculateMedian(inferredNetworks);
         this.geneNames = geneNames;
         this.initialPopulationRepairer = initialPopulationRepairer;
@@ -159,30 +159,6 @@ public class GRNProblem extends AbstractDoubleProblem {
         return res;
     }
 
-    /** ReadAll() method */
-    private Map<String, Double[]> readAll(File[] inferredNetworkFiles) {
-        /**
-         * It scans the lists of links offered by the different techniques and stores them in a map 
-         * with vector values for later query during the construction of the consensus network.
-         */
-
-        Map<String, Double[]> res = new HashMap<String, Double[]>();
-        Double[] initialValue = new Double[inferredNetworkFiles.length];
-        Arrays.fill(initialValue, 0.0);
-
-        for (int i = 0; i < inferredNetworkFiles.length; i++) {
-            Map<String, Double> map = StaticUtils.getMapWithLinks(inferredNetworkFiles[i]);
-
-            for (Map.Entry<String, Double> entry : map.entrySet()) {
-                Double[] value = res.getOrDefault(entry.getKey(), initialValue.clone());
-                value[i] = entry.getValue();
-                res.put(entry.getKey(), value);
-            }
-        }
-
-        return res;
-    }
-
     /** CalculateMedian() method */
     private Map<String, MedianTuple> calculateMedian(Map<String, Double[]> inferredNetworks) {
         /**
@@ -243,4 +219,9 @@ public class GRNProblem extends AbstractDoubleProblem {
         return consensus;
     }
 
+    @Override
+    public void setName(String name) {
+        super.setName(name);
+    }
+ 
 }

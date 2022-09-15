@@ -5,7 +5,7 @@ import eagrn.cutoffcriteria.CutOffCriteriaOnlyConf;
 import java.io.*;
 import java.util.*;
 
-public class SingleNetworkRunner {
+public class BinarizeNetworkRunner {
     public static void main(String[] args){
         /** Declare the main execution variables */
         CutOffCriteriaOnlyConf cutOffCriteriaOnlyConf;

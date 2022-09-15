@@ -486,8 +486,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             /** Write the list of weights assigned to each technique in an output txt file. */
             String[] tags = new String[files.length];
             for (int i = 0; i < files.length; i++) {
-                String filename = files[i].getName();
-                tags[i] = filename.substring(4, filename.lastIndexOf('.'));
+                tags[i] = files[i].getName();
             }
             StaticUtils.writeWeights(outputFolder + "/final_weights.txt", winner, tags);
 
@@ -498,9 +497,15 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 .sorted(Map.Entry.<String, ConsensusTuple>comparingByValue())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                     (e1, e2) -> e1, LinkedHashMap::new));
+            
+            /** Get weighted confidence map from consensus. */
+            Map<String, Double> weightedConf = consensus
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getConf()));
 
             /** Write the resulting list of links to an output csv file. */
-            StaticUtils.writeConsensusList(outputFolder + "/final_list.csv", consensus);
+            StaticUtils.writeWeightedConfList(outputFolder + "/final_list.csv", weightedConf);
 
             /** Calculate the binary matrix from the list above. */
             int[][] binaryNetwork = cutOffCriteria.getNetworkFromConsensus(consensus, geneNames);

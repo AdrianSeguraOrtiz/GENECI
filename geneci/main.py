@@ -1205,5 +1205,86 @@ def draw_network(
     shutil.rmtree("tmp")
 
 
+# Command for get weighted confidence levels from files and a given distribution of weights
+@app.command(rich_help_panel="Additional commands")
+def weighted_confidence(
+    file_weight_summand: Optional[List[str]] = typer.Option(
+        ..., help="Paths of the CSV files with the confidence lists together with its associated weights"
+    ),
+    output_file: Path = typer.Option(
+        "<<conf_list_path>>/../weighted_confidence.csv", help="Output file path"
+    ),
+):
+    """
+    Calculate the weighted sum of the confidence levels reported in various files based on a given distribution of weights.
+    """
+    # Report information to the user.
+    print(f"\n Calculating the weighted sum of confidence levels for entry {', '.join(file_weight_summand)}")
+
+    # Create input temporary folder.
+    tmp_input_folder = "tmp/input"
+    Path(tmp_input_folder).mkdir(exist_ok=True, parents=True)
+    # Create output temporary folder.
+    tmp_output_folder = "tmp/output"
+    Path(tmp_output_folder).mkdir(exist_ok=True, parents=True)
+    tmp_output_file = tmp_output_folder + "/" + output_file.name
+
+    # Read summands.
+    sum = 0
+    command = ""
+    for summand in file_weight_summand:
+        pair = summand.split("*")
+        if len(pair) != 2: 
+            print("[bold red]Error:[/bold red] The entry" + summand + "is invalid, remember to separate the file name and its weight by the '*' character")
+            raise typer.Abort()
+        file = pair[0]
+        weight = pair[1]
+        sum += float(weight)
+        tmp_file_dir = f"{tmp_input_folder}/{Path(file).name}"
+        shutil.copyfile(file, tmp_file_dir)
+        command += " " + tmp_file_dir + "*" + weight
+
+    # If the sum of weights is not 1, an exception is thrown.
+    if sum != 1:
+        print("[bold red]Error:[/bold red] The sum of the weights must be 1")
+        raise typer.Abort()
+
+    # Define docker image
+    image = "adriansegura99/geneci_weighted-confidence"
+    # In case it is not available on the device, it is downloaded from the repository.
+    if not image in available_images:
+        print("Downloading docker image ...")
+        client.images.pull(repository=image)
+    # The image is executed with the parameters set by the user.
+    container = client.containers.run(
+        image=image,
+        volumes={
+            Path(f"./tmp/").absolute(): {"bind": f"/usr/local/src/tmp", "mode": "rw"}
+        },
+        command=f"{tmp_output_file} {command}",
+        detach=True,
+        tty=True,
+    )
+
+    # Wait for the container to run and display reported logs.
+    r = container.wait()
+    logs = container.logs()
+    if logs:
+        print(logs.decode("utf-8"))
+
+    # Stop and remove the container.
+    container.stop()
+    container.remove(v=True)
+
+    # Define and create the output folder
+    if str(output_file) == "<<conf_list_path>>/../weighted_confidence.csv":
+        output_file = Path(f"{Path(file).parents[1]}/weighted_confidence.csv")
+    output_file.parent.mkdir(exist_ok=True, parents=True)
+
+    # Output file is moved and the temporary directory is deleted
+    shutil.move(tmp_output_file, output_file)
+    shutil.rmtree("tmp")
+
+
 if __name__ == "__main__":
     app()
