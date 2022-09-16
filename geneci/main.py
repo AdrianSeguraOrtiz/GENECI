@@ -1227,7 +1227,7 @@ def weighted_confidence(
     # Create output temporary folder.
     tmp_output_folder = "tmp/output"
     Path(tmp_output_folder).mkdir(exist_ok=True, parents=True)
-    tmp_output_file = tmp_output_folder + "/" + output_file.name
+    tmp_output_file = f"{tmp_output_folder}/{output_file.name}"
 
     # Read summands.
     sum = 0
@@ -1235,14 +1235,14 @@ def weighted_confidence(
     for summand in file_weight_summand:
         pair = summand.split("*")
         if len(pair) != 2: 
-            print("[bold red]Error:[/bold red] The entry" + summand + "is invalid, remember to separate the file name and its weight by the '*' character")
+            print(f"[bold red]Error:[/bold red] The entry {summand} is invalid, remember to separate the file name and its weight by the '*' character")
             raise typer.Abort()
         file = pair[0]
         weight = pair[1]
         sum += float(weight)
         tmp_file_dir = f"{tmp_input_folder}/{Path(file).name}"
         shutil.copyfile(file, tmp_file_dir)
-        command += " " + tmp_file_dir + "*" + weight
+        command += f" {tmp_file_dir}*{weight}"
 
     # If the sum of weights is not 1, an exception is thrown.
     if sum != 1:
