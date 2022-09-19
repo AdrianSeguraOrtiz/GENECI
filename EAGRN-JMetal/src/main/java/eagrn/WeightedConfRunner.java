@@ -21,15 +21,15 @@ public class WeightedConfRunner {
         for (int i = 1; i < args.length; i++) {
             String[] tuple = args[i].split("\\*");
             if (tuple.length < 2) {
-                throw new RuntimeException("The entry" + args[i] + "is invalid, remember to separate the file name and its weight by the '*' character");
+                throw new RuntimeException("The entry" + args[i] + "is invalid, remember to separate weight and file name by the '*' character");
             }
-            inferredNetworkFiles[i-1] = new File(tuple[0]);
-            weights[i-1] = Double.parseDouble(tuple[1]);
+            weights[i-1] = Double.parseDouble(tuple[0]);
             sum += weights[i-1];
+            inferredNetworkFiles[i-1] = new File(tuple[1]);
         }
 
         /** If the sum of weights is not 1, an exception is thrown. */
-        if (sum != 1) {
+        if (Math.abs(sum - 1.0) > 0.01) {
             throw new RuntimeException("The sum of the weights must be 1");
         }
 

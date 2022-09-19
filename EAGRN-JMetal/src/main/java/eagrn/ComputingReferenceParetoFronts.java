@@ -57,7 +57,7 @@ public class ComputingReferenceParetoFronts {
             throw new JMetalException("It is necessary to specify at least one problem folder");
         }
         String[] networkFolders = args;
-        String experimentBaseDirectory = new File(networkFolders[0]).getParent();
+        String experimentBaseDirectory = "./pareto_fronts";
 
         File[][] files = new File[networkFolders.length][];
         for (int i = 0; i < networkFolders.length; i++) {
@@ -85,19 +85,18 @@ public class ComputingReferenceParetoFronts {
             configureAlgorithmList(problemList);
 
         Experiment<DoubleSolution, List<DoubleSolution>> experiment =
-                new ExperimentBuilder<DoubleSolution, List<DoubleSolution>>("GRN-ComputingReferenceParetoFronts-D4-010-2")
+                new ExperimentBuilder<DoubleSolution, List<DoubleSolution>>("GRN-ComputingReferenceParetoFronts-D3-050")
                         .setAlgorithmList(algorithmList)
                         .setProblemList(problemList)
                         .setExperimentBaseDirectory(experimentBaseDirectory)
                         .setOutputParetoFrontFileName("FUN")
                         .setOutputParetoSetFileName("VAR")
-                        .setReferenceFrontDirectory(experimentBaseDirectory + "/GRN-ComputingReferenceParetoFronts-D4-010-2/referenceFronts")
+                        .setReferenceFrontDirectory(experimentBaseDirectory + "/GRN-ComputingReferenceParetoFronts-D3-050/referenceFronts")
                         .setIndicatorList(Arrays.asList(
                                 new Epsilon(),
                                 new Spread(),
                                 new GenerationalDistance(),
                                 new PISAHypervolume(),
-                                new NormalizedHypervolume(),
                                 new InvertedGenerationalDistance(),
                                 new InvertedGenerationalDistancePlus()))
                         .setIndependentRuns(INDEPENDENT_RUNS)

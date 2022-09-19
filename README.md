@@ -130,6 +130,7 @@ $ [OPTIONS] COMMAND [ARGS]...
 * `infer-network`: Infer gene regulatory networks from expression data. Several techniques are available: ARACNE, BC3NET, C3NET, CLR, GENIE3, MRNET, MRNET, MRNETB and PCIT.
 * `optimize-ensemble`: Analyzes several trust lists and builds a consensus network by applying an evolutionary algorithm.
 * `run`: Infer gene regulatory network from expression data by employing multiple unsupervised learning techniques and applying a genetic algorithm for consensus optimization.
+* `weighted-confidence`: Calculate the weighted sum of the confidence levels reported in various files based on a given distribution of weights.
 
 ## `apply-cut`
 
@@ -165,7 +166,7 @@ $ draw-network [OPTIONS]
 * `--confidence-list TEXT`: Paths of the CSV files with the confidence lists to be represented  [required]
 * `--mode [Static2D|Interactive3D|Both]`: Mode of representation  [default: Both]
 * `--nodes-distribution [Spring|Circular|Kamada_kawai]`: Node distribution in graph  [default: Spring]
-* `--output-folder TEXT`: Path to output folder  [default: <<conf_list_path>>/../network_graphics]
+* `--output-folder PATH`: Path to output folder  [default: <<conf_list_path>>/../network_graphics]
 * `--help`: Show this message and exit.
 
 ## `evaluate`
@@ -194,7 +195,27 @@ Evaluate the accuracy with which networks belonging to the DREAM challenges are 
 **Usage**:
 
 ```console
-$ evaluate dream-prediction [OPTIONS]
+$ evaluate dream-prediction [OPTIONS] COMMAND [ARGS]...
+```
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+**Commands**:
+
+* `dream-list-of-links`: Evaluate one list of links with confidence...
+* `dream-pareto-front`: Evaluate pareto front.
+* `dream-weight-distribution`: Evaluate one weight distribution.
+
+#### `evaluate dream-prediction dream-list-of-links`
+
+Evaluate one list of links with confidence levels.
+
+**Usage**:
+
+```console
+$ evaluate dream-prediction dream-list-of-links [OPTIONS]
 ```
 
 **Options**:
@@ -205,6 +226,46 @@ $ evaluate dream-prediction [OPTIONS]
 * `--confidence-list PATH`: Path to the CSV file with the list of trusted values.  [required]
 * `--help`: Show this message and exit.
 
+#### `evaluate dream-prediction dream-pareto-front`
+
+Evaluate pareto front.
+
+**Usage**:
+
+```console
+$ evaluate dream-prediction dream-pareto-front [OPTIONS]
+```
+
+**Options**:
+
+* `--challenge [D3C4|D4C2|D5C4]`: DREAM challenge to which the inferred network belongs  [required]
+* `--network-id TEXT`: Predicted network identifier. Ex: 10_1  [required]
+* `--synapse-file PATH`: Paths to files from synapse needed to perform inference evaluation. To download these files you need to register at https://www.synapse.org/# and download them manually or run the command extract-data evaluation-data.  [required]
+* `--weights-file PATH`: File with the weights corresponding to a pareto front.  [required]
+* `--fitness-file PATH`: File with the fitness values corresponding to a pareto front.  [required]
+* `--confidence-list TEXT`: Paths to the CSV files with the confidence lists in the same order in which the weights and fitness values are specified in the corresponding files.  [required]
+* `--output-file PATH`: Output file path  [default: ./evaluated_front.csv]
+* `--plot-front / --no-plot-front`: Indicate if you want to represent pareto front with AUROC and AUPR metrics.  [default: True]
+* `--help`: Show this message and exit.
+
+#### `evaluate dream-prediction dream-weight-distribution`
+
+Evaluate one weight distribution.
+
+**Usage**:
+
+```console
+$ evaluate dream-prediction dream-weight-distribution [OPTIONS]
+```
+
+**Options**:
+
+* `--challenge [D3C4|D4C2|D5C4]`: DREAM challenge to which the inferred network belongs  [required]
+* `--network-id TEXT`: Predicted network identifier. Ex: 10_1  [required]
+* `--synapse-file PATH`: Paths to files from synapse needed to perform inference evaluation. To download these files you need to register at https://www.synapse.org/# and download them manually or run the command extract-data evaluation-data.  [required]
+* `--weight-file-summand TEXT`: Paths of the CSV files with the confidence lists together with its associated weights. Example: 0.7*/path/to/list.csv  [required]
+* `--help`: Show this message and exit.
+
 ### `evaluate generic-prediction`
 
 Evaluate the accuracy with which any generic network has been predicted with respect to a given gold standard. To do so, it approaches the case as a binary classification problem between 0 and 1.
@@ -212,13 +273,31 @@ Evaluate the accuracy with which any generic network has been predicted with res
 **Usage**:
 
 ```console
-$ evaluate generic-prediction [OPTIONS]
+$ evaluate generic-prediction [OPTIONS] COMMAND [ARGS]...
 ```
 
 **Options**:
 
-* `--inferred-binary-matrix PATH`: [required]
-* `--gs-binary-matrix PATH`: [required]
+* `--help`: Show this message and exit.
+
+**Commands**:
+
+* `generic-list-of-links`: Evaluate one list of links with confidence...
+
+#### `evaluate generic-prediction generic-list-of-links`
+
+Evaluate one list of links with confidence levels.
+
+**Usage**:
+
+```console
+$ evaluate generic-prediction generic-list-of-links [OPTIONS]
+```
+
+**Options**:
+
+* `--inferred-binary-matrix PATH`: Binary network to be evaluated  [required]
+* `--gs-binary-matrix PATH`: Gold standard binary network  [required]
 * `--help`: Show this message and exit.
 
 ## `extract-data`
@@ -326,6 +405,7 @@ $ optimize-ensemble [OPTIONS]
 
 * `--confidence-list TEXT`: Paths of the CSV files with the confidence lists to be agreed upon.  [required]
 * `--gene-names PATH`: Path to the TXT file with the name of the contemplated genes separated by comma and without space. If not specified, only the genes specified in the lists of trusts will be considered.
+* `--time-series PATH`: Path to the CSV file with the time series from which the individual gene networks have been inferred. This parameter is only necessary in case of specifying the fitness function Loyalty.
 * `--crossover [SBXCrossover|BLXAlphaCrossover|DifferentialEvolutionCrossover|NPointCrossover|NullCrossover|WholeArithmeticCrossover]`: Crossover operator  [default: SBXCrossover]
 * `--crossover-probability FLOAT`: Crossover probability  [default: 0.9]
 * `--mutation [PolynomialMutation|CDGMutation|GroupedAndLinkedPolynomialMutation|GroupedPolynomialMutation|LinkedPolynomialMutation|NonUniformMutation|NullMutation|SimpleRandomMutation|UniformMutation]`: Mutation operator  [default: PolynomialMutation]
@@ -335,10 +415,10 @@ $ optimize-ensemble [OPTIONS]
 * `--num-evaluations INTEGER`: Number of evaluations  [default: 25000]
 * `--cut-off-criteria [MinConfidence|MaxNumLinksBestConf|MinConfDist]`: Criteria for determining which links will be part of the final binary matrix.  [default: MinConfDist]
 * `--cut-off-value FLOAT`: Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfDist = 0.2  [default: 0.5]
-* `--quality-weight FLOAT`: Weight associated with the first term of the fitness function. This term tries to maximize the quality of good links (improve trust and frequency of appearance) while minimizing their quantity. It tries to establish some contrast between good and bad links so that the links finally reported are of high reliability.  [default: 0.75]
-* `--topology-weight FLOAT`: Weight associated with the second term of the fitness function. This term tries to increase the degree (number of links) of those genes with a high potential to be considered as hubs. At the same time, it is intended that the number of genes that meet this condition should be relatively low, since this is what is usually observed in real gene networks. The objective is to promote the approximation of the network to a scale-free configuration and to move away from random structure.  [default: 0.25]
+* `--function TEXT`: A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, Topology and Loyalty.  [default: Quality, Topology]
+* `--algorithm [GA|NSGAII|SMPSO|MOEAD|GDE3]`: Evolutionary algorithm to be used during the optimization process. All are intended for a multi-objective approach with the exception of the genetic algorithm (GA).  [default: NSGAII]
 * `--threads INTEGER`: Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.  [default: 8]
-* `--graphics / --no-graphics`: Indicate if you want to represent the evolution of the fitness value.  [default: True]
+* `--plot-evolution / --no-plot-evolution`: Indicate if you want to represent the evolution of the fitness value.  [default: False]
 * `--output-dir PATH`: Path to the output folder.  [default: <<conf_list_path>>/../ea_consensus]
 * `--help`: Show this message and exit.
 
@@ -365,9 +445,25 @@ $ run [OPTIONS]
 * `--num-evaluations INTEGER`: Number of evaluations  [default: 25000]
 * `--cut-off-criteria [MinConfidence|MaxNumLinksBestConf|MinConfDist]`: Criteria for determining which links will be part of the final binary matrix.  [default: MinConfDist]
 * `--cut-off-value FLOAT`: Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfDist = 0.2  [default: 0.5]
-* `--quality-weight FLOAT`: Weight associated with the first term of the fitness function. This term tries to maximize the quality of good links (improve trust and frequency of appearance) while minimizing their quantity. It tries to establish some contrast between good and bad links so that the links finally reported are of high reliability.  [default: 0.75]
-* `--topology-weight FLOAT`: Weight associated with the second term of the fitness function. This term tries to increase the degree (number of links) of those genes with a high potential to be considered as hubs. At the same time, it is intended that the number of genes that meet this condition should be relatively low, since this is what is usually observed in real gene networks. The objective is to promote the approximation of the network to a scale-free configuration and to move away from random structure.  [default: 0.25]
+* `--function TEXT`: A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, Topology and Loyalty.  [default: Quality, Topology]
+* `--algorithm [GA|NSGAII|SMPSO|MOEAD|GDE3]`: Evolutionary algorithm to be used during the optimization process. All are intended for a multi-objective approach with the exception of the genetic algorithm (GA).  [default: NSGAII]
 * `--threads INTEGER`: Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.  [default: 8]
-* `--graphics / --no-graphics`: Indicate if you want to represent the evolution of the fitness value.  [default: True]
+* `--plot-evolution / --no-plot-evolution`: Indicate if you want to represent the evolution of the fitness value.  [default: False]
 * `--output-dir PATH`: Path to the output folder.  [default: inferred_networks]
+* `--help`: Show this message and exit.
+
+## `weighted-confidence`
+
+Calculate the weighted sum of the confidence levels reported in various files based on a given distribution of weights.
+
+**Usage**:
+
+```console
+$ weighted-confidence [OPTIONS]
+```
+
+**Options**:
+
+* `--weight-file-summand TEXT`: Paths of the CSV files with the confidence lists together with its associated weights. Example: 0.7*/path/to/list.csv  [required]
+* `--output-file PATH`: Output file path  [default: <<conf_list_path>>/../weighted_confidence.csv]
 * `--help`: Show this message and exit.

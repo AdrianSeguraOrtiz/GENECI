@@ -138,10 +138,13 @@ dask-worker-space/
 EAGRN-JMetal/.idea
 EAGRN-JMetal/*.csv
 EAGRN-JMetal/*.log
+jMetal.log
+jMetal.log.lck
 
 # Inferred Networks
 inferred_networks*/
 tfm_results/
+pareto_fronts/
 
 # Temp folder
 tmp/

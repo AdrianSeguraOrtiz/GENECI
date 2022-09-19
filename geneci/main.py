@@ -3,35 +3,13 @@ import shutil
 from enum import Enum
 from pathlib import Path
 from typing import List, Optional
-from rich import print
 
 import docker
 import matplotlib.pyplot as plt
+import numpy as np
 import typer
+from rich import print
 
-# Applications for the definition of Typer commands and subcommands.
-app = typer.Typer(rich_markup_mode="rich")
-evaluate_app = typer.Typer()
-app.add_typer(
-    evaluate_app,
-    name="evaluate",
-    help="Evaluate the accuracy of the inferred network with respect to its gold standard.",
-    rich_help_panel="Additional commands"
-)
-extract_data_app = typer.Typer()
-app.add_typer(
-    extract_data_app,
-    name="extract-data",
-    help="Extract data from different simulators and known challenges. These include DREAM3, DREAM4, DREAM5, SynTReN, Rogers, GeneNetWeaver and IRMA.",
-    rich_help_panel="Additional commands"
-)
-
-# Activate docker client.
-client = docker.from_env()
-# List available images on the current device.
-available_images = [
-    i.tags[0].split(":")[0] if len(i.tags) > 0 else None for i in client.images.list()
-]
 
 # Definition of enumerated classes.
 class Database(str, Enum):
@@ -119,6 +97,7 @@ class Mode(str, Enum):
     Interactive3D = "Interactive3D"
     Both = "Both"
 
+
 class Algorithm(str, Enum):
     GA = "GA"
     NSGAII = "NSGAII"
@@ -128,14 +107,95 @@ class Algorithm(str, Enum):
 
 
 # Function for obtaining the list of genes from lists of confidence levels.
-def get_gene_names(conf_list):
+def get_gene_names_from_conf_list(conf_list):
     gene_list = set()
     with open(conf_list, "r") as f:
         for row in f:
             row_list = row.split(",")
             gene_list.add(row_list[0])
             gene_list.add(row_list[1])
+    f.close()
     return gene_list
+
+
+# Function for obtaining the list of genes from expression file.
+def get_gene_names_from_expression_file(expression_file):
+    with open(expression_file, "r") as f:
+        gene_list = [row.split(",")[0].replace('"', "") for row in f]
+        if gene_list[0] == "":
+            del gene_list[0]
+    f.close()
+    return gene_list
+
+
+# Function to wait and close container in execution
+def wait_and_close_container(container):
+    # Wait for the container to run and get logs
+    container.wait()
+    logs = container.logs()
+
+    # Stop and remove the container
+    container.stop()
+    container.remove(v=True)
+
+    # Return logs
+    return logs.decode("utf-8")
+
+
+# Function to obtain the definition of a volume given a folder
+def get_volume(folder):
+    return {
+        Path(f"./{folder}/").absolute(): {
+            "bind": f"/usr/local/src/{folder}",
+            "mode": "rw",
+        }
+    }
+
+
+# Applications for the definition of Typer commands and subcommands.
+app = typer.Typer(rich_markup_mode="rich")
+
+## Evaluation
+evaluate_app = typer.Typer()
+app.add_typer(
+    evaluate_app,
+    name="evaluate",
+    help="Evaluate the accuracy of the inferred network with respect to its gold standard.",
+    rich_help_panel="Additional commands",
+)
+
+### Dream challenges
+dream_prediction_app = typer.Typer()
+evaluate_app.add_typer(
+    dream_prediction_app,
+    name="dream-prediction",
+    help="Evaluate the accuracy with which networks belonging to the DREAM challenges are predicted.",
+)
+
+### Generic challenges
+generic_prediction_app = typer.Typer()
+evaluate_app.add_typer(
+    generic_prediction_app,
+    name="generic-prediction",
+    help="Evaluate the accuracy with which any generic network has been predicted with respect to a given gold standard. To do so, it approaches the case as a binary classification problem between 0 and 1.",
+)
+
+## Data extraction
+extract_data_app = typer.Typer()
+app.add_typer(
+    extract_data_app,
+    name="extract-data",
+    help="Extract data from different simulators and known challenges. These include DREAM3, DREAM4, DREAM5, SynTReN, Rogers, GeneNetWeaver and IRMA.",
+    rich_help_panel="Additional commands",
+)
+
+# Activate docker client.
+client = docker.from_env()
+
+# List available images on the current device.
+available_images = [
+    i.tags[0].split(":")[0] if len(i.tags) > 0 else None for i in client.images.list()
+]
 
 
 # Command for expression data extraction.
@@ -171,126 +231,91 @@ def expression_data(
 
     # Scroll through the list of databases specified by the user to extract data from each of them.
     for db in database:
+
         # Create the output folder
         Path(f"./{output_dir}/{db}/EXP/").mkdir(exist_ok=True, parents=True)
+
         # Report information to the user
         print(f"\n Extracting expression data from {db}")
 
         # Execute the corresponding image according to the database.
         if db == "DREAM3":
+
             # Define docker image
             image = "adriansegura99/geneci_extract-data_dream3"
+
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 print("Downloading docker image ...")
                 client.images.pull(repository=image)
-            # The image is executed with the parameters set by the user.
-            container = client.containers.run(
-                image=image,
-                volumes={
-                    Path(f"./{output_dir}/").absolute(): {
-                        "bind": f"/usr/local/src/{output_dir}",
-                        "mode": "rw",
-                    }
-                },
-                command=f"--category ExpressionData --output-folder {output_dir} --username {username} --password {password}",
-                detach=True,
-                tty=True,
-            )
+
+            # Construct the command based on the parameters entered by the user
+            command = f"--category ExpressionData --output-folder {output_dir} --username {username} --password {password}"
 
         elif db == "DREAM4":
+
             # Define docker image
             image = "adriansegura99/geneci_extract-data_dream4-expgs"
+
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 print("Downloading docker image ...")
                 client.images.pull(repository=image)
-            # The image is executed with the parameters set by the user.
-            container = client.containers.run(
-                image=image,
-                volumes={
-                    Path(f"./{output_dir}/").absolute(): {
-                        "bind": f"/usr/local/src/{output_dir}",
-                        "mode": "rw",
-                    }
-                },
-                command=f"ExpressionData {output_dir}",
-                detach=True,
-                tty=True,
-            )
+
+            # Construct the command based on the parameters entered by the user
+            command = f"ExpressionData {output_dir}"
 
         elif db == "DREAM5":
+
             # Define docker image
             image = "adriansegura99/geneci_extract-data_dream5"
+
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 print("Downloading docker image ...")
                 client.images.pull(repository=image)
-            # The image is executed with the parameters set by the user.
-            container = client.containers.run(
-                image=image,
-                volumes={
-                    Path(f"./{output_dir}/").absolute(): {
-                        "bind": f"/usr/local/src/{output_dir}",
-                        "mode": "rw",
-                    }
-                },
-                command=f"--category ExpressionData --output-folder {output_dir} --username {username} --password {password}",
-                detach=True,
-                tty=True,
-            )
+
+            # Construct the command based on the parameters entered by the user
+            command = f"--category ExpressionData --output-folder {output_dir} --username {username} --password {password}"
 
         elif db == "IRMA":
+
             # Define docker image
             image = "adriansegura99/geneci_extract-data_irma"
+
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 print("Downloading docker image ...")
                 client.images.pull(repository=image)
-            # The image is executed with the parameters set by the user.
-            container = client.containers.run(
-                image=image,
-                volumes={
-                    Path(f"./{output_dir}/").absolute(): {
-                        "bind": f"/usr/local/src/{output_dir}",
-                        "mode": "rw",
-                    }
-                },
-                command=f"ExpressionData {output_dir}",
-                detach=True,
-                tty=True,
-            )
+
+            # Construct the command based on the parameters entered by the user
+            command = f"ExpressionData {output_dir}"
 
         else:
+
             # Define docker image
             image = "adriansegura99/geneci_extract-data_grndata"
+
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 print("Downloading docker image ...")
                 client.images.pull(repository=image)
-            # The image is executed with the parameters set by the user.
-            container = client.containers.run(
-                image=image,
-                volumes={
-                    Path(f"./{output_dir}/").absolute(): {
-                        "bind": f"/usr/local/src/{output_dir}",
-                        "mode": "rw",
-                    }
-                },
-                command=f"{db} ExpressionData {output_dir}",
-                detach=True,
-                tty=True,
-            )
 
-        # Wait for the container to run and display reported logs
-        r = container.wait()
-        logs = container.logs()
-        if logs:
-            print(logs.decode("utf-8"))
+            # Construct the command based on the parameters entered by the user
+            command = f"{db} ExpressionData {output_dir}"
 
-        # Stop and remove the container
-        container.stop()
-        container.remove(v=True)
+        # Run container
+        container = client.containers.run(
+            image=image,
+            volumes=get_volume(output_dir),
+            command=command,
+            detach=True,
+            tty=True,
+        )
+
+        # Wait, stop and remove the container. Then print reported logs
+        logs = wait_and_close_container(container)
+        print(logs)
 
 
 # Command to extract gold standards
@@ -326,126 +351,91 @@ def gold_standard(
 
     # Scroll through the list of databases specified by the user to extract data from each of them.
     for db in database:
+
         # Create the output folder
         Path(f"./{output_dir}/{db}/GS/").mkdir(exist_ok=True, parents=True)
+
         # Report information to the user
         print(f"\n Extracting gold standards from {db}")
 
         # Execute the corresponding image according to the database.
         if db == "DREAM3":
+
             # Define docker image
             image = "adriansegura99/geneci_extract-data_dream3"
+
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 print("Downloading docker image ...")
                 client.images.pull(repository=image)
-            # The image is executed with the parameters set by the user.
-            container = client.containers.run(
-                image=image,
-                volumes={
-                    Path(f"./{output_dir}/").absolute(): {
-                        "bind": f"/usr/local/src/{output_dir}",
-                        "mode": "rw",
-                    }
-                },
-                command=f"--category GoldStandard --output-folder {output_dir} --username {username} --password {password}",
-                detach=True,
-                tty=True,
-            )
+
+            # Construct the command based on the parameters entered by the user
+            command = f"--category GoldStandard --output-folder {output_dir} --username {username} --password {password}"
 
         elif db == "DREAM4":
+
             # Define docker image
             image = "adriansegura99/geneci_extract-data_dream4-expgs"
+
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 print("Downloading docker image ...")
                 client.images.pull(repository=image)
-            # The image is executed with the parameters set by the user.
-            container = client.containers.run(
-                image=image,
-                volumes={
-                    Path(f"./{output_dir}/").absolute(): {
-                        "bind": f"/usr/local/src/{output_dir}",
-                        "mode": "rw",
-                    }
-                },
-                command=f"GoldStandard {output_dir}",
-                detach=True,
-                tty=True,
-            )
+
+            # Construct the command based on the parameters entered by the user
+            command = f"GoldStandard {output_dir}"
 
         elif db == "DREAM5":
+
             # Define docker image
             image = "adriansegura99/geneci_extract-data_dream5"
+
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 print("Downloading docker image ...")
                 client.images.pull(repository=image)
-            # The image is executed with the parameters set by the user.
-            container = client.containers.run(
-                image=image,
-                volumes={
-                    Path(f"./{output_dir}/").absolute(): {
-                        "bind": f"/usr/local/src/{output_dir}",
-                        "mode": "rw",
-                    }
-                },
-                command=f"--category GoldStandard --output-folder {output_dir} --username {username} --password {password}",
-                detach=True,
-                tty=True,
-            )
+
+            # Construct the command based on the parameters entered by the user
+            command = f"--category GoldStandard --output-folder {output_dir} --username {username} --password {password}"
 
         elif db == "IRMA":
+
             # Define docker image
             image = "adriansegura99/geneci_extract-data_irma"
+
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 print("Downloading docker image ...")
                 client.images.pull(repository=image)
-            # The image is executed with the parameters set by the user.
-            container = client.containers.run(
-                image=image,
-                volumes={
-                    Path(f"./{output_dir}/").absolute(): {
-                        "bind": f"/usr/local/src/{output_dir}",
-                        "mode": "rw",
-                    }
-                },
-                command=f"GoldStandard {output_dir}",
-                detach=True,
-                tty=True,
-            )
+
+            # Construct the command based on the parameters entered by the user
+            command = f"GoldStandard {output_dir}"
 
         else:
+
             # Define docker image
             image = "adriansegura99/geneci_extract-data_grndata"
+
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 print("Downloading docker image ...")
                 client.images.pull(repository=image)
-            # The image is executed with the parameters set by the user.
-            container = client.containers.run(
-                image=image,
-                volumes={
-                    Path(f"./{output_dir}/").absolute(): {
-                        "bind": f"/usr/local/src/{output_dir}",
-                        "mode": "rw",
-                    }
-                },
-                command=f"{db} GoldStandard {output_dir}",
-                detach=True,
-                tty=True,
-            )
 
-        # Wait for the container to run and display reported logs
-        r = container.wait()
-        logs = container.logs()
-        if logs:
-            print(logs.decode("utf-8"))
+            # Construct the command based on the parameters entered by the user
+            command = f"{db} GoldStandard {output_dir}"
 
-        # Stop and remove the container
-        container.stop()
-        container.remove(v=True)
+        # Run container
+        container = client.containers.run(
+            image=image,
+            volumes=get_volume(output_dir),
+            command=command,
+            detach=True,
+            tty=True,
+        )
+
+        # Wait, stop and remove the container. Then print reported logs
+        logs = wait_and_close_container(container)
+        print(logs)
 
 
 # Command to extract evaluation data
@@ -464,86 +454,67 @@ def evaluation_data(
     Download evaluation data from various DREAM challenges.
     """
 
-    # # Scroll through the list of databases specified by the user to extract data from each of them.
+    # Scroll through the list of databases specified by the user to extract data from each of them.
     for db in database:
+
         # Create the output folder
         Path(f"./{output_dir}/{db}/EVAL/").mkdir(exist_ok=True, parents=True)
+
         # Report information to the user
         print(f"\n Extracting evaluation data from {db}")
 
         # Execute the corresponding image according to the database.
         if db == "DREAM3":
+
             # Define docker image
             image = "adriansegura99/geneci_extract-data_dream3"
+
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 print("Downloading docker image ...")
                 client.images.pull(repository=image)
-            # The image is executed with the parameters set by the user.
-            container = client.containers.run(
-                image=image,
-                volumes={
-                    Path(f"./{output_dir}/").absolute(): {
-                        "bind": f"/usr/local/src/{output_dir}",
-                        "mode": "rw",
-                    }
-                },
-                command=f"--category EvaluationData --output-folder {output_dir} --username {username} --password {password}",
-                detach=True,
-                tty=True,
-            )
+
+            # Construct the command based on the parameters entered by the user
+            command = f"--category EvaluationData --output-folder {output_dir} --username {username} --password {password}"
 
         elif db == "DREAM4":
+
             # Define docker image
             image = "adriansegura99/geneci_extract-data_dream4-eval"
+
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 print("Downloading docker image ...")
                 client.images.pull(repository=image)
-            # The image is executed with the parameters set by the user.
-            container = client.containers.run(
-                image=image,
-                volumes={
-                    Path(f"./{output_dir}/").absolute(): {
-                        "bind": f"/usr/local/src/{output_dir}",
-                        "mode": "rw",
-                    }
-                },
-                command=f"--output-folder {output_dir} --username {username} --password {password}",
-                detach=True,
-                tty=True,
-            )
+
+            # Construct the command based on the parameters entered by the user
+            command = f"--category EvaluationData --output-folder {output_dir} --username {username} --password {password}"
 
         elif db == "DREAM5":
+
             # Define docker image
             image = "adriansegura99/geneci_extract-data_dream5"
+
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 print("Downloading docker image ...")
                 client.images.pull(repository=image)
-            # The image is executed with the parameters set by the user.
-            container = client.containers.run(
-                image=image,
-                volumes={
-                    Path(f"./{output_dir}/").absolute(): {
-                        "bind": f"/usr/local/src/{output_dir}",
-                        "mode": "rw",
-                    }
-                },
-                command=f"--category EvaluationData --output-folder {output_dir} --username {username} --password {password}",
-                detach=True,
-                tty=True,
-            )
 
-        # Wait for the container to run and display reported logs.
-        r = container.wait()
-        logs = container.logs()
-        if logs:
-            print(logs.decode("utf-8"))
+            # Construct the command based on the parameters entered by the user
+            command = f"--category EvaluationData --output-folder {output_dir} --username {username} --password {password}"
 
-        # Stop and remove the container.
-        container.stop()
-        container.remove(v=True)
+        # Run container
+        container = client.containers.run(
+            image=image,
+            volumes=get_volume(output_dir),
+            command=command,
+            detach=True,
+            tty=True,
+        )
+
+        # Wait, stop and remove the container. Then print reported logs
+        logs = wait_and_close_container(container)
+        print(logs)
 
 
 # Command for inferring networks by applying individual techniques.
@@ -570,6 +541,7 @@ def infer_network(
     Path(f"./{output_dir}/{expression_data.stem}/lists/").mkdir(
         exist_ok=True, parents=True
     )
+
     # Temporarily copy the input files to the same folder in order to facilitate the container volume.
     tmp_exp_dir = f"./{output_dir}/{expression_data.name}"
     shutil.copyfile(expression_data, tmp_exp_dir)
@@ -577,8 +549,10 @@ def infer_network(
     # The different images corresponding to the inference techniques are run in parallel.
     containers = list()
     for tec in technique:
+
         # Report information to the user.
         print(f"\n Infer network from {expression_data} with {tec}")
+
         # The image is selected according to the chosen technique.
         if tec == "GENIE3_RF":
             image = f"adriansegura99/geneci_infer-network_genie3"
@@ -597,45 +571,37 @@ def infer_network(
         if not image in available_images:
             print("Downloading docker image ...")
             client.images.pull(repository=image)
+
         # The image is executed with the parameters set by the user.
         container = client.containers.run(
             image=image,
-            volumes={
-                Path(f"./{output_dir}/").absolute(): {
-                    "bind": f"/usr/local/src/{output_dir}",
-                    "mode": "rw",
-                }
-            },
+            volumes=get_volume(output_dir),
             command=f"{tmp_exp_dir} {output_dir} {variant}",
             detach=True,
             tty=True,
         )
+
         # The container is added to the list so that the following can be executed
         containers.append(container)
 
     # For each container, we wait for it to finish its execution, stop and delete it.
     for container in containers:
-        # Wait for the container to run and display reported logs.
-        r = container.wait()
-        logs = container.logs()
-        if logs:
-            print(logs.decode("utf-8"))
-
-        # Stop and remove the container.
-        container.stop()
-        container.remove(v=True)
+        # Wait, stop and remove the container. Then print reported logs
+        logs = wait_and_close_container(container)
+        print(logs)
 
     # The initially copied input files are deleted.
     Path(tmp_exp_dir).unlink()
 
     # An additional file is created with the list of genes for the subsequent optimization process.
     gene_names = f"./{output_dir}/{expression_data.stem}/gene_names.txt"
-    if not Path(gene_names).is_file():
-        with open(expression_data, "r") as f:
-            gene_list = [row.split(",")[0].replace('"', "") for row in f]
-            if gene_list[0] == "":
-                del gene_list[0]
 
+    # If it doens't exist ...
+    if not Path(gene_names).is_file():
+        # Get gene names from expression file
+        gene_list = get_gene_names_from_expression_file(expression_data)
+
+        # Write gene names to default file
         with open(gene_names, "w") as f:
             f.write(",".join(gene_list))
 
@@ -672,6 +638,7 @@ def apply_cut(
     """
     Converts a list of confidence values into a binary matrix that represents the final gene network.
     """
+
     # Report information to the user.
     print(
         f"Apply cut to {confidence_list} with {cut_off_criteria} and value {cut_off_value}"
@@ -682,13 +649,19 @@ def apply_cut(
     tmp_confidence_list_dir = f"tmp/{Path(confidence_list).name}"
     shutil.copyfile(confidence_list, tmp_confidence_list_dir)
 
-    # If a gene list is provided it is copied to the temporary directory or else it is created from the trusted list.
+    # Define default temp path to gene names list
+    tmp_gene_names_dir = "tmp/gene_names.txt"
+
+    # If a gene list is provided it is copied to the temporary directory
     if gene_names:
-        tmp_gene_names_dir = f"tmp/{Path(gene_names).name}"
         shutil.copyfile(gene_names, tmp_gene_names_dir)
+
+    # Or else it is created from the trusted list.
     else:
-        tmp_gene_names_dir = "tmp/gene_names.txt"
-        gene_list = get_gene_names(confidence_list)
+        # Get gene names from confidence list file
+        gene_list = get_gene_names_from_conf_list(confidence_list)
+
+        # Write gene names to default file
         with open(tmp_gene_names_dir, "w") as f:
             f.write(",".join(sorted(gene_list)))
 
@@ -701,30 +674,24 @@ def apply_cut(
 
     # Define docker image
     image = "adriansegura99/geneci_apply-cut"
+
     # In case it is not available on the device, it is downloaded from the repository.
     if not image in available_images:
         print("Downloading docker image ...")
         client.images.pull(repository=image)
+
     # The image is executed with the parameters set by the user.
     container = client.containers.run(
         image=image,
-        volumes={
-            Path(f"./tmp/").absolute(): {"bind": f"/usr/local/src/tmp", "mode": "rw"}
-        },
+        volumes=get_volume("tmp"),
         command=f"{tmp_confidence_list_dir} {tmp_gene_names_dir} tmp/{output_file} {cut_off_criteria} {cut_off_value}",
         detach=True,
         tty=True,
     )
 
-    # Wait for the container to run and display reported logs.
-    r = container.wait()
-    logs = container.logs()
-    if logs:
-        print(logs.decode("utf-8"))
-
-    # Stop and remove the container.
-    container.stop()
-    container.remove(v=True)
+    # Wait, stop and remove the container. Then print reported logs
+    logs = wait_and_close_container(container)
+    print(logs)
 
     # Copy the output file from the temporary folder to the final one and delete the temporary one.
     shutil.copyfile(f"tmp/{output_file}", output_file)
@@ -735,79 +702,99 @@ def apply_cut(
 @app.command(rich_help_panel="Commands for two-step main execution")
 def optimize_ensemble(
     confidence_list: Optional[List[str]] = typer.Option(
-        ..., help="Paths of the CSV files with the confidence lists to be agreed upon.",
-        rich_help_panel="Input data"
+        ...,
+        help="Paths of the CSV files with the confidence lists to be agreed upon.",
+        rich_help_panel="Input data",
     ),
     gene_names: Path = typer.Option(
         None,
         exists=True,
         file_okay=True,
         help="Path to the TXT file with the name of the contemplated genes separated by comma and without space. If not specified, only the genes specified in the lists of trusts will be considered.",
-        rich_help_panel="Input data"
+        rich_help_panel="Input data",
     ),
     time_series: Path = typer.Option(
         None,
         exists=True,
         file_okay=True,
         help="Path to the CSV file with the time series from which the individual gene networks have been inferred. This parameter is only necessary in case of specifying the fitness function Loyalty.",
-        rich_help_panel="Input data"
+        rich_help_panel="Input data",
     ),
-    crossover: Crossover = typer.Option("SBXCrossover", help="Crossover operator", rich_help_panel="Crossover"),
-    crossover_probability: float = typer.Option(0.9, help="Crossover probability", rich_help_panel="Crossover"),
-    mutation: Mutation = typer.Option("PolynomialMutation", help="Mutation operator", rich_help_panel="Mutation"),
+    crossover: Crossover = typer.Option(
+        "SBXCrossover", help="Crossover operator", rich_help_panel="Crossover"
+    ),
+    crossover_probability: float = typer.Option(
+        0.9, help="Crossover probability", rich_help_panel="Crossover"
+    ),
+    mutation: Mutation = typer.Option(
+        "PolynomialMutation", help="Mutation operator", rich_help_panel="Mutation"
+    ),
     mutation_probability: float = typer.Option(
-        -1, help="Mutation probability. [default: 1/len(files)]", show_default=False, rich_help_panel="Mutation"
+        -1,
+        help="Mutation probability. [default: 1/len(files)]",
+        show_default=False,
+        rich_help_panel="Mutation",
     ),
     repairer: Repairer = typer.Option(
         "StandardizationRepairer",
         help="Solution repairer to keep the sum of weights equal to 1",
-        rich_help_panel="Repairer"
+        rich_help_panel="Repairer",
     ),
-    population_size: int = typer.Option(100, help="Population size", rich_help_panel="Diversity and depth"),
-    num_evaluations: int = typer.Option(25000, help="Number of evaluations", rich_help_panel="Diversity and depth"),
+    population_size: int = typer.Option(
+        100, help="Population size", rich_help_panel="Diversity and depth"
+    ),
+    num_evaluations: int = typer.Option(
+        25000, help="Number of evaluations", rich_help_panel="Diversity and depth"
+    ),
     cut_off_criteria: CutOffCriteria = typer.Option(
         "MinConfDist",
         case_sensitive=False,
         help="Criteria for determining which links will be part of the final binary matrix.",
-        rich_help_panel="Cut-Off"
+        rich_help_panel="Cut-Off",
     ),
     cut_off_value: float = typer.Option(
         0.5,
         help="Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfDist = 0.2",
-        rich_help_panel="Cut-Off"
+        rich_help_panel="Cut-Off",
     ),
     function: Optional[List[str]] = typer.Option(
-        ["Quality", "Topology"], help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, Topology and Loyalty.",
-        rich_help_panel="Fitness"
+        ["Quality", "Topology"],
+        help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, Topology and Loyalty.",
+        rich_help_panel="Fitness",
     ),
     algorithm: Algorithm = typer.Option(
-        "NSGAII", help="Evolutionary algorithm to be used during the optimization process. All are intended for a multi-objective approach with the exception of the genetic algorithm (GA).",
-        rich_help_panel="Orchestration"
+        "NSGAII",
+        help="Evolutionary algorithm to be used during the optimization process. All are intended for a multi-objective approach with the exception of the genetic algorithm (GA).",
+        rich_help_panel="Orchestration",
     ),
     threads: int = typer.Option(
         multiprocessing.cpu_count(),
         help="Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.",
-        rich_help_panel="Orchestration"
+        rich_help_panel="Orchestration",
     ),
     plot_evolution: bool = typer.Option(
         False,
         help="Indicate if you want to represent the evolution of the fitness value.",
-        rich_help_panel="Graphics"
+        rich_help_panel="Graphics",
     ),
     output_dir: Path = typer.Option(
-        "<<conf_list_path>>/../ea_consensus", help="Path to the output folder.",
-        rich_help_panel="Output"
+        "<<conf_list_path>>/../ea_consensus",
+        help="Path to the output folder.",
+        rich_help_panel="Output",
     ),
 ):
     """
     Analyzes several trust lists and builds a consensus network by applying an evolutionary algorithm
     """
+
     # Report information to the user.
     print(f"\n Optimize ensemble for {confidence_list}")
 
     # If the number of trusted lists is less than two, an error is sent
     if len(confidence_list) < 2:
-        print("[bold red]Error:[/bold red] Insufficient number of confidence lists provided")
+        print(
+            "[bold red]Error:[/bold red] Insufficient number of confidence lists provided"
+        )
         raise typer.Abort()
 
     # Create the string representing the set of fitness functions to be checked in the input to the evolutionary algorithm
@@ -819,21 +806,32 @@ def optimize_ensemble(
 
     # The temporary folder is created
     Path("tmp/lists").mkdir(exist_ok=True, parents=True)
+
     # Input trust lists are copied
     for file in confidence_list:
         shutil.copyfile(file, f"tmp/lists/{Path(file).name}")
 
-    # If a gene list is provided it is copied to the temporary directory or else it is created from the trusted list.
+    # Define default temp path to gene names list
     tmp_gene_names_dir = "tmp/gene_names.txt"
+
+    # If a gene list is provided it is copied to the temporary directory
     if gene_names:
         shutil.copyfile(gene_names, tmp_gene_names_dir)
+
+    # Or else it is created from the trusted list.
     else:
+
+        # Create an empty set to later store the name of the genes
         gene_list = set()
+
+        # For each file provided in the input, the genes contained in the file are read and added to the set
         for file in confidence_list:
-            gene_list.update(get_gene_names(file))
+            gene_list.update(get_gene_names_from_conf_list(file))
+
+        # Write gene names to default file
         with open(tmp_gene_names_dir, "w") as f:
             f.write(",".join(sorted(gene_list)))
-    
+
     # Copy the file with the time series if specified
     tmp_time_series_dir = "tmp/time_series.csv"
     if time_series:
@@ -841,45 +839,47 @@ def optimize_ensemble(
 
     # Define docker image
     image = "adriansegura99/geneci_optimize-ensemble"
+
     # In case it is not available on the device, it is downloaded from the repository.
     if not image in available_images:
         print("Downloading docker image ...")
         client.images.pull(repository=image)
+
     # The image is executed with the parameters set by the user.
     container = client.containers.run(
         image=image,
-        volumes={
-            Path(f"./tmp/").absolute(): {"bind": f"/usr/local/src/tmp", "mode": "rw"}
-        },
+        volumes=get_volume("tmp"),
         command=f"tmp/ {crossover} {crossover_probability} {mutation} {mutation_probability} {repairer} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {functions} {algorithm} {threads} {plot_evolution}",
         detach=True,
         tty=True,
     )
 
-    # Wait for the container to run and display reported logs.
-    r = container.wait()
-    logs = container.logs()
-    if logs:
-        if "Exception in thread" in logs.decode("utf-8"):
-            print("\n" + "[bold red]Error:[/bold red] " + logs.decode("utf-8"))
-            shutil.rmtree("tmp")
-            raise typer.Abort()
-        else:
-            print("\n" + "[bold green]Ok![/bold green] \n" + logs.decode("utf-8"))
-
-    # Stop and remove the container.
-    container.stop()
-    container.remove(v=True)
+    # Wait, stop and remove the container. Then print reported logs
+    logs = wait_and_close_container(container)
+    print(logs)
 
     # If specified, the evolution of the fitness values ​​is graphed
     if plot_evolution:
+
+        # Open the file with the fitness values
         f = open("tmp/ea_consensus/fitness_evolution.txt", "r")
+
+        # Each line contains the evolution of a different objective
         lines = f.readlines()
+
+        # For each target ...
         for i in range(len(lines)):
+
+            # Read the evolution of its values
             str_fitness = lines[i].split(", ")
+
+            # Convert it to the appropriate type (float)
             fitness = [float(i) for i in str_fitness]
+
+            # Plot it under the label of its function
             plt.plot(fitness, label=function[i])
 
+        # Customize and save the figure
         plt.title("Fitness evolution")
         plt.ylabel("Fitness")
         plt.xlabel("Generation")
@@ -889,19 +889,35 @@ def optimize_ensemble(
 
     # If there are two objectives the pareto front is plotted
     if len(function) == 2:
+
+        # Open the file with the fitness values associated with the non-dominated solutions.
         f = open("tmp/ea_consensus/FUN.csv", "r")
+
+        # Each line contains the fitness values of a solution of the pareto front.
         lines = f.readlines()
-        x = list()
-        y = list()
+
+        # The vectors that will store these values are created
+        fitness_o1 = np.empty(0)
+        fitness_o2 = np.empty(0)
+
+        # For each solution add its value to the list
         for line in lines:
             point = line.split(",")
-            x.append(float(point[0]))
-            y.append(float(point[1]))
-        x, y = zip(*sorted(zip(x, y)))
-        plt.plot(x, y)
+            fitness_o1 = np.append(fitness_o1, float(point[0]))
+            fitness_o2 = np.append(fitness_o2, float(point[1]))
+
+        # Obtain the order corresponding to the first objective in order to plot the front in an appropriate way.
+        sorted_idx = np.argsort(fitness_o1)
+
+        # Sort both vectors according to the indices obtained above.
+        fitness_o1 = [fitness_o1[i] for i in sorted_idx]
+        fitness_o2 = [fitness_o2[i] for i in sorted_idx]
+
+        # Plot, customize, save the figure
+        plt.plot(fitness_o1, fitness_o2, marker = '.')
         plt.title("Pareto front")
-        plt.ylabel(function[0])
-        plt.xlabel(function[1])
+        plt.xlabel(function[0])
+        plt.ylabel(function[1])
         plt.savefig("tmp/ea_consensus/pareto_front.pdf")
         plt.close()
 
@@ -916,9 +932,10 @@ def optimize_ensemble(
     shutil.rmtree("tmp")
 
 
-# Command to evaluate the accuracy of DREAM inferred networks
-@evaluate_app.command()
-def dream_prediction(
+# Commands to evaluate the accuracy of DREAM inferred networks
+## Command for evaluate one list
+@dream_prediction_app.command()
+def dream_list_of_links(
     challenge: Challenge = typer.Option(
         ..., help="DREAM challenge to which the inferred network belongs"
     ),
@@ -935,103 +952,284 @@ def dream_prediction(
     ),
 ):
     """
-    Evaluate the accuracy with which networks belonging to the DREAM challenges are predicted.
+    Evaluate one list of links with confidence levels.
     """
+
     # Report information to the user.
     print(
         f"Evaluate {confidence_list} prediction for {network_id} network in {challenge.name} challenge"
     )
 
-    # Create temporary folder.
+    # Create temporary folder
     Path("tmp/synapse/").mkdir(exist_ok=True, parents=True)
-    # Copy evaluation files.
+
+    # Copy evaluation files
     tmp_synapse_files_dir = "tmp/synapse/"
     for f in synapse_file:
         shutil.copyfile(f, tmp_synapse_files_dir + Path(f).name)
-    # Copy confidence list.
+
+    # Copy confidence list
     tmp_confidence_list_dir = f"tmp/{Path(confidence_list).name}"
     shutil.copyfile(confidence_list, tmp_confidence_list_dir)
 
     # Define docker image
     image = "adriansegura99/geneci_evaluate_dream-prediction"
+
     # In case it is not available on the device, it is downloaded from the repository.
     if not image in available_images:
         print("Downloading docker image ...")
         client.images.pull(repository=image)
+
     # The image is executed with the parameters set by the user.
     container = client.containers.run(
         image=image,
-        volumes={
-            Path(f"./tmp/").absolute(): {"bind": f"/usr/local/src/tmp", "mode": "rw"}
-        },
+        volumes=get_volume("tmp"),
         command=f"--challenge {challenge.name} --network-id {network_id} --synapse-folder {tmp_synapse_files_dir} --confidence-list {tmp_confidence_list_dir}",
         detach=True,
         tty=True,
     )
 
-    # Wait for the container to run and display reported logs.
-    r = container.wait()
-    logs = container.logs()
-    if logs:
-        print(logs.decode("utf-8"))
-
-    # Stop and remove the container.
-    container.stop()
-    container.remove(v=True)
+    # Wait, stop and remove the container. Then print reported logs
+    logs = wait_and_close_container(container)
+    print(logs)
 
     # Delete temp folder
     shutil.rmtree("tmp")
 
+    # For coding use
+    return logs
+
+
+## Command for evaluate weight distribution
+@dream_prediction_app.command()
+def dream_weight_distribution(
+    challenge: Challenge = typer.Option(
+        ..., help="DREAM challenge to which the inferred network belongs"
+    ),
+    network_id: str = typer.Option(..., help="Predicted network identifier. Ex: 10_1"),
+    synapse_file: List[Path] = typer.Option(
+        ...,
+        help="Paths to files from synapse needed to perform inference evaluation. To download these files you need to register at https://www.synapse.org/# and download them manually or run the command extract-data evaluation-data.",
+    ),
+    weight_file_summand: Optional[List[str]] = typer.Option(
+        ...,
+        help="Paths of the CSV files with the confidence lists together with its associated weights. Example: 0.7*/path/to/list.csv",
+    ),
+):
+    """
+    Evaluate one weight distribution.
+    """
+
+    # Calculate the list of links from the distribution of weights
+    weighted_confidence(
+        weight_file_summand=weight_file_summand,
+        output_file=Path("./tmp2/temporal_list.csv"),
+    )
+
+    # Calculate the AUROC and AUPR values for the generated list.
+    values = dream_list_of_links(
+        challenge=challenge,
+        network_id=network_id,
+        synapse_file=synapse_file,
+        confidence_list="./tmp2/temporal_list.csv",
+    )
+
+    # Delete temp folder
+    shutil.rmtree("tmp2")
+
+    # For coding use
+    return values
+
+
+## Command for evaluate pareto front
+@dream_prediction_app.command()
+def dream_pareto_front(
+    challenge: Challenge = typer.Option(
+        ..., help="DREAM challenge to which the inferred network belongs"
+    ),
+    network_id: str = typer.Option(..., help="Predicted network identifier. Ex: 10_1"),
+    synapse_file: List[Path] = typer.Option(
+        ...,
+        help="Paths to files from synapse needed to perform inference evaluation. To download these files you need to register at https://www.synapse.org/# and download them manually or run the command extract-data evaluation-data.",
+    ),
+    weights_file: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help="File with the weights corresponding to a pareto front.",
+    ),
+    fitness_file: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help="File with the fitness values corresponding to a pareto front.",
+    ),
+    confidence_list: Optional[List[str]] = typer.Option(
+        ...,
+        help="Paths to the CSV files with the confidence lists in the same order in which the weights and fitness values are specified in the corresponding files.",
+    ),
+    output_file: Path = typer.Option("./evaluated_front.csv", help="Output file path"),
+    plot_front: bool = typer.Option(
+        True,
+        help="Indicate if you want to represent pareto front with AUROC and AUPR metrics.",
+    ),
+):
+    """
+    Evaluate pareto front.
+    """
+
+    # 1. Fitness Values
+    ## Open the file with the fitness values associated with the non-dominated solutions.
+    f = open(fitness_file, "r")
+
+    ## Each line contains the fitness values of a solution of the pareto front.
+    lines = f.readlines()
+
+    ## The vectors that will store these values are created
+    fitness_o1 = np.empty(0)
+    fitness_o2 = np.empty(0)
+
+    ## For each solution add its value to the list
+    for line in lines:
+        point = line.split(",")
+        fitness_o1 = np.append(fitness_o1, float(point[0]))
+        fitness_o2 = np.append(fitness_o2, float(point[1]))
+
+    ## Obtain the order corresponding to the first objective in order to plot the front in an appropriate way.
+    sorted_idx = np.argsort(fitness_o1)
+
+    ## Sort both vectors according to the indices obtained above.
+    fitness_o1 = [fitness_o1[i] for i in sorted_idx]
+    fitness_o2 = [fitness_o2[i] for i in sorted_idx]
+
+    # 2. Distribution of weights
+    ## Open the file with the weights assigned to each inference technique.
+    f = open(weights_file, "r")
+
+    ## Each line contains the distribution of weights proposed by a solution of the pareto front.
+    lines = f.readlines()
+
+    ## The vector that will store the vectors with these weights is created (list formed by lists).
+    weights = list()
+
+    ## For each weight distribution ...
+    for line in lines:
+
+        # Converts to the appropriate type (float)
+        solution = [float(w) for w in line.split(",")]
+
+        # Added to the list
+        weights.append(solution)
+
+    ## Finally, it is ordered according to the previously obtained indexes to maintain concordance with the previous lists.
+    weights = [weights[i] for i in sorted_idx]
+
+    # 3. Evaluation Metrics
+    ## The lists where the auroc and aupr values are going to be stored are created.
+    auprs = list()
+    aurocs = list()
+
+    ## For each weight distribution (solution) ...
+    for solution in weights:
+
+        # The list of summands formed by products between the weights and the inference files provided in the input is constructed.
+        weight_file_summand = list()
+        for i in range(len(solution)):
+            weight_file_summand.append(f"{solution[i]}*{confidence_list[i]}")
+
+        # The function responsible for evaluating weight distributions is called
+        values = dream_weight_distribution(
+            challenge=challenge,
+            network_id=network_id,
+            synapse_file=synapse_file,
+            weight_file_summand=weight_file_summand,
+        )
+
+        # The obtained accuracy values are read and stored in the list.
+        str_list = values.split("\n")
+        auprs.append(float(str_list[1].split(" ")[1]))
+        aurocs.append(float(str_list[2].split(" ")[1]))
+
+    # 4. Writing the output CSV file
+    ## The file path is created
+    output_file.parent.mkdir(exist_ok=True, parents=True)
+
+    ## The content of the obtained vectors is written
+    with open(output_file, "w") as f:
+        f.write(
+            f"Weights{''.join([',' for i in range(len(confidence_list)-1)])},Fitness Values,,Evaluation Values,\n"
+        )
+        f.write(
+            f"{','.join([Path(f).name for f in confidence_list])},Objective 1,Objective 2,AUROC,AUPR\n"
+        )
+        for i in range(len(sorted_idx)):
+            f.write(
+                f"{','.join([str(w) for w in weights[i]])},{fitness_o1[i]},{fitness_o2[i]},{aurocs[i]},{auprs[i]}\n"
+            )
+        f.close()
+
+    # 5. Plot the information on a graph if specified
+    if plot_front:
+        plt.plot(fitness_o1, fitness_o2, marker = '.', label="Fitness Values")
+        plt.plot(fitness_o1, aurocs, marker = '.', label="AUROC")
+        plt.plot(fitness_o1, auprs, marker = '.', label="AUPR")
+        plt.title("Pareto front")
+        plt.xlabel("Objective 1")
+        plt.ylabel("Objective 2")
+        plt.legend()
+        plt.savefig(f"{output_file.parent}/{output_file.stem}.pdf")
+        plt.close()
+
 
 # Command to evaluate the accuracy of generic inferred networks
-@evaluate_app.command()
-def generic_prediction(
+@generic_prediction_app.command()
+def generic_list_of_links(
     inferred_binary_matrix: Path = typer.Option(
         ..., exists=True, file_okay=True, help="Binary network to be evaluated"
     ),
-    gs_binary_matrix: Path = typer.Option(..., exists=True, file_okay=True, help="Gold standard binary network"),
+    gs_binary_matrix: Path = typer.Option(
+        ..., exists=True, file_okay=True, help="Gold standard binary network"
+    ),
 ):
     """
-    Evaluate the accuracy with which any generic network has been predicted with respect to a given gold standard. To do so, it approaches the case as a binary classification problem between 0 and 1.
+    Evaluate one list of links with confidence levels.
     """
     # Report information to the user.
     print(
         f"Evaluate {inferred_binary_matrix} prediction with respect {gs_binary_matrix} gold standard"
     )
 
-    # Create temporary folder and copy the network to test and its respective gold standard
+    # Create temporary folder
     Path("tmp/").mkdir(exist_ok=True)
+
+    # Copy the network to test
     tmp_ibm_dir = f"tmp/{Path(inferred_binary_matrix).name}"
     shutil.copyfile(inferred_binary_matrix, tmp_ibm_dir)
+
+    # And its respective gold standard
     tmp_gsbm_dir = f"tmp/{Path(gs_binary_matrix).name}"
     shutil.copyfile(gs_binary_matrix, tmp_gsbm_dir)
 
     # Define docker image
     image = "adriansegura99/geneci_evaluate_generic-prediction"
+
     # In case it is not available on the device, it is downloaded from the repository.
     if not image in available_images:
         print("Downloading docker image ...")
         client.images.pull(repository=image)
+
     # The image is executed with the parameters set by the user.
     container = client.containers.run(
         image=image,
-        volumes={
-            Path(f"./tmp/").absolute(): {"bind": f"/usr/local/src/tmp", "mode": "rw"}
-        },
+        volumes=get_volume("tmp"),
         command=f"{tmp_ibm_dir} {tmp_gsbm_dir}",
         detach=True,
         tty=True,
     )
 
-    # Wait for the container to run and display reported logs.
-    r = container.wait()
-    logs = container.logs()
-    if logs:
-        print(logs.decode("utf-8"))
-
-    # Stop and remove the container.
-    container.stop()
-    container.remove(v=True)
+    # Wait, stop and remove the container. Then print reported logs
+    logs = wait_and_close_container(container)
+    print(logs)
 
     # Delete temp folder
     shutil.rmtree("tmp")
@@ -1045,61 +1243,81 @@ def run(
         exists=True,
         file_okay=True,
         help="Path to the CSV file with the expression data. Genes are distributed in rows and experimental conditions (time series) in columns.",
-        rich_help_panel="Input data"
+        rich_help_panel="Input data",
     ),
     technique: Optional[List[Technique]] = typer.Option(
-        ..., case_sensitive=False, help="Inference techniques to be performed.", rich_help_panel="Individual inference"
+        ...,
+        case_sensitive=False,
+        help="Inference techniques to be performed.",
+        rich_help_panel="Individual inference",
     ),
-    crossover: Crossover = typer.Option("SBXCrossover", help="Crossover operator", rich_help_panel="Crossover"),
-    crossover_probability: float = typer.Option(0.9, help="Crossover probability", rich_help_panel="Crossover"),
-    mutation: Mutation = typer.Option("PolynomialMutation", help="Mutation operator", rich_help_panel="Mutation"),
+    crossover: Crossover = typer.Option(
+        "SBXCrossover", help="Crossover operator", rich_help_panel="Crossover"
+    ),
+    crossover_probability: float = typer.Option(
+        0.9, help="Crossover probability", rich_help_panel="Crossover"
+    ),
+    mutation: Mutation = typer.Option(
+        "PolynomialMutation", help="Mutation operator", rich_help_panel="Mutation"
+    ),
     mutation_probability: float = typer.Option(
-        -1, help="Mutation probability. [default: 1/len(files)]", show_default=False, rich_help_panel="Mutation"
+        -1,
+        help="Mutation probability. [default: 1/len(files)]",
+        show_default=False,
+        rich_help_panel="Mutation",
     ),
     repairer: Repairer = typer.Option(
         "StandardizationRepairer",
         help="Solution repairer to keep the sum of weights equal to 1",
-        rich_help_panel="Repairer"
+        rich_help_panel="Repairer",
     ),
-    population_size: int = typer.Option(100, help="Population size", rich_help_panel="Diversity and depth"),
-    num_evaluations: int = typer.Option(25000, help="Number of evaluations", rich_help_panel="Diversity and depth"),
+    population_size: int = typer.Option(
+        100, help="Population size", rich_help_panel="Diversity and depth"
+    ),
+    num_evaluations: int = typer.Option(
+        25000, help="Number of evaluations", rich_help_panel="Diversity and depth"
+    ),
     cut_off_criteria: CutOffCriteria = typer.Option(
         "MinConfDist",
         case_sensitive=False,
         help="Criteria for determining which links will be part of the final binary matrix.",
-        rich_help_panel="Cut-Off"
+        rich_help_panel="Cut-Off",
     ),
     cut_off_value: float = typer.Option(
         0.5,
         help="Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfDist = 0.2",
-        rich_help_panel="Cut-Off"
+        rich_help_panel="Cut-Off",
     ),
     function: Optional[List[str]] = typer.Option(
-        ["Quality", "Topology"], help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, Topology and Loyalty.",
-        rich_help_panel="Fitness"
+        ["Quality", "Topology"],
+        help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, Topology and Loyalty.",
+        rich_help_panel="Fitness",
     ),
     algorithm: Algorithm = typer.Option(
-        "NSGAII", help="Evolutionary algorithm to be used during the optimization process. All are intended for a multi-objective approach with the exception of the genetic algorithm (GA).",
-        rich_help_panel="Orchestration"
+        "NSGAII",
+        help="Evolutionary algorithm to be used during the optimization process. All are intended for a multi-objective approach with the exception of the genetic algorithm (GA).",
+        rich_help_panel="Orchestration",
     ),
     threads: int = typer.Option(
         multiprocessing.cpu_count(),
         help="Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.",
-        rich_help_panel="Orchestration"
+        rich_help_panel="Orchestration",
     ),
     plot_evolution: bool = typer.Option(
         False,
         help="Indicate if you want to represent the evolution of the fitness value.",
-        rich_help_panel="Graphics"
+        rich_help_panel="Graphics",
     ),
     output_dir: Path = typer.Option(
-        Path("./inferred_networks"), help="Path to the output folder.",
-        rich_help_panel="Output"
+        Path("./inferred_networks"),
+        help="Path to the output folder.",
+        rich_help_panel="Output",
     ),
 ):
     """
     Infer gene regulatory network from expression data by employing multiple unsupervised learning techniques and applying a genetic algorithm for consensus optimization.
     """
+
     # Report information to the user.
     print(f"\n Run algorithm for {expression_data}")
 
@@ -1150,12 +1368,14 @@ def draw_network(
     """
     Draw gene regulatory networks from confidence lists.
     """
+
     # Report information to the user.
     print(f"\n Draw gene regulatory networks for {', '.join(confidence_list)}")
 
     # Create input temporary folder.
     tmp_input_folder = "tmp/input"
     Path(tmp_input_folder).mkdir(exist_ok=True, parents=True)
+
     # Create output temporary folder.
     tmp_output_folder = "tmp/output"
     Path(tmp_output_folder).mkdir(exist_ok=True, parents=True)
@@ -1169,47 +1389,44 @@ def draw_network(
 
     # Define docker image
     image = "adriansegura99/geneci_draw-network"
+
     # In case it is not available on the device, it is downloaded from the repository.
     if not image in available_images:
         print("Downloading docker image ...")
         client.images.pull(repository=image)
+
     # The image is executed with the parameters set by the user.
     container = client.containers.run(
         image=image,
-        volumes={
-            Path(f"./tmp/").absolute(): {"bind": f"/usr/local/src/tmp", "mode": "rw"}
-        },
+        volumes=get_volume("tmp"),
         command=f"{command} --mode {mode} --nodes-distribution {nodes_distribution} --output-folder {tmp_output_folder}",
         detach=True,
         tty=True,
     )
 
-    # Wait for the container to run and display reported logs.
-    r = container.wait()
-    logs = container.logs()
-    if logs:
-        print(logs.decode("utf-8"))
-
-    # Stop and remove the container.
-    container.stop()
-    container.remove(v=True)
+    # Wait, stop and remove the container. Then print reported logs
+    logs = wait_and_close_container(container)
+    print(logs)
 
     # Define and create the output folder
     if str(output_folder) == "<<conf_list_path>>/../network_graphics":
         output_folder = Path(f"{Path(confidence_list[0]).parents[1]}/network_graphics/")
     output_folder.mkdir(exist_ok=True, parents=True)
 
-    # All output files are moved and the temporary directory is deleted
+    # Move all output files
     for f in Path(tmp_output_folder).glob("*"):
         shutil.move(f, f"{output_folder}/{f.name}")
+
+    # Delete temporary directory
     shutil.rmtree("tmp")
 
 
 # Command for get weighted confidence levels from files and a given distribution of weights
 @app.command(rich_help_panel="Additional commands")
 def weighted_confidence(
-    file_weight_summand: Optional[List[str]] = typer.Option(
-        ..., help="Paths of the CSV files with the confidence lists together with its associated weights"
+    weight_file_summand: Optional[List[str]] = typer.Option(
+        ...,
+        help="Paths of the CSV files with the confidence lists together with its associated weights. Example: 0.7*/path/to/list.csv",
     ),
     output_file: Path = typer.Option(
         "<<conf_list_path>>/../weighted_confidence.csv", help="Output file path"
@@ -1218,63 +1435,84 @@ def weighted_confidence(
     """
     Calculate the weighted sum of the confidence levels reported in various files based on a given distribution of weights.
     """
+
     # Report information to the user.
-    print(f"\n Calculating the weighted sum of confidence levels for entry {', '.join(file_weight_summand)}")
+    print(
+        f"\n Calculating the weighted sum of confidence levels for entry {', '.join(weight_file_summand)}"
+    )
 
     # Create input temporary folder.
     tmp_input_folder = "tmp/input"
     Path(tmp_input_folder).mkdir(exist_ok=True, parents=True)
+
     # Create output temporary folder.
     tmp_output_folder = "tmp/output"
     Path(tmp_output_folder).mkdir(exist_ok=True, parents=True)
+
+    # Define default temporary output file
     tmp_output_file = f"{tmp_output_folder}/{output_file.name}"
 
-    # Read summands.
+    # The entered summands are validated.
+    ## Instantiate a variable to store the cumulative sum of weights
     sum = 0
+
+    ## Instantiate another variable to store the new command with the temporary paths of the input files
     command = ""
-    for summand in file_weight_summand:
+
+    ## For each summand ...
+    for summand in weight_file_summand:
+
+        # Separate both products (weight and file)
         pair = summand.split("*")
-        if len(pair) != 2: 
-            print(f"[bold red]Error:[/bold red] The entry {summand} is invalid, remember to separate the file name and its weight by the '*' character")
+
+        # If two elements are not detected, an error is thrown.
+        if len(pair) != 2:
+            print(
+                f"[bold red]Error:[/bold red] The entry {summand} is invalid, remember to separate weight and file name by the '*' character"
+            )
             raise typer.Abort()
-        file = pair[0]
-        weight = pair[1]
+
+        # Extract the weight
+        weight = pair[0]
+
+        # Convert it to the appropriate rate and add it to the accumulated sum.
         sum += float(weight)
+
+        # Extract the file
+        file = pair[1]
+
+        # Define temporary file path and copy to it
         tmp_file_dir = f"{tmp_input_folder}/{Path(file).name}"
         shutil.copyfile(file, tmp_file_dir)
-        command += f" {tmp_file_dir}*{weight}"
+
+        # Add to command
+        command += f" {weight}*{tmp_file_dir}"
 
     # If the sum of weights is not 1, an exception is thrown.
-    if sum != 1:
+    if abs(sum - 1) > 0.01:
         print("[bold red]Error:[/bold red] The sum of the weights must be 1")
         raise typer.Abort()
 
     # Define docker image
     image = "adriansegura99/geneci_weighted-confidence"
+
     # In case it is not available on the device, it is downloaded from the repository.
     if not image in available_images:
         print("Downloading docker image ...")
         client.images.pull(repository=image)
+
     # The image is executed with the parameters set by the user.
     container = client.containers.run(
         image=image,
-        volumes={
-            Path(f"./tmp/").absolute(): {"bind": f"/usr/local/src/tmp", "mode": "rw"}
-        },
+        volumes=get_volume("tmp"),
         command=f"{tmp_output_file} {command}",
         detach=True,
         tty=True,
     )
 
-    # Wait for the container to run and display reported logs.
-    r = container.wait()
-    logs = container.logs()
-    if logs:
-        print(logs.decode("utf-8"))
-
-    # Stop and remove the container.
-    container.stop()
-    container.remove(v=True)
+    # Wait, stop and remove the container. Then print reported logs
+    logs = wait_and_close_container(container)
+    print(logs)
 
     # Define and create the output folder
     if str(output_file) == "<<conf_list_path>>/../weighted_confidence.csv":
