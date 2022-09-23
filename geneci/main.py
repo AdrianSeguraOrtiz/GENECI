@@ -3,6 +3,7 @@ import shutil
 from enum import Enum
 from pathlib import Path
 from typing import List, Optional
+import re
 
 import docker
 import matplotlib.pyplot as plt
@@ -1146,9 +1147,10 @@ def dream_pareto_front(
         )
 
         # The obtained accuracy values are read and stored in the list.
-        str_list = values.split("\n")
-        auprs.append(float(str_list[1].split(" ")[1]))
-        aurocs.append(float(str_list[2].split(" ")[1]))
+        str_aupr = re.search("AUPR: (.*)\n", values)
+        auprs.append(float(str_aupr.group(1)))
+        str_auroc = re.search("AUROC: (.*)\n", values)
+        aurocs.append(float(str_auroc.group(1)))
 
     # 4. Writing the output CSV file
     ## The file path is created

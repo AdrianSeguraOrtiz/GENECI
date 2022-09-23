@@ -85,13 +85,13 @@ public class ComputingReferenceParetoFronts {
             configureAlgorithmList(problemList);
 
         Experiment<DoubleSolution, List<DoubleSolution>> experiment =
-                new ExperimentBuilder<DoubleSolution, List<DoubleSolution>>("GRN-ComputingReferenceParetoFronts-D3-050")
+                new ExperimentBuilder<DoubleSolution, List<DoubleSolution>>("GRN-ComputingReferenceParetoFronts-D3-100")
                         .setAlgorithmList(algorithmList)
                         .setProblemList(problemList)
                         .setExperimentBaseDirectory(experimentBaseDirectory)
                         .setOutputParetoFrontFileName("FUN")
                         .setOutputParetoSetFileName("VAR")
-                        .setReferenceFrontDirectory(experimentBaseDirectory + "/GRN-ComputingReferenceParetoFronts-D3-050/referenceFronts")
+                        .setReferenceFrontDirectory(experimentBaseDirectory + "/GRN-ComputingReferenceParetoFronts-D3-100/referenceFronts")
                         .setIndicatorList(Arrays.asList(
                                 new Epsilon(),
                                 new Spread(),

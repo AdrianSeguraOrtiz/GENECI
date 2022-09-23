@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -349,6 +350,36 @@ public final class StaticUtils {
             }
         }
 
+        return res;
+    }
+
+    public static Map<String, MedianTuple> calculateMedian(Map<String, Double[]> inferredNetworks) {
+        /**
+         * For each interaction, calculate the median and the distance to the farthest point 
+         * of it for the confidence levels reported by each technique.
+         */
+
+        Map<String, MedianTuple> res = new HashMap<String, MedianTuple>();
+
+        for (Map.Entry<String, Double[]> entry : inferredNetworks.entrySet()) {
+            Double[] confidences = entry.getValue();
+            Arrays.sort(confidences);
+
+            int middle = confidences.length / 2;
+            double median;
+            if (confidences.length % 2 == 0) {
+                median = (confidences[middle - 1] + confidences[middle]) / 2.0;
+            } else {
+                median = confidences[middle];
+            }
+
+            double min = Collections.min(Arrays.asList(confidences));
+            double max = Collections.max(Arrays.asList(confidences));
+            double interval = Math.max(median - min, max - median);
+
+            MedianTuple value = new MedianTuple(median, interval);
+            res.put(entry.getKey(), value);
+        }
         return res;
     }
 }

@@ -27,7 +27,7 @@ public class GRNProblem extends AbstractDoubleProblem {
     public GRNProblem(File[] inferredNetworkFiles, ArrayList<String> geneNames, WeightRepairer initialPopulationRepairer, CutOffCriteria cutOffCriteria, String strFitnessFormulas, String strTimeSeriesFile) {
         
         this.inferredNetworks = StaticUtils.readAll(inferredNetworkFiles);
-        this.medianInterval = calculateMedian(inferredNetworks);
+        this.medianInterval = StaticUtils.calculateMedian(inferredNetworks);
         this.geneNames = geneNames;
         this.initialPopulationRepairer = initialPopulationRepairer;
         this.cutOffCriteria = cutOffCriteria;
@@ -155,37 +155,6 @@ public class GRNProblem extends AbstractDoubleProblem {
                 break;
             default:
                 throw new RuntimeException("The evaluation term " + str + " is not implemented.");
-        }
-        return res;
-    }
-
-    /** CalculateMedian() method */
-    private Map<String, MedianTuple> calculateMedian(Map<String, Double[]> inferredNetworks) {
-        /**
-         * For each interaction, calculate the median and the distance to the farthest point 
-         * of it for the confidence levels reported by each technique.
-         */
-
-        Map<String, MedianTuple> res = new HashMap<String, MedianTuple>();
-
-        for (Map.Entry<String, Double[]> entry : inferredNetworks.entrySet()) {
-            Double[] confidences = entry.getValue();
-            Arrays.sort(confidences);
-
-            int middle = confidences.length / 2;
-            double median;
-            if (confidences.length % 2 == 0) {
-                median = (confidences[middle - 1] + confidences[middle]) / 2.0;
-            } else {
-                median = confidences[middle];
-            }
-
-            double min = Collections.min(Arrays.asList(confidences));
-            double max = Collections.max(Arrays.asList(confidences));
-            double interval = Math.max(median - min, max - median);
-
-            MedianTuple value = new MedianTuple(median, interval);
-            res.put(entry.getKey(), value);
         }
         return res;
     }
