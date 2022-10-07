@@ -1,0 +1,512 @@
+# Parameterization
+
+Concerning the usual parameters related to the evolutionary algorithm, we manually checked the effectiveness of the values most consistent for our problem and also recommended in the literature. After verifying that they provided good-quality results, they were set as default values.
+
+On the other hand, for those parameters specific to our problem, tests were performed on several data sets to allow us to visualize which values allow greater progress during the execution. The results are presented below:
+
+## Repairers
+
+As seen in the table, the most effective repairer for our problem is X. This is because it undoubtedly causes the least distortion on the genetic content of the individuals in the population.
+
+<table><tr><th>Network</th><th>GreedyRepair</th><th>StandardizationRepairer</th></tr>
+<tr>
+  <td><b>dream4_010_01_exp</b></td>
+  <td><b>0.41313153072649327</b></td>
+  <td>0.48328114588405363</td>
+</tr>
+<tr>
+  <td><b>dream4_010_02_exp</b></td>
+  <td>0.43039140846150364</td>
+  <td><b>0.41936042274113405</b></td>
+</tr>
+<tr>
+  <td><b>dream4_010_03_exp</b></td>
+  <td><b>0.4082600655510987</b></td>
+  <td>0.40848775501079587</td>
+</tr>
+<tr>
+  <td><b>dream4_010_04_exp</b></td>
+  <td><b>0.4044644367328053</b></td>
+  <td>0.418193032180756</td>
+</tr>
+<tr>
+  <td><b>dream4_010_05_exp</b></td>
+  <td>0.3840987512421514</td>
+  <td><b>0.37252449821612177</b></td>
+</tr>
+<tr>
+  <td><b>dream4_100_01_exp</b></td>
+  <td>0.556907700572469</td>
+  <td><b>0.5412171453197958</b></td>
+</tr>
+<tr>
+  <td><b>dream4_100_02_exp</b></td>
+  <td>0.5626280586161897</td>
+  <td><b>0.5466158814425293</b></td>
+</tr>
+<tr>
+  <td><b>dream4_100_03_exp</b></td>
+  <td>0.5628233372460277</td>
+  <td><b>0.5487385145740837</b></td>
+</tr>
+<tr>
+  <td><b>dream4_100_04_exp</b></td>
+  <td>0.5570389997324772</td>
+  <td><b>0.5443932942781636</b></td>
+</tr>
+<tr>
+  <td><b>dream4_100_05_exp</b></td>
+  <td>0.5489938632012106</td>
+  <td><b>0.5471119154894851</b></td>
+</tr>
+<tr>
+  <td><b>InSilicoSize100-Ecoli1-trajectories_exp</b></td>
+  <td>0.5691267331820041</td>
+  <td><b>0.5574583029896909</b></td>
+</tr>
+<tr>
+  <td><b>InSilicoSize100-Ecoli2-trajectories_exp</b></td>
+  <td>0.5576864439602056</td>
+  <td><b>0.5541430315423753</b></td>
+</tr>
+<tr>
+  <td><b>InSilicoSize100-Yeast1-trajectories_exp</b></td>
+  <td>0.5649564012588355</td>
+  <td><b>0.5544908409308434</b></td>
+</tr>
+<tr>
+  <td><b>InSilicoSize100-Yeast2-trajectories_exp</b></td>
+  <td>0.5563091230107413</td>
+  <td><b>0.5555113732631137</b></td>
+</tr>
+<tr>
+  <td><b>InSilicoSize100-Yeast3-trajectories_exp</b></td>
+  <td>0.5583956291740506</td>
+  <td><b>0.5508217134371044</b></td>
+</tr>
+<tr>
+  <td><b>InSilicoSize10-Ecoli1-trajectories_exp</b></td>
+  <td><b>0.3727588964005818</b></td>
+  <td>0.3750928995663022</td>
+</tr>
+<tr>
+  <td><b>InSilicoSize10-Ecoli2-trajectories_exp</b></td>
+  <td><b>0.3535387600557681</b></td>
+  <td>0.43111637267080344</td>
+</tr>
+<tr>
+  <td><b>InSilicoSize10-Yeast1-trajectories_exp</b></td>
+  <td>0.429247706135026</td>
+  <td><b>0.42488939275741106</b></td>
+</tr>
+<tr>
+  <td><b>InSilicoSize10-Yeast2-trajectories_exp</b></td>
+  <td>0.40737471412895964</td>
+  <td><b>0.3742756081278582</b></td>
+</tr>
+<tr>
+  <td><b>InSilicoSize10-Yeast3-trajectories_exp</b></td>
+  <td>0.3904019648185103</td>
+  <td><b>0.38236289686465186</b></td>
+</tr>
+<tr>
+  <td><b>InSilicoSize50-Ecoli1-trajectories_exp</b></td>
+  <td>0.5474596873731525</td>
+  <td><b>0.5378362686175004</b></td>
+</tr>
+<tr>
+  <td><b>InSilicoSize50-Ecoli2-trajectories_exp</b></td>
+  <td>0.5384678985389558</td>
+  <td><b>0.5234346450647948</b></td>
+</tr>
+<tr>
+  <td><b>InSilicoSize50-Yeast1-trajectories_exp</b></td>
+  <td><b>0.5441429138611961</b></td>
+  <td>0.5450524254929994</td>
+</tr>
+<tr>
+  <td><b>InSilicoSize50-Yeast2-trajectories_exp</b></td>
+  <td>0.5582753234359533</td>
+  <td><b>0.5456450350397355</b></td>
+</tr>
+<tr>
+  <td><b>InSilicoSize50-Yeast3-trajectories_exp</b></td>
+  <td>0.5417783964279439</td>
+  <td><b>0.5356071328968994</b></td>
+</tr>
+<tr>
+  <td><b>melanoma</b></td>
+  <td>0.5205862075582808</td>
+  <td><b>0.5123714426697851</b></td>
+</tr>
+<tr>
+  <td><b>switch-off_exp</b></td>
+  <td>0.2960283063334621</td>
+  <td><b>0.2859768526878189</b></td>
+</tr>
+<tr>
+  <td><b>switch-on_exp</b></td>
+  <td>0.24929261431211485</td>
+  <td><b>0.2341628633762739</b></td>
+</tr>
+</table>
+
+## Cut-Off Criterias
+
+Concerning the cut-off criteria, it can be seen that the one that considers both the confidence level and the distance is the one that provides the best results. With respect to the cut-off value, given that good results have been obtained for the three possible values, it has been decided to establish the intermediate value as the predefined one.
+
+<table>
+  <tr>
+    <th rowspan="2">Network</th>
+    <th colspan="3">MinConfDist</th>
+    <th colspan="3">MinConf</th>
+    <th colspan="3">MaxNumLinks</th>
+  </tr>
+<tr>
+  <th>0.4</th>
+  <th>0.5</th>
+  <th>0.6</th>
+  <th>0.4</th>
+  <th>0.5</th>
+  <th>0.6</th>
+  <th>20%</th>
+  <th>30%</th>
+  <th>40%</th>
+</tr>
+<tr>
+  <td><b>dream4_010_01_exp</b></td>
+  <td><b>0.4245014825153176</td>
+  <td>0.4839808566363804</td>
+  <td>0.44433250647207934</td>
+  <td>0.43781311456614197</td>
+  <td>0.47738946531226595</td>
+  <td>0.470953201547176</td>
+  <td>0.47910288541916746</td>
+  <td>0.45319934329544964</td>
+  <td>0.4372846456657909</td>
+</tr>
+<tr>
+  <td><b>dream4_010_02_exp</b></td>
+  <td><b>0.39293460529342217</td>
+  <td>0.41919993588226057</td>
+  <td>0.4453894746268129</td>
+  <td>0.4196573457646672</td>
+  <td>0.4150571846144956</td>
+  <td>0.46788502665191123</td>
+  <td>0.47081807592968866</td>
+  <td>0.4419357995125243</td>
+  <td>0.40951213273229753</td>
+</tr>
+<tr>
+  <td><b>dream4_010_03_exp</b></td>
+  <td>0.4084537610122897</td>
+  <td><b>0.39053307071377963</td>
+  <td>0.44358913603507605</td>
+  <td>0.41707975457423757</td>
+  <td>0.4187212885194613</td>
+  <td>0.447125741197556</td>
+  <td>0.43730881382048037</td>
+  <td>0.4457998382170702</td>
+  <td>0.432291982941982</td>
+</tr>
+<tr>
+  <td><b>dream4_010_04_exp</b></td>
+  <td><b>0.3993782150382614</td>
+  <td>0.41742936759629623</td>
+  <td>0.4407558690975688</td>
+  <td>0.41653451943265</td>
+  <td>0.41702103604216284</td>
+  <td>0.43865233448280166</td>
+  <td>0.4551719621147892</td>
+  <td>0.40077857885939183</td>
+  <td>0.4071448238556257</td>
+</tr>
+<tr>
+  <td><b>dream4_010_05_exp</b></td>
+  <td>0.38703942272618375</td>
+  <td><b>0.3604756613441512</td>
+  <td>0.4395651143039892</td>
+  <td>0.39398636355053207</td>
+  <td>0.4126429542508072</td>
+  <td>0.39761063796152746</td>
+  <td>0.45422488490800816</td>
+  <td>0.41257540235151297</td>
+  <td>0.39927580086587133</td>
+</tr>
+<tr>
+  <td><b>dream4_100_01_exp</b></td>
+  <td>0.557619442105974</td>
+  <td>0.5412670116756251</td>
+  <td><b>0.5219059718098165</td>
+  <td>0.5481738600530368</td>
+  <td>0.5391497986250678</td>
+  <td>0.5340699916980558</td>
+  <td>0.5501008653991292</td>
+  <td>0.5374281074842528</td>
+  <td>0.5338777041276558</td>
+</tr>
+<tr>
+  <td><b>dream4_100_02_exp</b></td>
+  <td><b>0.5311012317083675</td>
+  <td>0.5638534190541871</td>
+  <td>0.5465214393829421</td>
+  <td>0.5559880893310359</td>
+  <td>0.5451739981372805</td>
+  <td>0.541929246014188</td>
+  <td>0.554353232476183</td>
+  <td>0.5444590034606658</td>
+  <td>0.5406358158525341</td>
+</tr>
+<tr>
+  <td><b>dream4_100_03_exp</b></td>
+  <td>0.559896750522625</td>
+  <td>0.5483290235309092</td>
+  <td><b>0.5341908884700846</td>
+  <td>0.5525564997427795</td>
+  <td>0.5508115555016692</td>
+  <td>0.5427739082017725</td>
+  <td>0.5603140434772654</td>
+  <td>0.5525111225318959</td>
+  <td>0.5383845140491533</td>
+</tr>
+<tr>
+  <td><b>dream4_100_04_exp</b></td>
+  <td>0.5524069554775415</td>
+  <td><b>0.5344010134282544</td>
+  <td>0.5452490958875833</td>
+  <td>0.5482629981652103</td>
+  <td>0.5403398643698882</td>
+  <td>0.5356784726713443</td>
+  <td>0.5591112034059627</td>
+  <td>0.5498210585363807</td>
+  <td>0.5370749543932075</td>
+</tr>
+<tr>
+  <td><b>dream4_100_05_exp</b></td>
+  <td>0.5613104934771718</td>
+  <td>0.5476146057622249</td>
+  <td>0.5399128341898126</td>
+  <td>0.5479516027644742</td>
+  <td>0.5419266151639014</td>
+  <td>0.5401539208686936</td>
+  <td>0.5498709689352179</td>
+  <td>0.5353476755446007</td>
+  <td><b>0.5340848091049857</td>
+</tr>
+<tr>
+  <td><b>InSilicoSize100-Ecoli1-trajectories_exp</b></td>
+  <td><b>0.5384309890956418</td>
+  <td>0.5611172003169007</td>
+  <td>0.5625916894107512</td>
+  <td>0.5552593059239656</td>
+  <td>0.5610467394368925</td>
+  <td>0.5616814368600532</td>
+  <td>0.549650696162457</td>
+  <td>0.5478317988468582</td>
+  <td>0.5583793107676441</td>
+</tr>
+<tr>
+  <td><b>InSilicoSize100-Ecoli2-trajectories_exp</b></td>
+  <td>0.5616124373390218</td>
+  <td><b>0.5340842241775745</td>
+  <td>0.5575764562102421</td>
+  <td>0.5539578007057615</td>
+  <td>0.5496311357971941</td>
+  <td>0.5529415143881076</td>
+  <td>0.5548733255086553</td>
+  <td>0.5441672859106748</td>
+  <td>0.547712922670232</td>
+</tr>
+<tr>
+  <td><b>InSilicoSize100-Yeast1-trajectories_exp</b></td>
+  <td><b>0.53602003026089</td>
+  <td>0.5547028592157512</td>
+  <td>0.5615132323111561</td>
+  <td>0.5641835164007074</td>
+  <td>0.5554537420984252</td>
+  <td>0.5568198609406377</td>
+  <td>0.5605800262886883</td>
+  <td>0.5525929304847645</td>
+  <td>0.5460581686259872</td>
+</tr>
+<tr>
+  <td><b>InSilicoSize100-Yeast2-trajectories_exp</b></td>
+  <td><b>0.513626942297107</td>
+  <td>0.5250924440242002</td>
+  <td>0.5326867554520287</td>
+  <td>0.5667747568425174</td>
+  <td>0.5546648613302739</td>
+  <td>0.5423521395589066</td>
+  <td>0.5601927227378738</td>
+  <td>0.5527141686940304</td>
+  <td>0.5449668619291756</td>
+</tr>
+<tr>
+  <td><b>InSilicoSize100-Yeast3-trajectories_exp</b></td>
+  <td>0.5244398387672309</td>
+  <td>0.5164110983478843</td>
+  <td><b>0.5087492451105546</td>
+  <td>0.5522333261962394</td>
+  <td>0.5470851279447198</td>
+  <td>0.5356176814463455</td>
+  <td>0.5465920447198984</td>
+  <td>0.5506559744153006</td>
+  <td>0.535248478421038</td>
+</tr>
+<tr>
+  <td><b>InSilicoSize10-Ecoli1-trajectories_exp</b></td>
+  <td>0.36688309948732833</td>
+  <td>0.36512045039172025</td>
+  <td><b>0.33588299922749776</td>
+  <td>0.36178129456654085</td>
+  <td>0.35657083862463024</td>
+  <td>0.33596024192343943</td>
+  <td>0.39140857417029634</td>
+  <td>0.4193867141358473</td>
+  <td>0.3774672691643423</td>
+</tr>
+<tr>
+  <td><b>InSilicoSize10-Ecoli2-trajectories_exp</b></td>
+  <td>0.3909562508213996</td>
+  <td><b>0.3505316658927322</td>
+  <td>0.4389389267653624</td>
+  <td>0.36550297510556007</td>
+  <td>0.4128679650613385</td>
+  <td>0.3968055230054878</td>
+  <td>0.454780187341367</td>
+  <td>0.38011669535478243</td>
+  <td>0.36254654470434533</td>
+</tr>
+<tr>
+  <td><b>InSilicoSize10-Yeast1-trajectories_exp</b></td>
+  <td><b>0.382866782346717</td>
+  <td>0.42540708859874615</td>
+  <td>0.4409202389654366</td>
+  <td>0.42310095115765545</td>
+  <td>0.41358552283670397</td>
+  <td>0.4145487203629149</td>
+  <td>0.44633498444619335</td>
+  <td>0.419549313359285</td>
+  <td>0.41696412639419844</td>
+</tr>
+<tr>
+  <td><b>InSilicoSize10-Yeast2-trajectories_exp</b></td>
+  <td>0.4014865833697939</td>
+  <td><b>0.34132138698100045</td>
+  <td>0.39278882386045444</td>
+  <td>0.36058389241606903</td>
+  <td>0.4055100269547682</td>
+  <td>0.4167226291010321</td>
+  <td>0.4283629019766322</td>
+  <td>0.4124855053085487</td>
+  <td>0.39323882951740746</td>
+</tr>
+<tr>
+  <td><b>InSilicoSize10-Yeast3-trajectories_exp</b></td>
+  <td>0.3917171510610793</td>
+  <td><b>0.38387094299183744</td>
+  <td>0.3988389775606104</td>
+  <td>0.4057949972353503</td>
+  <td>0.4074339963641095</td>
+  <td>0.3916858646362338</td>
+  <td>0.43812820383034445</td>
+  <td>0.42693088951853325</td>
+  <td>0.41016616757784197</td>
+</tr>
+<tr>
+  <td><b>InSilicoSize50-Ecoli1-trajectories_exp</b></td>
+  <td><b>0.5120796110459912</td>
+  <td>0.5383820217191982</td>
+  <td>0.5218471547433662</td>
+  <td>0.5426904266637025</td>
+  <td>0.5314107563556133</td>
+  <td>0.5206203992852236</td>
+  <td>0.5253063491114791</td>
+  <td>0.5182720649411152</td>
+  <td>0.53679805024452</td>
+</tr>
+<tr>
+  <td><b>InSilicoSize50-Ecoli2-trajectories_exp</b></td>
+  <td><b>0.4890639881105045</td>
+  <td>0.5239096525520697</td>
+  <td>0.5218802253178624</td>
+  <td>0.5287427149389745</td>
+  <td>0.537602922609375</td>
+  <td>0.5247591126069683</td>
+  <td>0.5135069506370801</td>
+  <td>0.5068597342236375</td>
+  <td>0.5061116836510179</td>
+</tr>
+<tr>
+  <td><b>InSilicoSize50-Yeast1-trajectories_exp</b></td>
+  <td>0.5441249073928016</td>
+  <td>0.5442913035955997</td>
+  <td>0.5302399993389246</td>
+  <td>0.540186773054632</td>
+  <td>0.5508854155656006</td>
+  <td>0.5334868227883962</td>
+  <td>0.5301234607343649</td>
+  <td>0.523721072808487</td>
+  <td><b>0.5055917494389297</td>
+</tr>
+<tr>
+  <td><b>InSilicoSize50-Yeast2-trajectories_exp</b></td>
+  <td>0.5590169868501544</td>
+  <td>0.5459262128322389</td>
+  <td>0.5353845097041866</td>
+  <td>0.5504832652513342</td>
+  <td>0.5412771775466204</td>
+  <td>0.5350017731033885</td>
+  <td>0.5441832160880387</td>
+  <td>0.5246001206787727</td>
+  <td><b>0.5167374579670934</td>
+</tr>
+<tr>
+  <td><b>InSilicoSize50-Yeast3-trajectories_exp</b></td>
+  <td>0.5415944856086792</td>
+  <td>0.5335416345043713</td>
+  <td><b>0.5149147653748278</td>
+  <td>0.5399071559830173</td>
+  <td>0.5304780668907569</td>
+  <td>0.5250230569361988</td>
+  <td>0.5447472767387093</td>
+  <td>0.5360738583663038</td>
+  <td>0.5260143502529434</td>
+</tr>
+<tr>
+  <td><b>melanoma</b></td>
+  <td><b>0.48327303000866795</td>
+  <td>0.5236163820680606</td>
+  <td>0.5048499507171433</td>
+  <td>0.5183297204793619</td>
+  <td>0.5215049882758985</td>
+  <td>0.5015428403875253</td>
+  <td>0.5094027087162398</td>
+  <td>0.486772647933288</td>
+  <td>0.4937955523509431</td>
+</tr>
+<tr>
+  <td><b>switch-off_exp</b></td>
+  <td><b>0.24989667369839116</td>
+  <td>0.28597706728454436</td>
+  <td>0.3715322724555237</td>
+  <td>0.25489082248328804</td>
+  <td>0.25491857594869755</td>
+  <td>0.28597251475559887</td>
+  <td>0.3959944517401375</td>
+  <td>0.2782309362769264</td>
+  <td>0.3401871059321304</td>
+</tr>
+<tr>
+  <td><b>switch-on_exp</b></td>
+  <td>0.1881138619859935</td>
+  <td>0.23416178322963851</td>
+  <td>0.2398388029889062</td>
+  <td><b>0.17849777029633135</td>
+  <td>0.17957433646126642</td>
+  <td>0.20974074777741997</td>
+  <td>0.32735013159101245</td>
+  <td>0.20854129345599037</td>
+  <td>0.2673744632798669</td>
+</tr>
+</table>
