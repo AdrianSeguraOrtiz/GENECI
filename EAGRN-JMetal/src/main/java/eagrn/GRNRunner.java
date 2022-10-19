@@ -43,10 +43,8 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class GRNRunner extends AbstractAlgorithmRunner {
     /**
@@ -147,6 +145,9 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         /** List CSV files stored in the input folder with inferred lists of links. */
         File[] files = StaticUtils.getCSVFilesFromDirectory(networkFolder + "/lists/");
 
+        /** Extract inferred networks */
+        Map<String, Double[]> inferredNetworks = StaticUtils.readAll(files);
+
         /** Extracting gene names. */
         ArrayList<String> geneNames = StaticUtils.getGeneNames(networkFolder + "/gene_names.txt");
 
@@ -157,13 +158,13 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         }
 
         /** Establish the cut-off criteria. */
-        cutOffCriteria = StaticUtils.getCutOffCriteriaFromString(strCutOffCriteria, cutOffValue, false);
+        cutOffCriteria = StaticUtils.getCutOffCriteriaFromString(strCutOffCriteria, cutOffValue, geneNames);
 
         /** Initialize our problem with the extracted data. */
         if (printEvolution) {
-            problem = new GRNProblemFitnessEvolution(files, geneNames, repairer, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
+            problem = new GRNProblemFitnessEvolution(inferredNetworks, geneNames, repairer, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
         } else {
-            problem = new GRNProblem(files, geneNames, repairer, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
+            problem = new GRNProblem(inferredNetworks, geneNames, repairer, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
         }
         
 
@@ -478,7 +479,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         
         if (problem.getNumberOfObjectives() == 1) {
             /** Transform the solution into a simple vector of weights. */
-            double[] winner = new double[problem.getNumberOfVariables()];
+            Double[] winner = new Double[problem.getNumberOfVariables()];
             for (int i = 0; i < problem.getNumberOfVariables(); i++) {
                 winner[i] = population.get(0).variables().get(i);
             }
@@ -489,26 +490,15 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 tags[i] = files[i].getName();
             }
             StaticUtils.writeWeights(outputFolder + "/final_weights.txt", winner, tags);
-
-            /** Calculate the consensus list corresponding to the solution vector. */
-            Map<String, ConsensusTuple> consensus = problem.makeConsensus(winner)
-                .entrySet()
-                .stream()
-                .sorted(Map.Entry.<String, ConsensusTuple>comparingByValue())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                    (e1, e2) -> e1, LinkedHashMap::new));
             
-            /** Get weighted confidence map from consensus. */
-            Map<String, Double> weightedConf = consensus
-                .entrySet()
-                .stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getConf()));
+            /** Get weighted confidence map from winner. */
+            Map<String, Double> weightedConf = StaticUtils.getWeightedConf(winner, inferredNetworks);
 
             /** Write the resulting list of links to an output csv file. */
             StaticUtils.writeWeightedConfList(outputFolder + "/final_list.csv", weightedConf);
 
             /** Calculate the binary matrix from the list above. */
-            int[][] binaryNetwork = cutOffCriteria.getNetworkFromConsensus(consensus, geneNames);
+            int[][] binaryNetwork = cutOffCriteria.getNetwork(weightedConf);
 
             /** Write the resulting binary matrix to an output csv file. */
             StaticUtils.writeBinaryNetwork(outputFolder + "/final_network.csv", binaryNetwork, geneNames);

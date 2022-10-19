@@ -27,9 +27,9 @@ import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 import org.uma.jmetal.util.grouping.CollectionGrouping;
 
 import eagrn.cutoffcriteria.CutOffCriteria;
-import eagrn.cutoffcriteria.impl.MaxNumLinksBestConfCriteria;
-import eagrn.cutoffcriteria.impl.MinConfDistCriteria;
-import eagrn.cutoffcriteria.impl.MinConfidenceCriteria;
+import eagrn.cutoffcriteria.impl.NumLinksWithBestConfCriteria;
+import eagrn.cutoffcriteria.impl.PercLinksWithBestConfCriteria;
+import eagrn.cutoffcriteria.impl.MinConfCriteria;
 import eagrn.operator.mutationwithrepair.impl.CDGMutationWithRepair;
 import eagrn.operator.mutationwithrepair.impl.GroupedAndLinkedPolynomialMutationWithRepair;
 import eagrn.operator.mutationwithrepair.impl.GroupedPolynomialMutationWithRepair;
@@ -122,7 +122,7 @@ public final class StaticUtils {
         return geneNames;
     }
 
-    public static CutOffCriteria getCutOffCriteriaFromString(String strCutOffCriteria, double cutOffValue, boolean onlyConf) {
+    public static CutOffCriteria getCutOffCriteriaFromString(String strCutOffCriteria, double cutOffValue, ArrayList<String> geneNames) {
         /**
          * This function takes as input a character string representing a 
          * cut-off criteria and returns the object corresponding to it
@@ -130,17 +130,14 @@ public final class StaticUtils {
         CutOffCriteria cutOffCriteria;
 
         switch (strCutOffCriteria) {
-            case "MinConfidence":
-                cutOffCriteria = new MinConfidenceCriteria(cutOffValue);
+            case "MinConf":
+                cutOffCriteria = new MinConfCriteria(cutOffValue, geneNames);
                 break;
-            case "MaxNumLinksBestConf":
-                cutOffCriteria = new MaxNumLinksBestConfCriteria((int) cutOffValue);
+            case "NumLinksWithBestConf":
+                cutOffCriteria = new NumLinksWithBestConfCriteria((int) cutOffValue, geneNames);
                 break;
-            case "MinConfDist":
-                if (onlyConf) {
-                    throw new RuntimeException("The cut-off criterion MinConfDist can only be used during the consensus process.");
-                }
-                cutOffCriteria = new MinConfDistCriteria(cutOffValue);
+            case "PercLinksWithBestConf":
+                cutOffCriteria = new PercLinksWithBestConfCriteria(cutOffValue, geneNames);
                 break;
             default:
                 throw new RuntimeException("The cut-off criteria entered is not available");
@@ -245,7 +242,7 @@ public final class StaticUtils {
         }
     }
 
-    public static void writeWeights(String strFile, double[] weights, String[] tags) {
+    public static void writeWeights(String strFile, Double[] weights, String[] tags) {
         /**
          * This function is responsible for writing the weights of a 
          * solution to an output txt file specified as parameter
@@ -312,7 +309,7 @@ public final class StaticUtils {
         }
     }
 
-    public static Map<String, Double> getWeightedConf(double[] weights, Map<String, Double[]> inferredNetworks) {
+    public static Map<String, Double> getWeightedConf(Double[] weights, Map<String, Double[]> inferredNetworks) {
         /**
          * This function calculates the weighted sum of 
          * confidence levels based on the weights.
@@ -353,13 +350,13 @@ public final class StaticUtils {
         return res;
     }
 
-    public static Map<String, MedianTuple> calculateMedian(Map<String, Double[]> inferredNetworks) {
+    public static Map<String, Double[]> calculateMedIntMap(Map<String, Double[]> inferredNetworks) {
         /**
          * For each interaction, calculate the median and the distance to the farthest point 
          * of it for the confidence levels reported by each technique.
          */
 
-        Map<String, MedianTuple> res = new HashMap<String, MedianTuple>();
+        Map<String, Double[]> res = new HashMap<>();
 
         for (Map.Entry<String, Double[]> entry : inferredNetworks.entrySet()) {
             Double[] confidences = entry.getValue();
@@ -377,8 +374,7 @@ public final class StaticUtils {
             double max = Collections.max(Arrays.asList(confidences));
             double interval = Math.max(median - min, max - median);
 
-            MedianTuple value = new MedianTuple(median, interval);
-            res.put(entry.getKey(), value);
+            res.put(entry.getKey(), new Double[]{median, interval});
         }
         return res;
     }

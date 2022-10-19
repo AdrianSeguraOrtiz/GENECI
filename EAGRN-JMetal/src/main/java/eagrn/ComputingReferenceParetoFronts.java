@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.uma.jmetal.algorithm.Algorithm;
 import org.uma.jmetal.algorithm.multiobjective.moead.MOEADBuilder;
@@ -29,7 +30,6 @@ import org.uma.jmetal.qualityindicator.impl.Epsilon;
 import org.uma.jmetal.qualityindicator.impl.GenerationalDistance;
 import org.uma.jmetal.qualityindicator.impl.InvertedGenerationalDistance;
 import org.uma.jmetal.qualityindicator.impl.InvertedGenerationalDistancePlus;
-import org.uma.jmetal.qualityindicator.impl.NormalizedHypervolume;
 import org.uma.jmetal.qualityindicator.impl.Spread;
 import org.uma.jmetal.qualityindicator.impl.hypervolume.impl.PISAHypervolume;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
@@ -43,7 +43,7 @@ import eagrn.algorithm.impl.GDE3BuilderWithRepair;
 import eagrn.algorithm.impl.SMPSOCorrectMutationBuilder;
 
 import eagrn.cutoffcriteria.CutOffCriteria;
-import eagrn.cutoffcriteria.impl.MinConfDistCriteria;
+import eagrn.cutoffcriteria.impl.PercLinksWithBestConfCriteria;
 import eagrn.operator.mutationwithrepair.impl.NullMutationWithRepair;
 import eagrn.operator.mutationwithrepair.impl.PolynomialMutationWithRepair;
 import eagrn.operator.repairer.WeightRepairer;
@@ -70,13 +70,14 @@ public class ComputingReferenceParetoFronts {
         }
 
         WeightRepairer repairer = new StandardizationRepairer();
-        CutOffCriteria cutOffCriteria = new MinConfDistCriteria(0.5);
         String strFitnessFormulas = "Quality;Topology";
         String strTimeSeriesFile = null;
 
         List<ExperimentProblem<DoubleSolution>> problemList = new ArrayList<>();
         for (int i = 0; i < networkFolders.length; i++) {
-            GRNProblem problem = new GRNProblem(files[i], geneNames[i], repairer, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
+            Map<String, Double[]> inferredNetworks = StaticUtils.readAll(files[i]);
+            CutOffCriteria cutOffCriteria = new PercLinksWithBestConfCriteria(0.4, geneNames[i]);
+            GRNProblem problem = new GRNProblem(inferredNetworks, geneNames[i], repairer, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
             problem.setName(new File(networkFolders[i]).getName());
             problemList.add(new ExperimentProblem<>(problem));
         }

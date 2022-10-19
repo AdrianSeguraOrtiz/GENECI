@@ -6,7 +6,6 @@ import eagrn.fitnessfunctions.impl.Loyalty;
 import eagrn.fitnessfunctions.impl.Quality;
 import eagrn.fitnessfunctions.impl.Topology;
 import eagrn.operator.repairer.WeightRepairer;
-import java.io.File;
 import java.util.*;
 
 import org.uma.jmetal.problem.doubleproblem.impl.AbstractDoubleProblem;
@@ -16,7 +15,6 @@ import org.uma.jmetal.solution.doublesolution.impl.DefaultDoubleSolution;
 
 public class GRNProblem extends AbstractDoubleProblem {
     private Map<String, Double[]> inferredNetworks;
-    private Map<String, MedianTuple> medianInterval;
     private ArrayList<String> geneNames;
     private WeightRepairer initialPopulationRepairer;
     private CutOffCriteria cutOffCriteria;
@@ -24,10 +22,9 @@ public class GRNProblem extends AbstractDoubleProblem {
     private String strTimeSeriesFile;
 
     /** Constructor creates a default instance of the GRN problem */
-    public GRNProblem(File[] inferredNetworkFiles, ArrayList<String> geneNames, WeightRepairer initialPopulationRepairer, CutOffCriteria cutOffCriteria, String strFitnessFormulas, String strTimeSeriesFile) {
+    public GRNProblem(Map<String, Double[]> inferredNetworks, ArrayList<String> geneNames, WeightRepairer initialPopulationRepairer, CutOffCriteria cutOffCriteria, String strFitnessFormulas, String strTimeSeriesFile) {
         
-        this.inferredNetworks = StaticUtils.readAll(inferredNetworkFiles);
-        this.medianInterval = StaticUtils.calculateMedian(inferredNetworks);
+        this.inferredNetworks = inferredNetworks;
         this.geneNames = geneNames;
         this.initialPopulationRepairer = initialPopulationRepairer;
         this.cutOffCriteria = cutOffCriteria;
@@ -86,10 +83,10 @@ public class GRNProblem extends AbstractDoubleProblem {
                     throw new RuntimeException("The weights of all the terms in the formula must add up to 1.");
                 }
 
-                function = (Map<String, ConsensusTuple> consensus) -> {
+                function = (Map<String, Double> consensus, Double[] x) -> {
                     double res = 0;
                     for (int j = 0; j < functions.length; j++) {
-                        res += weights[j] * functions[j].run(consensus);
+                        res += weights[j] * functions[j].run(consensus, x);
                     }
                     return res;
                 };
@@ -97,7 +94,7 @@ public class GRNProblem extends AbstractDoubleProblem {
             this.fitnessFunctions[i] = function;
         }
 
-        setNumberOfVariables(inferredNetworkFiles.length);
+        setNumberOfVariables(inferredNetworks.values().iterator().next().length);
         setNumberOfObjectives(this.fitnessFunctions.length);
         setName("GRNProblem");
 
@@ -123,14 +120,14 @@ public class GRNProblem extends AbstractDoubleProblem {
     /** Evaluate() method */
     @Override
     public DoubleSolution evaluate(DoubleSolution solution) {
-        double[] x = new double[getNumberOfVariables()];
+        Double[] x = new Double[getNumberOfVariables()];
         for (int i = 0; i < getNumberOfVariables(); i++) {
             x[i] = solution.variables().get(i);
         }
 
-        Map<String, ConsensusTuple> consensus = makeConsensus(x);
+        Map<String, Double> consensus = makeConsensus(x);
         for (int i = 0; i < fitnessFunctions.length; i++){
-            solution.objectives()[i] = fitnessFunctions[i].run(consensus);
+            solution.objectives()[i] = fitnessFunctions[i].run(consensus, x);
         }
 
         return solution;
@@ -145,10 +142,10 @@ public class GRNProblem extends AbstractDoubleProblem {
         FitnessFunction res;
         switch (str.toLowerCase()) {
             case "topology":
-                res = new Topology(this.geneNames, this.cutOffCriteria);
+                res = new Topology(this.geneNames.size(), this.cutOffCriteria);
                 break;
             case "quality":
-                res = new Quality(this.geneNames.size());
+                res = new Quality(this.geneNames.size(), this.inferredNetworks);
                 break;
             case "loyalty":
                 res = new Loyalty(this.strTimeSeriesFile);
@@ -160,29 +157,22 @@ public class GRNProblem extends AbstractDoubleProblem {
     }
 
     /** MakeConsensus() method */
-    public Map<String, ConsensusTuple> makeConsensus(double[] x) {
+    public Map<String, Double> makeConsensus(Double[] x) {
         /**
          * Elaborate the list of consensus links from the vector of weights
          * and the results provided by each technique.
          */
 
-        Map<String, ConsensusTuple> consensus = new HashMap<>();
+        Map<String, Double> consensus = new HashMap<>();
 
         for (Map.Entry<String, Double[]> pair : inferredNetworks.entrySet()) {
-            ConsensusTuple mapConsTuple = new ConsensusTuple(0.0, 0.0);
-            MedianTuple medInt = medianInterval.get(pair.getKey());
-            Double[] weightDistances = new Double[x.length];
+            double confidence = 0.0;
 
             for (int i = 0; i < x.length; i++) {
-                mapConsTuple.increaseConf(x[i] * pair.getValue()[i]);
-                weightDistances[i] = ((Math.abs(medInt.getMedian() - pair.getValue()[i]) / medInt.getInterval()) + x[i]) / 2.0;
+                confidence += x[i] * pair.getValue()[i];
             }
 
-            double min = Collections.min(Arrays.asList(weightDistances));
-            double max = Collections.max(Arrays.asList(weightDistances));
-
-            mapConsTuple.setDist(max - min);
-            consensus.put(pair.getKey(), mapConsTuple);
+            consensus.put(pair.getKey(), confidence);
         }
 
         return consensus;

@@ -20,8 +20,8 @@ public class GRNProblemFitnessEvolution extends GRNProblem {
     private int populationSize;
 
     /** Constructor creates a default instance of the GRN problem fitness evolution */
-    public GRNProblemFitnessEvolution(File[] inferredNetworkFiles, ArrayList<String> geneNames, WeightRepairer initialPopulationRepairer, CutOffCriteria cutOffCriteria, String strFitnessFormulas, String strTimeSeriesFile) {
-        super(inferredNetworkFiles, geneNames, initialPopulationRepairer, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
+    public GRNProblemFitnessEvolution(Map<String, Double[]> inferredNetworks, ArrayList<String> geneNames, WeightRepairer initialPopulationRepairer, CutOffCriteria cutOffCriteria, String strFitnessFormulas, String strTimeSeriesFile) {
+        super(inferredNetworks, geneNames, initialPopulationRepairer, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
 
         GRNProblemFitnessEvolution.parallelCount = new AtomicInteger();
         this.populationSize = 0;

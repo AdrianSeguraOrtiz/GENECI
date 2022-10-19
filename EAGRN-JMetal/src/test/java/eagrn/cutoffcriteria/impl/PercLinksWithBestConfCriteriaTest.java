@@ -1,6 +1,5 @@
 package eagrn.cutoffcriteria.impl;
 
-import eagrn.ConsensusTuple;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
@@ -9,23 +8,22 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
-public class MaxNumLinksBestConfCriteriaTest {
+public class PercLinksWithBestConfCriteriaTest {
 
     @Test
-    void shouldReturnNetworkFromConsensus() {
-        MaxNumLinksBestConfCriteria maxNumLinksBestConfCriteria = new MaxNumLinksBestConfCriteria(2);
-
-        Map<String, ConsensusTuple> links = new HashMap<>();
-        links.put("A-B", new ConsensusTuple(1, 0.2));
-        links.put("A-C", new ConsensusTuple(1, 0.6));
-        links.put("B-C", new ConsensusTuple(1, 0.4));
+    void shouldReturnNetworkCaseA() {
+        Map<String, Double> links = new HashMap<>();
+        links.put("A;B", 0.2);
+        links.put("A;C", 0.6);
+        links.put("B;C", 0.4);
 
         ArrayList<String> geneNames = new ArrayList<>();
         geneNames.add("A");
         geneNames.add("B");
         geneNames.add("C");
 
-        int[][] matrix = maxNumLinksBestConfCriteria.getNetworkFromConsensus(links, geneNames);
+        PercLinksWithBestConfCriteria percLinksWithBestConfCriteria = new PercLinksWithBestConfCriteria(0.4, geneNames);
+        int[][] matrix = percLinksWithBestConfCriteria.getNetwork(links);
 
         assertArrayEquals(new int[]{0, 0, 1}, matrix[0]);
         assertArrayEquals(new int[]{0, 0, 1}, matrix[1]);
@@ -33,20 +31,19 @@ public class MaxNumLinksBestConfCriteriaTest {
     }
 
     @Test
-    void shouldReturnNetworkCaseA() {
-        MaxNumLinksBestConfCriteria maxNumLinksBestConfCriteria = new MaxNumLinksBestConfCriteria(1);
-
+    void shouldReturnNetworkCaseB() {
         Map<String, Double> links = new HashMap<>();
-        links.put("A-B", 0.8);
-        links.put("A-C", 0.2);
-        links.put("B-C", 0.0);
+        links.put("A;B", 0.8);
+        links.put("A;C", 0.2);
+        links.put("B;C", 0.0);
 
         ArrayList<String> geneNames = new ArrayList<>();
         geneNames.add("A");
         geneNames.add("B");
         geneNames.add("C");
 
-        int[][] matrix = maxNumLinksBestConfCriteria.getNetwork(links, geneNames);
+        PercLinksWithBestConfCriteria percLinksWithBestConfCriteria = new PercLinksWithBestConfCriteria(0.1, geneNames);
+        int[][] matrix = percLinksWithBestConfCriteria.getNetwork(links);
 
         assertArrayEquals(new int[]{0, 1, 0}, matrix[0]);
         assertArrayEquals(new int[]{0, 0, 0}, matrix[1]);
@@ -54,20 +51,19 @@ public class MaxNumLinksBestConfCriteriaTest {
     }
 
     @Test
-    void shouldReturnNetworkCaseB() {
-        MaxNumLinksBestConfCriteria maxNumLinksBestConfCriteria = new MaxNumLinksBestConfCriteria(2);
-
+    void shouldReturnNetworkCaseC() {
         Map<String, Double> links = new HashMap<>();
-        links.put("A-B", 1.0);
-        links.put("A-C", 0.2);
-        links.put("B-C", 0.6);
+        links.put("A;B", 1.0);
+        links.put("A;C", 0.2);
+        links.put("B;C", 0.6);
 
         ArrayList<String> geneNames = new ArrayList<>();
         geneNames.add("A");
         geneNames.add("B");
         geneNames.add("C");
 
-        int[][] matrix = maxNumLinksBestConfCriteria.getNetwork(links, geneNames);
+        PercLinksWithBestConfCriteria percLinksWithBestConfCriteria = new PercLinksWithBestConfCriteria(0.4, geneNames);
+        int[][] matrix = percLinksWithBestConfCriteria.getNetwork(links);
 
         assertArrayEquals(new int[]{0, 1, 0}, matrix[0]);
         assertArrayEquals(new int[]{0, 0, 1}, matrix[1]);
@@ -75,14 +71,12 @@ public class MaxNumLinksBestConfCriteriaTest {
     }
 
     @Test
-    void shouldReturnNetworkCaseC() {
-        MaxNumLinksBestConfCriteria maxNumLinksBestConfCriteria = new MaxNumLinksBestConfCriteria(3);
-
+    void shouldReturnNetworkCaseD() {
         Map<String, Double> links = new HashMap<>();
-        links.put("A-B", 0.3);
-        links.put("A-D", 0.5);
-        links.put("B-C", 0.1);
-        links.put("C-D", 0.9);
+        links.put("A;B", 0.3);
+        links.put("A;D", 0.5);
+        links.put("B;C", 0.1);
+        links.put("C;D", 0.9);
 
         ArrayList<String> geneNames = new ArrayList<>();
         geneNames.add("A");
@@ -90,7 +84,8 @@ public class MaxNumLinksBestConfCriteriaTest {
         geneNames.add("C");
         geneNames.add("D");
 
-        int[][] matrix = maxNumLinksBestConfCriteria.getNetwork(links, geneNames);
+        PercLinksWithBestConfCriteria percLinksWithBestConfCriteria = new PercLinksWithBestConfCriteria(0.25, geneNames);
+        int[][] matrix = percLinksWithBestConfCriteria.getNetwork(links);
 
         assertArrayEquals(new int[]{0, 1, 0, 1}, matrix[0]);
         assertArrayEquals(new int[]{0, 0, 0, 0}, matrix[1]);

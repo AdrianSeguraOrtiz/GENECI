@@ -1,16 +1,18 @@
 package eagrn.cutoffcriteria.impl;
 
-import eagrn.ConsensusTuple;
-import eagrn.cutoffcriteria.CutOffCriteriaOnlyConf;
+import eagrn.cutoffcriteria.CutOffCriteria;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
-public class MaxNumLinksBestConfCriteria implements CutOffCriteriaOnlyConf {
+public class PercLinksWithBestConfCriteria implements CutOffCriteria {
     private final int max;
+    private ArrayList<String> geneNames;
 
-    public MaxNumLinksBestConfCriteria(int max) {
-        this.max = max;
+    public PercLinksWithBestConfCriteria(double perc, ArrayList<String> geneNames) {
+        int numberOfNodes = geneNames.size();
+        int maxPossibleLinks = numberOfNodes * (numberOfNodes - 1);
+        this.max = (int)Math.round(perc * (double)maxPossibleLinks);
+        this.geneNames = geneNames;
     }
 
     /**
@@ -20,22 +22,7 @@ public class MaxNumLinksBestConfCriteria implements CutOffCriteriaOnlyConf {
      * @param geneNames TODO.
      * @return TODO.
      */
-    public int[][] getNetworkFromConsensus (Map<String, ConsensusTuple> links, ArrayList<String> geneNames) {
-        Map<String, Double> result = links
-                .entrySet()
-                .stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getConf()));
-        return getNetwork(result, geneNames);
-    }
-
-    /**
-     * TODO.
-     *
-     * @param links TODO.
-     * @param geneNames TODO.
-     * @return TODO.
-     */
-    public int[][] getNetwork (Map<String, Double> links, ArrayList<String> geneNames) {
+    public int[][] getNetwork (Map<String, Double> links) {
         int numberOfNodes = geneNames.size();
         int[][] network = new int[numberOfNodes][numberOfNodes];
 

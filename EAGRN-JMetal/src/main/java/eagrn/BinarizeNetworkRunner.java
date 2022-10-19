@@ -1,6 +1,6 @@
 package eagrn;
 
-import eagrn.cutoffcriteria.CutOffCriteriaOnlyConf;
+import eagrn.cutoffcriteria.CutOffCriteria;
 
 import java.io.*;
 import java.util.*;
@@ -8,7 +8,7 @@ import java.util.*;
 public class BinarizeNetworkRunner {
     public static void main(String[] args){
         /** Declare the main execution variables */
-        CutOffCriteriaOnlyConf cutOffCriteriaOnlyConf;
+        CutOffCriteria cutOffCriteriaOnlyConf;
 
         /** Read input parameters */
         String listOfLinksStrFile;
@@ -32,17 +32,17 @@ public class BinarizeNetworkRunner {
             throw new RuntimeException("The list of confidence values, the list of gene names and the path to the output file are three required parameters.");
         }
 
-        /** Establish the cut-off criteria */
-        cutOffCriteriaOnlyConf = (CutOffCriteriaOnlyConf) StaticUtils.getCutOffCriteriaFromString(strCutOffCriteria, cutOffValue, true);
-
         /** Extracting gene names */
         ArrayList<String> geneNames = StaticUtils.getGeneNames(geneNamesStrFile);
+
+        /** Establish the cut-off criteria */
+        cutOffCriteriaOnlyConf = (CutOffCriteria) StaticUtils.getCutOffCriteriaFromString(strCutOffCriteria, cutOffValue, geneNames);
 
         /** Extract the list of links */
         Map<String, Double> map = StaticUtils.getMapWithLinks(new File(listOfLinksStrFile));
 
         /** Calculate the binary matrix according to the selected criteria */
-        int[][] binaryNetwork = cutOffCriteriaOnlyConf.getNetwork(map, geneNames);
+        int[][] binaryNetwork = cutOffCriteriaOnlyConf.getNetwork(map);
 
         /** Write the resulting binary matrix to an output csv file */
         StaticUtils.writeBinaryNetwork(outputStrFile, binaryNetwork, geneNames);

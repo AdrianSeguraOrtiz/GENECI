@@ -1,16 +1,16 @@
 package eagrn.cutoffcriteria.impl;
 
-import eagrn.ConsensusTuple;
 import eagrn.cutoffcriteria.CutOffCriteria;
 
-import java.util.ArrayList;
-import java.util.Map;
+import java.util.*;
 
-public class MinConfDistCriteria implements CutOffCriteria {
+public class MinConfCriteria implements CutOffCriteria {
     private final double min;
+    private ArrayList<String> geneNames;
 
-    public MinConfDistCriteria(double min) {
+    public MinConfCriteria(double min, ArrayList<String> geneNames) {
         this.min = min;
+        this.geneNames = geneNames;
     }
 
     /**
@@ -20,18 +20,16 @@ public class MinConfDistCriteria implements CutOffCriteria {
      * @param geneNames TODO.
      * @return TODO.
      */
-    public int[][] getNetworkFromConsensus(Map<String, ConsensusTuple> links, ArrayList<String> geneNames) {
+    public int[][] getNetwork(Map<String, Double> links) {
         int numberOfNodes = geneNames.size();
         int[][] network = new int[numberOfNodes][numberOfNodes];
 
         int g1, g2;
 
-        for (Map.Entry<String, ConsensusTuple> entry : links.entrySet()) {
+        for (Map.Entry<String, Double> entry : links.entrySet()) {
             String pair = entry.getKey();
-            double conf = entry.getValue().getConf();
-            double dist = entry.getValue().getDist();
-            double confDist = (conf + (1 - dist)) / 2.0;
-            if (confDist > min) {
+            double conf = entry.getValue();
+            if (conf > min) {
                 String[] parts = pair.split(";");
                 if (parts.length > 1) {
                     g1 = geneNames.indexOf(parts[0]);
@@ -45,5 +43,4 @@ public class MinConfDistCriteria implements CutOffCriteria {
 
         return network;
     }
-
 }

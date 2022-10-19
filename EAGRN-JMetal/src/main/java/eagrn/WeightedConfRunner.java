@@ -13,7 +13,7 @@ public class WeightedConfRunner {
             throw new RuntimeException("It is necessary to specify at least two list of links files");
         }
         String outputFile = args[0];
-        double[] weights = new double[args.length - 1];
+        Double[] weights = new Double[args.length - 1];
         double sum = 0;
         File[] inferredNetworkFiles = new File[args.length - 1];
 

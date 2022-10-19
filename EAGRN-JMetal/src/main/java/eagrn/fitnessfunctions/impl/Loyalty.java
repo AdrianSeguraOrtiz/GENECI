@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
-import eagrn.ConsensusTuple;
 import eagrn.fitnessfunctions.FitnessFunction;
 
 /**
@@ -44,16 +43,16 @@ public class Loyalty implements FitnessFunction {
     }
 
     @Override
-    public double run(Map<String, ConsensusTuple> consensus) {
+    public double run(Map<String, Double> consensus, Double[] x) {
 
         double sumSquareError = 0;
         int cnt = 0;
         for (Map.Entry<String, Double[]> tsPair : this.timeSeriesMap.entrySet()) {
             Map<String, Double> factors = new HashMap<String, Double>();
-            for (Map.Entry<String, ConsensusTuple> cPair : consensus.entrySet()) {
+            for (Map.Entry<String, Double> cPair : consensus.entrySet()) {
                 String[] genes = cPair.getKey().split(";");
                 if (tsPair.getKey().equals(genes[1])){
-                    factors.put(genes[0], cPair.getValue().getConf() * this.regulationSigns.get(cPair.getKey()));
+                    factors.put(genes[0], cPair.getValue() * this.regulationSigns.get(cPair.getKey()));
                 }
             }
             

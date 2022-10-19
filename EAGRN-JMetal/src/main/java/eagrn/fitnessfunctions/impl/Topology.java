@@ -1,9 +1,7 @@
 package eagrn.fitnessfunctions.impl;
 
-import java.util.ArrayList;
 import java.util.Map;
 
-import eagrn.ConsensusTuple;
 import eagrn.cutoffcriteria.CutOffCriteria;
 import eagrn.fitnessfunctions.FitnessFunction;
 
@@ -13,19 +11,17 @@ import eagrn.fitnessfunctions.FitnessFunction;
  */
 
 public class Topology implements FitnessFunction {
-    private ArrayList<String> geneNames;
     private CutOffCriteria cutOffCriteria;
     private int numberOfNodes;
 
-    public Topology (ArrayList<String> geneNames, CutOffCriteria cutOffCriteria) {
-        this.geneNames = geneNames;
+    public Topology(int numberOfNodes, CutOffCriteria cutOffCriteria) {
         this.cutOffCriteria = cutOffCriteria;
-        this.numberOfNodes = geneNames.size();
+        this.numberOfNodes = numberOfNodes;
     }
 
-    public double run(Map<String, ConsensusTuple> consensus) {
+    public double run(Map<String, Double> consensus, Double[] x) {
         
-        int[][] binaryNetwork = cutOffCriteria.getNetworkFromConsensus(consensus, this.geneNames);
+        int[][] binaryNetwork = cutOffCriteria.getNetwork(consensus);
         int[] degrees = new int[this.numberOfNodes];
 
         for (int i = 0; i < this.numberOfNodes; i++) {
