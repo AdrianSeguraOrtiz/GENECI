@@ -2,6 +2,7 @@ import multiprocessing
 import shutil
 from enum import Enum
 from pathlib import Path
+from time import time
 from typing import List, Optional
 import re
 
@@ -44,15 +45,10 @@ class Technique(str, Enum):
     KBOOST = "KBOOST"
 
 
-class CutOffCriteriaOnlyConf(str, Enum):
-    MinConfidence = "MinConfidence"
-    MaxNumLinksBestConf = "MaxNumLinksBestConf"
-
-
 class CutOffCriteria(str, Enum):
-    MinConfidence = "MinConfidence"
-    MaxNumLinksBestConf = "MaxNumLinksBestConf"
-    MinConfDist = "MinConfDist"
+    MinConf = "MinConf"
+    NumLinksWithBestConf = "NumLinksWithBestConf"
+    PercLinksWithBestConf = "PercLinksWithBestConf"
 
 
 class Crossover(str, Enum):
@@ -622,14 +618,14 @@ def apply_cut(
         file_okay=True,
         help="Path to the TXT file with the name of the contemplated genes separated by comma and without space. If not specified, only the genes specified in the list of trusts will be considered.",
     ),
-    cut_off_criteria: CutOffCriteriaOnlyConf = typer.Option(
+    cut_off_criteria: CutOffCriteria = typer.Option(
         ...,
         case_sensitive=False,
         help="Criteria for determining which links will be part of the final binary matrix.",
     ),
     cut_off_value: float = typer.Option(
         ...,
-        help="Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10",
+        help="Numeric value associated with the selected criterion. Ex: MinConf = 0.5, NumLinksWithBestConf = 10, PercLinksWithBestConf = 0.4",
     ),
     output_file: Path = typer.Option(
         "<<conf_list_path>>/../networks/<<conf_list_name>>.csv",
@@ -748,19 +744,19 @@ def optimize_ensemble(
         25000, help="Number of evaluations", rich_help_panel="Diversity and depth"
     ),
     cut_off_criteria: CutOffCriteria = typer.Option(
-        "MinConfDist",
+        "PercLinksWithBestConf",
         case_sensitive=False,
         help="Criteria for determining which links will be part of the final binary matrix.",
         rich_help_panel="Cut-Off",
     ),
     cut_off_value: float = typer.Option(
-        0.5,
-        help="Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfDist = 0.2",
+        0.4,
+        help="Numeric value associated with the selected criterion. Ex: MinConf = 0.5, NumLinksWithBestConf = 10, PercLinksWithBestConf = 0.4",
         rich_help_panel="Cut-Off",
     ),
     function: Optional[List[str]] = typer.Option(
-        ["Quality", "Topology"],
-        help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, Topology and Loyalty.",
+        ["Quality", "DegreeDistribution"],
+        help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, DegreeDistribution and Loyalty.",
         rich_help_panel="Fitness",
     ),
     algorithm: Algorithm = typer.Option(
@@ -1247,6 +1243,13 @@ def run(
         help="Path to the CSV file with the expression data. Genes are distributed in rows and experimental conditions (time series) in columns.",
         rich_help_panel="Input data",
     ),
+    time_series: Path = typer.Option(
+        None,
+        exists=True,
+        file_okay=True,
+        help="Path to the CSV file with the time series from which the individual gene networks have been inferred. This parameter is only necessary in case of specifying the fitness function Loyalty.",
+        rich_help_panel="Input data",
+    ),
     technique: Optional[List[Technique]] = typer.Option(
         ...,
         case_sensitive=False,
@@ -1280,19 +1283,19 @@ def run(
         25000, help="Number of evaluations", rich_help_panel="Diversity and depth"
     ),
     cut_off_criteria: CutOffCriteria = typer.Option(
-        "MinConfDist",
+        "PercLinksWithBestConf",
         case_sensitive=False,
         help="Criteria for determining which links will be part of the final binary matrix.",
         rich_help_panel="Cut-Off",
     ),
     cut_off_value: float = typer.Option(
-        0.5,
-        help="Numeric value associated with the selected criterion. Ex: MinConfidence = 0.5, MaxNumLinksBestConf = 10, MinConfDist = 0.2",
+        0.4,
+        help="Numeric value associated with the selected criterion. Ex: MinConf = 0.5, NumLinksWithBestConf = 10, PercLinksWithBestConf = 0.4",
         rich_help_panel="Cut-Off",
     ),
     function: Optional[List[str]] = typer.Option(
-        ["Quality", "Topology"],
-        help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, Topology and Loyalty.",
+        ["Quality", "DegreeDistribution"],
+        help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, DegreeDistribution and Loyalty.",
         rich_help_panel="Fitness",
     ),
     algorithm: Algorithm = typer.Option(
@@ -1336,6 +1339,7 @@ def run(
     optimize_ensemble(
         confidence_list,
         gene_names,
+        time_series,
         crossover,
         crossover_probability,
         mutation,

@@ -7,7 +7,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -263,7 +262,7 @@ public final class StaticUtils {
         }
     }
 
-    public static void writeWeightedConfList(String strFile, Map<String, Double> weightedConf) {
+    public static void writeConsensus(String strFile, Map<String, Double> consensus) {
         /**
          * This function is responsible for writing the consensus list of 
          * a solution to an output csv file specified as a parameter.
@@ -272,7 +271,7 @@ public final class StaticUtils {
             File outputFile = new File(strFile);
             BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
 
-            for (Map.Entry<String, Double> pair : weightedConf.entrySet()) {
+            for (Map.Entry<String, Double> pair : consensus.entrySet()) {
                 String [] vKeySplit = pair.getKey().split(";");
                 bw.write(vKeySplit[0] + "," + vKeySplit[1] + "," + pair.getValue());
                 bw.newLine();
@@ -309,22 +308,25 @@ public final class StaticUtils {
         }
     }
 
-    public static Map<String, Double> getWeightedConf(Double[] weights, Map<String, Double[]> inferredNetworks) {
+    public static Map<String, Double> makeConsensus(Double[] weights, Map<String, Double[]> inferredNetworks) {
         /**
          * This function calculates the weighted sum of 
          * confidence levels based on the weights.
          */
-        Map<String, Double> weightedConf = new HashMap<>();
+
+        Map<String, Double> consensus = new HashMap<>();
 
         for (Map.Entry<String, Double[]> pair : inferredNetworks.entrySet()) {
-            double conf = 0;
+            double confidence = 0.0;
+
             for (int i = 0; i < weights.length; i++) {
-                conf += weights[i] * pair.getValue()[i];
+                confidence += weights[i] * pair.getValue()[i];
             }
-            weightedConf.put(pair.getKey(), conf);
+
+            consensus.put(pair.getKey(), confidence);
         }
 
-        return weightedConf;
+        return consensus;
     }
 
     public static Map<String, Double[]> readAll(File[] inferredNetworkFiles) {
@@ -347,35 +349,6 @@ public final class StaticUtils {
             }
         }
 
-        return res;
-    }
-
-    public static Map<String, Double[]> calculateMedIntMap(Map<String, Double[]> inferredNetworks) {
-        /**
-         * For each interaction, calculate the median and the distance to the farthest point 
-         * of it for the confidence levels reported by each technique.
-         */
-
-        Map<String, Double[]> res = new HashMap<>();
-
-        for (Map.Entry<String, Double[]> entry : inferredNetworks.entrySet()) {
-            Double[] confidences = entry.getValue();
-            Arrays.sort(confidences);
-
-            int middle = confidences.length / 2;
-            double median;
-            if (confidences.length % 2 == 0) {
-                median = (confidences[middle - 1] + confidences[middle]) / 2.0;
-            } else {
-                median = confidences[middle];
-            }
-
-            double min = Collections.min(Arrays.asList(confidences));
-            double max = Collections.max(Arrays.asList(confidences));
-            double interval = Math.max(median - min, max - median);
-
-            res.put(entry.getKey(), new Double[]{median, interval});
-        }
         return res;
     }
 }

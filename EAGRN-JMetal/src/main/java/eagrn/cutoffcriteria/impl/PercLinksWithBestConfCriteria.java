@@ -11,7 +11,7 @@ public class PercLinksWithBestConfCriteria implements CutOffCriteria {
     public PercLinksWithBestConfCriteria(double perc, ArrayList<String> geneNames) {
         int numberOfNodes = geneNames.size();
         int maxPossibleLinks = numberOfNodes * (numberOfNodes - 1);
-        this.max = (int)Math.round(perc * (double)maxPossibleLinks);
+        this.max = (int)Math.round(perc * Double.valueOf(maxPossibleLinks));
         this.geneNames = geneNames;
     }
 

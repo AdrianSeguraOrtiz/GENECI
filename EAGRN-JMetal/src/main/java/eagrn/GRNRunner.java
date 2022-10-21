@@ -106,7 +106,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 numEvaluations = 25000;
                 strCutOffCriteria = "MinConfDist";
                 cutOffValue = 0.5;
-                strFitnessFormulas = "Quality;Topology";
+                strFitnessFormulas = "Quality;DegreeDistribution";
                 strAlgorithm = "NSGAII";
                 numOfThreads = Runtime.getRuntime().availableProcessors();
                 printEvolution = false;
@@ -492,13 +492,13 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             StaticUtils.writeWeights(outputFolder + "/final_weights.txt", winner, tags);
             
             /** Get weighted confidence map from winner. */
-            Map<String, Double> weightedConf = StaticUtils.getWeightedConf(winner, inferredNetworks);
+            Map<String, Double> consensus = StaticUtils.makeConsensus(winner, inferredNetworks);
 
             /** Write the resulting list of links to an output csv file. */
-            StaticUtils.writeWeightedConfList(outputFolder + "/final_list.csv", weightedConf);
+            StaticUtils.writeConsensus(outputFolder + "/final_list.csv", consensus);
 
             /** Calculate the binary matrix from the list above. */
-            int[][] binaryNetwork = cutOffCriteria.getNetwork(weightedConf);
+            int[][] binaryNetwork = cutOffCriteria.getNetwork(consensus);
 
             /** Write the resulting binary matrix to an output csv file. */
             StaticUtils.writeBinaryNetwork(outputFolder + "/final_network.csv", binaryNetwork, geneNames);

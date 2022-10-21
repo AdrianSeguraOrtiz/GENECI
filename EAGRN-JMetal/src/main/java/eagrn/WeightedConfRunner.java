@@ -37,7 +37,7 @@ public class WeightedConfRunner {
         Map<String, Double[]> inferredNetworks = StaticUtils.readAll(inferredNetworkFiles);
 
         /** Calculate the list of weighted confidence levels based on the vector of weights. */
-        Map<String, Double> weightedConf = StaticUtils.getWeightedConf(weights, inferredNetworks);
+        Map<String, Double> weightedConf = StaticUtils.makeConsensus(weights, inferredNetworks);
 
         /** Sort map */
         Map<String, Double> weightedConfSort = weightedConf
@@ -48,7 +48,7 @@ public class WeightedConfRunner {
                     (e1, e2) -> e1, LinkedHashMap::new));
 
         /** Write result in the output file. */
-        StaticUtils.writeWeightedConfList(outputFile, weightedConfSort);
+        StaticUtils.writeConsensus(outputFile, weightedConfSort);
 
     }
 }

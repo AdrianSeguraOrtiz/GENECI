@@ -4,7 +4,7 @@ import eagrn.cutoffcriteria.CutOffCriteria;
 import eagrn.fitnessfunctions.FitnessFunction;
 import eagrn.fitnessfunctions.impl.Loyalty;
 import eagrn.fitnessfunctions.impl.Quality;
-import eagrn.fitnessfunctions.impl.Topology;
+import eagrn.fitnessfunctions.impl.DegreeDistribution.impl.BinarizedDegreeDistribution;
 import eagrn.operator.repairer.WeightRepairer;
 import java.util.*;
 
@@ -125,7 +125,7 @@ public class GRNProblem extends AbstractDoubleProblem {
             x[i] = solution.variables().get(i);
         }
 
-        Map<String, Double> consensus = makeConsensus(x);
+        Map<String, Double> consensus = StaticUtils.makeConsensus(x, this.inferredNetworks);
         for (int i = 0; i < fitnessFunctions.length; i++){
             solution.objectives()[i] = fitnessFunctions[i].run(consensus, x);
         }
@@ -141,8 +141,8 @@ public class GRNProblem extends AbstractDoubleProblem {
         
         FitnessFunction res;
         switch (str.toLowerCase()) {
-            case "topology":
-                res = new Topology(this.geneNames.size(), this.cutOffCriteria);
+            case "degreedistribution":
+                res = new BinarizedDegreeDistribution(this.geneNames.size(), this.cutOffCriteria);
                 break;
             case "quality":
                 res = new Quality(this.geneNames.size(), this.inferredNetworks);
@@ -154,28 +154,6 @@ public class GRNProblem extends AbstractDoubleProblem {
                 throw new RuntimeException("The evaluation term " + str + " is not implemented.");
         }
         return res;
-    }
-
-    /** MakeConsensus() method */
-    public Map<String, Double> makeConsensus(Double[] x) {
-        /**
-         * Elaborate the list of consensus links from the vector of weights
-         * and the results provided by each technique.
-         */
-
-        Map<String, Double> consensus = new HashMap<>();
-
-        for (Map.Entry<String, Double[]> pair : inferredNetworks.entrySet()) {
-            double confidence = 0.0;
-
-            for (int i = 0; i < x.length; i++) {
-                confidence += x[i] * pair.getValue()[i];
-            }
-
-            consensus.put(pair.getKey(), confidence);
-        }
-
-        return consensus;
     }
 
     @Override

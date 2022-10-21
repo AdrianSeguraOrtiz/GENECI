@@ -70,7 +70,7 @@ public class ComputingReferenceParetoFronts {
         }
 
         WeightRepairer repairer = new StandardizationRepairer();
-        String strFitnessFormulas = "Quality;Topology";
+        String strFitnessFormulas = "Quality;DegreeDistribution";
         String strTimeSeriesFile = null;
 
         List<ExperimentProblem<DoubleSolution>> problemList = new ArrayList<>();

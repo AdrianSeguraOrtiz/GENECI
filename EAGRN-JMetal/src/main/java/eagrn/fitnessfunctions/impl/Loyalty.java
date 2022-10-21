@@ -67,7 +67,7 @@ public class Loyalty implements FitnessFunction {
                 cnt ++;
             }
         }
-        return sumSquareError / (double) cnt;
+        return sumSquareError / Double.valueOf(cnt);
     }
 
     /** ReadTimeSeries() method */
