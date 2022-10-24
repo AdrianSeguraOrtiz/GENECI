@@ -146,7 +146,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         File[] files = StaticUtils.getCSVFilesFromDirectory(networkFolder + "/lists/");
 
         /** Extract inferred networks */
-        Map<String, Double[]> inferredNetworks = StaticUtils.readAll(files);
+        Map<String, Double[]> inferredNetworks = StaticUtils.readAllInferredNetworkFiles(files);
 
         /** Extracting gene names. */
         ArrayList<String> geneNames = StaticUtils.getGeneNames(networkFolder + "/gene_names.txt");

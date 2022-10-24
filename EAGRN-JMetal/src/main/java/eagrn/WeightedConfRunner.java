@@ -34,7 +34,7 @@ public class WeightedConfRunner {
         }
 
         /** Read all files with lists. */
-        Map<String, Double[]> inferredNetworks = StaticUtils.readAll(inferredNetworkFiles);
+        Map<String, Double[]> inferredNetworks = StaticUtils.readAllInferredNetworkFiles(inferredNetworkFiles);
 
         /** Calculate the list of weighted confidence levels based on the vector of weights. */
         Map<String, Double> weightedConf = StaticUtils.makeConsensus(weights, inferredNetworks);

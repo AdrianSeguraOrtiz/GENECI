@@ -1,9 +1,9 @@
 package eagrn.fitnessfunctions.impl.Quality.impl;
 
-import java.util.Map;
-
 import eagrn.fitnessfunctions.impl.Quality.Quality;
 import eagrn.fitnessfunctions.impl.Quality.TrendMeasureEnum;
+import java.util.Map;
+
 
 /**
  * Try to minimize the quantity of high quality links (getting as close as possible
@@ -13,12 +13,10 @@ import eagrn.fitnessfunctions.impl.Quality.TrendMeasureEnum;
  * High quality links are those whose confidence-distance mean is above average.
  */
 
-public class QualityMedianWithContrast extends Quality {
-    private int numberOfNodes;
+public class QualityMeanAboveAverage extends Quality {
     
-    public QualityMedianWithContrast(int numberOfNodes, Map<String, Double[]> inferredNetworks) {
-        super(numberOfNodes, inferredNetworks, TrendMeasureEnum.MEDIAN);
-        this.numberOfNodes = numberOfNodes;
+    public QualityMeanAboveAverage(Map<String, Double[]> inferredNetworks) {
+        super(inferredNetworks, TrendMeasureEnum.MEDIAN);
     }
 
     public double run(Map<String, Double> consensus, Double[] x) {
@@ -38,7 +36,7 @@ public class QualityMedianWithContrast extends Quality {
         }
         double mean = confDistSum / consensus.size();
 
-        /** 3. Quantify the number of high quality links and calculate the average of their confidence-distance means */
+        /** 3. Calculate the average of confidence-distance means of high quality links */
         confDistSum = 0;
         double confDist, cnt = 0;
         for (Map.Entry<String, Double> pair : consensus.entrySet()) {
@@ -51,12 +49,7 @@ public class QualityMedianWithContrast extends Quality {
             }
         }
 
-        /** 4. Calculate first term value */
-        double numberOfLinks = Double.valueOf(numberOfNodes * numberOfNodes);
-        double f1 = Math.abs(cnt - 0.1 * numberOfLinks)/((1 - 0.1) * numberOfLinks);
-        double f2 = 1.0 - confDistSum/cnt;
-        double fitness = 0.25*f1 + 0.75*f2;
-
-        return fitness;
+        /** 4. Return fitness */
+        return 1.0 - confDistSum/cnt;
     }
 }

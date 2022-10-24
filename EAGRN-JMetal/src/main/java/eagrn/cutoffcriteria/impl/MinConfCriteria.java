@@ -13,13 +13,6 @@ public class MinConfCriteria implements CutOffCriteria {
         this.geneNames = geneNames;
     }
 
-    /**
-     * TODO.
-     *
-     * @param links TODO.
-     * @param geneNames TODO.
-     * @return TODO.
-     */
     public int[][] getNetwork(Map<String, Double> links) {
         int numberOfNodes = geneNames.size();
         int[][] network = new int[numberOfNodes][numberOfNodes];
@@ -42,5 +35,20 @@ public class MinConfCriteria implements CutOffCriteria {
         }
 
         return network;
+    }
+
+    @Override
+    public Map<String, Double> getCutMap(Map<String, Double> links) {
+        Map<String, Double> res = new HashMap<>();
+
+        for (Map.Entry<String, Double> entry : links.entrySet()) {
+            String pair = entry.getKey();
+            double conf = entry.getValue();
+            if (conf > min) {
+                res.put(pair, conf);
+            }
+        }
+
+        return res;
     }
 }

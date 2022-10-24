@@ -1,17 +1,17 @@
 package eagrn.fitnessfunctions.impl.Quality;
 
+import eagrn.fitnessfunctions.FitnessFunction;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import eagrn.fitnessfunctions.FitnessFunction;
 
 public abstract class Quality implements FitnessFunction{
     private Map<String, Double[]> inferredNetworks;
     private Map<String, Double[]> trendMeasureIntervalMap;
 
-    public Quality (int numberOfNodes, Map<String, Double[]> inferredNetworks, TrendMeasureEnum trendMeasure) {
+    public Quality (Map<String, Double[]> inferredNetworks, TrendMeasureEnum trendMeasure) {
         this.inferredNetworks = inferredNetworks;
         this.trendMeasureIntervalMap = calculateTrendMeasureIntervalMap(inferredNetworks, trendMeasure);
     }
@@ -26,23 +26,26 @@ public abstract class Quality implements FitnessFunction{
 
         for (Map.Entry<String, Double[]> entry : inferredNetworks.entrySet()) {
             Double[] confidences = entry.getValue();
-            Arrays.sort(confidences);
 
             double trendMeasureValue = 0.0;
             switch (trendMeasure) {
                 case MEDIAN:
-                    int middle = confidences.length / 2;
-                    if (confidences.length % 2 == 0) {
-                        trendMeasureValue = (confidences[middle - 1] + confidences[middle]) / 2.0;
+                    Double[] cloneSorted = confidences.clone();
+                    Arrays.sort(cloneSorted);
+                    int middle = cloneSorted.length / 2;
+                    if (cloneSorted.length % 2 == 0) {
+                        trendMeasureValue = (cloneSorted[middle - 1] + cloneSorted[middle]) / 2.0;
                     } else {
-                        trendMeasureValue = confidences[middle];
+                        trendMeasureValue = cloneSorted[middle];
                     }
+                    break;
                 case MEAN:
                     double sum = 0.0;
                     for (int i = 0; i < confidences.length; i++) {
                         sum += confidences[i];
                     }
                     trendMeasureValue = sum / Double.valueOf(confidences.length);
+                    break;
             }
 
             double min = Collections.min(Arrays.asList(confidences));
@@ -51,6 +54,7 @@ public abstract class Quality implements FitnessFunction{
 
             res.put(entry.getKey(), new Double[]{trendMeasureValue, interval});
         }
+
         return res;
     }
 
@@ -73,6 +77,6 @@ public abstract class Quality implements FitnessFunction{
             distanceMap.put(pair.getKey(), max - min);
         }
 
-        return consensus;
+        return distanceMap;
     }
 }

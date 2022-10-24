@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PercLinksWithBestConfCriteriaTest {
 
@@ -28,6 +29,13 @@ public class PercLinksWithBestConfCriteriaTest {
         assertArrayEquals(new int[]{0, 0, 1}, matrix[0]);
         assertArrayEquals(new int[]{0, 0, 1}, matrix[1]);
         assertArrayEquals(new int[]{0, 0, 0}, matrix[2]);
+
+        Map<String, Double> goodLinks = percLinksWithBestConfCriteria.getCutMap(links);
+        Map<String, Double> test = new HashMap<>();
+        test.put("A;C", 0.6);
+        test.put("B;C", 0.4);
+
+        assertTrue(goodLinks.equals(test));
     }
 
     @Test
@@ -48,6 +56,12 @@ public class PercLinksWithBestConfCriteriaTest {
         assertArrayEquals(new int[]{0, 1, 0}, matrix[0]);
         assertArrayEquals(new int[]{0, 0, 0}, matrix[1]);
         assertArrayEquals(new int[]{0, 0, 0}, matrix[2]);
+
+        Map<String, Double> goodLinks = percLinksWithBestConfCriteria.getCutMap(links);
+        Map<String, Double> test = new HashMap<>();
+        test.put("A;B", 0.8);
+
+        assertTrue(goodLinks.equals(test));
     }
 
     @Test
@@ -68,6 +82,13 @@ public class PercLinksWithBestConfCriteriaTest {
         assertArrayEquals(new int[]{0, 1, 0}, matrix[0]);
         assertArrayEquals(new int[]{0, 0, 1}, matrix[1]);
         assertArrayEquals(new int[]{0, 0, 0}, matrix[2]);
+
+        Map<String, Double> goodLinks = percLinksWithBestConfCriteria.getCutMap(links);
+        Map<String, Double> test = new HashMap<>();
+        test.put("A;B", 1.0);
+        test.put("B;C", 0.6);
+
+        assertTrue(goodLinks.equals(test));
     }
 
     @Test
@@ -91,6 +112,14 @@ public class PercLinksWithBestConfCriteriaTest {
         assertArrayEquals(new int[]{0, 0, 0, 0}, matrix[1]);
         assertArrayEquals(new int[]{0, 0, 0, 1}, matrix[2]);
         assertArrayEquals(new int[]{0, 0, 0, 0}, matrix[3]);
+
+        Map<String, Double> goodLinks = percLinksWithBestConfCriteria.getCutMap(links);
+        Map<String, Double> test = new HashMap<>();
+        test.put("C;D", 0.9);
+        test.put("A;D", 0.5);
+        test.put("A;B", 0.3);
+
+        assertTrue(goodLinks.equals(test));
     }
 
 }

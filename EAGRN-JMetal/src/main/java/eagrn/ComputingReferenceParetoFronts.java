@@ -75,7 +75,7 @@ public class ComputingReferenceParetoFronts {
 
         List<ExperimentProblem<DoubleSolution>> problemList = new ArrayList<>();
         for (int i = 0; i < networkFolders.length; i++) {
-            Map<String, Double[]> inferredNetworks = StaticUtils.readAll(files[i]);
+            Map<String, Double[]> inferredNetworks = StaticUtils.readAllInferredNetworkFiles(files[i]);
             CutOffCriteria cutOffCriteria = new PercLinksWithBestConfCriteria(0.4, geneNames[i]);
             GRNProblem problem = new GRNProblem(inferredNetworks, geneNames[i], repairer, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
             problem.setName(new File(networkFolders[i]).getName());

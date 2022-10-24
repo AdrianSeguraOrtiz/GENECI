@@ -13,13 +13,6 @@ public class NumLinksWithBestConfCriteria implements CutOffCriteria {
         this.geneNames = geneNames;
     }
 
-    /**
-     * TODO.
-     *
-     * @param links TODO.
-     * @param geneNames TODO.
-     * @return TODO.
-     */
     public int[][] getNetwork (Map<String, Double> links) {
         int numberOfNodes = geneNames.size();
         int[][] network = new int[numberOfNodes][numberOfNodes];
@@ -43,5 +36,23 @@ public class NumLinksWithBestConfCriteria implements CutOffCriteria {
         }
 
         return network;
+    }
+
+    @Override
+    public Map<String, Double> getCutMap(Map<String, Double> links) {
+        Map<String, Double> res = new HashMap<>();
+
+        List<Map.Entry<String, Double>> list = new ArrayList<>(links.entrySet());
+        list.sort(Collections.reverseOrder(Map.Entry.comparingByValue()));
+        Iterator<Map.Entry<String, Double>> iterator = list.iterator();
+
+        int cnt = 0;
+        while (cnt < max) {
+            Map.Entry<String, Double> entry = iterator.next();
+            res.put(entry.getKey(), entry.getValue());
+            cnt += 1;
+        }
+
+        return res;
     }
 }

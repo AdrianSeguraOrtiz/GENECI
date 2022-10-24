@@ -13,6 +13,22 @@ import java.util.Map;
 import java.util.Scanner;
 import java.io.FileWriter;
 
+import eagrn.fitnessfunctions.impl.ClusteringMeasure.impl.AverageLocalClusteringMeasure;
+import eagrn.fitnessfunctions.impl.ClusteringMeasure.impl.GlobalClusteringMeasure;
+import eagrn.fitnessfunctions.impl.ConsistencyWithTimeSeries.impl.ConsistencyWithTimeSeriesFinal;
+import eagrn.fitnessfunctions.impl.ConsistencyWithTimeSeries.impl.ConsistencyWithTimeSeriesProgressiveCurrentImpact;
+import eagrn.fitnessfunctions.impl.ConsistencyWithTimeSeries.impl.ConsistencyWithTimeSeriesProgressiveNextImpact;
+import eagrn.fitnessfunctions.impl.ConsistencyWithTimeSeries.impl.ConsistencyWithTimeSeriesProgressiveNextNextImpact;
+import eagrn.fitnessfunctions.impl.DegreeDistribution.impl.BinarizedDegreeDistribution;
+import eagrn.fitnessfunctions.impl.DegreeDistribution.impl.WeightedDegreeDistribution;
+import eagrn.fitnessfunctions.impl.Quality.impl.QualityMean;
+import eagrn.fitnessfunctions.impl.Quality.impl.QualityMeanAboveAverage;
+import eagrn.fitnessfunctions.impl.Quality.impl.QualityMeanAboveCutOff;
+import eagrn.fitnessfunctions.impl.Quality.impl.QualityMedian;
+import eagrn.fitnessfunctions.impl.Quality.impl.QualityMedianAboveAverage;
+import eagrn.fitnessfunctions.impl.Quality.impl.QualityMedianAboveAverageWithContrast;
+import eagrn.fitnessfunctions.impl.Quality.impl.QualityMedianAboveCutOff;
+
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.uma.jmetal.operator.crossover.CrossoverOperator;
 import org.uma.jmetal.operator.crossover.impl.BLXAlphaCrossover;
@@ -28,6 +44,7 @@ import org.uma.jmetal.util.grouping.CollectionGrouping;
 import eagrn.cutoffcriteria.CutOffCriteria;
 import eagrn.cutoffcriteria.impl.NumLinksWithBestConfCriteria;
 import eagrn.cutoffcriteria.impl.PercLinksWithBestConfCriteria;
+import eagrn.fitnessfunctions.FitnessFunction;
 import eagrn.cutoffcriteria.impl.MinConfCriteria;
 import eagrn.operator.mutationwithrepair.impl.CDGMutationWithRepair;
 import eagrn.operator.mutationwithrepair.impl.GroupedAndLinkedPolynomialMutationWithRepair;
@@ -329,7 +346,7 @@ public final class StaticUtils {
         return consensus;
     }
 
-    public static Map<String, Double[]> readAll(File[] inferredNetworkFiles) {
+    public static Map<String, Double[]> readAllInferredNetworkFiles(File[] inferredNetworkFiles) {
         /**
          * It scans the lists of links offered by the different techniques and stores them in a map 
          * with vector values for later query during the construction of the consensus network.
@@ -350,5 +367,139 @@ public final class StaticUtils {
         }
 
         return res;
+    }
+
+    public static Map<String, Double[]> readTimeSeries(String strTimeSeriesFile) {
+        /**
+         * It reads the file with the input time series
+         */
+
+        Map<String, Double[]> res = new HashMap<String, Double[]>();
+
+        try {
+            File timesSeriesFile = new File(strTimeSeriesFile);
+            Scanner sc = new Scanner(timesSeriesFile);
+            sc.nextLine();
+            while(sc.hasNextLine()) {
+                String line = sc.nextLine();
+                String[] splitLine = line.split(",");
+
+                String gene = splitLine[0].replace("\"", "");
+                Double[] array = new Double[splitLine.length - 1];
+                for (int i = 1; i < splitLine.length; i++) {
+                    array[i-1] = Double.parseDouble(splitLine[i]);
+                }
+                res.put(gene, array);
+            }
+            sc.close();
+        } catch (FileNotFoundException fnfe) {
+            throw new RuntimeException(fnfe.getMessage());
+        }
+
+        return res;
+    }
+
+    public static FitnessFunction getBasicFitnessFunction(String str, ArrayList<String> geneNames, Map<String, Double[]> inferredNetworks, CutOffCriteria cutOffCriteria, Map<String, Double[]> timeSeriesMap) {
+        /** 
+         * Function to return a basic FitnessFunction object based on a identifier string 
+         */
+        
+        FitnessFunction res;
+        switch (str.toLowerCase()) {
+            case "binarizeddegreedistribution":
+                res = new BinarizedDegreeDistribution(geneNames.size(), cutOffCriteria);
+                break;
+            case "weighteddegreedistribution":
+                res = new WeightedDegreeDistribution(geneNames);
+                break;
+            case "averagelocalclusteringmeasure":
+                res = new AverageLocalClusteringMeasure(geneNames);
+                break;
+            case "globalclusteringmeasure":
+                res = new GlobalClusteringMeasure(geneNames);
+                break;
+            case "qualitymean":
+                res = new QualityMean(inferredNetworks);
+                break;
+            case "qualitymedian":
+                res = new QualityMedian(inferredNetworks);
+                break;
+            case "qualitymeanaboveaverage":
+                res = new QualityMeanAboveAverage(inferredNetworks);
+                break;
+            case "qualitymedianaboveaverage":
+                res = new QualityMedianAboveAverage(inferredNetworks);
+                break;
+            case "qualitymeanabovecutoff":
+                res = new QualityMeanAboveCutOff(inferredNetworks, cutOffCriteria);
+                break;
+            case "qualitymedianabovecutoff":
+                res = new QualityMedianAboveCutOff(inferredNetworks, cutOffCriteria);
+                break;
+            case "qualitymedianaboveaveragewithcontrast":
+                res = new QualityMedianAboveAverageWithContrast(geneNames.size(), inferredNetworks);
+                break;
+            case "consistencywithtimeseriesprogressivecurrentimpact":
+                res = new ConsistencyWithTimeSeriesProgressiveCurrentImpact(timeSeriesMap);
+                break;
+            case "consistencywithtimeseriesprogressivenextimpact":
+                res = new ConsistencyWithTimeSeriesProgressiveNextImpact(timeSeriesMap);
+                break;
+            case "consistencywithtimeseriesprogressivenextnextimpact":
+                res = new ConsistencyWithTimeSeriesProgressiveNextNextImpact(timeSeriesMap);
+                break;
+            case "consistencywithtimeseriesfinal":
+                res = new ConsistencyWithTimeSeriesFinal(timeSeriesMap);
+                break;
+            default:
+                throw new RuntimeException("The evaluation term " + str + " is not implemented.");
+        }
+        return res;
+    }
+
+    public static FitnessFunction getCompositeFitnessFunction(String formula, ArrayList<String> geneNames, Map<String, Double[]> inferredNetworks, CutOffCriteria cutOffCriteria, Map<String, Double[]> timeSeriesMap) {
+        /**
+         * Function to return a composite FitnessFunction object based on a formula string
+         */
+        
+        FitnessFunction function;
+
+        String[] subformulas = formula.split("\\+");
+        if (subformulas.length == 1 && subformulas[0].split("\\*").length == 1) {
+            function = getBasicFitnessFunction(formula, geneNames, inferredNetworks, cutOffCriteria, timeSeriesMap);
+        } else {
+            FitnessFunction[] functions = new FitnessFunction[subformulas.length];
+            Double[] weights = new Double[subformulas.length];
+            double totalWeight = 0;
+
+            for (int j = 0; j < subformulas.length; j++) {
+                String[] tuple = subformulas[j].split("\\*");
+                if (tuple.length != 2) {
+                    throw new RuntimeException("Function specified with improper formatting. Remember to separate the name of the terms by the symbol +, and assign their weight by preceding them with a decimal followed by the symbol *.");
+                }
+
+                functions[j] = getBasicFitnessFunction(tuple[1], geneNames, inferredNetworks, cutOffCriteria, timeSeriesMap);
+                try {
+                    weights[j] = Double.parseDouble(tuple[0]);
+                    totalWeight += weights[j];
+                } catch (Exception e) {
+                    throw new RuntimeException("The weight " + tuple[0] + " assigned to term " + tuple[1] + " is invalid.");
+                }
+            }
+
+            if (totalWeight != 1) {
+                throw new RuntimeException("The weights of all the terms in the formula must add up to 1.");
+            }
+
+            function = (Map<String, Double> consensus, Double[] x) -> {
+                double res = 0;
+                for (int j = 0; j < functions.length; j++) {
+                    res += weights[j] * functions[j].run(consensus, x);
+                }
+                return res;
+            };
+        }
+
+        return function;
     }
 }

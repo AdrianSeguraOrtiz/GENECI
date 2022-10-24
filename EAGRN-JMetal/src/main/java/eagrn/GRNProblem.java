@@ -2,9 +2,6 @@ package eagrn;
 
 import eagrn.cutoffcriteria.CutOffCriteria;
 import eagrn.fitnessfunctions.FitnessFunction;
-import eagrn.fitnessfunctions.impl.Loyalty;
-import eagrn.fitnessfunctions.impl.Quality;
-import eagrn.fitnessfunctions.impl.DegreeDistribution.impl.BinarizedDegreeDistribution;
 import eagrn.operator.repairer.WeightRepairer;
 import java.util.*;
 
@@ -19,7 +16,7 @@ public class GRNProblem extends AbstractDoubleProblem {
     private WeightRepairer initialPopulationRepairer;
     private CutOffCriteria cutOffCriteria;
     protected FitnessFunction[] fitnessFunctions;
-    private String strTimeSeriesFile;
+    private Map<String, Double[]> timeSeriesMap;
 
     /** Constructor creates a default instance of the GRN problem */
     public GRNProblem(Map<String, Double[]> inferredNetworks, ArrayList<String> geneNames, WeightRepairer initialPopulationRepairer, CutOffCriteria cutOffCriteria, String strFitnessFormulas, String strTimeSeriesFile) {
@@ -28,70 +25,17 @@ public class GRNProblem extends AbstractDoubleProblem {
         this.geneNames = geneNames;
         this.initialPopulationRepairer = initialPopulationRepairer;
         this.cutOffCriteria = cutOffCriteria;
-        this.strTimeSeriesFile = strTimeSeriesFile;
+        if (strTimeSeriesFile != null) {
+            this.timeSeriesMap = StaticUtils.readTimeSeries(strTimeSeriesFile);
+        } else {
+            this.timeSeriesMap = null;
+        }
 
         /** Parse fitness functions */
         String[] formulas = strFitnessFormulas.split(";");
         this.fitnessFunctions = new FitnessFunction[formulas.length];
-
         for (int i = 0; i < formulas.length; i++) {
-            String[] subformulas = formulas[i].split("\\+");
-            FitnessFunction function;
-            if (subformulas.length == 1) {
-                String[] tuple = subformulas[0].split("\\*");
-                switch (tuple.length) {
-                    case 1:
-                        function = getFitnessFunction(tuple[0]);
-                        break;
-                    case 2:
-                        double weight;
-                        try {
-                            weight = Double.parseDouble(tuple[0]);
-                        } catch (Exception e) {
-                            throw new RuntimeException("The weight " + tuple[0] + " assigned to term " + tuple[1] + " is invalid.");
-                        }
-                        if (weight != 1) {
-                            throw new RuntimeException("If the fitness function consists of a single term, its weight must be 1. However, " + tuple[0] + " has been provided.");
-                        }
-                        function = getFitnessFunction(tuple[1]);
-                        break;
-                    default:
-                        throw new RuntimeException("Function specified with improper formatting. Remember to separate the name of the terms by the symbol +, and assign their weight by preceding them with a decimal followed by the symbol *.");
-                }
-                
-            } else {
-                FitnessFunction[] functions = new FitnessFunction[subformulas.length];
-                Double[] weights = new Double[subformulas.length];
-                double totalWeight = 0;
-
-                for (int j = 0; j < subformulas.length; j++) {
-                    String[] tuple = subformulas[j].split("\\*");
-                    if (tuple.length != 2) {
-                        throw new RuntimeException("Function specified with improper formatting. Remember to separate the name of the terms by the symbol +, and assign their weight by preceding them with a decimal followed by the symbol *.");
-                    }
-
-                    functions[j] = getFitnessFunction(tuple[1]);
-                    try {
-                        weights[j] = Double.parseDouble(tuple[0]);
-                        totalWeight += weights[j];
-                    } catch (Exception e) {
-                        throw new RuntimeException("The weight " + tuple[0] + " assigned to term " + tuple[1] + " is invalid.");
-                    }
-                }
-
-                if (totalWeight != 1) {
-                    throw new RuntimeException("The weights of all the terms in the formula must add up to 1.");
-                }
-
-                function = (Map<String, Double> consensus, Double[] x) -> {
-                    double res = 0;
-                    for (int j = 0; j < functions.length; j++) {
-                        res += weights[j] * functions[j].run(consensus, x);
-                    }
-                    return res;
-                };
-            }
-            this.fitnessFunctions[i] = function;
+            this.fitnessFunctions[i] = StaticUtils.getCompositeFitnessFunction(formulas[i], this.geneNames, this.inferredNetworks, this.cutOffCriteria, this.timeSeriesMap);
         }
 
         setNumberOfVariables(inferredNetworks.values().iterator().next().length);
@@ -131,29 +75,6 @@ public class GRNProblem extends AbstractDoubleProblem {
         }
 
         return solution;
-    }
-
-    /** GetFitnessFunction() method */
-    private FitnessFunction getFitnessFunction(String str) {
-        /** 
-         * Function to return FitnessFunction object based on a string 
-         */
-        
-        FitnessFunction res;
-        switch (str.toLowerCase()) {
-            case "degreedistribution":
-                res = new BinarizedDegreeDistribution(this.geneNames.size(), this.cutOffCriteria);
-                break;
-            case "quality":
-                res = new Quality(this.geneNames.size(), this.inferredNetworks);
-                break;
-            case "loyalty":
-                res = new Loyalty(this.strTimeSeriesFile);
-                break;
-            default:
-                throw new RuntimeException("The evaluation term " + str + " is not implemented.");
-        }
-        return res;
     }
 
     @Override

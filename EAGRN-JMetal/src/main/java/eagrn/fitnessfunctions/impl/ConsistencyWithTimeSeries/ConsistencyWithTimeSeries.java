@@ -1,10 +1,7 @@
-package eagrn.fitnessfunctions.impl;
+package eagrn.fitnessfunctions.impl.ConsistencyWithTimeSeries;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.Set;
 
 import eagrn.fitnessfunctions.FitnessFunction;
@@ -16,19 +13,19 @@ import eagrn.fitnessfunctions.FitnessFunction;
  * consensus algorithm.
  */
 
-public class Loyalty implements FitnessFunction {
+public abstract class ConsistencyWithTimeSeries implements FitnessFunction {
     // Stores for each gene (key) the time series given in the input (value)
-    private Map<String, Double[]> timeSeriesMap;
+    protected Map<String, Double[]> timeSeriesMap;
     // Stores for each gene (key) the differences between the i+1 and i time states during the input time series (value)
-    private Map<String, Double[]> variationsMap;
+    protected Map<String, Double[]> variationsMap;
     // Stores for each gene-gene interaction (key) the direction of regulation (activation 1 or inhibition -1) calculated after a simple analysis of the input time series
-    private Map<String, Double> regulationSigns;
+    protected Map<String, Double> regulationSigns;
 
-    public Loyalty(String strTimeSeriesFile) {
-        if (strTimeSeriesFile == null) {
+    public ConsistencyWithTimeSeries(Map<String, Double[]> timeSeriesMap) {
+        if (timeSeriesMap == null) {
             throw new RuntimeException("In case of specifying the 'Loyalty' function, the path to the file with the time series of expression levels must be provided.");
         }
-        this.timeSeriesMap = readTimeSeries(strTimeSeriesFile);
+        this.timeSeriesMap = timeSeriesMap;
 
         this.variationsMap = new HashMap<String, Double[]>();
         for (Map.Entry<String, Double[]> entry : this.timeSeriesMap.entrySet()) {
@@ -38,71 +35,10 @@ public class Loyalty implements FitnessFunction {
             }
             this.variationsMap.put(entry.getKey(), array);
         }
-
-        this.regulationSigns = getRegulationSigns();
     }
 
-    @Override
-    public double run(Map<String, Double> consensus, Double[] x) {
-
-        double sumSquareError = 0;
-        int cnt = 0;
-        for (Map.Entry<String, Double[]> tsPair : this.timeSeriesMap.entrySet()) {
-            Map<String, Double> factors = new HashMap<String, Double>();
-            for (Map.Entry<String, Double> cPair : consensus.entrySet()) {
-                String[] genes = cPair.getKey().split(";");
-                if (tsPair.getKey().equals(genes[1])){
-                    factors.put(genes[0], cPair.getValue() * this.regulationSigns.get(cPair.getKey()));
-                }
-            }
-            
-            for (int i = 0; i < tsPair.getValue().length - 1; i++) {
-                double currExpLevel = tsPair.getValue()[i];
-                double nextExpLevel = tsPair.getValue()[i+1];
-                double prediction = currExpLevel;
-                for (Map.Entry<String, Double> factor : factors.entrySet()) {
-                    prediction += this.variationsMap.get(factor.getKey())[i] * factor.getValue();
-                }
-                sumSquareError += Math.pow(nextExpLevel - prediction, 2);
-                cnt ++;
-            }
-        }
-        return sumSquareError / Double.valueOf(cnt);
-    }
-
-    /** ReadTimeSeries() method */
-    private Map<String, Double[]> readTimeSeries(String strTimeSeriesFile) {
-        /**
-         * It reads the file with the input time series
-         */
-
-        Map<String, Double[]> res = new HashMap<String, Double[]>();
-
-        try {
-            File timesSeriesFile = new File(strTimeSeriesFile);
-            Scanner sc = new Scanner(timesSeriesFile);
-            sc.nextLine();
-            while(sc.hasNextLine()) {
-                String line = sc.nextLine();
-                String[] splitLine = line.split(",");
-
-                String gene = splitLine[0].replace("\"", "");
-                Double[] array = new Double[splitLine.length - 1];
-                for (int i = 1; i < splitLine.length; i++) {
-                    array[i-1] = Double.parseDouble(splitLine[i]);
-                }
-                res.put(gene, array);
-            }
-            sc.close();
-        } catch (FileNotFoundException fnfe) {
-            throw new RuntimeException(fnfe.getMessage());
-        }
-
-        return res;
-    }
-
-    /** ReadTimeSeries() method */
-    private Map<String, Double> getRegulationSigns() {
+    /** GetRegulationSigns() method */
+    protected Map<String, Double> getRegulationSigns(int delay) {
         /**
          * Calculate the direction of regulation (activation 1 or inhibition -1) 
          * for each interaction. To do so, observe whether the increase/decrease 
@@ -136,8 +72,8 @@ public class Loyalty implements FitnessFunction {
                 Double[] arr1 = this.variationsMap.get(genes[i]);
                 Double[] arr2 = this.variationsMap.get(genes[j]);
                 Double sign = 0.0;
-                for (int k = 0; k < arr1.length; k++) {
-                    sign += arr2[k]/arr1[k];
+                for (int k = delay; k < arr1.length; k++) {
+                    sign += arr2[k]/arr1[k-delay];
                 }
                 sign = sign > 0.0 ? 1.0 : -1.0;
                 res.put(genes[i] + ";" + genes[j], sign);
