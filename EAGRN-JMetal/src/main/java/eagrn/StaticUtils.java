@@ -13,21 +13,21 @@ import java.util.Map;
 import java.util.Scanner;
 import java.io.FileWriter;
 
-import eagrn.fitnessfunctions.impl.ClusteringMeasure.impl.AverageLocalClusteringMeasure;
-import eagrn.fitnessfunctions.impl.ClusteringMeasure.impl.GlobalClusteringMeasure;
-import eagrn.fitnessfunctions.impl.ConsistencyWithTimeSeries.impl.ConsistencyWithTimeSeriesFinal;
-import eagrn.fitnessfunctions.impl.ConsistencyWithTimeSeries.impl.ConsistencyWithTimeSeriesProgressiveCurrentImpact;
-import eagrn.fitnessfunctions.impl.ConsistencyWithTimeSeries.impl.ConsistencyWithTimeSeriesProgressiveNextImpact;
-import eagrn.fitnessfunctions.impl.ConsistencyWithTimeSeries.impl.ConsistencyWithTimeSeriesProgressiveNextNextImpact;
-import eagrn.fitnessfunctions.impl.DegreeDistribution.impl.BinarizedDegreeDistribution;
-import eagrn.fitnessfunctions.impl.DegreeDistribution.impl.WeightedDegreeDistribution;
-import eagrn.fitnessfunctions.impl.Quality.impl.QualityMean;
-import eagrn.fitnessfunctions.impl.Quality.impl.QualityMeanAboveAverage;
-import eagrn.fitnessfunctions.impl.Quality.impl.QualityMeanAboveCutOff;
-import eagrn.fitnessfunctions.impl.Quality.impl.QualityMedian;
-import eagrn.fitnessfunctions.impl.Quality.impl.QualityMedianAboveAverage;
-import eagrn.fitnessfunctions.impl.Quality.impl.QualityMedianAboveAverageWithContrast;
-import eagrn.fitnessfunctions.impl.Quality.impl.QualityMedianAboveCutOff;
+import eagrn.fitnessfunctions.impl.clusteringmeasure.impl.AverageLocalClusteringMeasure;
+import eagrn.fitnessfunctions.impl.clusteringmeasure.impl.GlobalClusteringMeasure;
+import eagrn.fitnessfunctions.impl.consistencywithtimeseries.impl.ConsistencyWithTimeSeriesFinal;
+import eagrn.fitnessfunctions.impl.consistencywithtimeseries.impl.ConsistencyWithTimeSeriesProgressiveCurrentImpact;
+import eagrn.fitnessfunctions.impl.consistencywithtimeseries.impl.ConsistencyWithTimeSeriesProgressiveNextImpact;
+import eagrn.fitnessfunctions.impl.consistencywithtimeseries.impl.ConsistencyWithTimeSeriesProgressiveNextNextImpact;
+import eagrn.fitnessfunctions.impl.degreedistribution.impl.BinarizedDegreeDistribution;
+import eagrn.fitnessfunctions.impl.degreedistribution.impl.WeightedDegreeDistribution;
+import eagrn.fitnessfunctions.impl.quality.impl.QualityMean;
+import eagrn.fitnessfunctions.impl.quality.impl.QualityMeanAboveAverage;
+import eagrn.fitnessfunctions.impl.quality.impl.QualityMeanAboveCutOff;
+import eagrn.fitnessfunctions.impl.quality.impl.QualityMedian;
+import eagrn.fitnessfunctions.impl.quality.impl.QualityMedianAboveAverage;
+import eagrn.fitnessfunctions.impl.quality.impl.QualityMedianAboveAverageWithContrast;
+import eagrn.fitnessfunctions.impl.quality.impl.QualityMedianAboveCutOff;
 
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.uma.jmetal.operator.crossover.CrossoverOperator;
@@ -413,10 +413,10 @@ public final class StaticUtils {
                 res = new WeightedDegreeDistribution(geneNames);
                 break;
             case "averagelocalclusteringmeasure":
-                res = new AverageLocalClusteringMeasure(geneNames);
+                res = new AverageLocalClusteringMeasure(geneNames, cutOffCriteria);
                 break;
             case "globalclusteringmeasure":
-                res = new GlobalClusteringMeasure(geneNames);
+                res = new GlobalClusteringMeasure(geneNames, cutOffCriteria);
                 break;
             case "qualitymean":
                 res = new QualityMean(inferredNetworks);

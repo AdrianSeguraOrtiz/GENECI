@@ -485,7 +485,7 @@ def evaluation_data(
                 client.images.pull(repository=image)
 
             # Construct the command based on the parameters entered by the user
-            command = f"--category EvaluationData --output-folder {output_dir} --username {username} --password {password}"
+            command = f"--output-folder {output_dir} --username {username} --password {password}"
 
         elif db == "DREAM5":
 
@@ -755,12 +755,12 @@ def optimize_ensemble(
         rich_help_panel="Cut-Off",
     ),
     function: Optional[List[str]] = typer.Option(
-        ["Quality", "DegreeDistribution"],
-        help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, DegreeDistribution and Loyalty.",
+        ...,
+        help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: TODO.",
         rich_help_panel="Fitness",
     ),
     algorithm: Algorithm = typer.Option(
-        "NSGAII",
+        ...,
         help="Evolutionary algorithm to be used during the optimization process. All are intended for a multi-objective approach with the exception of the genetic algorithm (GA).",
         rich_help_panel="Orchestration",
     ),
@@ -1294,12 +1294,12 @@ def run(
         rich_help_panel="Cut-Off",
     ),
     function: Optional[List[str]] = typer.Option(
-        ["Quality", "DegreeDistribution"],
-        help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, DegreeDistribution and Loyalty.",
+        ...,
+        help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: TODO.",
         rich_help_panel="Fitness",
     ),
     algorithm: Algorithm = typer.Option(
-        "NSGAII",
+        ...,
         help="Evolutionary algorithm to be used during the optimization process. All are intended for a multi-objective approach with the exception of the genetic algorithm (GA).",
         rich_help_panel="Orchestration",
     ),

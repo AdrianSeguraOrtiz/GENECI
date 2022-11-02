@@ -3,6 +3,9 @@ package eagrn;
 import eagrn.algorithm.impl.GDE3BuilderWithRepair;
 import eagrn.algorithm.impl.SMPSOCorrectMutationBuilder;
 import eagrn.cutoffcriteria.CutOffCriteria;
+import eagrn.fitnessevolution.GRNProblemFitnessEvolution;
+import eagrn.fitnessevolution.impl.GRNProblemAverageFitnessEvolution;
+import eagrn.fitnessevolution.impl.GRNProblemBestFitnessEvolution;
 import eagrn.operator.mutationwithrepair.impl.*;
 import eagrn.operator.repairer.WeightRepairer;
 import org.uma.jmetal.algorithm.Algorithm;
@@ -43,6 +46,8 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -162,7 +167,12 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
         /** Initialize our problem with the extracted data. */
         if (printEvolution) {
-            problem = new GRNProblemFitnessEvolution(inferredNetworks, geneNames, repairer, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
+            int numObjetives = strFitnessFormulas.split(";").length;
+            if (numObjetives == 1) {
+                problem = new GRNProblemBestFitnessEvolution(inferredNetworks, geneNames, repairer, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
+            } else {
+                problem = new GRNProblemAverageFitnessEvolution(inferredNetworks, geneNames, repairer, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
+            }
         } else {
             problem = new GRNProblem(inferredNetworks, geneNames, repairer, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
         }
@@ -493,12 +503,17 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             
             /** Get weighted confidence map from winner. */
             Map<String, Double> consensus = StaticUtils.makeConsensus(winner, inferredNetworks);
+            Map<String, Double> consensusSorted = new LinkedHashMap<>();
+            consensus.entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())) 
+                .forEachOrdered(x -> consensusSorted.put(x.getKey(), x.getValue()));
 
             /** Write the resulting list of links to an output csv file. */
-            StaticUtils.writeConsensus(outputFolder + "/final_list.csv", consensus);
+            StaticUtils.writeConsensus(outputFolder + "/final_list.csv", consensusSorted);
 
             /** Calculate the binary matrix from the list above. */
-            int[][] binaryNetwork = cutOffCriteria.getNetwork(consensus);
+            int[][] binaryNetwork = cutOffCriteria.getNetwork(consensusSorted);
 
             /** Write the resulting binary matrix to an output csv file. */
             StaticUtils.writeBinaryNetwork(outputFolder + "/final_network.csv", binaryNetwork, geneNames);
