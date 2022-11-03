@@ -1,15 +1,18 @@
+import math
 import multiprocessing
+import re
 import shutil
 from enum import Enum
 from pathlib import Path
-from time import time
 from typing import List, Optional
-import re
 
 import docker
-import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 import typer
+from plotly.subplots import make_subplots
 from rich import print
 
 
@@ -795,7 +798,7 @@ def optimize_ensemble(
         raise typer.Abort()
 
     # Create the string representing the set of fitness functions to be checked in the input to the evolutionary algorithm
-    functions = ";".join(function)
+    str_functions = ";".join(function)
 
     # If the mutation probability is the one established by default, the optimal value is chosen
     if mutation_probability == -1:
@@ -846,7 +849,7 @@ def optimize_ensemble(
     container = client.containers.run(
         image=image,
         volumes=get_volume("tmp"),
-        command=f"tmp/ {crossover} {crossover_probability} {mutation} {mutation_probability} {repairer} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {functions} {algorithm} {threads} {plot_evolution}",
+        command=f"tmp/ {crossover} {crossover_probability} {mutation} {mutation_probability} {repairer} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {str_functions} {algorithm} {threads} {plot_evolution}",
         detach=True,
         tty=True,
     )
@@ -864,28 +867,46 @@ def optimize_ensemble(
         # Each line contains the evolution of a different objective
         lines = f.readlines()
 
-        # For each target ...
+        # Create grid for graphs
+        if len(function) == 1:
+            r = 1
+            c = 1
+        elif len(function) == 2:
+            r = 1
+            c = 2
+        else:
+            r = math.ceil(len(function) / 2)
+            c = 2
+        fig = make_subplots(rows=r, cols=c, subplot_titles=function)
+
+        # For each objective ...
         for i in range(len(lines)):
 
             # Read the evolution of its values
             str_fitness = lines[i].split(", ")
 
             # Convert it to the appropriate type (float)
-            fitness = [float(i) for i in str_fitness]
+            fitness = [float(v) for v in str_fitness]
+
+            # Get row and column index
+            curr_row = math.ceil((i + 1) / c)
+            curr_col = (i + 1) - (c * (curr_row - 1))
 
             # Plot it under the label of its function
-            plt.plot(fitness, label=function[i])
+            fig.add_trace(
+                go.Scatter(x=list(range(len(fitness))), y=fitness),
+                row=curr_row,
+                col=curr_col,
+            )
+            fig.update_xaxes(title_text="Generation", row=curr_row, col=curr_col)
+            fig.update_yaxes(title_text="Fitness", row=curr_row, col=curr_col)
 
         # Customize and save the figure
-        plt.title("Fitness evolution")
-        plt.ylabel("Fitness")
-        plt.xlabel("Generation")
-        plt.legend()
-        plt.savefig("tmp/ea_consensus/fitness_evolution.pdf")
-        plt.close()
+        fig.update_layout(title_text="Fitness evolution", showlegend=False)
+        fig.write_html("tmp/ea_consensus/fitness_evolution.html")
 
-    # If there are two objectives the pareto front is plotted
-    if len(function) == 2:
+    # If there is more than one objective we paint the graph of parallel coordinates
+    if len(function) > 1:
 
         # Open the file with the fitness values associated with the non-dominated solutions.
         f = open("tmp/ea_consensus/FUN.csv", "r")
@@ -893,30 +914,39 @@ def optimize_ensemble(
         # Each line contains the fitness values of a solution of the pareto front.
         lines = f.readlines()
 
-        # The vectors that will store these values are created
-        fitness_o1 = np.empty(0)
-        fitness_o2 = np.empty(0)
+        # Create pandas dataframe
+        df = pd.DataFrame(columns=function)
 
-        # For each solution add its value to the list
-        for line in lines:
-            point = line.split(",")
-            fitness_o1 = np.append(fitness_o1, float(point[0]))
-            fitness_o2 = np.append(fitness_o2, float(point[1]))
+        # For each solution add its fitness values to the dataframe
+        for i, line in enumerate(lines):
+            df.loc[len(df.index)] = [float(v) for v in line.split(",")]
 
-        # Obtain the order corresponding to the first objective in order to plot the front in an appropriate way.
-        sorted_idx = np.argsort(fitness_o1)
+        # If there are two objectives the pareto front is plotted
+        if len(function) == 2:
+            ## Get columns as lists
+            fitness_o1 = df[function[0]].tolist()
+            fitness_o2 = df[function[1]].tolist()
 
-        # Sort both vectors according to the indices obtained above.
-        fitness_o1 = [fitness_o1[i] for i in sorted_idx]
-        fitness_o2 = [fitness_o2[i] for i in sorted_idx]
+            ## Obtain the order corresponding to the first objective in order to plot the front in an appropriate way.
+            sorted_idx = np.argsort(fitness_o1)
 
-        # Plot, customize, save the figure
-        plt.plot(fitness_o1, fitness_o2, marker = '.')
-        plt.title("Pareto front")
-        plt.xlabel(function[0])
-        plt.ylabel(function[1])
-        plt.savefig("tmp/ea_consensus/pareto_front.pdf")
-        plt.close()
+            ## Sort all vectors according to the indices obtained above.
+            fitness_o1 = [fitness_o1[i] for i in sorted_idx]
+            fitness_o2 = [fitness_o2[i] for i in sorted_idx]
+
+            # Plot, customize, save the figure
+            fig = px.line(
+                x=fitness_o1, y=fitness_o2, markers=True, title="Pareto front"
+            )
+            fig.update_xaxes(title_text=function[0])
+            fig.update_yaxes(title_text=function[1])
+            fig.write_html("tmp/ea_consensus/pareto_front.html")
+
+        # We paint the graph of parallel coordinates
+        fig = px.parallel_coordinates(
+            df, dimensions=function, title="Graph of parallel coordinates"
+        )
+        fig.write_html("tmp/ea_consensus/fitness_parallel_coordinates.html")
 
     # Define and create the output folder
     if str(output_dir) == "<<conf_list_path>>/../ea_consensus":
@@ -1065,41 +1095,22 @@ def dream_pareto_front(
         ...,
         help="Paths to the CSV files with the confidence lists in the same order in which the weights and fitness values are specified in the corresponding files.",
     ),
-    output_file: Path = typer.Option("./evaluated_front.csv", help="Output file path"),
-    plot_front: bool = typer.Option(
+    output_dir: Path = typer.Option("<<weights_file_dir>>", help="Output folder path"),
+    plot_metrics: bool = typer.Option(
         True,
-        help="Indicate if you want to represent pareto front with AUROC and AUPR metrics.",
+        help="Indicate if you want to represent parallel coordinates graph with AUROC and AUPR metrics.",
     ),
 ):
     """
     Evaluate pareto front.
     """
 
-    # 1. Fitness Values
-    ## Open the file with the fitness values associated with the non-dominated solutions.
-    f = open(fitness_file, "r")
+    # Define and create the output folder
+    if str(output_dir) == "<<weights_file_dir>>":
+        output_dir = weights_file.parent
+    output_dir.mkdir(exist_ok=True, parents=True)
 
-    ## Each line contains the fitness values of a solution of the pareto front.
-    lines = f.readlines()
-
-    ## The vectors that will store these values are created
-    fitness_o1 = np.empty(0)
-    fitness_o2 = np.empty(0)
-
-    ## For each solution add its value to the list
-    for line in lines:
-        point = line.split(",")
-        fitness_o1 = np.append(fitness_o1, float(point[0]))
-        fitness_o2 = np.append(fitness_o2, float(point[1]))
-
-    ## Obtain the order corresponding to the first objective in order to plot the front in an appropriate way.
-    sorted_idx = np.argsort(fitness_o1)
-
-    ## Sort both vectors according to the indices obtained above.
-    fitness_o1 = [fitness_o1[i] for i in sorted_idx]
-    fitness_o2 = [fitness_o2[i] for i in sorted_idx]
-
-    # 2. Distribution of weights
+    # 1. Distribution of weights
     ## Open the file with the weights assigned to each inference technique.
     f = open(weights_file, "r")
 
@@ -1118,10 +1129,7 @@ def dream_pareto_front(
         # Added to the list
         weights.append(solution)
 
-    ## Finally, it is ordered according to the previously obtained indexes to maintain concordance with the previous lists.
-    weights = [weights[i] for i in sorted_idx]
-
-    # 3. Evaluation Metrics
+    # 2. Evaluation Metrics
     ## The lists where the auroc and aupr values are going to be stored are created.
     auprs = list()
     aurocs = list()
@@ -1148,35 +1156,63 @@ def dream_pareto_front(
         str_auroc = re.search("AUROC: (.*)\n", values)
         aurocs.append(float(str_auroc.group(1)))
 
-    # 4. Writing the output CSV file
-    ## The file path is created
-    output_file.parent.mkdir(exist_ok=True, parents=True)
+    ## Get mean between auprs and aurocs values
+    acc_means = [(aupr + auroc) / 2 for aupr, auroc in zip(auprs, aurocs)]
 
-    ## The content of the obtained vectors is written
-    with open(output_file, "w") as f:
+    # 3. Fitness Values
+    # Open the file with the fitness values associated with the non-dominated solutions.
+    f = open(fitness_file, "r")
+
+    ## Each line contains the fitness values of a solution of the pareto front.
+    lines = f.readlines()
+
+    ## Define number of objectives
+    num_of_objectives = len(lines[0].split(","))
+
+    ## Define objective labels
+    objective_labels = [f"Objective {i+1}" for i in range(num_of_objectives)]
+
+    ## Create pandas dataframe
+    df = pd.DataFrame(columns=objective_labels + ["acc_mean", "aupr", "auroc"])
+
+    ## For each solution add its fitness values to the dataframe
+    for i, line in enumerate(lines):
+        df.loc[len(df.index)] = [float(v) for v in line.split(",")] + [
+            acc_means[i],
+            auprs[i],
+            aurocs[i],
+        ]
+
+    # 4. Plot the information on a graph if specified
+    if plot_metrics:
+
+        ## Plot the graph
+        fig = px.parallel_coordinates(
+            df,
+            color="acc_mean",
+            dimensions=df.columns,
+            color_continuous_scale=px.colors.sequential.Blues,
+            title="Evaluated graph of parallel coordinates",
+        )
+        fig.write_html(f"{output_dir}/evaluated_parallel_coordinates.html")
+
+    # 5. Writing the output CSV file
+    ## Get the order corresponding to the best mean between aupr and auroc
+    sorted_idx = np.argsort([-m for m in acc_means])
+
+    ## The content of the obtained df is written
+    with open(f"{output_dir}/evaluated_front.csv", "w") as f:
         f.write(
-            f"Weights{''.join([',' for i in range(len(confidence_list)-1)])},Fitness Values,,Evaluation Values,\n"
+            f"Weights{',' * len(confidence_list)}Fitness Values{',' * num_of_objectives}Evaluation Values,,\n"
         )
         f.write(
-            f"{','.join([Path(f).name for f in confidence_list])},Objective 1,Objective 2,AUROC,AUPR\n"
+            f"{','.join([Path(f).name for f in confidence_list])},{','.join(objective_labels)},Accuracy Mean,AUROC,AUPR\n"
         )
-        for i in range(len(sorted_idx)):
+        for i in sorted_idx:
             f.write(
-                f"{','.join([str(w) for w in weights[i]])},{fitness_o1[i]},{fitness_o2[i]},{aurocs[i]},{auprs[i]}\n"
+                f"{','.join([str(w) for w in weights[i]])},{','.join([str(df[lab][i]) for lab in objective_labels])},{str(df['acc_mean'][i])},{str(df['auroc'][i])},{str(df['aupr'][i])}\n"
             )
         f.close()
-
-    # 5. Plot the information on a graph if specified
-    if plot_front:
-        plt.plot(fitness_o1, fitness_o2, marker = '.', label="Fitness Values")
-        plt.plot(fitness_o1, aurocs, marker = '.', label="AUROC")
-        plt.plot(fitness_o1, auprs, marker = '.', label="AUPR")
-        plt.title("Pareto front")
-        plt.xlabel("Objective 1")
-        plt.ylabel("Objective 2")
-        plt.legend()
-        plt.savefig(f"{output_file.parent}/{output_file.stem}.pdf")
-        plt.close()
 
 
 # Command to evaluate the accuracy of generic inferred networks

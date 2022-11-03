@@ -167,12 +167,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
         /** Initialize our problem with the extracted data. */
         if (printEvolution) {
-            int numObjetives = strFitnessFormulas.split(";").length;
-            if (numObjetives == 1) {
-                problem = new GRNProblemBestFitnessEvolution(inferredNetworks, geneNames, repairer, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
-            } else {
-                problem = new GRNProblemAverageFitnessEvolution(inferredNetworks, geneNames, repairer, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
-            }
+            problem = new GRNProblemBestFitnessEvolution(inferredNetworks, geneNames, repairer, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
         } else {
             problem = new GRNProblem(inferredNetworks, geneNames, repairer, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
         }

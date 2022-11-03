@@ -23,6 +23,7 @@ import eagrn.fitnessfunctions.impl.degreedistribution.impl.BinarizedDegreeDistri
 import eagrn.fitnessfunctions.impl.degreedistribution.impl.WeightedDegreeDistribution;
 import eagrn.fitnessfunctions.impl.quality.impl.QualityMean;
 import eagrn.fitnessfunctions.impl.quality.impl.QualityMeanAboveAverage;
+import eagrn.fitnessfunctions.impl.quality.impl.QualityMeanAboveAverageWithContrast;
 import eagrn.fitnessfunctions.impl.quality.impl.QualityMeanAboveCutOff;
 import eagrn.fitnessfunctions.impl.quality.impl.QualityMedian;
 import eagrn.fitnessfunctions.impl.quality.impl.QualityMedianAboveAverage;
@@ -435,6 +436,9 @@ public final class StaticUtils {
                 break;
             case "qualitymedianabovecutoff":
                 res = new QualityMedianAboveCutOff(inferredNetworks, cutOffCriteria);
+                break;
+            case "qualitymeanaboveaveragewithcontrast":
+                res = new QualityMeanAboveAverageWithContrast(geneNames.size(), inferredNetworks);
                 break;
             case "qualitymedianaboveaveragewithcontrast":
                 res = new QualityMedianAboveAverageWithContrast(geneNames.size(), inferredNetworks);

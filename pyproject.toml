@@ -13,7 +13,8 @@ geneci = "geneci.main:app"
 python = "^3.9"
 typer = {extras = ["all"], version = "^0.6"}
 docker = "^5.0.3"
-matplotlib = "^3.5.2"
+pandas = "^1.5.1"
+plotly = "^5.11.0"
 
 [tool.poetry.dev-dependencies]
 
