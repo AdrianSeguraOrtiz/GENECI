@@ -646,7 +646,7 @@ def apply_cut(
 
     # A temporary folder is created and the list of input confidences is copied.
     Path("tmp").mkdir(exist_ok=True, parents=True)
-    tmp_confidence_list_dir = f"tmp/{Path(confidence_list).name}"
+    tmp_confidence_list_dir = f"tmp/{confidence_list.name}"
     shutil.copyfile(confidence_list, tmp_confidence_list_dir)
 
     # Define default temp path to gene names list
@@ -668,7 +668,7 @@ def apply_cut(
     # The output file is defined and the necessary folders of its path are created.
     if str(output_file) == "<<conf_list_path>>/../networks/<<conf_list_name>>.csv":
         output_file = Path(
-            f"{Path(confidence_list).parents[1]}/networks/{Path(confidence_list).name}"
+            f"{confidence_list.parent.parent}/networks/{confidence_list.name}"
         )
     output_file.parent.mkdir(exist_ok=True, parents=True)
 
@@ -684,7 +684,7 @@ def apply_cut(
     container = client.containers.run(
         image=image,
         volumes=get_volume("tmp"),
-        command=f"{tmp_confidence_list_dir} {tmp_gene_names_dir} tmp/{output_file} {cut_off_criteria} {cut_off_value}",
+        command=f"{tmp_confidence_list_dir} {tmp_gene_names_dir} tmp/{output_file.name} {cut_off_criteria} {cut_off_value}",
         detach=True,
         tty=True,
     )
@@ -694,7 +694,7 @@ def apply_cut(
     print(logs)
 
     # Copy the output file from the temporary folder to the final one and delete the temporary one.
-    shutil.copyfile(f"tmp/{output_file}", output_file)
+    shutil.copyfile(f"tmp/{output_file.name}", output_file)
     shutil.rmtree("tmp")
 
 
@@ -918,6 +918,7 @@ def optimize_ensemble(
         df = pd.DataFrame(columns=function)
 
         # For each solution add its fitness values to the dataframe
+        del lines[0]
         for i, line in enumerate(lines):
             df.loc[len(df.index)] = [float(v) for v in line.split(",")]
 
@@ -950,7 +951,7 @@ def optimize_ensemble(
 
     # Define and create the output folder
     if str(output_dir) == "<<conf_list_path>>/../ea_consensus":
-        output_dir = Path(f"{Path(confidence_list[0]).parents[1]}/ea_consensus")
+        output_dir = Path(f"{Path(confidence_list[0]).parent.parent}/ea_consensus")
     output_dir.mkdir(exist_ok=True, parents=True)
 
     # All output files are moved and the temporary directory is deleted
@@ -1117,6 +1118,9 @@ def dream_pareto_front(
     ## Each line contains the distribution of weights proposed by a solution of the pareto front.
     lines = f.readlines()
 
+    ## Remove header
+    del lines[0]
+
     ## The vector that will store the vectors with these weights is created (list formed by lists).
     weights = list()
 
@@ -1166,11 +1170,9 @@ def dream_pareto_front(
     ## Each line contains the fitness values of a solution of the pareto front.
     lines = f.readlines()
 
-    ## Define number of objectives
-    num_of_objectives = len(lines[0].split(","))
-
-    ## Define objective labels
-    objective_labels = [f"Objective {i+1}" for i in range(num_of_objectives)]
+    ## Get objective labels
+    objective_labels = lines[0].replace("\n", "").split(",")
+    del lines[0]
 
     ## Create pandas dataframe
     df = pd.DataFrame(columns=objective_labels + ["acc_mean", "aupr", "auroc"])
@@ -1203,7 +1205,7 @@ def dream_pareto_front(
     ## The content of the obtained df is written
     with open(f"{output_dir}/evaluated_front.csv", "w") as f:
         f.write(
-            f"Weights{',' * len(confidence_list)}Fitness Values{',' * num_of_objectives}Evaluation Values,,\n"
+            f"Weights{',' * len(confidence_list)}Fitness Values{',' * len(objective_labels)}Evaluation Values,,\n"
         )
         f.write(
             f"{','.join([Path(f).name for f in confidence_list])},{','.join(objective_labels)},Accuracy Mean,AUROC,AUPR\n"
@@ -1452,7 +1454,7 @@ def draw_network(
 
     # Define and create the output folder
     if str(output_folder) == "<<conf_list_path>>/../network_graphics":
-        output_folder = Path(f"{Path(confidence_list[0]).parents[1]}/network_graphics/")
+        output_folder = Path(f"{Path(confidence_list[0]).parent.parent}/network_graphics/")
     output_folder.mkdir(exist_ok=True, parents=True)
 
     # Move all output files
@@ -1558,7 +1560,7 @@ def weighted_confidence(
 
     # Define and create the output folder
     if str(output_file) == "<<conf_list_path>>/../weighted_confidence.csv":
-        output_file = Path(f"{Path(file).parents[1]}/weighted_confidence.csv")
+        output_file = Path(f"{Path(file).parent.parent}/weighted_confidence.csv")
     output_file.parent.mkdir(exist_ok=True, parents=True)
 
     # Output file is moved and the temporary directory is deleted

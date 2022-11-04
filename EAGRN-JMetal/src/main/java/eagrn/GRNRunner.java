@@ -4,10 +4,11 @@ import eagrn.algorithm.impl.GDE3BuilderWithRepair;
 import eagrn.algorithm.impl.SMPSOCorrectMutationBuilder;
 import eagrn.cutoffcriteria.CutOffCriteria;
 import eagrn.fitnessevolution.GRNProblemFitnessEvolution;
-import eagrn.fitnessevolution.impl.GRNProblemAverageFitnessEvolution;
 import eagrn.fitnessevolution.impl.GRNProblemBestFitnessEvolution;
 import eagrn.operator.mutationwithrepair.impl.*;
 import eagrn.operator.repairer.WeightRepairer;
+import eagrn.solutionlistoutputwithheader.SolutionListOutputWithHeader;
+
 import org.uma.jmetal.algorithm.Algorithm;
 import org.uma.jmetal.algorithm.multiobjective.moead.MOEADBuilder;
 import org.uma.jmetal.algorithm.multiobjective.nsgaii.NSGAIIBuilder;
@@ -30,11 +31,9 @@ import org.uma.jmetal.util.archive.BoundedArchive;
 import org.uma.jmetal.util.archive.impl.CrowdingDistanceArchive;
 import org.uma.jmetal.util.comparator.ObjectiveComparator;
 import org.uma.jmetal.util.comparator.RankingAndCrowdingDistanceComparator;
-import org.uma.jmetal.util.errorchecking.JMetalException;
 import org.uma.jmetal.util.evaluator.SolutionListEvaluator;
 import org.uma.jmetal.util.evaluator.impl.MultiThreadedSolutionListEvaluator;
 import org.uma.jmetal.util.evaluator.impl.SequentialSolutionListEvaluator;
-import org.uma.jmetal.util.fileoutput.SolutionListOutput;
 import org.uma.jmetal.util.fileoutput.impl.DefaultFileOutputContext;
 import org.uma.jmetal.util.grouping.CollectionGrouping;
 import org.uma.jmetal.util.grouping.impl.ListLinearGrouping;
@@ -54,11 +53,10 @@ import java.util.Map;
 public class GRNRunner extends AbstractAlgorithmRunner {
     /**
      * @param args Command line arguments.
-     * @throws JMetalException
      * @throws FileNotFoundException Invoking command: java
      *     org.uma.jmetal.runner.multiobjective.nsgaii.NSGAIIRunner problemName [referenceFront]
     . */
-    public static void main(String[] args) throws JMetalException, IOException {
+    public static void main(String[] args) throws IOException {
         /** Declare the main execution variables. */
         GRNProblem problem;
         CrossoverOperator<DoubleSolution> crossover;
@@ -475,8 +473,14 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             StaticUtils.writeFitnessEvolution(outputFolder + "/fitness_evolution.txt", fitnessEvolution);
         }
 
+        /** Get files (techniques) tags */
+        String[] tags = new String[files.length];
+        for (int i = 0; i < files.length; i++) {
+            tags[i] = files[i].getName();
+        }
+
         /** Write the data of the last population (pareto front approximation). */
-        new SolutionListOutput(population)
+        new SolutionListOutputWithHeader(population, strFitnessFormulas.split(";"), tags)
             .setVarFileOutputContext(new DefaultFileOutputContext(outputFolder + "/VAR.csv", ","))
             .setFunFileOutputContext(new DefaultFileOutputContext(outputFolder + "/FUN.csv", ","))
             .print();
@@ -488,13 +492,6 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             for (int i = 0; i < problem.getNumberOfVariables(); i++) {
                 winner[i] = population.get(0).variables().get(i);
             }
-
-            /** Write the list of weights assigned to each technique in an output txt file. */
-            String[] tags = new String[files.length];
-            for (int i = 0; i < files.length; i++) {
-                tags[i] = files[i].getName();
-            }
-            StaticUtils.writeWeights(outputFolder + "/final_weights.txt", winner, tags);
             
             /** Get weighted confidence map from winner. */
             Map<String, Double> consensus = StaticUtils.makeConsensus(winner, inferredNetworks);
@@ -526,7 +523,6 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         if (problem.getNumberOfObjectives() == 1) {
             System.out.println("The resulting list of links has been stored in " + outputFolder + "/final_list.csv");
             System.out.println("The resulting binary matrix has been stored in " + outputFolder + "/final_network.csv");
-            System.out.println("List of the weights assigned to each technique has been stored in " + outputFolder + "/final_weights.txt");
         }
 
         System.exit(0);

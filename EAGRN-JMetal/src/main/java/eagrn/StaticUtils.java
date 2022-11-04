@@ -259,27 +259,6 @@ public final class StaticUtils {
         }
     }
 
-    public static void writeWeights(String strFile, Double[] weights, String[] tags) {
-        /**
-         * This function is responsible for writing the weights of a 
-         * solution to an output txt file specified as parameter
-         */
-        try {
-            File outputFile = new File(strFile);
-            BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
-
-            for (int i = 0; i < weights.length; i++) {
-                bw.write(tags[i] + ": " + weights[i]);
-                bw.newLine();
-            }
-
-            bw.flush();
-            bw.close();
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe.getMessage());
-        }
-    }
-
     public static void writeConsensus(String strFile, Map<String, Double> consensus) {
         /**
          * This function is responsible for writing the consensus list of 
