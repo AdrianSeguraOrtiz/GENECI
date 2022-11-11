@@ -152,6 +152,50 @@ def get_volume(folder):
     }
 
 
+# Function to get weights from VAR.csv file
+def get_weights(filename, header = True):
+
+    ## Open the file with the weights assigned to each inference technique.
+    f = open(filename, "r")
+
+    ## Each line contains the distribution of weights proposed by a solution of the pareto front.
+    lines = f.readlines()
+
+    ## Remove header if exist
+    if header: del lines[0]
+
+    ## The vector that will store the vectors with these weights is created (list formed by lists).
+    weights = list()
+
+    ## For each weight distribution ...
+    for line in lines:
+
+        # Converts to the appropriate type (float)
+        solution = [float(w) for w in line.split(",")]
+
+        # Added to the list
+        weights.append(solution)
+    
+    # Return list of weights
+    return weights
+
+
+# Function to write evaluation CSV file
+def write_evaluation_csv(output_dir, sorted_idx, confidence_list, objective_labels, weights, df):
+    with open(f"{output_dir}/evaluated_front.csv", "w") as f:
+        f.write(
+            f"Weights{',' * len(confidence_list)}Fitness Values{',' * len(objective_labels)}Evaluation Values,,\n"
+        )
+        f.write(
+            f"{','.join([Path(f).name for f in confidence_list])},{','.join(objective_labels)},Accuracy Mean,AUROC,AUPR\n"
+        )
+        for i in sorted_idx:
+            f.write(
+                f"{','.join([str(w) for w in weights[i]])},{','.join([str(df[lab][i]) for lab in objective_labels])},{str(df['acc_mean'][i])},{str(df['auroc'][i])},{str(df['aupr'][i])}\n"
+            )
+        f.close()
+
+
 # Applications for the definition of Typer commands and subcommands.
 app = typer.Typer(rich_markup_mode="rich")
 
@@ -543,7 +587,7 @@ def infer_network(
     )
 
     # Temporarily copy the input files to the same folder in order to facilitate the container volume.
-    tmp_exp_dir = f"./{output_dir}/{expression_data.name}"
+    tmp_exp_dir = f"./{output_dir}/{Path(expression_data).name}"
     shutil.copyfile(expression_data, tmp_exp_dir)
 
     # The different images corresponding to the inference techniques are run in parallel.
@@ -646,7 +690,7 @@ def apply_cut(
 
     # A temporary folder is created and the list of input confidences is copied.
     Path("tmp").mkdir(exist_ok=True, parents=True)
-    tmp_confidence_list_dir = f"tmp/{confidence_list.name}"
+    tmp_confidence_list_dir = f"tmp/{Path(confidence_list).name}"
     shutil.copyfile(confidence_list, tmp_confidence_list_dir)
 
     # Define default temp path to gene names list
@@ -668,9 +712,9 @@ def apply_cut(
     # The output file is defined and the necessary folders of its path are created.
     if str(output_file) == "<<conf_list_path>>/../networks/<<conf_list_name>>.csv":
         output_file = Path(
-            f"{confidence_list.parent.parent}/networks/{confidence_list.name}"
+            f"{Path(confidence_list).parent.parent}/networks/{Path(confidence_list).name}"
         )
-    output_file.parent.mkdir(exist_ok=True, parents=True)
+    Path(output_file).parent.mkdir(exist_ok=True, parents=True)
 
     # Define docker image
     image = "adriansegura99/geneci_apply-cut"
@@ -684,7 +728,7 @@ def apply_cut(
     container = client.containers.run(
         image=image,
         volumes=get_volume("tmp"),
-        command=f"{tmp_confidence_list_dir} {tmp_gene_names_dir} tmp/{output_file.name} {cut_off_criteria} {cut_off_value}",
+        command=f"{tmp_confidence_list_dir} {tmp_gene_names_dir} tmp/{Path(output_file).name} {cut_off_criteria} {cut_off_value}",
         detach=True,
         tty=True,
     )
@@ -694,7 +738,7 @@ def apply_cut(
     print(logs)
 
     # Copy the output file from the temporary folder to the final one and delete the temporary one.
-    shutil.copyfile(f"tmp/{output_file.name}", output_file)
+    shutil.copyfile(f"tmp/{Path(output_file).name}", output_file)
     shutil.rmtree("tmp")
 
 
@@ -1108,30 +1152,11 @@ def dream_pareto_front(
 
     # Define and create the output folder
     if str(output_dir) == "<<weights_file_dir>>":
-        output_dir = weights_file.parent
+        output_dir = Path(weights_file).parent
     output_dir.mkdir(exist_ok=True, parents=True)
 
     # 1. Distribution of weights
-    ## Open the file with the weights assigned to each inference technique.
-    f = open(weights_file, "r")
-
-    ## Each line contains the distribution of weights proposed by a solution of the pareto front.
-    lines = f.readlines()
-
-    ## Remove header
-    del lines[0]
-
-    ## The vector that will store the vectors with these weights is created (list formed by lists).
-    weights = list()
-
-    ## For each weight distribution ...
-    for line in lines:
-
-        # Converts to the appropriate type (float)
-        solution = [float(w) for w in line.split(",")]
-
-        # Added to the list
-        weights.append(solution)
+    weights = get_weights(weights_file)
 
     # 2. Evaluation Metrics
     ## The lists where the auroc and aupr values are going to be stored are created.
@@ -1164,31 +1189,20 @@ def dream_pareto_front(
     acc_means = [(aupr + auroc) / 2 for aupr, auroc in zip(auprs, aurocs)]
 
     # 3. Fitness Values
-    # Open the file with the fitness values associated with the non-dominated solutions.
-    f = open(fitness_file, "r")
+    ## Get fitness dataframe
+    fitness_df = pd.read_csv(fitness_file)
 
-    ## Each line contains the fitness values of a solution of the pareto front.
-    lines = f.readlines()
+    ## Extract objective labels
+    objective_labels = list(fitness_df.columns)
 
-    ## Get objective labels
-    objective_labels = lines[0].replace("\n", "").split(",")
-    del lines[0]
+    ## Create evaluation dataframe
+    evaluation_df = pd.DataFrame(data={"acc_mean": acc_means, "aupr": auprs, "auroc": aurocs})
 
-    ## Create pandas dataframe
-    df = pd.DataFrame(columns=objective_labels + ["acc_mean", "aupr", "auroc"])
-
-    ## For each solution add its fitness values to the dataframe
-    for i, line in enumerate(lines):
-        df.loc[len(df.index)] = [float(v) for v in line.split(",")] + [
-            acc_means[i],
-            auprs[i],
-            aurocs[i],
-        ]
+    ## Concat both dataframes
+    df = pd.concat([fitness_df, evaluation_df], axis=1)
 
     # 4. Plot the information on a graph if specified
     if plot_metrics:
-
-        ## Plot the graph
         fig = px.parallel_coordinates(
             df,
             color="acc_mean",
@@ -1202,26 +1216,18 @@ def dream_pareto_front(
     ## Get the order corresponding to the best mean between aupr and auroc
     sorted_idx = np.argsort([-m for m in acc_means])
 
-    ## The content of the obtained df is written
-    with open(f"{output_dir}/evaluated_front.csv", "w") as f:
-        f.write(
-            f"Weights{',' * len(confidence_list)}Fitness Values{',' * len(objective_labels)}Evaluation Values,,\n"
-        )
-        f.write(
-            f"{','.join([Path(f).name for f in confidence_list])},{','.join(objective_labels)},Accuracy Mean,AUROC,AUPR\n"
-        )
-        for i in sorted_idx:
-            f.write(
-                f"{','.join([str(w) for w in weights[i]])},{','.join([str(df[lab][i]) for lab in objective_labels])},{str(df['acc_mean'][i])},{str(df['auroc'][i])},{str(df['aupr'][i])}\n"
-            )
-        f.close()
+    ## Write CSV file
+    write_evaluation_csv(output_dir, sorted_idx, confidence_list, objective_labels, weights, df)
 
 
 # Command to evaluate the accuracy of generic inferred networks
 @generic_prediction_app.command()
 def generic_list_of_links(
-    inferred_binary_matrix: Path = typer.Option(
-        ..., exists=True, file_okay=True, help="Binary network to be evaluated"
+    confidence_list: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help="Path to the CSV file with the list of trusted values.",
     ),
     gs_binary_matrix: Path = typer.Option(
         ..., exists=True, file_okay=True, help="Gold standard binary network"
@@ -1232,15 +1238,28 @@ def generic_list_of_links(
     """
     # Report information to the user.
     print(
-        f"Evaluate {inferred_binary_matrix} prediction with respect {gs_binary_matrix} gold standard"
+        f"Evaluate {confidence_list} prediction with respect {gs_binary_matrix} gold standard"
     )
 
     # Create temporary folder
     Path("tmp/").mkdir(exist_ok=True)
 
-    # Copy the network to test
-    tmp_ibm_dir = f"tmp/{Path(inferred_binary_matrix).name}"
-    shutil.copyfile(inferred_binary_matrix, tmp_ibm_dir)
+    # Extract gene names from gold standard matrix
+    with open(gs_binary_matrix) as f:
+        gene_names = f.readline().replace("\n", "").replace('"', '').split(",")
+        del gene_names[0]
+
+    # Store inferred confidence values in matrix format
+    df = pd.DataFrame(0, index=gene_names, columns=gene_names)
+    f = open(confidence_list, 'r')
+    lines = f.readlines()
+    for line in lines:
+        vline = line.replace("\n", "").split(",")
+        df.at[vline[0], vline[1]] = vline[2]
+
+    # Save dataframe in temporal folder
+    tmp_inferred_matrix_dir = f"tmp/{Path(confidence_list).name}"
+    df.to_csv(tmp_inferred_matrix_dir, sep=",")
 
     # And its respective gold standard
     tmp_gsbm_dir = f"tmp/{Path(gs_binary_matrix).name}"
@@ -1258,7 +1277,7 @@ def generic_list_of_links(
     container = client.containers.run(
         image=image,
         volumes=get_volume("tmp"),
-        command=f"{tmp_ibm_dir} {tmp_gsbm_dir}",
+        command=f"{tmp_inferred_matrix_dir} {tmp_gsbm_dir}",
         detach=True,
         tty=True,
     )
@@ -1269,6 +1288,142 @@ def generic_list_of_links(
 
     # Delete temp folder
     shutil.rmtree("tmp")
+
+    # For coding use
+    return logs
+
+
+## Command for evaluate weight distribution
+@generic_prediction_app.command()
+def generic_weight_distribution(
+    weight_file_summand: Optional[List[str]] = typer.Option(
+        ...,
+        help="Paths of the CSV files with the confidence lists together with its associated weights. Example: 0.7*/path/to/list.csv",
+    ),
+    gs_binary_matrix: Path = typer.Option(
+        ..., exists=True, file_okay=True, help="Gold standard binary network"
+    ),
+):
+    """
+    Evaluate one weight distribution.
+    """
+
+    # Calculate the list of links from the distribution of weights
+    weighted_confidence(
+        weight_file_summand=weight_file_summand,
+        output_file=Path("./tmp2/temporal_list.csv"),
+    )
+
+    # Calculate the AUROC and AUPR values for the generated list.
+    values = generic_list_of_links(
+        confidence_list="./tmp2/temporal_list.csv",
+        gs_binary_matrix=gs_binary_matrix,
+    )
+
+    # Delete temp folder
+    shutil.rmtree("tmp2")
+
+    # For coding use
+    return values
+
+## Command for evaluate pareto front
+@generic_prediction_app.command()
+def generic_pareto_front(
+    weights_file: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help="File with the weights corresponding to a pareto front.",
+    ),
+    fitness_file: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help="File with the fitness values corresponding to a pareto front.",
+    ),
+    confidence_list: Optional[List[str]] = typer.Option(
+        ...,
+        help="Paths to the CSV files with the confidence lists in the same order in which the weights and fitness values are specified in the corresponding files.",
+    ),
+    gs_binary_matrix: Path = typer.Option(
+        ..., exists=True, file_okay=True, help="Gold standard binary network"
+    ),
+    output_dir: Path = typer.Option("<<weights_file_dir>>", help="Output folder path"),
+    plot_metrics: bool = typer.Option(
+        True,
+        help="Indicate if you want to represent parallel coordinates graph with AUROC and AUPR metrics.",
+    ),
+):
+    """
+    Evaluate pareto front.
+    """
+
+    # Define and create the output folder
+    if str(output_dir) == "<<weights_file_dir>>":
+        output_dir = Path(weights_file).parent
+    output_dir.mkdir(exist_ok=True, parents=True)
+
+    # 1. Distribution of weights
+    weights = get_weights(weights_file)
+
+    # 2. Evaluation Metrics
+    ## The lists where the auroc and aupr values are going to be stored are created.
+    auprs = list()
+    aurocs = list()
+
+    ## For each weight distribution (solution) ...
+    for solution in weights:
+
+        # The list of summands formed by products between the weights and the inference files provided in the input is constructed.
+        weight_file_summand = list()
+        for i in range(len(solution)):
+            weight_file_summand.append(f"{solution[i]}*{confidence_list[i]}")
+
+        # The function responsible for evaluating weight distributions is called
+        values = generic_weight_distribution(
+            weight_file_summand=weight_file_summand,
+            gs_binary_matrix=gs_binary_matrix,
+        )
+
+        # The obtained accuracy values are read and stored in the list.
+        str_aupr = re.search("AUPR: (.*)\"", values)
+        auprs.append(float(str_aupr.group(1)))
+        str_auroc = re.search("AUROC: (.*)\"", values)
+        aurocs.append(float(str_auroc.group(1)))
+
+    ## Get mean between auprs and aurocs values
+    acc_means = [(aupr + auroc) / 2 for aupr, auroc in zip(auprs, aurocs)]
+
+    # 3. Fitness Values
+    ## Get fitness dataframe
+    fitness_df = pd.read_csv(fitness_file)
+
+    ## Extract objective labels
+    objective_labels = list(fitness_df.columns)
+
+    ## Create evaluation dataframe
+    evaluation_df = pd.DataFrame(data={"acc_mean": acc_means, "aupr": auprs, "auroc": aurocs})
+
+    ## Concat both dataframes
+    df = pd.concat([fitness_df, evaluation_df], axis=1)
+
+    # 4. Plot the information on a graph if specified
+    if plot_metrics:
+        fig = px.parallel_coordinates(
+            df,
+            color="acc_mean",
+            dimensions=df.columns,
+            color_continuous_scale=px.colors.sequential.Blues,
+            title="Evaluated graph of parallel coordinates",
+        )
+        fig.write_html(f"{output_dir}/evaluated_parallel_coordinates.html")
+
+    # 5. Writing the output CSV file
+    ## Get the order corresponding to the best mean between aupr and auroc
+    sorted_idx = np.argsort([-m for m in acc_means])
+
+    ## Write CSV file
+    write_evaluation_csv(output_dir, sorted_idx, confidence_list, objective_labels, weights, df)
 
 
 # Command that unites individual inference with consensus optimization
@@ -1494,7 +1649,7 @@ def weighted_confidence(
     Path(tmp_output_folder).mkdir(exist_ok=True, parents=True)
 
     # Define default temporary output file
-    tmp_output_file = f"{tmp_output_folder}/{output_file.name}"
+    tmp_output_file = f"{tmp_output_folder}/{Path(output_file).name}"
 
     # The entered summands are validated.
     ## Instantiate a variable to store the cumulative sum of weights
@@ -1561,7 +1716,7 @@ def weighted_confidence(
     # Define and create the output folder
     if str(output_file) == "<<conf_list_path>>/../weighted_confidence.csv":
         output_file = Path(f"{Path(file).parent.parent}/weighted_confidence.csv")
-    output_file.parent.mkdir(exist_ok=True, parents=True)
+    Path(output_file).parent.mkdir(exist_ok=True, parents=True)
 
     # Output file is moved and the temporary directory is deleted
     shutil.move(tmp_output_file, output_file)
