@@ -2,6 +2,7 @@ package eagrn.fitnessfunctions.impl.quality.impl;
 
 import eagrn.StaticUtils;
 import eagrn.cutoffcriteria.impl.NumLinksWithBestConfCriteria;
+import eagrn.fitnessfunction.impl.quality.impl.QualityMedianAboveCutOff;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -13,22 +13,18 @@ import java.util.Map;
 import java.util.Scanner;
 import java.io.FileWriter;
 
-import eagrn.fitnessfunctions.impl.clusteringmeasure.impl.AverageLocalClusteringMeasure;
-import eagrn.fitnessfunctions.impl.clusteringmeasure.impl.GlobalClusteringMeasure;
-import eagrn.fitnessfunctions.impl.consistencywithtimeseries.impl.ConsistencyWithTimeSeriesFinal;
-import eagrn.fitnessfunctions.impl.consistencywithtimeseries.impl.ConsistencyWithTimeSeriesProgressiveCurrentImpact;
-import eagrn.fitnessfunctions.impl.consistencywithtimeseries.impl.ConsistencyWithTimeSeriesProgressiveNextImpact;
-import eagrn.fitnessfunctions.impl.consistencywithtimeseries.impl.ConsistencyWithTimeSeriesProgressiveNextNextImpact;
-import eagrn.fitnessfunctions.impl.degreedistribution.impl.BinarizedDegreeDistribution;
-import eagrn.fitnessfunctions.impl.degreedistribution.impl.WeightedDegreeDistribution;
-import eagrn.fitnessfunctions.impl.quality.impl.QualityMean;
-import eagrn.fitnessfunctions.impl.quality.impl.QualityMeanAboveAverage;
-import eagrn.fitnessfunctions.impl.quality.impl.QualityMeanAboveAverageWithContrast;
-import eagrn.fitnessfunctions.impl.quality.impl.QualityMeanAboveCutOff;
-import eagrn.fitnessfunctions.impl.quality.impl.QualityMedian;
-import eagrn.fitnessfunctions.impl.quality.impl.QualityMedianAboveAverage;
-import eagrn.fitnessfunctions.impl.quality.impl.QualityMedianAboveAverageWithContrast;
-import eagrn.fitnessfunctions.impl.quality.impl.QualityMedianAboveCutOff;
+import eagrn.old.mutationwithrepair.impl.CDGMutationWithRepair;
+import eagrn.old.mutationwithrepair.impl.GroupedAndLinkedPolynomialMutationWithRepair;
+import eagrn.old.mutationwithrepair.impl.GroupedPolynomialMutationWithRepair;
+import eagrn.old.mutationwithrepair.impl.LinkedPolynomialMutationWithRepair;
+import eagrn.old.mutationwithrepair.impl.NonUniformMutationWithRepair;
+import eagrn.old.mutationwithrepair.impl.NullMutationWithRepair;
+import eagrn.old.mutationwithrepair.impl.PolynomialMutationWithRepair;
+import eagrn.old.mutationwithrepair.impl.SimpleRandomMutationWithRepair;
+import eagrn.old.mutationwithrepair.impl.UniformMutationWithRepair;
+import eagrn.old.repairer.WeightRepairer;
+import eagrn.old.repairer.impl.GreedyRepairer;
+import eagrn.old.repairer.impl.StandardizationRepairer;
 
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.uma.jmetal.operator.crossover.CrossoverOperator;
@@ -45,20 +41,25 @@ import org.uma.jmetal.util.grouping.CollectionGrouping;
 import eagrn.cutoffcriteria.CutOffCriteria;
 import eagrn.cutoffcriteria.impl.NumLinksWithBestConfCriteria;
 import eagrn.cutoffcriteria.impl.PercLinksWithBestConfCriteria;
-import eagrn.fitnessfunctions.FitnessFunction;
+import eagrn.fitnessfunction.FitnessFunction;
+import eagrn.fitnessfunction.impl.loyalty.impl.LoyaltyFinal;
+import eagrn.fitnessfunction.impl.loyalty.impl.LoyaltyProgressiveCurrentImpact;
+import eagrn.fitnessfunction.impl.loyalty.impl.LoyaltyProgressiveNextImpact;
+import eagrn.fitnessfunction.impl.loyalty.impl.LoyaltyProgressiveNextNextImpact;
+import eagrn.fitnessfunction.impl.quality.impl.QualityMean;
+import eagrn.fitnessfunction.impl.quality.impl.QualityMeanAboveAverage;
+import eagrn.fitnessfunction.impl.quality.impl.QualityMeanAboveAverageWithContrast;
+import eagrn.fitnessfunction.impl.quality.impl.QualityMeanAboveCutOff;
+import eagrn.fitnessfunction.impl.quality.impl.QualityMedian;
+import eagrn.fitnessfunction.impl.quality.impl.QualityMedianAboveAverage;
+import eagrn.fitnessfunction.impl.quality.impl.QualityMedianAboveAverageWithContrast;
+import eagrn.fitnessfunction.impl.quality.impl.QualityMedianAboveCutOff;
+import eagrn.fitnessfunction.impl.topology.impl.AverageLocalClusteringMeasure;
+import eagrn.fitnessfunction.impl.topology.impl.BinarizedDegreeDistribution;
+import eagrn.fitnessfunction.impl.topology.impl.GlobalClusteringMeasure;
+import eagrn.fitnessfunction.impl.topology.impl.WeightedDegreeDistribution;
 import eagrn.cutoffcriteria.impl.MinConfCriteria;
-import eagrn.operator.mutationwithrepair.impl.CDGMutationWithRepair;
-import eagrn.operator.mutationwithrepair.impl.GroupedAndLinkedPolynomialMutationWithRepair;
-import eagrn.operator.mutationwithrepair.impl.GroupedPolynomialMutationWithRepair;
-import eagrn.operator.mutationwithrepair.impl.LinkedPolynomialMutationWithRepair;
-import eagrn.operator.mutationwithrepair.impl.NonUniformMutationWithRepair;
-import eagrn.operator.mutationwithrepair.impl.NullMutationWithRepair;
-import eagrn.operator.mutationwithrepair.impl.PolynomialMutationWithRepair;
-import eagrn.operator.mutationwithrepair.impl.SimpleRandomMutationWithRepair;
-import eagrn.operator.mutationwithrepair.impl.UniformMutationWithRepair;
-import eagrn.operator.repairer.WeightRepairer;
-import eagrn.operator.repairer.impl.GreedyRepairer;
-import eagrn.operator.repairer.impl.StandardizationRepairer;
+import eagrn.operator.crossover.SimplexCrossover;
 
 public final class StaticUtils {
     public static Map<String, Double> getMapWithLinks(File listFile) {
@@ -171,6 +172,8 @@ public final class StaticUtils {
         CrossoverOperator<DoubleSolution> crossover;
         
         switch (strCrossover) {
+            case "SimplexCrossover":
+                crossover = new SimplexCrossover(3, 1, crossoverProbability);
             case "SBXCrossover":
                 crossover = new SBXCrossover(crossoverProbability, crossoverDistributionIndex);
                 break;
@@ -423,16 +426,16 @@ public final class StaticUtils {
                 res = new QualityMedianAboveAverageWithContrast(geneNames.size(), inferredNetworks);
                 break;
             case "consistencywithtimeseriesprogressivecurrentimpact":
-                res = new ConsistencyWithTimeSeriesProgressiveCurrentImpact(timeSeriesMap);
+                res = new LoyaltyProgressiveCurrentImpact(timeSeriesMap);
                 break;
             case "consistencywithtimeseriesprogressivenextimpact":
-                res = new ConsistencyWithTimeSeriesProgressiveNextImpact(timeSeriesMap);
+                res = new LoyaltyProgressiveNextImpact(timeSeriesMap);
                 break;
             case "consistencywithtimeseriesprogressivenextnextimpact":
-                res = new ConsistencyWithTimeSeriesProgressiveNextNextImpact(timeSeriesMap);
+                res = new LoyaltyProgressiveNextNextImpact(timeSeriesMap);
                 break;
             case "consistencywithtimeseriesfinal":
-                res = new ConsistencyWithTimeSeriesFinal(timeSeriesMap);
+                res = new LoyaltyFinal(timeSeriesMap);
                 break;
             default:
                 throw new RuntimeException("The evaluation term " + str + " is not implemented.");
@@ -484,5 +487,40 @@ public final class StaticUtils {
         }
 
         return function;
+    }
+
+    public static double[] standardize(double[] x) {
+        /**
+         * this function takes care of standardising 
+         * vectors between 0 and 1.
+         */
+
+        double[] res = new double[x.length];
+
+        double sum = 0;
+        for (int i = 0; i < x.length; i++) {
+            sum += x[i];
+        }
+
+        for (int i = 0; i < x.length; i++) {
+            res[i] = x[i]/sum;
+        }
+
+        return res;
+    }
+
+    public static void standardizeInitialSolution(DoubleSolution solution) {
+        double v, sum = 0;
+
+        for (int i = 0; i < solution.variables().size(); i++) {
+            v = solution.variables().get(i);
+            sum += v;
+        }
+
+        for (int i = 0; i < solution.variables().size(); i++) {
+            v = solution.variables().get(i);
+            v = Math.round(v/sum * 10000.0) / 10000.0;
+            solution.variables().set(i, v);
+        }
     }
 }

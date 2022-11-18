@@ -39,15 +39,13 @@ import org.uma.jmetal.util.comparator.RankingAndCrowdingDistanceComparator;
 import org.uma.jmetal.util.errorchecking.JMetalException;
 import org.uma.jmetal.util.evaluator.impl.SequentialSolutionListEvaluator;
 
-import eagrn.algorithm.impl.GDE3BuilderWithRepair;
-import eagrn.algorithm.impl.SMPSOCorrectMutationBuilder;
-
 import eagrn.cutoffcriteria.CutOffCriteria;
 import eagrn.cutoffcriteria.impl.PercLinksWithBestConfCriteria;
-import eagrn.operator.mutationwithrepair.impl.NullMutationWithRepair;
-import eagrn.operator.mutationwithrepair.impl.PolynomialMutationWithRepair;
-import eagrn.operator.repairer.WeightRepairer;
-import eagrn.operator.repairer.impl.StandardizationRepairer;
+import eagrn.old.algorithm.impl.GDE3BuilderWithRepair;
+import eagrn.old.algorithm.impl.SMPSOCorrectMutationBuilder;
+import eagrn.old.mutationwithrepair.impl.NullMutationWithRepair;
+import eagrn.old.mutationwithrepair.impl.PolynomialMutationWithRepair;
+import eagrn.old.repairer.impl.StandardizationRepairer;
 
 public class ComputingReferenceParetoFronts {
     private static final int INDEPENDENT_RUNS = 25;
@@ -69,7 +67,6 @@ public class ComputingReferenceParetoFronts {
             geneNames[i] = StaticUtils.getGeneNames(networkFolders[i] + "/gene_names.txt");
         }
 
-        WeightRepairer repairer = new StandardizationRepairer();
         String strFitnessFormulas = "Quality;DegreeDistribution";
         String strTimeSeriesFile = null;
 
@@ -77,7 +74,7 @@ public class ComputingReferenceParetoFronts {
         for (int i = 0; i < networkFolders.length; i++) {
             Map<String, Double[]> inferredNetworks = StaticUtils.readAllInferredNetworkFiles(files[i]);
             CutOffCriteria cutOffCriteria = new PercLinksWithBestConfCriteria(0.4, geneNames[i]);
-            GRNProblem problem = new GRNProblem(inferredNetworks, geneNames[i], repairer, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
+            GRNProblem problem = new GRNProblem(inferredNetworks, geneNames[i], cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
             problem.setName(new File(networkFolders[i]).getName());
             problemList.add(new ExperimentProblem<>(problem));
         }

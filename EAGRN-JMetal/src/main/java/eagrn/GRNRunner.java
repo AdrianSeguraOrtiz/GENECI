@@ -1,13 +1,13 @@
 package eagrn;
 
-import eagrn.algorithm.impl.GDE3BuilderWithRepair;
-import eagrn.algorithm.impl.SMPSOCorrectMutationBuilder;
 import eagrn.cutoffcriteria.CutOffCriteria;
-import eagrn.fitnessevolution.GRNProblemFitnessEvolution;
-import eagrn.fitnessevolution.impl.GRNProblemBestFitnessEvolution;
-import eagrn.operator.mutationwithrepair.impl.*;
-import eagrn.operator.repairer.WeightRepairer;
-import eagrn.solutionlistoutputwithheader.SolutionListOutputWithHeader;
+import eagrn.old.algorithm.impl.GDE3BuilderWithRepair;
+import eagrn.old.algorithm.impl.SMPSOCorrectMutationBuilder;
+import eagrn.old.mutationwithrepair.impl.*;
+import eagrn.old.repairer.WeightRepairer;
+import eagrn.utils.fitnessevolution.GRNProblemFitnessEvolution;
+import eagrn.utils.fitnessevolution.impl.GRNProblemBestFitnessEvolution;
+import eagrn.utils.solutionlistoutputwithheader.SolutionListOutputWithHeader;
 
 import org.uma.jmetal.algorithm.Algorithm;
 import org.uma.jmetal.algorithm.multiobjective.moead.MOEADBuilder;
@@ -165,9 +165,9 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
         /** Initialize our problem with the extracted data. */
         if (printEvolution) {
-            problem = new GRNProblemBestFitnessEvolution(inferredNetworks, geneNames, repairer, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
+            problem = new GRNProblemBestFitnessEvolution(inferredNetworks, geneNames, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
         } else {
-            problem = new GRNProblem(inferredNetworks, geneNames, repairer, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
+            problem = new GRNProblem(inferredNetworks, geneNames, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
         }
         
 

@@ -150,5 +150,6 @@ pareto_fronts/
 tmp/
 
 utils/
+!EAGRN-JMetal/src/main/java/eagrn/utils/
 hola.sh
 .vscode

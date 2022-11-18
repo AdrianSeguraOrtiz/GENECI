@@ -1,8 +1,8 @@
 package eagrn;
 
 import eagrn.cutoffcriteria.CutOffCriteria;
-import eagrn.fitnessfunctions.FitnessFunction;
-import eagrn.operator.repairer.WeightRepairer;
+import eagrn.fitnessfunction.FitnessFunction;
+
 import java.util.*;
 
 import org.uma.jmetal.problem.doubleproblem.impl.AbstractDoubleProblem;
@@ -13,17 +13,15 @@ import org.uma.jmetal.solution.doublesolution.impl.DefaultDoubleSolution;
 public class GRNProblem extends AbstractDoubleProblem {
     private Map<String, Double[]> inferredNetworks;
     private ArrayList<String> geneNames;
-    private WeightRepairer initialPopulationRepairer;
     private CutOffCriteria cutOffCriteria;
     protected FitnessFunction[] fitnessFunctions;
     private Map<String, Double[]> timeSeriesMap;
 
     /** Constructor creates a default instance of the GRN problem */
-    public GRNProblem(Map<String, Double[]> inferredNetworks, ArrayList<String> geneNames, WeightRepairer initialPopulationRepairer, CutOffCriteria cutOffCriteria, String strFitnessFormulas, String strTimeSeriesFile) {
+    public GRNProblem(Map<String, Double[]> inferredNetworks, ArrayList<String> geneNames, CutOffCriteria cutOffCriteria, String strFitnessFormulas, String strTimeSeriesFile) {
         
         this.inferredNetworks = inferredNetworks;
         this.geneNames = geneNames;
-        this.initialPopulationRepairer = initialPopulationRepairer;
         this.cutOffCriteria = cutOffCriteria;
         if (strTimeSeriesFile != null) {
             this.timeSeriesMap = StaticUtils.readTimeSeries(strTimeSeriesFile);
@@ -57,7 +55,7 @@ public class GRNProblem extends AbstractDoubleProblem {
     @Override
     public DoubleSolution createSolution() {
         DefaultDoubleSolution solution = new DefaultDoubleSolution(this.getNumberOfObjectives(), this.getNumberOfConstraints(), this.getBoundsForVariables());
-        initialPopulationRepairer.repairSolution(solution);
+        StaticUtils.standardizeInitialSolution(solution);
         return solution;
     }
 

@@ -1,6 +1,7 @@
 package eagrn.fitnessfunctions.impl.quality.impl;
 
 import eagrn.StaticUtils;
+import eagrn.fitnessfunction.impl.quality.impl.QualityMean;
 
 import java.util.ArrayList;
 import java.util.HashMap;
