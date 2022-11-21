@@ -31,7 +31,7 @@ public class SimplexCrossover implements CrossoverOperator<DoubleSolution> {
     public List<DoubleSolution> execute(List<DoubleSolution> source) {
         Check.that(
         getNumberOfRequiredParents() == source.size(),
-        "Simplex Crossover requires + "
+        "Simplex Crossover requires "
             + getNumberOfRequiredParents()
             + " parents, but got "
             + source.size());

@@ -54,6 +54,32 @@ class CutOffCriteria(str, Enum):
     PercLinksWithBestConf = "PercLinksWithBestConf"
 
 
+class Crossover(str, Enum):
+    SBXCrossover = "SBXCrossover"
+    BLXAlphaCrossover = "BLXAlphaCrossover"
+    DifferentialEvolutionCrossover = "DifferentialEvolutionCrossover"
+    NPointCrossover = "NPointCrossover"
+    NullCrossover = "NullCrossover"
+    WholeArithmeticCrossover = "WholeArithmeticCrossover"
+
+
+class Mutation(str, Enum):
+    PolynomialMutation = "PolynomialMutation"
+    CDGMutation = "CDGMutation"
+    GroupedAndLinkedPolynomialMutation = "GroupedAndLinkedPolynomialMutation"
+    GroupedPolynomialMutation = "GroupedPolynomialMutation"
+    LinkedPolynomialMutation = "LinkedPolynomialMutation"
+    NonUniformMutation = "NonUniformMutation"
+    NullMutation = "NullMutation"
+    SimpleRandomMutation = "SimpleRandomMutation"
+    UniformMutation = "UniformMutation"
+
+
+class Repairer(str, Enum):
+    StandardizationRepairer = "StandardizationRepairer"
+    GreedyRepair = "GreedyRepair"
+
+
 class Challenge(str, Enum):
     D3C4 = "D3C4"
     D4C2 = "D4C2"
@@ -76,6 +102,8 @@ class Algorithm(str, Enum):
     GA = "GA"
     NSGAII = "NSGAII"
     SMPSO = "SMPSO"
+    MOEAD = "MOEAD"
+    GDE3 = "GDE3"
 
 
 # Function for obtaining the list of genes from lists of confidence levels.
@@ -736,14 +764,25 @@ def optimize_ensemble(
         help="Path to the CSV file with the time series from which the individual gene networks have been inferred. This parameter is only necessary in case of specifying the fitness function Loyalty.",
         rich_help_panel="Input data",
     ),
+    crossover: Crossover = typer.Option(
+        "SBXCrossover", help="Crossover operator", rich_help_panel="Crossover"
+    ),
     crossover_probability: float = typer.Option(
         0.9, help="Crossover probability", rich_help_panel="Crossover"
+    ),
+    mutation: Mutation = typer.Option(
+        "PolynomialMutation", help="Mutation operator", rich_help_panel="Mutation"
     ),
     mutation_probability: float = typer.Option(
         -1,
         help="Mutation probability. [default: 1/len(files)]",
         show_default=False,
         rich_help_panel="Mutation",
+    ),
+    repairer: Repairer = typer.Option(
+        "StandardizationRepairer",
+        help="Solution repairer to keep the sum of weights equal to 1",
+        rich_help_panel="Repairer",
     ),
     population_size: int = typer.Option(
         100, help="Population size", rich_help_panel="Diversity and depth"
@@ -854,7 +893,7 @@ def optimize_ensemble(
     container = client.containers.run(
         image=image,
         volumes=get_volume("tmp"),
-        command=f"tmp/ {crossover_probability} {mutation_probability} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {str_functions} {algorithm} {threads} {plot_evolution}",
+        command=f"tmp/ {crossover} {crossover_probability} {mutation} {mutation_probability} {repairer} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {str_functions} {algorithm} {threads} {plot_evolution}",
         detach=True,
         tty=True,
     )
@@ -1410,14 +1449,25 @@ def run(
         help="Inference techniques to be performed.",
         rich_help_panel="Individual inference",
     ),
+    crossover: Crossover = typer.Option(
+        "SBXCrossover", help="Crossover operator", rich_help_panel="Crossover"
+    ),
     crossover_probability: float = typer.Option(
         0.9, help="Crossover probability", rich_help_panel="Crossover"
+    ),
+    mutation: Mutation = typer.Option(
+        "PolynomialMutation", help="Mutation operator", rich_help_panel="Mutation"
     ),
     mutation_probability: float = typer.Option(
         -1,
         help="Mutation probability. [default: 1/len(files)]",
         show_default=False,
         rich_help_panel="Mutation",
+    ),
+    repairer: Repairer = typer.Option(
+        "StandardizationRepairer",
+        help="Solution repairer to keep the sum of weights equal to 1",
+        rich_help_panel="Repairer",
     ),
     population_size: int = typer.Option(
         100, help="Population size", rich_help_panel="Diversity and depth"
@@ -1483,8 +1533,11 @@ def run(
         confidence_list,
         gene_names,
         time_series,
+        crossover,
         crossover_probability,
+        mutation,
         mutation_probability,
+        repairer,
         population_size,
         num_evaluations,
         cut_off_criteria,

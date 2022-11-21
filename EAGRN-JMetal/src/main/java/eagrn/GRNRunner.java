@@ -1,29 +1,24 @@
 package eagrn;
 
+import eagrn.algorithm.AsynchronousMultiThreadedGeneticAlgorithmGoodParents;
 import eagrn.cutoffcriteria.CutOffCriteria;
-import eagrn.old.algorithm.impl.GDE3BuilderWithRepair;
-import eagrn.old.algorithm.impl.SMPSOCorrectMutationBuilder;
-import eagrn.old.mutationwithrepair.impl.*;
-import eagrn.old.repairer.WeightRepairer;
+import eagrn.operator.crossover.SimplexCrossover;
+import eagrn.operator.mutation.SimplexMutation;
 import eagrn.utils.fitnessevolution.GRNProblemFitnessEvolution;
 import eagrn.utils.fitnessevolution.impl.GRNProblemBestFitnessEvolution;
 import eagrn.utils.solutionlistoutputwithheader.SolutionListOutputWithHeader;
 
 import org.uma.jmetal.algorithm.Algorithm;
-import org.uma.jmetal.algorithm.multiobjective.moead.MOEADBuilder;
 import org.uma.jmetal.algorithm.multiobjective.nsgaii.NSGAIIBuilder;
+import org.uma.jmetal.algorithm.multiobjective.smpso.SMPSOBuilder;
 import org.uma.jmetal.example.AlgorithmRunner;
-import org.uma.jmetal.experimental.componentbasedalgorithm.algorithm.ComponentBasedEvolutionaryAlgorithm;
 import org.uma.jmetal.experimental.componentbasedalgorithm.algorithm.singleobjective.geneticalgorithm.GeneticAlgorithm;
-import org.uma.jmetal.experimental.componentbasedalgorithm.catalogue.evaluation.impl.MultithreadedEvaluation;
 import org.uma.jmetal.experimental.componentbasedalgorithm.catalogue.replacement.Replacement;
 import org.uma.jmetal.experimental.componentbasedalgorithm.catalogue.replacement.impl.MuPlusLambdaReplacement;
 import org.uma.jmetal.operator.crossover.CrossoverOperator;
-import org.uma.jmetal.operator.crossover.impl.*;
 import org.uma.jmetal.operator.mutation.MutationOperator;
 import org.uma.jmetal.operator.selection.impl.BinaryTournamentSelection;
 import org.uma.jmetal.operator.selection.impl.NaryTournamentSelection;
-import org.uma.jmetal.parallel.asynchronous.algorithm.impl.AsynchronousMultiThreadedGeneticAlgorithm;
 import org.uma.jmetal.parallel.asynchronous.algorithm.impl.AsynchronousMultiThreadedNSGAII;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 import org.uma.jmetal.util.AbstractAlgorithmRunner;
@@ -35,8 +30,6 @@ import org.uma.jmetal.util.evaluator.SolutionListEvaluator;
 import org.uma.jmetal.util.evaluator.impl.MultiThreadedSolutionListEvaluator;
 import org.uma.jmetal.util.evaluator.impl.SequentialSolutionListEvaluator;
 import org.uma.jmetal.util.fileoutput.impl.DefaultFileOutputContext;
-import org.uma.jmetal.util.grouping.CollectionGrouping;
-import org.uma.jmetal.util.grouping.impl.ListLinearGrouping;
 import org.uma.jmetal.util.termination.Termination;
 import org.uma.jmetal.util.termination.impl.TerminationByEvaluations;
 import org.uma.jmetal.util.SolutionListUtils;
@@ -54,24 +47,22 @@ public class GRNRunner extends AbstractAlgorithmRunner {
     /**
      * @param args Command line arguments.
      * @throws FileNotFoundException Invoking command: java
-     *     org.uma.jmetal.runner.multiobjective.nsgaii.NSGAIIRunner problemName [referenceFront]
-    . */
+     *                               org.uma.jmetal.runner.multiobjective.nsgaii.NSGAIIRunner
+     *                               problemName [referenceFront]
+     *                               .
+     */
     public static void main(String[] args) throws IOException {
         /** Declare the main execution variables. */
         GRNProblem problem;
         CrossoverOperator<DoubleSolution> crossover;
         MutationOperator<DoubleSolution> mutation;
-        WeightRepairer repairer;
         NaryTournamentSelection<DoubleSolution> selection;
         CutOffCriteria cutOffCriteria;
 
         /** Read input parameters. */
         String networkFolder;
-        String strCrossover;
         double crossoverProbability;
-        String strMutation;
         double mutationProbability;
-        String strRepairer;
         int populationSize;
         int numEvaluations;
         String strCutOffCriteria;
@@ -84,32 +75,26 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         if (args.length > 0) {
             networkFolder = args[0];
 
-            if (args.length == 14) {
-                strCrossover = args[1];
-                crossoverProbability = Double.parseDouble(args[2]);
-                strMutation = args[3];
-                mutationProbability = Double.parseDouble(args[4]);
-                strRepairer = args[5];
-                populationSize = Integer.parseInt(args[6]);
-                numEvaluations = Integer.parseInt(args[7]);
-                strCutOffCriteria = args[8];
-                cutOffValue = Double.parseDouble(args[9]);
-                strFitnessFormulas = args[10];
-                strAlgorithm = args[11];
-                numOfThreads = Integer.parseInt(args[12]);
-                printEvolution = Boolean.parseBoolean(args[13]);
-                
+            if (args.length == 11) {
+                crossoverProbability = Double.parseDouble(args[1]);
+                mutationProbability = Double.parseDouble(args[2]);
+                populationSize = Integer.parseInt(args[3]);
+                numEvaluations = Integer.parseInt(args[4]);
+                strCutOffCriteria = args[5];
+                cutOffValue = Double.parseDouble(args[6]);
+                strFitnessFormulas = args[7];
+                strAlgorithm = args[8];
+                numOfThreads = Integer.parseInt(args[9]);
+                printEvolution = Boolean.parseBoolean(args[10]);
+
             } else {
-                strCrossover = "SBXCrossover";
                 crossoverProbability = 0.9;
-                strMutation = "PolynomialMutation";
                 mutationProbability = 0.1;
-                strRepairer = "StandardizationRepairer";
                 populationSize = 100;
                 numEvaluations = 25000;
-                strCutOffCriteria = "MinConfDist";
+                strCutOffCriteria = "MinConf";
                 cutOffValue = 0.5;
-                strFitnessFormulas = "Quality;DegreeDistribution";
+                strFitnessFormulas = "Quality;BinarizedDegreeDistribution";
                 strAlgorithm = "NSGAII";
                 numOfThreads = Runtime.getRuntime().availableProcessors();
                 printEvolution = false;
@@ -118,12 +103,16 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             throw new RuntimeException("At least the folder with the input trust lists must be provided.");
         }
 
-        /** Refine the name of the algorithm to be executed according to the specified number of threads */
+        /**
+         * Refine the name of the algorithm to be executed according to the specified
+         * number of threads
+         */
         if (numOfThreads < 0) {
             throw new RuntimeException("The number of threads must be a positive number.");
 
         } else if (numOfThreads > Runtime.getRuntime().availableProcessors()) {
-            throw new RuntimeException("The specified number of threads is greater than that available on your device.");
+            throw new RuntimeException(
+                    "The specified number of threads is greater than that available on your device.");
 
         } else if (numOfThreads == 1) {
             strAlgorithm += "-SingleThread";
@@ -132,18 +121,10 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             if (strAlgorithm.equals("GA") || strAlgorithm.equals("NSGAII")) {
                 strAlgorithm += "-AsyncParallel";
 
-            } else if (strAlgorithm.equals("MOEAD")) {
-                System.out.println("The MOEAD algorithm is not implemented for parallel execution, so only one thread will be used during execution.");
-                numOfThreads = 1;
-                strAlgorithm += "-SingleThread";
-
             } else {
                 strAlgorithm += "-SyncParallel";
             }
         }
-
-        /** Establish the chromosome repairer. */
-        repairer = StaticUtils.getRepairerFromString(strRepairer);
 
         /** List CSV files stored in the input folder with inferred lists of links. */
         File[] files = StaticUtils.getCSVFilesFromDirectory(networkFolder + "/lists/");
@@ -156,7 +137,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
         /** Extract the path to the file with the time series if provided */
         String strTimeSeriesFile = networkFolder + "/time_series.csv";
-        if (! Files.exists(Paths.get(strTimeSeriesFile))) {
+        if (!Files.exists(Paths.get(strTimeSeriesFile))) {
             strTimeSeriesFile = null;
         }
 
@@ -165,30 +146,26 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
         /** Initialize our problem with the extracted data. */
         if (printEvolution) {
-            problem = new GRNProblemBestFitnessEvolution(inferredNetworks, geneNames, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
+            problem = new GRNProblemBestFitnessEvolution(inferredNetworks, geneNames, cutOffCriteria,
+                    strFitnessFormulas, strTimeSeriesFile);
         } else {
-            problem = new GRNProblem(inferredNetworks, geneNames, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
+            problem = new GRNProblem(inferredNetworks, geneNames, cutOffCriteria, strFitnessFormulas,
+                    strTimeSeriesFile);
         }
-        
 
         /** Set the crossover operator. */
-        double crossoverDistributionIndex = 20.0;
-        int numPointsCrossover = 2;
-        crossover = StaticUtils.getCrossoverOperatorFromString(strCrossover, crossoverProbability, crossoverDistributionIndex, numPointsCrossover);
+        crossover = new SimplexCrossover(3, 1, crossoverProbability);
 
         /** Set the mutation operator. */
-        double mutationDistributionIndex = 20.0;
-        double delta = 0.5;
-        int numberOfGroups = 4;
-        CollectionGrouping<List<Double>> grouping = new ListLinearGrouping<>(numberOfGroups);
-        double perturbation = 0.5;
-        int maxMutIterations = 10;
-        mutation = StaticUtils.getMutationOperatorFromString(strMutation, mutationProbability, repairer, mutationDistributionIndex, delta, numberOfGroups, grouping, perturbation, maxMutIterations);
+        mutation = new SimplexMutation(mutationProbability, 0.1);
 
         /** Start selection operator. */
         selection = new BinaryTournamentSelection<>(new RankingAndCrowdingDistanceComparator<>());
 
-        /** Declare variable to contain the runtime and another to store the last generation of individuals. */
+        /**
+         * Declare variable to contain the runtime and another to store the last
+         * generation of individuals.
+         */
         long computingTime;
         List<DoubleSolution> population;
 
@@ -199,83 +176,60 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
         /** Configure the specified evolutionary algorithm. */
         if (problem.getNumberOfObjectives() == 1) {
-            if (strAlgorithm.equals("GA-AsyncParallel")) {
-                /** Activate stopwatch. */
-                long initTime = System.currentTimeMillis();
-    
+            if (strAlgorithm.equals("GA-SingleThread")) {
                 /** Instantiate the evolutionary algorithm. */
-                AsynchronousMultiThreadedGeneticAlgorithm<DoubleSolution> algorithm
-                     = new AsynchronousMultiThreadedGeneticAlgorithm <DoubleSolution>(
-                            numOfThreads,
-                            problem,
-                            populationSize,
-                            crossover,
-                            mutation,
-                            selection,
-                            replacement,
-                            termination);
-    
+                GeneticAlgorithm<DoubleSolution> algorithm = new GeneticAlgorithm<DoubleSolution>(
+                        problem,
+                        populationSize,
+                        offspringPopulationSize,
+                        selection,
+                        crossover,
+                        mutation,
+                        termination);
+
                 /** Execute the designed evolutionary algorithm. */
                 algorithm.run();
-        
+
+                /** Extract the total execution time. */
+                computingTime = algorithm.getTotalComputingTime();
+
+                /** Extract the population of the last iteration. */
+                population = algorithm.getResult();
+
+            } else if (strAlgorithm.equals("GA-AsyncParallel")) {
+                /** Activate stopwatch. */
+                long initTime = System.currentTimeMillis();
+
+                /** Instantiate the evolutionary algorithm. */
+                AsynchronousMultiThreadedGeneticAlgorithmGoodParents<DoubleSolution> algorithm = new AsynchronousMultiThreadedGeneticAlgorithmGoodParents<DoubleSolution>(
+                        numOfThreads,
+                        problem,
+                        populationSize,
+                        crossover,
+                        mutation,
+                        selection,
+                        replacement,
+                        termination);
+
+                /** Execute the designed evolutionary algorithm. */
+                algorithm.run();
+
                 /** Stop stopwatch and calculate the total execution time. */
                 long endTime = System.currentTimeMillis();
                 computingTime = endTime - initTime;
-    
+
                 /** Extract the population of the last iteration. */
                 population = SolutionListUtils.getNonDominatedSolutions(algorithm.getResult());
-    
-            } else if (strAlgorithm.equals("GA-SyncParallel")) {
-                /** Instantiate the evolutionary algorithm. */
-                ComponentBasedEvolutionaryAlgorithm<DoubleSolution> algorithm
-                     = new GeneticAlgorithm <DoubleSolution>(
-                            problem,
-                            populationSize,
-                            offspringPopulationSize,
-                            selection,
-                            crossover,
-                            mutation,
-                            termination).withEvaluation(new MultithreadedEvaluation<>(numOfThreads, problem));
-    
-                /** Execute the designed evolutionary algorithm. */
-                algorithm.run();
-    
-                /** Extract the total execution time. */
-                computingTime = algorithm.getTotalComputingTime();
-    
-                /** Extract the population of the last iteration. */
-                population = algorithm.getResult();
-    
-            } else if (strAlgorithm.equals("GA-SingleThread")) {
-                /** Instantiate the evolutionary algorithm. */
-                GeneticAlgorithm<DoubleSolution> algorithm 
-                    = new GeneticAlgorithm <DoubleSolution>(
-                            problem,
-                            populationSize,
-                            offspringPopulationSize,
-                            selection,
-                            crossover,
-                            mutation,
-                            termination);
-    
-                /** Execute the designed evolutionary algorithm. */
-                algorithm.run();
-    
-                /** Extract the total execution time. */
-                computingTime = algorithm.getTotalComputingTime();
-    
-                /** Extract the population of the last iteration. */
-                population = algorithm.getResult();
-    
-            } 
-            else {
-                throw new RuntimeException("The algorithm " + strAlgorithm + " is not available for single-objetive problems.");
+
+            } else {
+                throw new RuntimeException(
+                        "The algorithm " + strAlgorithm + " is not available for single-objetive problems.");
             }
         } else {
             if (strAlgorithm.equals("NSGAII-SingleThread")) {
                 /** Instantiate the evolutionary algorithm. */
-                Algorithm<List<DoubleSolution>> algorithm
-                    = new NSGAIIBuilder<>(problem, crossover, mutation, populationSize)
+                Algorithm<List<DoubleSolution>> algorithm = new NSGAIIBuilder<>(problem, crossover, mutation,
+                        populationSize)
                         .setSelectionOperator(selection)
                         .setMaxEvaluations(numEvaluations)
                         .build();
@@ -285,32 +239,30 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
                 /** Extract the total execution time. */
                 computingTime = algorithmRunner.getComputingTime();
-    
+
                 /** Extract the population of the last iteration. */
                 population = algorithm.getResult();
 
-                
             } else if (strAlgorithm.equals("NSGAII-AsyncParallel")) {
                 /** Activate stopwatch. */
                 long initTime = System.currentTimeMillis();
-    
+
                 /** Instantiate the evolutionary algorithm. */
-                AsynchronousMultiThreadedNSGAII<DoubleSolution> algorithm
-                    = new AsynchronousMultiThreadedNSGAII<DoubleSolution>(
-                            numOfThreads, 
-                            problem, 
-                            populationSize, 
-                            crossover, 
-                            mutation, 
-                            termination);
-                
+                AsynchronousMultiThreadedNSGAII<DoubleSolution> algorithm = new AsynchronousMultiThreadedNSGAII<DoubleSolution>(
+                        numOfThreads,
+                        problem,
+                        populationSize,
+                        crossover,
+                        mutation,
+                        termination);
+
                 /** Execute the designed evolutionary algorithm. */
                 algorithm.run();
-    
+
                 /** Stop stopwatch and calculate the total execution time. */
                 long endTime = System.currentTimeMillis();
                 computingTime = endTime - initTime;
-    
+
                 /** Extract the population of the last iteration. */
                 population = SolutionListUtils.getNonDominatedSolutions(algorithm.getResult());
 
@@ -319,8 +271,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 BoundedArchive<DoubleSolution> archive = new CrowdingDistanceArchive<>(populationSize);
 
                 /** Instantiate the evolutionary algorithm. */
-                Algorithm<List<DoubleSolution>> algorithm
-                    = new SMPSOCorrectMutationBuilder(problem, archive)
+                Algorithm<List<DoubleSolution>> algorithm = new SMPSOBuilder(problem, archive)
                         .setMutation(mutation)
                         .setMaxIterations(numEvaluations / populationSize)
                         .setSwarmSize(populationSize)
@@ -332,7 +283,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
                 /** Extract the total execution time. */
                 computingTime = algorithmRunner.getComputingTime();
-    
+
                 /** Extract the population of the last iteration. */
                 population = algorithm.getResult();
 
@@ -341,11 +292,11 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 BoundedArchive<DoubleSolution> archive = new CrowdingDistanceArchive<>(populationSize);
 
                 /** Instantiate the evaluator */
-                SolutionListEvaluator<DoubleSolution> evaluator = new MultiThreadedSolutionListEvaluator<DoubleSolution>(numOfThreads);
+                SolutionListEvaluator<DoubleSolution> evaluator = new MultiThreadedSolutionListEvaluator<DoubleSolution>(
+                        numOfThreads);
 
                 /** Instantiate the evolutionary algorithm. */
-                Algorithm<List<DoubleSolution>> algorithm 
-                    = new SMPSOCorrectMutationBuilder(problem, archive)
+                Algorithm<List<DoubleSolution>> algorithm = new SMPSOBuilder(problem, archive)
                         .setMutation(mutation)
                         .setMaxIterations(numEvaluations / populationSize)
                         .setSwarmSize(populationSize)
@@ -357,96 +308,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
                 /** Extract the total execution time. */
                 computingTime = algorithmRunner.getComputingTime();
-    
-                /** Extract the population of the last iteration. */
-                population = algorithm.getResult();
 
-                /** Stop the evaluator */
-                evaluator.shutdown();
-
-            } else if (strAlgorithm.equals("MOEAD-SingleThread")) {
-                if (!strCrossover.equals("DifferentialEvolutionCrossover")) {
-                    throw new RuntimeException("The MOEAD algorithm can only be executed by selecting the differential evolution crossover");
-                }
-
-                /** Instantiate the evolutionary algorithm. */
-                Algorithm<List<DoubleSolution>> algorithm
-                    = new MOEADBuilder(problem, MOEADBuilder.Variant.MOEAD)
-                        .setCrossover(crossover)
-                        .setMutation(mutation)
-                        .setMaxEvaluations(numEvaluations)
-                        .setPopulationSize(populationSize)
-                        .setResultPopulationSize(populationSize)
-                        .setNeighborhoodSelectionProbability(0.9)
-                        .setMaximumNumberOfReplacedSolutions(2)
-                        .setNeighborSize(20)
-                        .build();
-
-                /** Execute the designed evolutionary algorithm. */
-                AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute();
-
-                /** Extract the total execution time. */
-                computingTime = algorithmRunner.getComputingTime();
-    
-                /** Extract the population of the last iteration. */
-                population = SolutionListUtils.getNonDominatedSolutions(algorithm.getResult());
-
-            } else if (strAlgorithm.equals("GDE3-SingleThread")) {
-                if (!strCrossover.equals("DifferentialEvolutionCrossover")) {
-                    throw new RuntimeException("The GDE3 algorithm can only be executed by selecting the differential evolution crossover");
-                }
-
-                /** Instantiate the empty mutation operator to repair solutions. */
-                mutation = new NullMutationWithRepair(repairer);
-                System.out.println("The GDE3 algorithm has its own mutation operator, so the one indicated in the input will be ignored in this case.");
-
-                /** Instantiate the evolutionary algorithm. */
-                Algorithm<List<DoubleSolution>> algorithm
-                    = new GDE3BuilderWithRepair(problem)
-                        .setCrossover((DifferentialEvolutionCrossover)crossover)
-                        .setMutation(mutation)
-                        .setMaxEvaluations(numEvaluations)
-                        .setPopulationSize(populationSize)
-                        .setSolutionSetEvaluator(new SequentialSolutionListEvaluator<>())
-                        .build();
-
-                /** Execute the designed evolutionary algorithm. */
-                AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute();
-
-                /** Extract the total execution time. */
-                computingTime = algorithmRunner.getComputingTime();
-    
-                /** Extract the population of the last iteration. */
-                population = algorithm.getResult();
-
-            } else if (strAlgorithm.equals("GDE3-SyncParallel")) {
-                if (!strCrossover.equals("DifferentialEvolutionCrossover")) {
-                    throw new RuntimeException("The GDE3 algorithm can only be executed by selecting the differential evolution crossover");
-                }
-
-                /** Instantiate the empty mutation operator to repair solutions. */
-                mutation = new NullMutationWithRepair(repairer);
-                System.out.println("The GDE3 algorithm has its own mutation operator, so the one indicated in the input will be ignored in this case.");
-
-                /** Instantiate the evaluator */
-                SolutionListEvaluator<DoubleSolution> evaluator = new MultiThreadedSolutionListEvaluator<DoubleSolution>(numOfThreads);
-
-                /** Instantiate the evolutionary algorithm. */
-                Algorithm<List<DoubleSolution>> algorithm
-                    = new GDE3BuilderWithRepair(problem)
-                        .setCrossover((DifferentialEvolutionCrossover)crossover)
-                        .setMutation(mutation)
-                        .setMaxEvaluations(numEvaluations)
-                        .setPopulationSize(populationSize)
-                        .setSolutionSetEvaluator(evaluator)
-                        .build();
-
-                /** Execute the designed evolutionary algorithm. */
-                AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute();
-
-                /** Extract the total execution time. */
-                computingTime = algorithmRunner.getComputingTime();
-    
                 /** Extract the population of the last iteration. */
                 population = algorithm.getResult();
 
@@ -454,10 +316,10 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 evaluator.shutdown();
 
             } else {
-                throw new RuntimeException("The algorithm " + strAlgorithm + " is not available for multi-objetive problems.");
+                throw new RuntimeException(
+                        "The algorithm " + strAlgorithm + " is not available for multi-objetive problems.");
             }
         }
-        
 
         /** Create output folder. */
         String outputFolder = networkFolder + "/ea_consensus/";
@@ -481,25 +343,24 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
         /** Write the data of the last population (pareto front approximation). */
         new SolutionListOutputWithHeader(population, strFitnessFormulas.split(";"), tags)
-            .setVarFileOutputContext(new DefaultFileOutputContext(outputFolder + "/VAR.csv", ","))
-            .setFunFileOutputContext(new DefaultFileOutputContext(outputFolder + "/FUN.csv", ","))
-            .print();
+                .setVarFileOutputContext(new DefaultFileOutputContext(outputFolder + "/VAR.csv", ","))
+                .setFunFileOutputContext(new DefaultFileOutputContext(outputFolder + "/FUN.csv", ","))
+                .print();
 
-        
         if (problem.getNumberOfObjectives() == 1) {
             /** Transform the solution into a simple vector of weights. */
             Double[] winner = new Double[problem.getNumberOfVariables()];
             for (int i = 0; i < problem.getNumberOfVariables(); i++) {
                 winner[i] = population.get(0).variables().get(i);
             }
-            
+
             /** Get weighted confidence map from winner. */
             Map<String, Double> consensus = StaticUtils.makeConsensus(winner, inferredNetworks);
             Map<String, Double> consensusSorted = new LinkedHashMap<>();
             consensus.entrySet()
-                .stream()
-                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder())) 
-                .forEachOrdered(x -> consensusSorted.put(x.getKey(), x.getValue()));
+                    .stream()
+                    .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                    .forEachOrdered(x -> consensusSorted.put(x.getKey(), x.getValue()));
 
             /** Write the resulting list of links to an output csv file. */
             StaticUtils.writeConsensus(outputFolder + "/final_list.csv", consensusSorted);
@@ -511,13 +372,19 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             StaticUtils.writeBinaryNetwork(outputFolder + "/final_network.csv", binaryNetwork, geneNames);
         }
 
-        /** Report the execution time and return the best solution found by the algorithm. */
+        /**
+         * Report the execution time and return the best solution found by the
+         * algorithm.
+         */
         System.out.println("Evolutionary algorithm executed: " + strAlgorithm);
         System.out.println("Threads used: " + numOfThreads);
         System.out.println("Total execution time: " + computingTime + "ms");
+        System.out.println("The weights assigned to each technique/input-file have been stored in VAR.csv");
+        System.out.println("The fitness values for each of the solutions have been stored in FUN.csv");
 
         if (printEvolution) {
-            System.out.println("The evolution of fitness values has been stored in " + outputFolder + "/fitness_evolution.txt");
+            System.out.println(
+                    "The evolution of fitness values has been stored in " + outputFolder + "/fitness_evolution.txt");
         }
 
         if (problem.getNumberOfObjectives() == 1) {
@@ -528,5 +395,3 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         System.exit(0);
     }
 }
-
-

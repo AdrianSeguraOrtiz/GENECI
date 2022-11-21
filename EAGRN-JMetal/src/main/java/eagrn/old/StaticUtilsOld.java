@@ -1,4 +1,4 @@
-package eagrn;
+package eagrn.old;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -13,8 +13,30 @@ import java.util.Map;
 import java.util.Scanner;
 import java.io.FileWriter;
 
+import eagrn.old.mutationwithrepair.impl.CDGMutationWithRepair;
+import eagrn.old.mutationwithrepair.impl.GroupedAndLinkedPolynomialMutationWithRepair;
+import eagrn.old.mutationwithrepair.impl.GroupedPolynomialMutationWithRepair;
+import eagrn.old.mutationwithrepair.impl.LinkedPolynomialMutationWithRepair;
+import eagrn.old.mutationwithrepair.impl.NonUniformMutationWithRepair;
+import eagrn.old.mutationwithrepair.impl.NullMutationWithRepair;
+import eagrn.old.mutationwithrepair.impl.PolynomialMutationWithRepair;
+import eagrn.old.mutationwithrepair.impl.SimpleRandomMutationWithRepair;
+import eagrn.old.mutationwithrepair.impl.UniformMutationWithRepair;
+import eagrn.old.repairer.WeightRepairer;
+import eagrn.old.repairer.impl.GreedyRepairer;
+import eagrn.old.repairer.impl.StandardizationRepairer;
+
 import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.uma.jmetal.operator.crossover.CrossoverOperator;
+import org.uma.jmetal.operator.crossover.impl.BLXAlphaCrossover;
+import org.uma.jmetal.operator.crossover.impl.DifferentialEvolutionCrossover;
+import org.uma.jmetal.operator.crossover.impl.NPointCrossover;
+import org.uma.jmetal.operator.crossover.impl.NullCrossover;
+import org.uma.jmetal.operator.crossover.impl.SBXCrossover;
+import org.uma.jmetal.operator.crossover.impl.WholeArithmeticCrossover;
+import org.uma.jmetal.operator.mutation.MutationOperator;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
+import org.uma.jmetal.util.grouping.CollectionGrouping;
 
 import eagrn.cutoffcriteria.CutOffCriteria;
 import eagrn.cutoffcriteria.impl.NumLinksWithBestConfCriteria;
@@ -33,18 +55,13 @@ import eagrn.fitnessfunction.impl.quality.impl.QualityMedianAboveAverage;
 import eagrn.fitnessfunction.impl.quality.impl.QualityMedianAboveAverageWithContrast;
 import eagrn.fitnessfunction.impl.quality.impl.QualityMedianAboveCutOff;
 import eagrn.fitnessfunction.impl.topology.impl.AverageLocalClusteringMeasure;
-import eagrn.fitnessfunction.impl.topology.impl.BetweennessDistribution;
 import eagrn.fitnessfunction.impl.topology.impl.BinarizedDegreeDistribution;
-import eagrn.fitnessfunction.impl.topology.impl.ClosenessDistribution;
-import eagrn.fitnessfunction.impl.topology.impl.EdgeBetweennessDistribution;
-import eagrn.fitnessfunction.impl.topology.impl.EigenvectorDistribution;
 import eagrn.fitnessfunction.impl.topology.impl.GlobalClusteringMeasure;
-import eagrn.fitnessfunction.impl.topology.impl.KatzDistribution;
-import eagrn.fitnessfunction.impl.topology.impl.PageRankDistribution;
 import eagrn.fitnessfunction.impl.topology.impl.WeightedDegreeDistribution;
 import eagrn.cutoffcriteria.impl.MinConfCriteria;
+import eagrn.operator.crossover.SimplexCrossover;
 
-public final class StaticUtils {
+public final class StaticUtilsOld {
     public static Map<String, Double> getMapWithLinks(File listFile) {
         /**
          * This function takes as input the file with the list of links and 
@@ -69,6 +86,27 @@ public final class StaticUtils {
         }
 
         return map;
+    }
+
+    public static WeightRepairer getRepairerFromString(String strRepairer) {
+        /**
+         * This function takes as input a character string representing a 
+         * repairer and returns the object corresponding to it
+         */
+        WeightRepairer repairer;
+
+        switch (strRepairer) {
+            case "StandardizationRepairer":
+                repairer = new StandardizationRepairer();
+                break;
+            case "GreedyRepair":
+                repairer = new GreedyRepairer();
+                break;
+            default:
+                throw new RuntimeException("The repairer operator entered is not available.");
+        }
+
+        return repairer;
     }
 
     public static File[] getCSVFilesFromDirectory(String directory) {
@@ -124,6 +162,83 @@ public final class StaticUtils {
         }
 
         return cutOffCriteria;
+    }
+
+    public static CrossoverOperator<DoubleSolution> getCrossoverOperatorFromString(String strCrossover, double crossoverProbability, double crossoverDistributionIndex, int numPointsCrossover) {
+        /**
+         * This function takes as input a character string representing a 
+         * crossover operator and returns the object corresponding to it
+         */
+        CrossoverOperator<DoubleSolution> crossover;
+        
+        switch (strCrossover) {
+            case "SimplexCrossover":
+                crossover = new SimplexCrossover(3, 1, crossoverProbability);
+            case "SBXCrossover":
+                crossover = new SBXCrossover(crossoverProbability, crossoverDistributionIndex);
+                break;
+            case "BLXAlphaCrossover":
+                crossover = new BLXAlphaCrossover(crossoverProbability);
+                break;
+            case "DifferentialEvolutionCrossover":
+                crossover = new DifferentialEvolutionCrossover();
+                break;
+            case "NPointCrossover":
+                crossover = new NPointCrossover(crossoverProbability, numPointsCrossover);
+                break;
+            case "NullCrossover":
+                crossover = new NullCrossover<DoubleSolution>();
+                break;
+            case "WholeArithmeticCrossover":
+                crossover = new WholeArithmeticCrossover(crossoverProbability);
+                break;
+            default:
+                throw new RuntimeException("The crossover operator entered is not available");
+        }
+
+        return crossover;
+    }
+
+    public static MutationOperator<DoubleSolution> getMutationOperatorFromString(String strMutation, double mutationProbability, WeightRepairer repairer, double mutationDistributionIndex, double delta, int numberOfGroups, CollectionGrouping<List<Double>> grouping, double perturbation, int maxMutIterations) {
+        /**
+         * This function takes as input a character string representing a 
+         * mutation operator and returns the object corresponding to it
+         */
+        MutationOperator<DoubleSolution> mutation;
+
+        switch (strMutation) {
+            case "PolynomialMutation":
+                mutation = new PolynomialMutationWithRepair(mutationProbability, mutationDistributionIndex, repairer);
+                break;
+            case "CDGMutation":
+                mutation = new CDGMutationWithRepair(mutationProbability, delta, repairer);
+                break;
+            case "GroupedAndLinkedPolynomialMutation":
+                mutation = new GroupedAndLinkedPolynomialMutationWithRepair(mutationDistributionIndex, grouping, repairer);
+                break;
+            case "GroupedPolynomialMutation":
+                mutation = new GroupedPolynomialMutationWithRepair(mutationDistributionIndex, grouping, repairer);
+                break;
+            case "LinkedPolynomialMutation":
+                mutation = new LinkedPolynomialMutationWithRepair(mutationProbability, mutationDistributionIndex, repairer);
+                break;
+            case "NonUniformMutation":
+                mutation = new NonUniformMutationWithRepair(mutationProbability, perturbation, maxMutIterations, repairer);
+                break;
+            case "NullMutation":
+                mutation = new NullMutationWithRepair(repairer);
+                break;
+            case "SimpleRandomMutation":
+                mutation = new SimpleRandomMutationWithRepair(mutationProbability, repairer);
+                break;
+            case "UniformMutation":
+                mutation = new UniformMutationWithRepair(mutationProbability, perturbation, repairer);
+                break;
+            default:
+                throw new RuntimeException("The mutation operator entered is not available");
+        }
+
+        return mutation;
     }
 
     public static void writeFitnessEvolution(String strFile, Map<String, Double[]> fitnessEvolution) {
@@ -225,7 +340,7 @@ public final class StaticUtils {
         Arrays.fill(initialValue, 0.0);
 
         for (int i = 0; i < inferredNetworkFiles.length; i++) {
-            Map<String, Double> map = StaticUtils.getMapWithLinks(inferredNetworkFiles[i]);
+            Map<String, Double> map = StaticUtilsOld.getMapWithLinks(inferredNetworkFiles[i]);
 
             for (Map.Entry<String, Double> entry : map.entrySet()) {
                 Double[] value = res.getOrDefault(entry.getKey(), initialValue.clone());
@@ -274,17 +389,17 @@ public final class StaticUtils {
         
         FitnessFunction res;
         switch (str.toLowerCase()) {
-            case "loyaltyprogressivecurrentimpact":
-                res = new LoyaltyProgressiveCurrentImpact(timeSeriesMap);
+            case "binarizeddegreedistribution":
+                res = new BinarizedDegreeDistribution(geneNames.size(), cutOffCriteria);
                 break;
-            case "loyaltyprogressivenextimpact":
-                res = new LoyaltyProgressiveNextImpact(timeSeriesMap);
+            case "weighteddegreedistribution":
+                res = new WeightedDegreeDistribution(geneNames);
                 break;
-            case "loyaltyprogressivenextnextimpact":
-                res = new LoyaltyProgressiveNextNextImpact(timeSeriesMap);
+            case "averagelocalclusteringmeasure":
+                res = new AverageLocalClusteringMeasure(geneNames, cutOffCriteria);
                 break;
-            case "loyaltyfinal":
-                res = new LoyaltyFinal(timeSeriesMap);
+            case "globalclusteringmeasure":
+                res = new GlobalClusteringMeasure(geneNames, cutOffCriteria);
                 break;
             case "qualitymean":
                 res = new QualityMean(inferredNetworks);
@@ -310,35 +425,17 @@ public final class StaticUtils {
             case "qualitymedianaboveaveragewithcontrast":
                 res = new QualityMedianAboveAverageWithContrast(geneNames.size(), inferredNetworks);
                 break;
-            case "averagelocalclusteringmeasure":
-                res = new AverageLocalClusteringMeasure(geneNames, cutOffCriteria);
+            case "consistencywithtimeseriesprogressivecurrentimpact":
+                res = new LoyaltyProgressiveCurrentImpact(timeSeriesMap);
                 break;
-            case "globalclusteringmeasure":
-                res = new GlobalClusteringMeasure(geneNames, cutOffCriteria);
+            case "consistencywithtimeseriesprogressivenextimpact":
+                res = new LoyaltyProgressiveNextImpact(timeSeriesMap);
                 break;
-            case "binarizeddegreedistribution":
-                res = new BinarizedDegreeDistribution(geneNames.size(), cutOffCriteria);
+            case "consistencywithtimeseriesprogressivenextnextimpact":
+                res = new LoyaltyProgressiveNextNextImpact(timeSeriesMap);
                 break;
-            case "weighteddegreedistribution":
-                res = new WeightedDegreeDistribution(geneNames);
-                break;
-            case "betweennessdistribution":
-                res = new BetweennessDistribution(geneNames);
-                break;
-            case "closenessdistribution":
-                res = new ClosenessDistribution(geneNames);
-                break;
-            case "edgebetweennessdistribution":
-                res = new EdgeBetweennessDistribution(geneNames);
-                break;
-            case "eigenvectordistribution":
-                res = new EigenvectorDistribution(geneNames);
-                break;
-            case "katzdistribution":
-                res = new KatzDistribution(geneNames);
-                break;
-            case "pagerankdistribution":
-                res = new PageRankDistribution(geneNames);
+            case "consistencywithtimeseriesfinal":
+                res = new LoyaltyFinal(timeSeriesMap);
                 break;
             default:
                 throw new RuntimeException("The evaluation term " + str + " is not implemented.");
@@ -392,32 +489,11 @@ public final class StaticUtils {
         return function;
     }
 
-    public static double[] standardize(double[] x) {
-        /**
-         * this function takes care of standardising 
-         * vectors between 0 and 1.
-         */
-
-        double[] res = new double[x.length];
-
-        double sum = 0;
-        for (int i = 0; i < x.length; i++) {
-            sum += x[i];
-        }
-
-        for (int i = 0; i < x.length; i++) {
-            res[i] = x[i]/sum;
-        }
-
-        return res;
-    }
-
     public static void standardizeInitialSolution(DoubleSolution solution) {
         /**
          * this function takes care of standardising 
          * initial solutions between 0 and 1.
          */
-
         double v, sum = 0;
 
         for (int i = 0; i < solution.variables().size(); i++) {
