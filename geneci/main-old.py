@@ -261,7 +261,7 @@ def expression_data(
     ),
 ):
     """
-    Download differential expression data from various databases such as DREAM3, DREAM4, DREAM5, SynTReN, Rogers, GeneNetWeaver and IRMA.
+    Download time series of gene expression data from various databases such as DREAM3, DREAM4, DREAM5, SynTReN, Rogers, GeneNetWeaver and IRMA.
     """
 
     # Demand the proportion of credentials if necessary.

@@ -30,6 +30,7 @@ build-images:
 	@docker build -t adriansegura99/geneci_infer-network_pcit -f components/infer_network/PCIT/Dockerfile .
 	@docker build -t adriansegura99/geneci_infer-network_tigress -f components/infer_network/TIGRESS/Dockerfile .
 	@docker build -t adriansegura99/geneci_infer-network_kboost -f components/infer_network/KBOOST/Dockerfile .
+	@docker build -t adriansegura99/geneci_infer-network_meomi -f components/infer_network/MEOMI/Dockerfile .
 	@docker build -t adriansegura99/geneci_optimize-ensemble -f components/optimize_ensemble/Dockerfile .
 	@docker build -t adriansegura99/geneci_apply-cut -f components/apply_cut/Dockerfile .
 	@docker build -t adriansegura99/geneci_evaluate_generic-prediction -f components/evaluate/generic_prediction/Dockerfile .
@@ -54,6 +55,7 @@ push-images:
 	@docker push adriansegura99/geneci_infer-network_pcit 
 	@docker push adriansegura99/geneci_infer-network_tigress 
 	@docker push adriansegura99/geneci_infer-network_kboost 
+	@docker push adriansegura99/geneci_infer-network_meomi
 	@docker push adriansegura99/geneci_optimize-ensemble 
 	@docker push adriansegura99/geneci_apply-cut 
 	@docker push adriansegura99/geneci_evaluate_generic-prediction 
@@ -78,6 +80,7 @@ pull-images:
 	@docker pull adriansegura99/geneci_infer-network_pcit 
 	@docker pull adriansegura99/geneci_infer-network_tigress 
 	@docker pull adriansegura99/geneci_infer-network_kboost 
+	@docker pull adriansegura99/geneci_infer-network_meomi
 	@docker pull adriansegura99/geneci_optimize-ensemble 
 	@docker pull adriansegura99/geneci_apply-cut 
 	@docker pull adriansegura99/geneci_evaluate_generic-prediction 

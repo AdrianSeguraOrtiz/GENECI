@@ -8,7 +8,7 @@ Adrián Segura Ortiz
 
 ## DESCRIPTION
 
-Given a CSV file with differential expression data, this component infers its gene regulatory network by applying the GENIE3 technique. Several configurations are possible as a result of the three available regressors: Random Forest regression (RF), Gradient Boosting Machine regression with early-stopping regularization (GBM) or ExtraTrees regression (ET).
+Given a CSV file with time series of gene expression data, this component infers its gene regulatory network by applying the GENIE3 technique. Several configurations are possible as a result of the three available regressors: Random Forest regression (RF), Gradient Boosting Machine regression with early-stopping regularization (GBM) or ExtraTrees regression (ET).
 
 # DOCKER
 

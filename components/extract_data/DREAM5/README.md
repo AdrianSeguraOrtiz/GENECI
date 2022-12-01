@@ -8,7 +8,7 @@ Adrián Segura Ortiz
 
 ## DESCRIPTION
 
-This component is responsible for downloading differential expression data, gold standards and evaluation data from DREAM5 challenge.
+This component is responsible for downloading time series of gene expression data, gold standards and evaluation data from DREAM5 challenge.
 
 # DOCKER
 

@@ -8,7 +8,7 @@ Adrián Segura Ortiz
 
 ## DESCRIPTION
 
-Given a CSV file with differential expression data, this component infers its gene regulatory network by applying the MRNETB technique.
+Given a CSV file with time series of gene expression data, this component infers its gene regulatory network by applying the MRNETB technique.
 
 # DOCKER
 

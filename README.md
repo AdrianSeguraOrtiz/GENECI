@@ -339,7 +339,7 @@ $ extract-data [OPTIONS] COMMAND [ARGS]...
 **Commands**:
 
 * `evaluation-data`: Download evaluation data from various DREAM...
-* `expression-data`: Download differential expression data from...
+* `expression-data`: Download time series of gene expression data from...
 * `gold-standard`: Download gold standards from various...
 
 ### `extract-data evaluation-data`
@@ -362,7 +362,7 @@ $ extract-data evaluation-data [OPTIONS]
 
 ### `extract-data expression-data`
 
-Download differential expression data from various databases such as DREAM3, DREAM4, DREAM5, SynTReN, Rogers, GeneNetWeaver and IRMA.
+Download time series of gene expression data from various databases such as DREAM3, DREAM4, DREAM5, SynTReN, Rogers, GeneNetWeaver and IRMA.
 
 **Usage**:
 

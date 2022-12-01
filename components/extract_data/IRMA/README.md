@@ -8,7 +8,7 @@ Adrián Segura Ortiz
 
 ## DESCRIPTION
 
-This component is responsible for downloading differential expression data and gold standards from IRMA dataset.
+This component is responsible for downloading time series of gene expression data and gold standards from IRMA dataset.
 
 # DOCKER
 
