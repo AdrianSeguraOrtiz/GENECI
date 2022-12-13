@@ -44,7 +44,7 @@ def dream3(
                     net_exp.columns = [f'V{str(i)}' for i in range(1, ncol + 1)]
                     net_exp.index = [f'G{str(i)}' for i in range(1, nrow + 1)]
 
-                    net_exp.to_csv(f'{output_folder}/DREAM3/EXP/{Path(f.filename).stem}_exp.csv', quoting=2)
+                    net_exp.to_csv(f'{output_folder}/{Path(f.filename).stem}_exp.csv', quoting=2)
                     Path(tsv_dir).unlink()
             
             Path(zip_metadata.path).unlink()
@@ -64,7 +64,7 @@ def dream3(
             for ind in list_gs.index[list_gs.iloc[:, 2] == 1]:
                 net_gs.loc[list_gs.iloc[ind, 0], list_gs.iloc[ind, 1]] = 1
 
-            net_gs.to_csv(f'{output_folder}/DREAM3/GS/{Path(list_gs_metadata.path).stem}_gs.csv', quoting=2)
+            net_gs.to_csv(f'{output_folder}/{Path(list_gs_metadata.path).stem}_gs.csv', quoting=2)
             Path(list_gs_metadata.path).unlink()
     
     elif category.name == "EvaluationData":
@@ -72,7 +72,7 @@ def dream3(
         syn_gs_ids = ["syn2853606", "syn2853607", "syn2853608", "syn2853609", "syn2853610", "syn2853611", "syn2853612", "syn2853613", "syn2853614", "syn2853615", "syn2853616", "syn2853617", "syn2853618", "syn2853619", "syn2853620"]
 
         for id in syn_eval_ids + syn_gs_ids:
-            syn.get(id, downloadLocation=f'{output_folder}/DREAM3/EVAL/')
+            syn.get(id, downloadLocation = output_folder)
 
 
 if __name__ == "__main__":

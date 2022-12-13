@@ -17,7 +17,7 @@ RUN R -e "install.packages('BiocManager', repos='http://cran.us.r-project.org')"
 RUN R -e "BiocManager::install('DREAM4')"
 
 
-COPY . /usr/local/src/
+COPY components /usr/local/src/components
 WORKDIR /usr/local/src/
 
 ENTRYPOINT ["Rscript", "--vanilla", "components/extract_data/DREAM4/EXPGS/DREAM4.R"]

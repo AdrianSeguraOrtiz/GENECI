@@ -16,7 +16,7 @@ RUN pip install --upgrade pip
 # Install packages
 RUN pip install typer networkx matplotlib plotly scipy
 
-COPY . /usr/local/src/
+COPY components /usr/local/src/components
 WORKDIR /usr/local/src/
 
 ENTRYPOINT ["python", "components/draw_network/draw_network.py"]

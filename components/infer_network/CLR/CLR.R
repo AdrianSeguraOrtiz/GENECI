@@ -38,5 +38,4 @@ conf_list <- GetConfList(network)
 conf_list <- ProcessList(conf_list)
 
 # Save list
-file_id <- tools::file_path_sans_ext(basename(in_file))
-write.table(conf_list, paste0("./", output_folder, "/", file_id, "/lists/GRN_CLR.csv"), sep=",", col.names=F, row.names=F, quote=F)
+write.table(conf_list, paste0("./", output_folder, "/GRN_CLR.csv"), sep=",", col.names=F, row.names=F, quote=F)

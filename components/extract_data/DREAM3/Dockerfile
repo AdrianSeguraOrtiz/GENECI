@@ -16,7 +16,7 @@ RUN pip install --upgrade pip
 # Install packages
 RUN pip install typer synapseclient pandas
 
-COPY . /usr/local/src/
+COPY components /usr/local/src/components
 WORKDIR /usr/local/src/
 
 ENTRYPOINT ["python", "components/extract_data/DREAM3/DREAM3.py"]

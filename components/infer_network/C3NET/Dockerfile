@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
 RUN R -e "install.packages('c3net', repos='http://cran.us.r-project.org')" \
    && R -e "install.packages('gdata', repos='http://cran.us.r-project.org')"
 
-COPY . /usr/local/src/
+COPY components /usr/local/src/components
 WORKDIR /usr/local/src/
 
 ENTRYPOINT ["Rscript", "--vanilla", "components/infer_network/C3NET/C3NET.R"]

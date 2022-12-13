@@ -151,5 +151,8 @@ tmp/
 
 utils/
 !EAGRN-JMetal/src/main/java/eagrn/utils/
-hola.sh
+logs.txt
 .vscode
+
+components/infer_network/*/mainstandaloneApplication/
+components/infer_network/*/adriansegura99/

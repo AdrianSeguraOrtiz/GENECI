@@ -46,7 +46,7 @@ def genie3(
     conf_list = process_list(conf_list)
 
     # Save list
-    conf_list.to_csv(f"./{output_folder}/{Path(in_file).stem}/lists/GRN_GENIE3_{regressor_type.name}.csv", header=False, index=False)
+    conf_list.to_csv(f"./{output_folder}/GRN_GENIE3_{regressor_type.name}.csv", header=False, index=False)
 
 
 if __name__ == "__main__":

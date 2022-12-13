@@ -20,7 +20,7 @@ RUN pip install cython
 RUN pip install dreamtools argparse pandas
 
 
-COPY . /usr/local/src/
+COPY components /usr/local/src/components
 WORKDIR /usr/local/src/
 
 ENTRYPOINT ["python", "components/evaluate/dream_prediction/evaluation.py"]

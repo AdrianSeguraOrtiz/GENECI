@@ -31,7 +31,7 @@ RUN R -e "install.packages('BiocManager', repos='http://cran.us.r-project.org')"
 RUN R -e "BiocManager::install('minet')" \
    && R -e "BiocManager::install('Rgraphviz')"
 
-COPY . /usr/local/src/
+COPY components /usr/local/src/components
 WORKDIR /usr/local/src/
 
 ENTRYPOINT ["Rscript", "--vanilla", "components/infer_network/MEOMI/MEOMI.R"]

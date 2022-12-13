@@ -67,4 +67,4 @@ conf_list <- ProcessList(conf_list)
 
 # Save list
 file_id <- tools::file_path_sans_ext(basename(in_file))
-write.table(conf_list, paste0("./", output_folder, "/", file_id, "/lists/GRN_MEOMI.csv"), sep = ",", col.names = FALSE, row.names = FALSE, quote = FALSE)
+write.table(conf_list, paste0("./", output_folder, "/GRN_MEOMI.csv"), sep = ",", col.names = FALSE, row.names = FALSE, quote = FALSE)

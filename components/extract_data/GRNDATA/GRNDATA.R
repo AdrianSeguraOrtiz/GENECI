@@ -48,13 +48,13 @@ for (str_n in v.str_networks) {
         mtx.exp <- t(l.data[[1]])
 
         # Save expression data
-        write.table(mtx.exp, paste0("./", output_folder, "/", database, "/EXP/", str_n, "_exp.csv"), sep=",", col.names = NA)
+        write.table(mtx.exp, paste0("./", output_folder, "/", str_n, "_exp.csv"), sep=",", col.names = NA)
 
     } else if (category == "GoldStandard") {
         # Extract gold standard adjacency matrix
         mtx.gs <- l.data[[2]]
 
         # Save gold standard
-        write.table(mtx.gs, paste0("./", output_folder, "/", database, "/GS/", str_n, "_gs.csv"), sep=",", col.names = NA)
+        write.table(mtx.gs, paste0("./", output_folder, "/", str_n, "_gs.csv"), sep=",", col.names = NA)
     }
 }

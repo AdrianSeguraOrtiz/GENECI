@@ -47,6 +47,10 @@ class Technique(str, Enum):
     TIGRESS = "TIGRESS"
     KBOOST = "KBOOST"
     MEOMI = "MEOMI"
+    JUMP3 = "JUMP3"
+    NARROMI = "NARROMI"
+    CMI2NI = "CMI2NI"
+    RSNET = "RSNET"
 
 
 class CutOffCriteria(str, Enum):
@@ -116,10 +120,11 @@ def wait_and_close_container(container):
 
 
 # Function to obtain the definition of a volume given a folder
-def get_volume(folder):
+def get_volume(folder, isMatlab = False):
+    dockerDir = "/tmp/.X11-unix/" if isMatlab else "/usr/local/src/"
     return {
-        Path(f"./{folder}/").absolute(): {
-            "bind": f"/usr/local/src/{folder}",
+        Path(folder).absolute(): {
+            "bind": f"{dockerDir}/{Path(folder).name}",
             "mode": "rw",
         }
     }
@@ -250,7 +255,8 @@ def expression_data(
     for db in database:
 
         # Create the output folder
-        Path(f"./{output_dir}/{db}/EXP/").mkdir(exist_ok=True, parents=True)
+        output_folder = Path(f"./{output_dir}/{db}/EXP/")
+        output_folder.mkdir(exist_ok=True, parents=True)
 
         # Report information to the user
         print(f"\n Extracting expression data from {db}")
@@ -267,7 +273,7 @@ def expression_data(
                 client.images.pull(repository=image)
 
             # Construct the command based on the parameters entered by the user
-            command = f"--category ExpressionData --output-folder {output_dir} --username {username} --password {password}"
+            command = f"--category ExpressionData --output-folder ./EXP/  --username {username} --password {password}"
 
         elif db == "DREAM4":
 
@@ -280,7 +286,7 @@ def expression_data(
                 client.images.pull(repository=image)
 
             # Construct the command based on the parameters entered by the user
-            command = f"ExpressionData {output_dir}"
+            command = f"ExpressionData ./EXP/ "
 
         elif db == "DREAM5":
 
@@ -293,7 +299,7 @@ def expression_data(
                 client.images.pull(repository=image)
 
             # Construct the command based on the parameters entered by the user
-            command = f"--category ExpressionData --output-folder {output_dir} --username {username} --password {password}"
+            command = f"--category ExpressionData --output-folder ./EXP/  --username {username} --password {password}"
 
         elif db == "IRMA":
 
@@ -306,7 +312,7 @@ def expression_data(
                 client.images.pull(repository=image)
 
             # Construct the command based on the parameters entered by the user
-            command = f"ExpressionData {output_dir}"
+            command = f"ExpressionData ./EXP/ "
 
         else:
 
@@ -319,12 +325,12 @@ def expression_data(
                 client.images.pull(repository=image)
 
             # Construct the command based on the parameters entered by the user
-            command = f"{db} ExpressionData {output_dir}"
+            command = f"{db} ExpressionData ./EXP/ "
 
         # Run container
         container = client.containers.run(
             image=image,
-            volumes=get_volume(output_dir),
+            volumes=get_volume(output_folder),
             command=command,
             detach=True,
             tty=True,
@@ -370,7 +376,8 @@ def gold_standard(
     for db in database:
 
         # Create the output folder
-        Path(f"./{output_dir}/{db}/GS/").mkdir(exist_ok=True, parents=True)
+        output_folder = Path(f"./{output_dir}/{db}/GS/")
+        output_folder.mkdir(exist_ok=True, parents=True)
 
         # Report information to the user
         print(f"\n Extracting gold standards from {db}")
@@ -387,7 +394,7 @@ def gold_standard(
                 client.images.pull(repository=image)
 
             # Construct the command based on the parameters entered by the user
-            command = f"--category GoldStandard --output-folder {output_dir} --username {username} --password {password}"
+            command = f"--category GoldStandard --output-folder ./GS/  --username {username} --password {password}"
 
         elif db == "DREAM4":
 
@@ -400,7 +407,7 @@ def gold_standard(
                 client.images.pull(repository=image)
 
             # Construct the command based on the parameters entered by the user
-            command = f"GoldStandard {output_dir}"
+            command = f"GoldStandard ./GS/ "
 
         elif db == "DREAM5":
 
@@ -413,7 +420,7 @@ def gold_standard(
                 client.images.pull(repository=image)
 
             # Construct the command based on the parameters entered by the user
-            command = f"--category GoldStandard --output-folder {output_dir} --username {username} --password {password}"
+            command = f"--category GoldStandard --output-folder ./GS/  --username {username} --password {password}"
 
         elif db == "IRMA":
 
@@ -426,7 +433,7 @@ def gold_standard(
                 client.images.pull(repository=image)
 
             # Construct the command based on the parameters entered by the user
-            command = f"GoldStandard {output_dir}"
+            command = f"GoldStandard ./GS/ "
 
         else:
 
@@ -439,12 +446,12 @@ def gold_standard(
                 client.images.pull(repository=image)
 
             # Construct the command based on the parameters entered by the user
-            command = f"{db} GoldStandard {output_dir}"
+            command = f"{db} GoldStandard ./GS/ "
 
         # Run container
         container = client.containers.run(
             image=image,
-            volumes=get_volume(output_dir),
+            volumes=get_volume(output_folder),
             command=command,
             detach=True,
             tty=True,
@@ -475,7 +482,8 @@ def evaluation_data(
     for db in database:
 
         # Create the output folder
-        Path(f"./{output_dir}/{db}/EVAL/").mkdir(exist_ok=True, parents=True)
+        output_folder = Path(f"./{output_dir}/{db}/EVAL/")
+        output_folder.mkdir(exist_ok=True, parents=True)
 
         # Report information to the user
         print(f"\n Extracting evaluation data from {db}")
@@ -492,7 +500,7 @@ def evaluation_data(
                 client.images.pull(repository=image)
 
             # Construct the command based on the parameters entered by the user
-            command = f"--category EvaluationData --output-folder {output_dir} --username {username} --password {password}"
+            command = f"--category EvaluationData --output-folder ./EVAL/  --username {username} --password {password}"
 
         elif db == "DREAM4":
 
@@ -505,7 +513,7 @@ def evaluation_data(
                 client.images.pull(repository=image)
 
             # Construct the command based on the parameters entered by the user
-            command = f"--output-folder {output_dir} --username {username} --password {password}"
+            command = f"--output-folder ./EVAL/  --username {username} --password {password}"
 
         elif db == "DREAM5":
 
@@ -518,12 +526,12 @@ def evaluation_data(
                 client.images.pull(repository=image)
 
             # Construct the command based on the parameters entered by the user
-            command = f"--category EvaluationData --output-folder {output_dir} --username {username} --password {password}"
+            command = f"--category EvaluationData --output-folder ./EVAL/  --username {username} --password {password}"
 
         # Run container
         container = client.containers.run(
             image=image,
-            volumes=get_volume(output_dir),
+            volumes=get_volume(output_folder),
             command=command,
             detach=True,
             tty=True,
@@ -554,13 +562,12 @@ def infer_network(
     Infer gene regulatory networks from expression data. Several techniques are available: ARACNE, BC3NET, C3NET, CLR, GENIE3, MRNET, MRNET, MRNETB and PCIT.
     """
 
-    # Create the output folder.
-    Path(f"./{output_dir}/{expression_data.stem}/lists/").mkdir(
-        exist_ok=True, parents=True
-    )
+    # Create temporary folder.
+    tmp_folder = Path("./tmp")
+    tmp_folder.mkdir(exist_ok=True, parents=True)
 
-    # Temporarily copy the input files to the same folder in order to facilitate the container volume.
-    tmp_exp_dir = f"./{output_dir}/{Path(expression_data).name}"
+    # Temporarily copy the input file to the temporary folder in order to facilitate the container volume.
+    tmp_exp_dir = f"./{tmp_folder}/{Path(expression_data).name}"
     shutil.copyfile(expression_data, tmp_exp_dir)
 
     # The different images corresponding to the inference techniques are run in parallel.
@@ -584,6 +591,14 @@ def infer_network(
             image = f"adriansegura99/geneci_infer-network_{tec.lower()}"
             variant = None
 
+        # In case the image comes from a matlab tool, we assign the corresponding prefix.
+        if tec in ["JUMP3", "NARROMI", "CMI2NI", "RSNET"]:
+            prefix = "/tmp/.X11-unix/"
+            isMatlab = True
+        else:
+            prefix = ""
+            isMatlab = False
+
         # In case it is not available on the device, it is downloaded from the repository.
         if not image in available_images:
             print("Downloading docker image ...")
@@ -592,8 +607,8 @@ def infer_network(
         # The image is executed with the parameters set by the user.
         container = client.containers.run(
             image=image,
-            volumes=get_volume(output_dir),
-            command=f"{tmp_exp_dir} {output_dir} {variant}",
+            volumes=get_volume(f"tmp", isMatlab),
+            command=f"{prefix}/{tmp_exp_dir} '{prefix}/tmp' {variant}",
             detach=True,
             tty=True,
         )
@@ -607,8 +622,19 @@ def infer_network(
         logs = wait_and_close_container(container)
         print(logs)
 
-    # The initially copied input files are deleted.
+    # The initially copied input file are deleted.
     Path(tmp_exp_dir).unlink()
+
+    # Create the output folder.
+    output_folder = Path(f"./{output_dir}/{expression_data.stem}/lists/")
+    output_folder.mkdir(
+        exist_ok=True, parents=True
+    )
+
+    # Move results to the output folder.
+    for f in tmp_folder.glob("*"):
+        shutil.move(f, f"{output_folder}/{f.name}")
+    tmp_folder.rmdir()
 
     # An additional file is created with the list of genes for the subsequent optimization process.
     gene_names = f"./{output_dir}/{expression_data.stem}/gene_names.txt"
