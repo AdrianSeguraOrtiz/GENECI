@@ -51,6 +51,9 @@ class Technique(str, Enum):
     NARROMI = "NARROMI"
     CMI2NI = "CMI2NI"
     RSNET = "RSNET"
+    PCACMI = "PCACMI"
+    LOCPCACMI = "LOCPCACMI"
+    PLSNET = "PLSNET"
 
 
 class CutOffCriteria(str, Enum):
@@ -592,11 +595,11 @@ def infer_network(
             variant = None
 
         # In case the image comes from a matlab tool, we assign the corresponding prefix.
-        if tec in ["JUMP3", "NARROMI", "CMI2NI", "RSNET"]:
-            prefix = "/tmp/.X11-unix/"
+        if tec in ["JUMP3", "NARROMI", "CMI2NI", "RSNET", "PCACMI", "LOCPCACMI", "PLSNET"]:
+            command = f"/tmp/.X11-unix/{tmp_exp_dir} /tmp/.X11-unix/tmp"
             isMatlab = True
         else:
-            prefix = ""
+            command = f"{tmp_exp_dir} tmp {variant}"
             isMatlab = False
 
         # In case it is not available on the device, it is downloaded from the repository.
@@ -608,7 +611,7 @@ def infer_network(
         container = client.containers.run(
             image=image,
             volumes=get_volume(f"tmp", isMatlab),
-            command=f"{prefix}/{tmp_exp_dir} '{prefix}/tmp' {variant}",
+            command=command,
             detach=True,
             tty=True,
         )

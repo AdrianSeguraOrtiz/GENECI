@@ -31,7 +31,8 @@ RUN R -e "install.packages('gdata', repos='http://cran.us.r-project.org')" \
    && R -e "install.packages('GenomicTools.fileHandler', repos='http://cran.us.r-project.org')" \
    && R -e "install.packages('circlize', repos='http://cran.us.r-project.org')" \
    && R -e "install.packages('stringr', repos='http://cran.us.r-project.org')" \
-   && R -e "install.packages('RcppArmadillo', repos='http://cran.us.r-project.org')"
+   && R -e "install.packages('RcppArmadillo', repos='http://cran.us.r-project.org')" \
+   && R -e "install.packages('clinfun', repos='http://cran.us.r-project.org')"
 
 # Install latest version of ggtree
 RUN R -e "remotes::install_github('YuLab-SMU/ggtree')"
