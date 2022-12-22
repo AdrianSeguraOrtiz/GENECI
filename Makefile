@@ -35,6 +35,9 @@ build-images:
 	@cd components/infer_network/NARROMI/ && matlab -nodisplay -nodesktop -r "run build.m" && cd adriansegura99/geneci_infer-network_narromidocker && sed -i '4,8d' Dockerfile && docker build -t adriansegura99/geneci_infer-network_narromi . && cd ../../../../..
 	@cd components/infer_network/CMI2NI/ && matlab -nodisplay -nodesktop -r "run build.m" && cd adriansegura99/geneci_infer-network_cmi2nidocker && sed -i '4,8d' Dockerfile && docker build -t adriansegura99/geneci_infer-network_cmi2ni . && cd ../../../../..
 	@cd components/infer_network/RSNET/ && matlab -nodisplay -nodesktop -r "run build.m" && cd adriansegura99/geneci_infer-network_rsnetdocker && sed -i '4,8d' Dockerfile && docker build -t adriansegura99/geneci_infer-network_rsnet . && cd ../../../../..
+	@cd components/infer_network/PCACMI/ && matlab -nodisplay -nodesktop -r "run build.m" && cd adriansegura99/geneci_infer-network_pcacmidocker && sed -i '4,8d' Dockerfile && docker build -t adriansegura99/geneci_infer-network_pcacmi . && cd ../../../../..
+	@bash components/infer_network/LOCPCACMI/build.sh
+	@cd components/infer_network/PLSNET/ && matlab -nodisplay -nodesktop -r "run build.m" && cd adriansegura99/geneci_infer-network_plsnetdocker && sed -i '4,8d' Dockerfile && docker build -t adriansegura99/geneci_infer-network_plsnet . && cd ../../../../..
 	@docker build -t adriansegura99/geneci_optimize-ensemble -f components/optimize_ensemble/Dockerfile .
 	@docker build -t adriansegura99/geneci_apply-cut -f components/apply_cut/Dockerfile .
 	@docker build -t adriansegura99/geneci_evaluate_generic-prediction -f components/evaluate/generic_prediction/Dockerfile .
@@ -64,6 +67,9 @@ push-images:
 	@docker push adriansegura99/geneci_infer-network_narromi
 	@docker push adriansegura99/geneci_infer-network_cmi2ni
 	@docker push adriansegura99/geneci_infer-network_rsnet
+	@docker push adriansegura99/geneci_infer-network_pcacmi
+	@docker push adriansegura99/geneci_infer-network_locpcacmi
+	@docker push adriansegura99/geneci_infer-network_plsnet
 	@docker push adriansegura99/geneci_optimize-ensemble 
 	@docker push adriansegura99/geneci_apply-cut 
 	@docker push adriansegura99/geneci_evaluate_generic-prediction 
@@ -93,6 +99,9 @@ pull-images:
 	@docker pull adriansegura99/geneci_infer-network_narromi
 	@docker pull adriansegura99/geneci_infer-network_cmi2ni
 	@docker pull adriansegura99/geneci_infer-network_rsnet
+	@docker pull adriansegura99/geneci_infer-network_pcacmi
+	@docker pull adriansegura99/geneci_infer-network_locpcacmi
+	@docker pull adriansegura99/geneci_infer-network_plsnet
 	@docker pull adriansegura99/geneci_optimize-ensemble 
 	@docker pull adriansegura99/geneci_apply-cut 
 	@docker pull adriansegura99/geneci_evaluate_generic-prediction 

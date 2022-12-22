@@ -1,11 +1,13 @@
 function main(adjMatFile, expFile, outputFolder)
 
     load(adjMatFile);
-    lamda = 0.03;
 
     csv_table = importdata(expFile, ',');
     genes = csv_table.textdata(2:end, 1);
     data = csv_table.data;
+
+    lamda = 0.03;
+    order0 = round(100 / length(genes) + 1);
 
     gnum = size(data, 1);
     scoreIdxMatrix = zeros(gnum, gnum, gnum);
@@ -23,7 +25,7 @@ function main(adjMatFile, expFile, outputFolder)
         subdata = data(tvcsIdx, :);
 
         %% go pca_cmi
-        [Gb, Gval, order] = pca_cmi(subdata, lamda);
+        [Gb, Gval, order] = pca_cmi(subdata, lamda, order0);
         GvalSysmetric = triu(Gval, -1) + tril(Gval', 0);
 
         tGval = zeros(gnum, gnum);
