@@ -149,7 +149,11 @@ pareto_fronts/
 # Temp folder
 tmp/
 
-utils/
+utils/*.csv
+utils/*.tex
+utils/controlTest/*.csv
+utils/controlTest/*.pdf
+utils/controlTest/*.class
 !EAGRN-JMetal/src/main/java/eagrn/utils/
 logs.txt
 .vscode
