@@ -1,4 +1,3 @@
-from pathlib import Path
 from enum import Enum
 
 import pandas as pd
@@ -46,7 +45,8 @@ def genie3(
     conf_list = process_list(conf_list)
 
     # Save list
-    conf_list.to_csv(f"./{output_folder}/GRN_GENIE3_{regressor_type.name}.csv", header=False, index=False)
+    filename = "GRN_" + ("GRNBOOST2" if regressor_type.name == "GBM" else ("GENIE3_" + regressor_type.name)) + ".csv"
+    conf_list.to_csv(f"./{output_folder}/{filename}", header=False, index=False)
 
 
 if __name__ == "__main__":

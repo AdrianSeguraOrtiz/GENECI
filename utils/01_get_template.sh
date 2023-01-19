@@ -29,12 +29,12 @@ do
     python ../geneci/main.py infer-network \
                 --expression-data $exp_file \
                 --technique aracne --technique bc3net --technique c3net \
-                --technique clr --technique genie3_rf --technique genie3_gbm \
+                --technique clr --technique genie3_rf --technique grnboost2 \
                 --technique genie3_et --technique mrnet --technique mrnetb \
                 --technique pcit --technique tigress --technique kboost \
                 --technique meomi --technique jump3 --technique narromi \
                 --technique cmi2ni --technique rsnet --technique pcacmi \
-                --technique locpcacmi --technique plsnet \
+                --technique locpcacmi --technique plsnet --technique pidc \
                 --output-dir ../template
     cp $exp_file ../template/$(basename $exp_file .csv)/
 done

@@ -39,7 +39,7 @@ class Technique(str, Enum):
     C3NET = "C3NET"
     CLR = "CLR"
     GENIE3_RF = "GENIE3_RF"
-    GENIE3_GBM = "GENIE3_GBM"
+    GRNBOOST2 = "GRNBOOST2"
     GENIE3_ET = "GENIE3_ET"
     MRNET = "MRNET"
     MRNETB = "MRNETB"
@@ -54,6 +54,10 @@ class Technique(str, Enum):
     PCACMI = "PCACMI"
     LOCPCACMI = "LOCPCACMI"
     PLSNET = "PLSNET"
+    PIDC = "PIDC"
+    PUC = "PUC"
+    GRNVBEM = "GRNVBEM"
+    LEAP = "LEAP"
 
 
 class CutOffCriteria(str, Enum):
@@ -265,7 +269,7 @@ def expression_data(
         print(f"\n Extracting expression data from {db}")
 
         # Execute the corresponding image according to the database.
-        if db == "DREAM3":
+        if db == Database.DREAM3:
 
             # Define docker image
             image = "adriansegura99/geneci_extract-data_dream3"
@@ -278,7 +282,7 @@ def expression_data(
             # Construct the command based on the parameters entered by the user
             command = f"--category ExpressionData --output-folder ./EXP/  --username {username} --password {password}"
 
-        elif db == "DREAM4":
+        elif db == Database.DREAM4:
 
             # Define docker image
             image = "adriansegura99/geneci_extract-data_dream4-expgs"
@@ -291,7 +295,7 @@ def expression_data(
             # Construct the command based on the parameters entered by the user
             command = f"ExpressionData ./EXP/ "
 
-        elif db == "DREAM5":
+        elif db == Database.DREAM5:
 
             # Define docker image
             image = "adriansegura99/geneci_extract-data_dream5"
@@ -304,7 +308,7 @@ def expression_data(
             # Construct the command based on the parameters entered by the user
             command = f"--category ExpressionData --output-folder ./EXP/  --username {username} --password {password}"
 
-        elif db == "IRMA":
+        elif db == Database.IRMA:
 
             # Define docker image
             image = "adriansegura99/geneci_extract-data_irma"
@@ -386,7 +390,7 @@ def gold_standard(
         print(f"\n Extracting gold standards from {db}")
 
         # Execute the corresponding image according to the database.
-        if db == "DREAM3":
+        if db == Database.DREAM3:
 
             # Define docker image
             image = "adriansegura99/geneci_extract-data_dream3"
@@ -399,7 +403,7 @@ def gold_standard(
             # Construct the command based on the parameters entered by the user
             command = f"--category GoldStandard --output-folder ./GS/  --username {username} --password {password}"
 
-        elif db == "DREAM4":
+        elif db == Database.DREAM4:
 
             # Define docker image
             image = "adriansegura99/geneci_extract-data_dream4-expgs"
@@ -412,7 +416,7 @@ def gold_standard(
             # Construct the command based on the parameters entered by the user
             command = f"GoldStandard ./GS/ "
 
-        elif db == "DREAM5":
+        elif db == Database.DREAM5:
 
             # Define docker image
             image = "adriansegura99/geneci_extract-data_dream5"
@@ -425,7 +429,7 @@ def gold_standard(
             # Construct the command based on the parameters entered by the user
             command = f"--category GoldStandard --output-folder ./GS/  --username {username} --password {password}"
 
-        elif db == "IRMA":
+        elif db == Database.IRMA:
 
             # Define docker image
             image = "adriansegura99/geneci_extract-data_irma"
@@ -492,7 +496,7 @@ def evaluation_data(
         print(f"\n Extracting evaluation data from {db}")
 
         # Execute the corresponding image according to the database.
-        if db == "DREAM3":
+        if db == Database.DREAM3:
 
             # Define docker image
             image = "adriansegura99/geneci_extract-data_dream3"
@@ -505,7 +509,7 @@ def evaluation_data(
             # Construct the command based on the parameters entered by the user
             command = f"--category EvaluationData --output-folder ./EVAL/  --username {username} --password {password}"
 
-        elif db == "DREAM4":
+        elif db == Database.DREAM4:
 
             # Define docker image
             image = "adriansegura99/geneci_extract-data_dream4-eval"
@@ -518,7 +522,7 @@ def evaluation_data(
             # Construct the command based on the parameters entered by the user
             command = f"--output-folder ./EVAL/  --username {username} --password {password}"
 
-        elif db == "DREAM5":
+        elif db == Database.DREAM5:
 
             # Define docker image
             image = "adriansegura99/geneci_extract-data_dream5"
@@ -581,13 +585,13 @@ def infer_network(
         print(f"\n Infer network from {expression_data} with {tec}")
 
         # The image is selected according to the chosen technique.
-        if tec == "GENIE3_RF":
+        if tec == Technique.GENIE3_RF:
             image = f"adriansegura99/geneci_infer-network_genie3"
             variant = "RF"
-        elif tec == "GENIE3_GBM":
+        elif tec == Technique.GRNBOOST2:
             image = f"adriansegura99/geneci_infer-network_genie3"
             variant = "GBM"
-        elif tec == "GENIE3_ET":
+        elif tec == Technique.GENIE3_ET:
             image = f"adriansegura99/geneci_infer-network_genie3"
             variant = "ET"
         else:
@@ -595,7 +599,7 @@ def infer_network(
             variant = None
 
         # In case the image comes from a matlab tool, we assign the corresponding prefix.
-        if tec in ["JUMP3", "NARROMI", "CMI2NI", "RSNET", "PCACMI", "LOCPCACMI", "PLSNET"]:
+        if tec in [Technique.JUMP3, Technique.NARROMI, Technique.CMI2NI, Technique.RSNET, Technique.PCACMI, Technique.LOCPCACMI, Technique.PLSNET, Technique.GRNVBEM]:
             command = f"/tmp/.X11-unix/{tmp_exp_dir} /tmp/.X11-unix/tmp"
             isMatlab = True
         else:
