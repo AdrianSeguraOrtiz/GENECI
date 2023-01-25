@@ -15,6 +15,24 @@ import typer
 from plotly.subplots import make_subplots
 from rich import print
 
+# Header
+
+__version__ = "0.0.1"
+__author__ = "Adrian Segura Ortiz <adrianseor.99@uma.es>"
+
+HEADER = "\n".join(
+    [
+        "                 __  ___  _  _  ___   __  __            ",
+        "                / _)(  _)( \( )(  _) / _)(  )           ",
+        "               ( (/\ ) _) )  (  ) _)( (_  )(            ",
+        "                \__/(___)(_)\_)(___) \__)(__)           ",
+        "                                                        ",
+        f" version: {__version__}     Author: {__author__}        ",
+        "                                                        ",
+    ]
+)
+
+print(HEADER)
 
 # Definition of enumerated classes.
 class Database(str, Enum):
@@ -58,6 +76,7 @@ class Technique(str, Enum):
     PUC = "PUC"
     GRNVBEM = "GRNVBEM"
     LEAP = "LEAP"
+    NONLINEARODES = "NONLINEARODES"
 
 
 class CutOffCriteria(str, Enum):
@@ -603,7 +622,9 @@ def infer_network(
             command = f"/tmp/.X11-unix/{tmp_exp_dir} /tmp/.X11-unix/tmp"
             isMatlab = True
         else:
-            command = f"{tmp_exp_dir} tmp {variant}"
+            command = f"{tmp_exp_dir} tmp"
+            if variant: 
+                command += f" {variant}" 
             isMatlab = False
 
         # In case it is not available on the device, it is downloaded from the repository.
