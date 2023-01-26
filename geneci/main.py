@@ -77,6 +77,7 @@ class Technique(str, Enum):
     GRNVBEM = "GRNVBEM"
     LEAP = "LEAP"
     NONLINEARODES = "NONLINEARODES"
+    INFERELATOR = "INFERELATOR"
 
 
 class CutOffCriteria(str, Enum):
