@@ -109,6 +109,13 @@ class Algorithm(str, Enum):
     NSGAII = "NSGAII"
     SMPSO = "SMPSO"
 
+# Activate docker client.
+client = docker.from_env()
+
+# List available images on the current device.
+available_images = [
+    i.tags[0].split(":")[0] if len(i.tags) > 0 else None for i in client.images.list()
+]
 
 # Function for obtaining the list of genes from lists of confidence levels.
 def get_gene_names_from_conf_list(conf_list):
@@ -134,16 +141,22 @@ def get_gene_names_from_expression_file(expression_file):
 
 # Function to wait and close container in execution
 def wait_and_close_container(container):
-    # Wait for the container to run and get logs
+    # Wait for the container to run
     container.wait()
+
+    # Get logs from container
     logs = container.logs()
+
+    # Get execution time
+    state = client.api.inspect_container(container.id)['State']
+    execution_time = pd.to_datetime(state['FinishedAt']) - pd.to_datetime(state['StartedAt'])
 
     # Stop and remove the container
     container.stop()
     container.remove(v=True)
 
     # Return logs
-    return logs.decode("utf-8")
+    return (logs.decode("utf-8"), execution_time)
 
 
 # Function to obtain the definition of a volume given a folder
@@ -237,15 +250,6 @@ app.add_typer(
     help="Extract data from different simulators and known challenges. These include DREAM3, DREAM4, DREAM5, SynTReN, Rogers, GeneNetWeaver and IRMA.",
     rich_help_panel="Additional commands",
 )
-
-# Activate docker client.
-client = docker.from_env()
-
-# List available images on the current device.
-available_images = [
-    i.tags[0].split(":")[0] if len(i.tags) > 0 else None for i in client.images.list()
-]
-
 
 # Command for expression data extraction.
 @extract_data_app.command()
@@ -364,7 +368,7 @@ def expression_data(
         )
 
         # Wait, stop and remove the container. Then print reported logs
-        logs = wait_and_close_container(container)
+        logs, _ = wait_and_close_container(container)
         print(logs)
 
 
@@ -485,7 +489,7 @@ def gold_standard(
         )
 
         # Wait, stop and remove the container. Then print reported logs
-        logs = wait_and_close_container(container)
+        logs, _ = wait_and_close_container(container)
         print(logs)
 
 
@@ -565,7 +569,7 @@ def evaluation_data(
         )
 
         # Wait, stop and remove the container. Then print reported logs
-        logs = wait_and_close_container(container)
+        logs, _ = wait_and_close_container(container)
         print(logs)
 
 
@@ -646,9 +650,16 @@ def infer_network(
         containers.append(container)
 
     # For each container, we wait for it to finish its execution, stop and delete it.
-    for container in containers:
-        # Wait, stop and remove the container. Then print reported logs
-        logs = wait_and_close_container(container)
+    str_times = ""
+    for i, container in enumerate(containers):
+
+        # Wait, stop and remove the container.
+        logs, execution_time = wait_and_close_container(container)
+
+        # Register execution time
+        str_times += "\t- " + technique[i] + ":  " + str(execution_time) + "\n"
+
+        # Print reported logs
         print(logs)
 
     # The initially copied input file are deleted.
@@ -659,6 +670,11 @@ def infer_network(
     output_folder.mkdir(
         exist_ok=True, parents=True
     )
+
+    # Write execution times in txt file
+    with open(f"./{output_dir}/{expression_data.stem}/execution_times.txt", "a") as f:
+        f.write("Infer gene regulatory network with available techniques: \n")
+        f.write(str_times + "\n")
 
     # Move results to the output folder.
     for f in tmp_folder.glob("*"):
@@ -762,7 +778,7 @@ def apply_cut(
     )
 
     # Wait, stop and remove the container. Then print reported logs
-    logs = wait_and_close_container(container)
+    logs, _ = wait_and_close_container(container)
     print(logs)
 
     # Copy the output file from the temporary folder to the final one and delete the temporary one.
@@ -916,7 +932,7 @@ def optimize_ensemble(
     )
 
     # Wait, stop and remove the container. Then print reported logs
-    logs = wait_and_close_container(container)
+    logs, _ = wait_and_close_container(container)
     print(logs)
 
     # If specified, the evolution of the fitness values ​​is graphed
@@ -1079,7 +1095,7 @@ def dream_list_of_links(
     )
 
     # Wait, stop and remove the container. Then print reported logs
-    logs = wait_and_close_container(container)
+    logs, _ = wait_and_close_container(container)
     print(logs)
 
     # Delete temp folder
@@ -1300,7 +1316,7 @@ def generic_list_of_links(
     )
 
     # Wait, stop and remove the container. Then print reported logs
-    logs = wait_and_close_container(container)
+    logs, _ = wait_and_close_container(container)
     print(logs)
 
     # Delete temp folder
@@ -1607,7 +1623,7 @@ def draw_network(
     )
 
     # Wait, stop and remove the container. Then print reported logs
-    logs = wait_and_close_container(container)
+    logs, _ = wait_and_close_container(container)
     print(logs)
 
     # Define and create the output folder
@@ -1713,7 +1729,7 @@ def weighted_confidence(
     )
 
     # Wait, stop and remove the container. Then print reported logs
-    logs = wait_and_close_container(container)
+    logs, _ = wait_and_close_container(container)
     print(logs)
 
     # Define and create the output folder
