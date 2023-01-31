@@ -5,8 +5,7 @@ import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 import org.uma.jmetal.solution.doublesolution.impl.DefaultDoubleSolution;
 import org.uma.jmetal.util.bounds.Bounds;
 
-import eagrn.old.repairer.WeightRepairer;
-import eagrn.old.repairer.impl.StandardizationRepairer;
+import eagrn.StaticUtils;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -32,9 +31,6 @@ public class SimplexCrossoverTest {
             .mapToObj(i -> Bounds.create(lowerLimit.get(i), upperLimit.get(i)))
             .collect(Collectors.toList());
 
-        // Instantiate repairer
-        WeightRepairer initialPopulationRepairer = new StandardizationRepairer();
-
         // Instantiate crossover operator
         CrossoverOperator<DoubleSolution> crossover = new SimplexCrossover(3, 1, 1);
 
@@ -43,9 +39,9 @@ public class SimplexCrossoverTest {
             DoubleSolution parent1 = new DefaultDoubleSolution(1, 0, bounds);
             DoubleSolution parent2 = new DefaultDoubleSolution(1, 0, bounds);
             DoubleSolution parent3 = new DefaultDoubleSolution(1, 0, bounds);
-            initialPopulationRepairer.repairSolution(parent1);
-            initialPopulationRepairer.repairSolution(parent2);
-            initialPopulationRepairer.repairSolution(parent3);
+            StaticUtils.standardizeInitialSolution(parent1);
+            StaticUtils.standardizeInitialSolution(parent2);
+            StaticUtils.standardizeInitialSolution(parent3);
 
             // Insert them in a list
             List<DoubleSolution> parents = new ArrayList<DoubleSolution>();
