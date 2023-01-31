@@ -37,7 +37,7 @@ network <- tigress(ex_matrix, allsteps=FALSE)
 dt.cl <- GetConfList(network)
 colnames(dt.cl)[3] <- paste0(colnames(dt.cl)[3], "_1")
 
-for (i in 2:11) {
+for (i in 2:5) {
     network <- tigress(ex_matrix, allsteps=FALSE)
     conf_list_i <- GetConfList(network)
     dt.cl <- merge(dt.cl, conf_list_i, by=c(1,2), all.x=TRUE, all.y=TRUE, suffixes = c("", paste0("_", i)))

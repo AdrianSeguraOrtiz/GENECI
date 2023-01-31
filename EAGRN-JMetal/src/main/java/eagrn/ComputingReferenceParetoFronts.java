@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.uma.jmetal.algorithm.Algorithm;
-import org.uma.jmetal.algorithm.multiobjective.moead.MOEADBuilder;
 import org.uma.jmetal.algorithm.multiobjective.nsgaii.NSGAIIBuilder;
+import org.uma.jmetal.algorithm.multiobjective.smpso.SMPSOBuilder;
 import org.uma.jmetal.lab.experiment.Experiment;
 import org.uma.jmetal.lab.experiment.ExperimentBuilder;
 import org.uma.jmetal.lab.experiment.component.impl.ComputeQualityIndicators;
@@ -22,8 +22,6 @@ import org.uma.jmetal.lab.experiment.component.impl.GenerateReferenceParetoSetAn
 import org.uma.jmetal.lab.experiment.component.impl.GenerateWilcoxonTestTablesWithR;
 import org.uma.jmetal.lab.experiment.util.ExperimentAlgorithm;
 import org.uma.jmetal.lab.experiment.util.ExperimentProblem;
-import org.uma.jmetal.operator.crossover.impl.DifferentialEvolutionCrossover;
-import org.uma.jmetal.operator.crossover.impl.SBXCrossover;
 import org.uma.jmetal.operator.selection.impl.BinaryTournamentSelection;
 import org.uma.jmetal.problem.doubleproblem.DoubleProblem;
 import org.uma.jmetal.qualityindicator.impl.Epsilon;
@@ -41,11 +39,8 @@ import org.uma.jmetal.util.evaluator.impl.SequentialSolutionListEvaluator;
 
 import eagrn.cutoffcriteria.CutOffCriteria;
 import eagrn.cutoffcriteria.impl.PercLinksWithBestConfCriteria;
-import eagrn.old.algorithm.impl.GDE3BuilderWithRepair;
-import eagrn.old.algorithm.impl.SMPSOCorrectMutationBuilder;
-import eagrn.old.mutationwithrepair.impl.NullMutationWithRepair;
-import eagrn.old.mutationwithrepair.impl.PolynomialMutationWithRepair;
-import eagrn.old.repairer.impl.StandardizationRepairer;
+import eagrn.operator.crossover.SimplexCrossover;
+import eagrn.operator.mutation.SimplexMutation;
 
 public class ComputingReferenceParetoFronts {
     private static final int INDEPENDENT_RUNS = 25;
@@ -122,8 +117,8 @@ public class ComputingReferenceParetoFronts {
             for (ExperimentProblem<DoubleSolution> experimentProblem : problemList) {
                 Algorithm<List<DoubleSolution>> algorithm 
                     = new NSGAIIBuilder<>(experimentProblem.getProblem(), 
-                                        new SBXCrossover(0.9, 20.0), 
-                                        new PolynomialMutationWithRepair(0.1, 20.0, new StandardizationRepairer()), 
+                                        new SimplexCrossover(3, 1, 0.9), 
+                                        new SimplexMutation(0.1, 0.1), 
                                         populationSize)
                         .setSelectionOperator(new BinaryTournamentSelection<>(new RankingAndCrowdingDistanceComparator<>()))
                         .setMaxEvaluations(numEvaluations)
@@ -134,40 +129,13 @@ public class ComputingReferenceParetoFronts {
             for (ExperimentProblem<DoubleSolution> experimentProblem : problemList) {
                 BoundedArchive<DoubleSolution> archive = new CrowdingDistanceArchive<>(populationSize);
                 Algorithm<List<DoubleSolution>> algorithm 
-                    = new SMPSOCorrectMutationBuilder((DoubleProblem) experimentProblem.getProblem(), archive)
-                        .setMutation(new PolynomialMutationWithRepair(0.1, 20.0, new StandardizationRepairer()))
+                    = new SMPSOBuilder((DoubleProblem) experimentProblem.getProblem(), archive)
+                        .setMutation(new SimplexMutation(0.1, 0.1))
                         .setMaxIterations(numEvaluations / populationSize)
                         .setSwarmSize(populationSize)
                         .setSolutionListEvaluator(new SequentialSolutionListEvaluator<DoubleSolution>())
                         .build();
                 algorithms.add(new ExperimentAlgorithm<>(algorithm, "SMPSO", experimentProblem, run));
-            }
-
-            for (ExperimentProblem<DoubleSolution> experimentProblem : problemList) {
-                Algorithm<List<DoubleSolution>> algorithm
-                    = new MOEADBuilder(experimentProblem.getProblem(), MOEADBuilder.Variant.MOEAD)
-                        .setCrossover(new DifferentialEvolutionCrossover())
-                        .setMutation(new PolynomialMutationWithRepair(0.1, 20.0, new StandardizationRepairer()))
-                        .setMaxEvaluations(numEvaluations)
-                        .setPopulationSize(populationSize)
-                        .setResultPopulationSize(populationSize)
-                        .setNeighborhoodSelectionProbability(0.9)
-                        .setMaximumNumberOfReplacedSolutions(2)
-                        .setNeighborSize(20)
-                        .build();
-                algorithms.add(new ExperimentAlgorithm<>(algorithm, "MOEAD", experimentProblem, run));
-            }
-
-            for (ExperimentProblem<DoubleSolution> experimentProblem : problemList) {
-                Algorithm<List<DoubleSolution>> algorithm
-                    = new GDE3BuilderWithRepair((DoubleProblem) experimentProblem.getProblem())
-                        .setCrossover(new DifferentialEvolutionCrossover())
-                        .setMutation(new NullMutationWithRepair(new StandardizationRepairer()))
-                        .setMaxEvaluations(numEvaluations)
-                        .setPopulationSize(populationSize)
-                        .setSolutionSetEvaluator(new SequentialSolutionListEvaluator<>())
-                        .build();
-                algorithms.add(new ExperimentAlgorithm<>(algorithm, "GDE3", experimentProblem, run));
             }
         }
         return algorithms;

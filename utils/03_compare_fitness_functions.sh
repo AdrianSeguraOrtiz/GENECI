@@ -40,7 +40,7 @@ do
     for func in ${functions[@]}
     do
         echo $func >> $network_folder/gs_scores/consensus_times.txt
-        { time python ../geneci/main.py optimize-ensemble $str --gene-names $network_folder/gene_names.txt --time-series $network_folder/$(basename $network_folder).csv --function $func --algorithm GA --plot-evolution --output-dir $network_folder/ea_consensus_$func ; } 2>> $network_folder/gs_scores/consensus_times.txt
+        { time python ../geneci/main.py optimize-ensemble $str --gene-names $network_folder/gene_names.txt --time-series $network_folder/$(basename $network_folder).csv --function $func --num-evaluations 500000 --population-size 200 --algorithm GA --plot-evolution --output-dir $network_folder/ea_consensus_$func ; } 2>> $network_folder/gs_scores/consensus_times.txt
     done
 
 done

@@ -2,21 +2,21 @@
 
 ## Datos de expresión
 python ../geneci/main.py extract-data expression-data \
-            --database DREAM3 --database DREAM4 --database IRMA \
+            --database DREAM3 --database DREAM4 --database DREAM5 --database IRMA \
             --username TFM-SynapseAccount \
             --password TFM-SynapsePassword \
             --output-dir ../input_data
 
 ## Gold standards
 python ../geneci/main.py extract-data gold-standard \
-            --database DREAM3 --database DREAM4 --database IRMA \
+            --database DREAM3 --database DREAM4 --database DREAM5 --database IRMA \
             --username TFM-SynapseAccount \
             --password TFM-SynapsePassword \
             --output-dir ../input_data
 
 ## Datos de evaluación 
 python ../geneci/main.py extract-data evaluation-data \
-            --database DREAM3 --database DREAM4 \
+            --database DREAM3 --database DREAM4 --database DREAM5 \
             --username TFM-SynapseAccount \
             --password TFM-SynapsePassword \
             --output-dir ../input_data
@@ -26,16 +26,38 @@ python ../geneci/main.py extract-data evaluation-data \
 
 for exp_file in ../input_data/*/EXP/*.csv
 do
-    python ../geneci/main.py infer-network \
-                --expression-data $exp_file \
-                --technique aracne --technique bc3net --technique c3net \
-                --technique clr --technique genie3_rf --technique grnboost2 \
-                --technique genie3_et --technique mrnet --technique mrnetb \
-                --technique pcit --technique tigress --technique kboost \
-                --technique meomi --technique jump3 --technique narromi \
-                --technique cmi2ni --technique rsnet --technique pcacmi \
-                --technique locpcacmi --technique plsnet --technique pidc \
-                --output-dir ../template
+    techniques=("ARACNE" "BC3NET" "C3NET" "CLR" "GENIE3_RF" "GRNBOOST2" 
+                    "GENIE3_ET" "MRNET" "MRNETB" "PCIT" "TIGRESS" "KBOOST"
+                    "MEOMI" "JUMP3" "NARROMI" "CMI2NI" "RSNET" "PCACMI"
+                    "LOCPCACMI" "PLSNET" "PIDC" "PUC" "GRNVBEM" "LEAP" 
+                    "NONLINEARODES" "INFERELATOR")
+    lines=$(wc -l < $exp_file)
+
+    if [ $lines -gt 20 ]
+    then
+        delete=("JUMP3")
+        for del in ${delete[@]}
+        do
+            techniques=("${techniques[@]/$del}")
+        done
+    fi
+
+    if [ $lines -gt 110 ]
+    then
+        delete=("TIGRESS" "CMI2NI" "LOCPCACMI" "GRNVBEM" "NONLINEARODES")
+        for del in ${delete[@]}
+        do
+            techniques=("${techniques[@]/$del}")
+        done
+    fi
+
+    str_tecs=""
+    for tec in ${techniques[@]}
+    do
+        str_tecs+="--technique $tec "
+    done
+
+    python ../geneci/main.py infer-network $str_tecs --expression-data $exp_file --output-dir ../template
     cp $exp_file ../template/$(basename $exp_file .csv)/
 done
 
@@ -128,6 +150,58 @@ do
                 --challenge D4C2 \
                 --network-id ${size}_${id} \
                 --synapse-file ../input_data/DREAM4/EVAL/pdf_size${size}_${id}.mat \
+                --confidence-list "./temporal_list.csv" > $network_folder/gs_scores/median.txt
+    rm "./temporal_list.csv"
+done
+
+## DREAM5
+for network_folder in ../template/net*_exp/
+do
+    mkdir -p $network_folder/gs_scores
+    > $network_folder/gs_scores/techniques.txt
+
+    id=$(basename $network_folder)
+    id=${id#"net"}
+    id=${id%"_exp"}
+
+    num_tecs=$(ls $network_folder/lists/*.csv | wc -l)
+    weight=$(echo "scale=10; x=1/$num_tecs; if(x<1) print 0; x" | bc)
+    summands=""
+    files=""
+
+    for confidence_list in $network_folder/lists/*.csv
+    do 
+        python ../geneci/main.py evaluate dream-prediction dream-list-of-links \
+                    --challenge D5C4 \
+                    --network-id $id \
+                    --synapse-file ../input_data/DREAM5/EVAL/DREAM5_NetworkInference_Edges_Network${id}.tsv \
+                    --synapse-file ../input_data/DREAM5/EVAL/DREAM5_NetworkInference_GoldStandard_Network${id}.tsv \
+                    --synapse-file ../input_data/DREAM5/EVAL/Network${id}_AUPR.mat \
+                    --synapse-file ../input_data/DREAM5/EVAL/Network${id}_AUROC.mat \
+                    --confidence-list $confidence_list >> $network_folder/gs_scores/techniques.txt
+        summands+="--weight-file-summand $weight*$confidence_list "
+        files+="--file $confidence_list "
+    done
+
+    # Media
+    python ../geneci/main.py evaluate dream-prediction dream-weight-distribution \
+                --challenge D5C4 \
+                --network-id $id \
+                --synapse-file ../input_data/DREAM5/EVAL/DREAM5_NetworkInference_Edges_Network${id}.tsv \
+                --synapse-file ../input_data/DREAM5/EVAL/DREAM5_NetworkInference_GoldStandard_Network${id}.tsv \
+                --synapse-file ../input_data/DREAM5/EVAL/Network${id}_AUPR.mat \
+                --synapse-file ../input_data/DREAM5/EVAL/Network${id}_AUROC.mat \
+                $summands > $network_folder/gs_scores/mean.txt
+    
+    # Mediana
+    python median.py $files --output-file "./temporal_list.csv"
+    python ../geneci/main.py evaluate dream-prediction dream-list-of-links \
+                --challenge D5C4 \
+                --network-id $id \
+                --synapse-file ../input_data/DREAM5/EVAL/DREAM5_NetworkInference_Edges_Network${id}.tsv \
+                --synapse-file ../input_data/DREAM5/EVAL/DREAM5_NetworkInference_GoldStandard_Network${id}.tsv \
+                --synapse-file ../input_data/DREAM5/EVAL/Network${id}_AUPR.mat \
+                --synapse-file ../input_data/DREAM5/EVAL/Network${id}_AUROC.mat \
                 --confidence-list "./temporal_list.csv" > $network_folder/gs_scores/median.txt
     rm "./temporal_list.csv"
 done
