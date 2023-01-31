@@ -657,7 +657,7 @@ def infer_network(
         logs, execution_time = wait_and_close_container(container)
 
         # Register execution time
-        str_times += "\t- " + technique[i] + ":  " + str(execution_time) + "\n"
+        str_times += "\t- " + technique[i] + ":\t" + str(execution_time) + "\n"
 
         # Print reported logs
         print(logs)
@@ -665,16 +665,22 @@ def infer_network(
     # The initially copied input file are deleted.
     Path(tmp_exp_dir).unlink()
 
-    # Create the output folder.
-    output_folder = Path(f"./{output_dir}/{expression_data.stem}/lists/")
-    output_folder.mkdir(
+    # Create measurements folder to save execution times
+    measurements_folder = Path(f"./{output_dir}/{expression_data.stem}/measurements/")
+    measurements_folder.mkdir(
         exist_ok=True, parents=True
     )
 
     # Write execution times in txt file
-    with open(f"./{output_dir}/{expression_data.stem}/execution_times.txt", "a") as f:
+    with open(f"./{measurements_folder}/techniques_times.txt", "w") as f:
         f.write("Infer gene regulatory network with available techniques: \n")
         f.write(str_times + "\n")
+
+    # Create output folder.
+    output_folder = Path(f"./{output_dir}/{expression_data.stem}/lists/")
+    output_folder.mkdir(
+        exist_ok=True, parents=True
+    )
 
     # Move results to the output folder.
     for f in tmp_folder.glob("*"):

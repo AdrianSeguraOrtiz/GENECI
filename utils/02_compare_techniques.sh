@@ -30,18 +30,23 @@ do
         name=$base
     fi
 
-    file=$network_folder/gs_scores/${name}-techniques_scores.csv
-    echo "$name;$name;$name;$name" > $file
-    echo "Technique;AUPR;AUROC;Mean" >> $file
+    file=$network_folder/measurements/${name}-techniques_scores.csv
+    echo "$name;$name;$name;$name;$name" > $file
+    echo "Technique;AUPR;AUROC;Mean;Time" >> $file
 
-    tecs=($(grep -Po "(?<=GRN_)[^ ]*(?=.csv)" $network_folder/gs_scores/techniques.txt))
-    aupr=($(grep -o "AUPR: 0.[0-9]*" $network_folder/gs_scores/techniques.txt | cut -d " " -f 2))
-    auroc=($(grep -o "AUROC: 0.[0-9]*" $network_folder/gs_scores/techniques.txt | cut -d " " -f 2))
+    tecs=($(grep -Po "(?<=GRN_)[^ ]*(?=.csv)" $network_folder/measurements/techniques.txt))
+    aupr=($(grep -o "AUPR: 0.[0-9]*" $network_folder/measurements/techniques.txt | cut -d " " -f 2))
+    auroc=($(grep -o "AUROC: 0.[0-9]*" $network_folder/measurements/techniques.txt | cut -d " " -f 2))
+    times=()
+    for tec in ${tecs[@]}
+    do
+        times+=("$(grep -P "$tec:\t[.]*" $network_folder/measurements/functions_times.txt | cut -d $'\t' -f 3)")
+    done
 
     for (( i=0; i<${#tecs[@]}; i++ ))
     do
         mean=$(echo "scale=10; x=(${aupr[$i]}+${auroc[$i]})/2; if(x<1) print 0; x" | bc)
-        echo "${tecs[$i]};${aupr[$i]};${auroc[$i]};$mean" >> $file
+        echo "${tecs[$i]};${aupr[$i]};${auroc[$i]};$mean;${times[$i]}" >> $file
     done
 done
 
@@ -58,7 +63,7 @@ do
         lines=$(wc -l < $network_folder/$base.csv)
         if [ $i == $iters ] && [ $lines -gt ${sizes[$i]} ] || [ $lines -gt ${sizes[$i]} ] && [ $lines -lt ${sizes[$(( $i + 1 ))]} ]
         then
-            tables+=$(ls $network_folder/gs_scores/*-techniques_scores.csv)
+            tables+=($(ls $network_folder/measurements/*-techniques_scores.csv))
         fi
     done
 
@@ -72,7 +77,7 @@ do
     echo -e ";$(cat all_networks_${name}_techniques_scores.csv)" > all_networks_${name}_techniques_scores.csv
     cols="1"
     max=$(( ${#tables[@]}*4+2 ))
-    for i in `seq 6 4 $max`
+    for i in `seq 7 5 $max`
     do
         cols+=",$i"
     done
@@ -82,7 +87,7 @@ do
     # Creamos la tabla de AUPR para el test estadístico
     max=$(( ${#tables[@]}*3+1 ))
     cols="1"
-    for i in `seq 2 3 $max`
+    for i in `seq 2 4 $max`
     do
         cols+=",$i"
     done
@@ -93,7 +98,7 @@ do
     # Creamos la tabla de AUROC para el test estadístico
     max=$(( ${#tables[@]}*3+1 ))
     cols="1"
-    for i in `seq 3 3 $max`
+    for i in `seq 3 4 $max`
     do
         cols+=",$i"
     done
@@ -103,7 +108,7 @@ do
     # Creamos una tabla con la media de ambas métricas
     max=$(( ${#tables[@]}*3+1 ))
     cols="1"
-    for i in `seq 4 3 $max`
+    for i in `seq 4 4 $max`
     do
         cols+=",$i"
     done
@@ -114,4 +119,14 @@ do
     cd controlTest && java Friedman.java ../AUPR_${name}_techniques.csv > ../AUPR_${name}_techniques.tex && cd ..
     cd controlTest && java Friedman.java ../AUROC_${name}_techniques.csv > ../AUROC_${name}_techniques.tex && cd ..
     cd controlTest && java Friedman.java ../Mean_${name}_techniques.csv > ../Mean_${name}_techniques.tex && cd ..
+
+    # Creamos tabla de tiempos
+    max=$(( ${#tables[@]}*4+1 ))
+    cols="1"
+    for i in `seq 5 4 $max`
+    do
+        cols+=",$i"
+    done
+    cut -d ';' -f$cols all_networks_${name}_techniques_scores.csv | awk 'NR != 2' | csvtool transpose -t ';' - | tr ';' ',' > Time_${name}_techniques.csv
+    sed -i '1s/^/Network/' Time_${name}_techniques.csv
 done

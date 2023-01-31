@@ -67,8 +67,8 @@ done
 ## DREAM3
 for network_folder in ../template/*-trajectories_exp/
 do
-    mkdir -p $network_folder/gs_scores
-    > $network_folder/gs_scores/techniques.txt
+    mkdir -p $network_folder/measurements
+    > $network_folder/measurements/techniques.txt
 
     id=$(echo $(basename $network_folder) | cut -d "-" -f 2)
     size=$(echo $(basename $network_folder) | cut -d "-" -f 1)
@@ -86,7 +86,7 @@ do
                     --network-id ${size}_${id} \
                     --synapse-file ../input_data/DREAM3/EVAL/PDF_InSilicoSize${size}_${id}.mat \
                     --synapse-file ../input_data/DREAM3/EVAL/DREAM3GoldStandard_InSilicoSize${size}_${id}.txt \
-                    --confidence-list $confidence_list >> $network_folder/gs_scores/techniques.txt
+                    --confidence-list $confidence_list >> $network_folder/measurements/techniques.txt
         summands+="--weight-file-summand $weight*$confidence_list "
         files+="--file $confidence_list "
     done
@@ -97,7 +97,7 @@ do
                 --network-id ${size}_${id} \
                 --synapse-file ../input_data/DREAM3/EVAL/PDF_InSilicoSize${size}_${id}.mat \
                 --synapse-file ../input_data/DREAM3/EVAL/DREAM3GoldStandard_InSilicoSize${size}_${id}.txt \
-                $summands > $network_folder/gs_scores/mean.txt
+                $summands > $network_folder/measurements/mean.txt
     
     # Mediana
     python median.py $files --output-file "./temporal_list.csv"
@@ -106,15 +106,15 @@ do
                 --network-id ${size}_${id} \
                 --synapse-file ../input_data/DREAM3/EVAL/PDF_InSilicoSize${size}_${id}.mat \
                 --synapse-file ../input_data/DREAM3/EVAL/DREAM3GoldStandard_InSilicoSize${size}_${id}.txt \
-                --confidence-list "./temporal_list.csv" > $network_folder/gs_scores/median.txt
+                --confidence-list "./temporal_list.csv" > $network_folder/measurements/median.txt
     rm "./temporal_list.csv"
 done
 
 ## DREAM4
 for network_folder in ../template/dream4*_exp/
 do
-    mkdir -p $network_folder/gs_scores
-    > $network_folder/gs_scores/techniques.txt
+    mkdir -p $network_folder/measurements
+    > $network_folder/measurements/techniques.txt
 
     id=$(echo $(basename $network_folder) | cut -d "_" -f 3)
     id=${id#"0"}
@@ -132,7 +132,7 @@ do
                     --challenge D4C2 \
                     --network-id ${size}_${id} \
                     --synapse-file ../input_data/DREAM4/EVAL/pdf_size${size}_${id}.mat \
-                    --confidence-list $confidence_list >> $network_folder/gs_scores/techniques.txt
+                    --confidence-list $confidence_list >> $network_folder/measurements/techniques.txt
         summands+="--weight-file-summand $weight*$confidence_list "
         files+="--file $confidence_list "
     done
@@ -142,7 +142,7 @@ do
                 --challenge D4C2 \
                 --network-id ${size}_${id} \
                 --synapse-file ../input_data/DREAM4/EVAL/pdf_size${size}_${id}.mat \
-                $summands > $network_folder/gs_scores/mean.txt
+                $summands > $network_folder/measurements/mean.txt
     
     # Mediana
     python median.py $files --output-file "./temporal_list.csv"
@@ -150,15 +150,15 @@ do
                 --challenge D4C2 \
                 --network-id ${size}_${id} \
                 --synapse-file ../input_data/DREAM4/EVAL/pdf_size${size}_${id}.mat \
-                --confidence-list "./temporal_list.csv" > $network_folder/gs_scores/median.txt
+                --confidence-list "./temporal_list.csv" > $network_folder/measurements/median.txt
     rm "./temporal_list.csv"
 done
 
 ## DREAM5
 for network_folder in ../template/net*_exp/
 do
-    mkdir -p $network_folder/gs_scores
-    > $network_folder/gs_scores/techniques.txt
+    mkdir -p $network_folder/measurements
+    > $network_folder/measurements/techniques.txt
 
     id=$(basename $network_folder)
     id=${id#"net"}
@@ -178,7 +178,7 @@ do
                     --synapse-file ../input_data/DREAM5/EVAL/DREAM5_NetworkInference_GoldStandard_Network${id}.tsv \
                     --synapse-file ../input_data/DREAM5/EVAL/Network${id}_AUPR.mat \
                     --synapse-file ../input_data/DREAM5/EVAL/Network${id}_AUROC.mat \
-                    --confidence-list $confidence_list >> $network_folder/gs_scores/techniques.txt
+                    --confidence-list $confidence_list >> $network_folder/measurements/techniques.txt
         summands+="--weight-file-summand $weight*$confidence_list "
         files+="--file $confidence_list "
     done
@@ -191,7 +191,7 @@ do
                 --synapse-file ../input_data/DREAM5/EVAL/DREAM5_NetworkInference_GoldStandard_Network${id}.tsv \
                 --synapse-file ../input_data/DREAM5/EVAL/Network${id}_AUPR.mat \
                 --synapse-file ../input_data/DREAM5/EVAL/Network${id}_AUROC.mat \
-                $summands > $network_folder/gs_scores/mean.txt
+                $summands > $network_folder/measurements/mean.txt
     
     # Mediana
     python median.py $files --output-file "./temporal_list.csv"
@@ -202,15 +202,15 @@ do
                 --synapse-file ../input_data/DREAM5/EVAL/DREAM5_NetworkInference_GoldStandard_Network${id}.tsv \
                 --synapse-file ../input_data/DREAM5/EVAL/Network${id}_AUPR.mat \
                 --synapse-file ../input_data/DREAM5/EVAL/Network${id}_AUROC.mat \
-                --confidence-list "./temporal_list.csv" > $network_folder/gs_scores/median.txt
+                --confidence-list "./temporal_list.csv" > $network_folder/measurements/median.txt
     rm "./temporal_list.csv"
 done
 
 ## IRMA
 for network_folder in ../template/switch-*_exp/
 do
-    mkdir -p $network_folder/gs_scores
-    > $network_folder/gs_scores/techniques.txt
+    mkdir -p $network_folder/measurements
+    > $network_folder/measurements/techniques.txt
 
     num_tecs=$(ls $network_folder/lists/*.csv | wc -l)
     weight=$(echo "scale=10; x=1/$num_tecs; if(x<1) print 0; x" | bc)
@@ -221,7 +221,7 @@ do
     do 
         python ../geneci/main.py evaluate generic-prediction generic-list-of-links \
                     --gs-binary-matrix ./../input_data/IRMA/GS/irma_gs.csv \
-                    --confidence-list $confidence_list >> $network_folder/gs_scores/techniques.txt
+                    --confidence-list $confidence_list >> $network_folder/measurements/techniques.txt
         summands+="--weight-file-summand $weight*$confidence_list "
         files+="--file $confidence_list "
     done
@@ -229,12 +229,12 @@ do
     # Media
     python ../geneci/main.py evaluate generic-prediction generic-weight-distribution \
                 --gs-binary-matrix ./../input_data/IRMA/GS/irma_gs.csv \
-                $summands > $network_folder/gs_scores/mean.txt
+                $summands > $network_folder/measurements/mean.txt
     
     # Mediana
     python median.py $files --output-file "./temporal_list.csv"
     python ../geneci/main.py evaluate generic-prediction generic-list-of-links \
                 --gs-binary-matrix ./../input_data/IRMA/GS/irma_gs.csv \
-                --confidence-list "./temporal_list.csv" > $network_folder/gs_scores/median.txt
+                --confidence-list "./temporal_list.csv" > $network_folder/measurements/median.txt
     rm "./temporal_list.csv"
 done
