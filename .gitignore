@@ -160,3 +160,5 @@ logs.txt
 
 components/infer_network/*/mainstandaloneApplication/
 components/infer_network/*/adriansegura99/
+
+*.lock
