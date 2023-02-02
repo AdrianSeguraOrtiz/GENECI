@@ -1,7 +1,10 @@
+import itertools
 import math
 import multiprocessing
+import random
 import re
 import shutil
+import string
 from enum import Enum
 from pathlib import Path
 from typing import List, Optional
@@ -12,11 +15,11 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import typer
+from iteround import saferound
 from plotly.subplots import make_subplots
 from rich import print
 
 # Header
-
 __version__ = "0.0.1"
 __author__ = "Adrian Segura Ortiz <adrianseor.99@uma.es>"
 
@@ -33,6 +36,49 @@ HEADER = "\n".join(
 )
 
 print(HEADER)
+
+# Generate temp folder name
+temp_folder_str = "tmp-" + "".join(random.choices(string.ascii_lowercase, k=10))
+
+# Create dict of techniques cpus
+cpus_dict = dict()
+cpus_dict.update(
+    dict.fromkeys(["JUMP3", "LOCPCACMI", "NONLINEARODES", "GRNVBEM", "CMI2NI"], 4)
+)
+cpus_dict.update(
+    dict.fromkeys(
+        [
+            "TIGRESS",
+            "PCACMI",
+            "PLSNET",
+            "INFERELATOR",
+            "GENIE3_RF",
+            "GRNBOOST2",
+            "GENIE3_ET",
+        ],
+        3,
+    )
+)
+cpus_dict.update(dict.fromkeys(["KBOOST", "LEAP"], 2))
+cpus_dict.update(
+    dict.fromkeys(
+        [
+            "ARACNE",
+            "BC3NET",
+            "C3NET",
+            "CLR",
+            "MRNET",
+            "MRNETB",
+            "PCIT",
+            "MEOMI",
+            "NARROMI",
+            "RSNET",
+            "PIDC",
+            "PUC",
+        ],
+        1,
+    )
+)
 
 # Definition of enumerated classes.
 class Database(str, Enum):
@@ -109,6 +155,7 @@ class Algorithm(str, Enum):
     NSGAII = "NSGAII"
     SMPSO = "SMPSO"
 
+
 # Activate docker client.
 client = docker.from_env()
 
@@ -148,8 +195,10 @@ def wait_and_close_container(container):
     logs = container.logs()
 
     # Get execution time
-    state = client.api.inspect_container(container.id)['State']
-    execution_time = pd.to_datetime(state['FinishedAt']) - pd.to_datetime(state['StartedAt'])
+    state = client.api.inspect_container(container.id)["State"]
+    execution_time = pd.to_datetime(state["FinishedAt"]) - pd.to_datetime(
+        state["StartedAt"]
+    )
 
     # Stop and remove the container
     container.stop()
@@ -160,7 +209,7 @@ def wait_and_close_container(container):
 
 
 # Function to obtain the definition of a volume given a folder
-def get_volume(folder, isMatlab = False):
+def get_volume(folder, isMatlab=False):
     dockerDir = "/tmp/.X11-unix/" if isMatlab else "/usr/local/src/"
     return {
         Path(folder).absolute(): {
@@ -171,7 +220,7 @@ def get_volume(folder, isMatlab = False):
 
 
 # Function to get weights from VAR.csv file
-def get_weights(filename, header = True):
+def get_weights(filename, header=True):
 
     ## Open the file with the weights assigned to each inference technique.
     f = open(filename, "r")
@@ -180,7 +229,8 @@ def get_weights(filename, header = True):
     lines = f.readlines()
 
     ## Remove header if exist
-    if header: del lines[0]
+    if header:
+        del lines[0]
 
     ## The vector that will store the vectors with these weights is created (list formed by lists).
     weights = list()
@@ -193,13 +243,15 @@ def get_weights(filename, header = True):
 
         # Added to the list
         weights.append(solution)
-    
+
     # Return list of weights
     return weights
 
 
 # Function to write evaluation CSV file
-def write_evaluation_csv(output_dir, sorted_idx, confidence_list, objective_labels, weights, df):
+def write_evaluation_csv(
+    output_dir, sorted_idx, confidence_list, objective_labels, weights, df
+):
     with open(f"{output_dir}/evaluated_front.csv", "w") as f:
         f.write(
             f"Weights{',' * len(confidence_list)}Fitness Values{',' * len(objective_labels)}Evaluation Values,,\n"
@@ -213,6 +265,90 @@ def write_evaluation_csv(output_dir, sorted_idx, confidence_list, objective_labe
             )
         f.close()
 
+
+# Function to obtain the optimal distribution of cores given a set of techniques
+def get_optimal_cpu_distribution(tecs, cores_ids):
+
+    # Calculate cpus vector for our input
+    cpus_list = list()
+    for tec in tecs:
+        cpus_list.append(cpus_dict.get(tec))
+
+    # We group the techniques of equal amount of cpus required.
+    # For each group we store its members and the sum of the total number of cpus they need.
+    groups = list()
+    group_sums = list()
+    for cpu in set(cpus_list):
+        members = [i for i in range(len(cpus_list)) if cpus_list[i] == cpu]
+        groups.append(members)
+        group_sums.append(len(members) * cpu)
+
+    # For each group we store the number of cpus that the system can offer them (in decimals).
+    scaled_groups_sums = [
+        (gsum / sum(group_sums)) * len(cores_ids) for gsum in group_sums
+    ]
+
+    # If the number of cpus required is less than the number of cpus available, we set the sum
+    # of the non-parallelisable group of techniques to the consistent maximum (1 for each). In
+    # case the number of required cpus is greater than those offered by the system, we set the
+    # sum of the non-parallelisable group of techniques to the minimum between (available/required)/2
+    # and 0.5 fo each. The amount of cpus left over or missing after this imposition is distributed
+    # in order of preference to the rest of the groups.
+    if 1 in set(cpus_list):
+        cpus_set_list = list(set(cpus_list))
+        idx_group_of_ones = cpus_set_list.index(1)
+
+        factor = (
+            1
+            if len(cores_ids) > sum(cpus_list)
+            else min(
+                0.5,
+                (scaled_groups_sums[idx_group_of_ones] / group_sums[idx_group_of_ones])
+                / 2,
+            )
+        )
+        ones_sum = group_sums[idx_group_of_ones] * factor
+        surplus = scaled_groups_sums[idx_group_of_ones] - ones_sum
+        scaled_groups_sums[idx_group_of_ones] = ones_sum
+
+        cpus_set_list[idx_group_of_ones] = 0
+        surplus_distributed = [
+            (cpu / sum(cpus_set_list)) * surplus for cpu in cpus_set_list
+        ]
+        scaled_groups_sums = [
+            sum(x) for x in zip(scaled_groups_sums, surplus_distributed)
+        ]
+
+    # After redistribution we round up the number of cpus safely for each group
+    safe_groups_sums = saferound(scaled_groups_sums, places=0)
+
+    # We assign to each technique the number of cpus that corresponds to it within its group,
+    # specifying the id of each assigned cpu.
+    cpus_cnt = 0
+    res = dict.fromkeys(tecs, list())
+    for idx_group in range(len(groups)):
+        cpus_group = int(safe_groups_sums[idx_group])
+        cpus_ids = (
+            cores_ids[cpus_cnt : (cpus_group + cpus_cnt)]
+            if cpus_group != 0
+            else [cores_ids[max(0, cpus_group - 1)]]
+        )
+        cpus_cnt += cpus_group
+
+        members = groups[idx_group]
+
+        if len(members) < len(cpus_ids):
+            cycle_members = itertools.cycle(members)
+            for cpu_id in cpus_ids:
+                member = next(cycle_members)
+                res[tecs[member]] = res[tecs[member]] + [cpu_id]
+        else:
+            cpus_ids = itertools.cycle(cpus_ids)
+            for member in members:
+                res[tecs[member]] = res[tecs[member]] + [next(cpus_ids)]
+
+    # Return final dict
+    return res
 
 # Applications for the definition of Typer commands and subcommands.
 app = typer.Typer(rich_markup_mode="rich")
@@ -544,7 +680,9 @@ def evaluation_data(
                 client.images.pull(repository=image)
 
             # Construct the command based on the parameters entered by the user
-            command = f"--output-folder ./EVAL/  --username {username} --password {password}"
+            command = (
+                f"--output-folder ./EVAL/  --username {username} --password {password}"
+            )
 
         elif db == Database.DREAM5:
 
@@ -585,20 +723,44 @@ def infer_network(
     technique: Optional[List[Technique]] = typer.Option(
         ..., case_sensitive=False, help="Inference techniques to be performed."
     ),
+    threads: int = typer.Option(
+        multiprocessing.cpu_count(),
+        help="Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.",
+    ),
+    str_threads: str = typer.Option(
+        None,
+        help="Comma-separated list with the identifying numbers of the threads to be used. If specified, the threads variable will automatically be set to the length of the list.",
+    ),
     output_dir: Path = typer.Option(
         Path("./inferred_networks"), help="Path to the output folder."
     ),
 ):
     """
-    Infer gene regulatory networks from expression data. Several techniques are available: ARACNE, BC3NET, C3NET, CLR, GENIE3, MRNET, MRNET, MRNETB and PCIT.
+    Infer gene regulatory networks from expression data. Several techniques are available: ARACNE, BC3NET, C3NET, CLR, GENIE3_RF, GRNBOOST2, GENIE3_ET, MRNET, MRNETB, PCIT, TIGRESS, KBOOST, MEOMI, JUMP3, NARROMI, CMI2NI, RSNET, PCACMI, LOCPCACMI, PLSNET, PIDC, PUC, GRNVBEM, LEAP, NONLINEARODES and INFERELATOR
     """
 
+    # Calculate dict of techniques cpus
+    if str_threads:
+        try:
+            cores_ids = [int(i) for i in str_threads.split(",")]
+        except:
+            print(f"The str_threads variable must be a comma-separated list of integers. The value entered: {str_threads} does not satisfy this condition")
+            raise typer.Exit()
+    else:
+        cores_ids = list(range(threads))
+    cpus_dict = get_optimal_cpu_distribution(technique, cores_ids)
+
+    # Report information to the user.
+    print(f"\n Total cores: {threads}")
+    print("Distribution:")
+    print(cpus_dict)
+
     # Create temporary folder.
-    tmp_folder = Path("./tmp")
+    tmp_folder = Path(temp_folder_str)
     tmp_folder.mkdir(exist_ok=True, parents=True)
 
     # Temporarily copy the input file to the temporary folder in order to facilitate the container volume.
-    tmp_exp_dir = f"./{tmp_folder}/{Path(expression_data).name}"
+    tmp_exp_dir = f"./{temp_folder_str}/{Path(expression_data).name}"
     shutil.copyfile(expression_data, tmp_exp_dir)
 
     # The different images corresponding to the inference techniques are run in parallel.
@@ -623,13 +785,22 @@ def infer_network(
             variant = None
 
         # In case the image comes from a matlab tool, we assign the corresponding prefix.
-        if tec in [Technique.JUMP3, Technique.NARROMI, Technique.CMI2NI, Technique.RSNET, Technique.PCACMI, Technique.LOCPCACMI, Technique.PLSNET, Technique.GRNVBEM]:
-            command = f"/tmp/.X11-unix/{tmp_exp_dir} /tmp/.X11-unix/tmp"
+        if tec in [
+            Technique.JUMP3,
+            Technique.NARROMI,
+            Technique.CMI2NI,
+            Technique.RSNET,
+            Technique.PCACMI,
+            Technique.LOCPCACMI,
+            Technique.PLSNET,
+            Technique.GRNVBEM,
+        ]:
+            command = f"/tmp/.X11-unix/{tmp_exp_dir} /tmp/.X11-unix/{temp_folder_str}"
             isMatlab = True
         else:
-            command = f"{tmp_exp_dir} tmp"
-            if variant: 
-                command += f" {variant}" 
+            command = f"{tmp_exp_dir} {temp_folder_str}"
+            if variant:
+                command += f" {variant}"
             isMatlab = False
 
         # In case it is not available on the device, it is downloaded from the repository.
@@ -640,10 +811,11 @@ def infer_network(
         # The image is executed with the parameters set by the user.
         container = client.containers.run(
             image=image,
-            volumes=get_volume(f"tmp", isMatlab),
+            volumes=get_volume(temp_folder_str, isMatlab),
             command=command,
             detach=True,
             tty=True,
+            cpuset_cpus=",".join([str(i) for i in cpus_dict[tec]]),
         )
 
         # The container is added to the list so that the following can be executed
@@ -667,9 +839,7 @@ def infer_network(
 
     # Create measurements folder to save execution times
     measurements_folder = Path(f"./{output_dir}/{expression_data.stem}/measurements/")
-    measurements_folder.mkdir(
-        exist_ok=True, parents=True
-    )
+    measurements_folder.mkdir(exist_ok=True, parents=True)
 
     # Write execution times in txt file
     with open(f"./{measurements_folder}/techniques_times.txt", "w") as f:
@@ -678,9 +848,7 @@ def infer_network(
 
     # Create output folder.
     output_folder = Path(f"./{output_dir}/{expression_data.stem}/lists/")
-    output_folder.mkdir(
-        exist_ok=True, parents=True
-    )
+    output_folder.mkdir(exist_ok=True, parents=True)
 
     # Move results to the output folder.
     for f in tmp_folder.glob("*"):
@@ -739,12 +907,12 @@ def apply_cut(
     )
 
     # A temporary folder is created and the list of input confidences is copied.
-    Path("tmp").mkdir(exist_ok=True, parents=True)
-    tmp_confidence_list_dir = f"tmp/{Path(confidence_list).name}"
+    Path(temp_folder_str).mkdir(exist_ok=True, parents=True)
+    tmp_confidence_list_dir = f"{temp_folder_str}/{Path(confidence_list).name}"
     shutil.copyfile(confidence_list, tmp_confidence_list_dir)
 
     # Define default temp path to gene names list
-    tmp_gene_names_dir = "tmp/gene_names.txt"
+    tmp_gene_names_dir = f"{temp_folder_str}/gene_names.txt"
 
     # If a gene list is provided it is copied to the temporary directory
     if gene_names:
@@ -777,8 +945,8 @@ def apply_cut(
     # The image is executed with the parameters set by the user.
     container = client.containers.run(
         image=image,
-        volumes=get_volume("tmp"),
-        command=f"{tmp_confidence_list_dir} {tmp_gene_names_dir} tmp/{Path(output_file).name} {cut_off_criteria} {cut_off_value}",
+        volumes=get_volume(temp_folder_str),
+        command=f"{tmp_confidence_list_dir} {tmp_gene_names_dir} {temp_folder_str}/{Path(output_file).name} {cut_off_criteria} {cut_off_value}",
         detach=True,
         tty=True,
     )
@@ -788,8 +956,8 @@ def apply_cut(
     print(logs)
 
     # Copy the output file from the temporary folder to the final one and delete the temporary one.
-    shutil.copyfile(f"tmp/{Path(output_file).name}", output_file)
-    shutil.rmtree("tmp")
+    shutil.copyfile(f"{temp_folder_str}/{Path(output_file).name}", output_file)
+    shutil.rmtree(temp_folder_str)
 
 
 # Command to optimize the ensemble of techniques
@@ -888,14 +1056,14 @@ def optimize_ensemble(
         mutation_probability = 1 / len(confidence_list)
 
     # The temporary folder is created
-    Path("tmp/lists").mkdir(exist_ok=True, parents=True)
+    Path(f"{temp_folder_str}/lists").mkdir(exist_ok=True, parents=True)
 
     # Input trust lists are copied
     for file in confidence_list:
-        shutil.copyfile(file, f"tmp/lists/{Path(file).name}")
+        shutil.copyfile(file, f"{temp_folder_str}/lists/{Path(file).name}")
 
     # Define default temp path to gene names list
-    tmp_gene_names_dir = "tmp/gene_names.txt"
+    tmp_gene_names_dir = f"{temp_folder_str}/gene_names.txt"
 
     # If a gene list is provided it is copied to the temporary directory
     if gene_names:
@@ -916,7 +1084,7 @@ def optimize_ensemble(
             f.write(",".join(sorted(gene_list)))
 
     # Copy the file with the time series if specified
-    tmp_time_series_dir = "tmp/time_series.csv"
+    tmp_time_series_dir = f"{temp_folder_str}/time_series.csv"
     if time_series:
         shutil.copyfile(time_series, tmp_time_series_dir)
 
@@ -931,8 +1099,8 @@ def optimize_ensemble(
     # The image is executed with the parameters set by the user.
     container = client.containers.run(
         image=image,
-        volumes=get_volume("tmp"),
-        command=f"tmp/ {crossover_probability} {mutation_probability} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {str_functions} {algorithm} {threads} {plot_evolution}",
+        volumes=get_volume(temp_folder_str),
+        command=f"{temp_folder_str} {crossover_probability} {mutation_probability} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {str_functions} {algorithm} {threads} {plot_evolution}",
         detach=True,
         tty=True,
     )
@@ -945,7 +1113,7 @@ def optimize_ensemble(
     if plot_evolution:
 
         # Open the file with the fitness values
-        f = open("tmp/ea_consensus/fitness_evolution.txt", "r")
+        f = open(f"{temp_folder_str}/ea_consensus/fitness_evolution.txt", "r")
 
         # Each line contains the evolution of a different objective
         lines = f.readlines()
@@ -986,13 +1154,13 @@ def optimize_ensemble(
 
         # Customize and save the figure
         fig.update_layout(title_text="Fitness evolution", showlegend=False)
-        fig.write_html("tmp/ea_consensus/fitness_evolution.html")
+        fig.write_html(f"{temp_folder_str}/ea_consensus/fitness_evolution.html")
 
     # If there is more than one objective we paint the graph of parallel coordinates
     if len(function) > 1:
 
         # Open the file with the fitness values associated with the non-dominated solutions.
-        f = open("tmp/ea_consensus/FUN.csv", "r")
+        f = open(f"{temp_folder_str}/ea_consensus/FUN.csv", "r")
 
         # Each line contains the fitness values of a solution of the pareto front.
         lines = f.readlines()
@@ -1024,13 +1192,15 @@ def optimize_ensemble(
             )
             fig.update_xaxes(title_text=function[0])
             fig.update_yaxes(title_text=function[1])
-            fig.write_html("tmp/ea_consensus/pareto_front.html")
+            fig.write_html(f"{temp_folder_str}/ea_consensus/pareto_front.html")
 
         # We paint the graph of parallel coordinates
         fig = px.parallel_coordinates(
             df, dimensions=function, title="Graph of parallel coordinates"
         )
-        fig.write_html("tmp/ea_consensus/fitness_parallel_coordinates.html")
+        fig.write_html(
+            f"{temp_folder_str}/ea_consensus/fitness_parallel_coordinates.html"
+        )
 
     # Define and create the output folder
     if str(output_dir) == "<<conf_list_path>>/../ea_consensus":
@@ -1038,9 +1208,9 @@ def optimize_ensemble(
     output_dir.mkdir(exist_ok=True, parents=True)
 
     # All output files are moved and the temporary directory is deleted
-    for f in Path("tmp/ea_consensus").glob("*"):
+    for f in Path(f"{temp_folder_str}/ea_consensus").glob("*"):
         shutil.move(f, f"{output_dir}/{f.name}")
-    shutil.rmtree("tmp")
+    shutil.rmtree(temp_folder_str)
 
 
 # Commands to evaluate the accuracy of DREAM inferred networks
@@ -1072,15 +1242,15 @@ def dream_list_of_links(
     )
 
     # Create temporary folder
-    Path("tmp/synapse/").mkdir(exist_ok=True, parents=True)
+    Path(f"{temp_folder_str}/synapse/").mkdir(exist_ok=True, parents=True)
 
     # Copy evaluation files
-    tmp_synapse_files_dir = "tmp/synapse/"
+    tmp_synapse_files_dir = f"{temp_folder_str}/synapse/"
     for f in synapse_file:
         shutil.copyfile(f, tmp_synapse_files_dir + Path(f).name)
 
     # Copy confidence list
-    tmp_confidence_list_dir = f"tmp/{Path(confidence_list).name}"
+    tmp_confidence_list_dir = f"{temp_folder_str}/{Path(confidence_list).name}"
     shutil.copyfile(confidence_list, tmp_confidence_list_dir)
 
     # Define docker image
@@ -1094,7 +1264,7 @@ def dream_list_of_links(
     # The image is executed with the parameters set by the user.
     container = client.containers.run(
         image=image,
-        volumes=get_volume("tmp"),
+        volumes=get_volume(temp_folder_str),
         command=f"--challenge {challenge.name} --network-id {network_id} --synapse-folder {tmp_synapse_files_dir} --confidence-list {tmp_confidence_list_dir}",
         detach=True,
         tty=True,
@@ -1105,7 +1275,7 @@ def dream_list_of_links(
     print(logs)
 
     # Delete temp folder
-    shutil.rmtree("tmp")
+    shutil.rmtree(temp_folder_str)
 
     # For coding use
     return logs
@@ -1130,11 +1300,15 @@ def dream_weight_distribution(
     """
     Evaluate one weight distribution.
     """
+    # Generate temp folder name
+    second_temp_folder_str = "tmp-" + "".join(
+        random.choices(string.ascii_lowercase, k=10)
+    )
 
     # Calculate the list of links from the distribution of weights
     weighted_confidence(
         weight_file_summand=weight_file_summand,
-        output_file=Path("./tmp2/temporal_list.csv"),
+        output_file=Path(f"./{second_temp_folder_str}/temporal_list.csv"),
     )
 
     # Calculate the AUROC and AUPR values for the generated list.
@@ -1142,11 +1316,11 @@ def dream_weight_distribution(
         challenge=challenge,
         network_id=network_id,
         synapse_file=synapse_file,
-        confidence_list="./tmp2/temporal_list.csv",
+        confidence_list=f"./{second_temp_folder_str}/temporal_list.csv",
     )
 
     # Delete temp folder
-    shutil.rmtree("tmp2")
+    shutil.rmtree(second_temp_folder_str)
 
     # For coding use
     return values
@@ -1235,7 +1409,9 @@ def dream_pareto_front(
     objective_labels = list(fitness_df.columns)
 
     ## Create evaluation dataframe
-    evaluation_df = pd.DataFrame(data={"acc_mean": acc_means, "aupr": auprs, "auroc": aurocs})
+    evaluation_df = pd.DataFrame(
+        data={"acc_mean": acc_means, "aupr": auprs, "auroc": aurocs}
+    )
 
     ## Concat both dataframes
     df = pd.concat([fitness_df, evaluation_df], axis=1)
@@ -1256,7 +1432,9 @@ def dream_pareto_front(
     sorted_idx = np.argsort([-m for m in acc_means])
 
     ## Write CSV file
-    write_evaluation_csv(output_dir, sorted_idx, confidence_list, objective_labels, weights, df)
+    write_evaluation_csv(
+        output_dir, sorted_idx, confidence_list, objective_labels, weights, df
+    )
 
 
 # Command to evaluate the accuracy of generic inferred networks
@@ -1281,27 +1459,27 @@ def generic_list_of_links(
     )
 
     # Create temporary folder
-    Path("tmp/").mkdir(exist_ok=True)
+    Path(temp_folder_str).mkdir(exist_ok=True)
 
     # Extract gene names from gold standard matrix
     with open(gs_binary_matrix) as f:
-        gene_names = f.readline().replace("\n", "").replace('"', '').split(",")
+        gene_names = f.readline().replace("\n", "").replace('"', "").split(",")
         del gene_names[0]
 
     # Store inferred confidence values in matrix format
     df = pd.DataFrame(0, index=gene_names, columns=gene_names)
-    f = open(confidence_list, 'r')
+    f = open(confidence_list, "r")
     lines = f.readlines()
     for line in lines:
         vline = line.replace("\n", "").split(",")
         df.at[vline[0], vline[1]] = vline[2]
 
     # Save dataframe in temporal folder
-    tmp_inferred_matrix_dir = f"tmp/{Path(confidence_list).name}"
+    tmp_inferred_matrix_dir = f"{temp_folder_str}/{Path(confidence_list).name}"
     df.to_csv(tmp_inferred_matrix_dir, sep=",")
 
     # And its respective gold standard
-    tmp_gsbm_dir = f"tmp/{Path(gs_binary_matrix).name}"
+    tmp_gsbm_dir = f"{temp_folder_str}/{Path(gs_binary_matrix).name}"
     shutil.copyfile(gs_binary_matrix, tmp_gsbm_dir)
 
     # Define docker image
@@ -1315,7 +1493,7 @@ def generic_list_of_links(
     # The image is executed with the parameters set by the user.
     container = client.containers.run(
         image=image,
-        volumes=get_volume("tmp"),
+        volumes=get_volume(temp_folder_str),
         command=f"{tmp_inferred_matrix_dir} {tmp_gsbm_dir}",
         detach=True,
         tty=True,
@@ -1326,7 +1504,7 @@ def generic_list_of_links(
     print(logs)
 
     # Delete temp folder
-    shutil.rmtree("tmp")
+    shutil.rmtree(temp_folder_str)
 
     # For coding use
     return logs
@@ -1346,24 +1524,29 @@ def generic_weight_distribution(
     """
     Evaluate one weight distribution.
     """
+    # Generate temp folder name
+    second_temp_folder_str = "tmp-" + "".join(
+        random.choices(string.ascii_lowercase, k=10)
+    )
 
     # Calculate the list of links from the distribution of weights
     weighted_confidence(
         weight_file_summand=weight_file_summand,
-        output_file=Path("./tmp2/temporal_list.csv"),
+        output_file=Path(f"./{second_temp_folder_str}/temporal_list.csv"),
     )
 
     # Calculate the AUROC and AUPR values for the generated list.
     values = generic_list_of_links(
-        confidence_list="./tmp2/temporal_list.csv",
+        confidence_list=f"./{second_temp_folder_str}/temporal_list.csv",
         gs_binary_matrix=gs_binary_matrix,
     )
 
     # Delete temp folder
-    shutil.rmtree("tmp2")
+    shutil.rmtree(second_temp_folder_str)
 
     # For coding use
     return values
+
 
 ## Command for evaluate pareto front
 @generic_prediction_app.command()
@@ -1425,9 +1608,9 @@ def generic_pareto_front(
         )
 
         # The obtained accuracy values are read and stored in the list.
-        str_aupr = re.search("AUPR: (.*)\"", values)
+        str_aupr = re.search('AUPR: (.*)"', values)
         auprs.append(float(str_aupr.group(1)))
-        str_auroc = re.search("AUROC: (.*)\"", values)
+        str_auroc = re.search('AUROC: (.*)"', values)
         aurocs.append(float(str_auroc.group(1)))
 
     ## Get mean between auprs and aurocs values
@@ -1441,7 +1624,9 @@ def generic_pareto_front(
     objective_labels = list(fitness_df.columns)
 
     ## Create evaluation dataframe
-    evaluation_df = pd.DataFrame(data={"acc_mean": acc_means, "aupr": auprs, "auroc": aurocs})
+    evaluation_df = pd.DataFrame(
+        data={"acc_mean": acc_means, "aupr": auprs, "auroc": aurocs}
+    )
 
     ## Concat both dataframes
     df = pd.concat([fitness_df, evaluation_df], axis=1)
@@ -1462,7 +1647,9 @@ def generic_pareto_front(
     sorted_idx = np.argsort([-m for m in acc_means])
 
     ## Write CSV file
-    write_evaluation_csv(output_dir, sorted_idx, confidence_list, objective_labels, weights, df)
+    write_evaluation_csv(
+        output_dir, sorted_idx, confidence_list, objective_labels, weights, df
+    )
 
 
 # Command that unites individual inference with consensus optimization
@@ -1597,11 +1784,11 @@ def draw_network(
     print(f"\n Draw gene regulatory networks for {', '.join(confidence_list)}")
 
     # Create input temporary folder.
-    tmp_input_folder = "tmp/input"
+    tmp_input_folder = f"{temp_folder_str}/input"
     Path(tmp_input_folder).mkdir(exist_ok=True, parents=True)
 
     # Create output temporary folder.
-    tmp_output_folder = "tmp/output"
+    tmp_output_folder = f"{temp_folder_str}/output"
     Path(tmp_output_folder).mkdir(exist_ok=True, parents=True)
 
     # Create input command and copy the trust lists to represent.
@@ -1622,7 +1809,7 @@ def draw_network(
     # The image is executed with the parameters set by the user.
     container = client.containers.run(
         image=image,
-        volumes=get_volume("tmp"),
+        volumes=get_volume(temp_folder_str),
         command=f"{command} --mode {mode} --nodes-distribution {nodes_distribution} --output-folder {tmp_output_folder}",
         detach=True,
         tty=True,
@@ -1634,7 +1821,9 @@ def draw_network(
 
     # Define and create the output folder
     if str(output_folder) == "<<conf_list_path>>/../network_graphics":
-        output_folder = Path(f"{Path(confidence_list[0]).parent.parent}/network_graphics/")
+        output_folder = Path(
+            f"{Path(confidence_list[0]).parent.parent}/network_graphics/"
+        )
     output_folder.mkdir(exist_ok=True, parents=True)
 
     # Move all output files
@@ -1642,7 +1831,7 @@ def draw_network(
         shutil.move(f, f"{output_folder}/{f.name}")
 
     # Delete temporary directory
-    shutil.rmtree("tmp")
+    shutil.rmtree(temp_folder_str)
 
 
 # Command for get weighted confidence levels from files and a given distribution of weights
@@ -1666,11 +1855,11 @@ def weighted_confidence(
     )
 
     # Create input temporary folder.
-    tmp_input_folder = "tmp/input"
+    tmp_input_folder = f"{temp_folder_str}/input"
     Path(tmp_input_folder).mkdir(exist_ok=True, parents=True)
 
     # Create output temporary folder.
-    tmp_output_folder = "tmp/output"
+    tmp_output_folder = f"{temp_folder_str}/output"
     Path(tmp_output_folder).mkdir(exist_ok=True, parents=True)
 
     # Define default temporary output file
@@ -1728,7 +1917,7 @@ def weighted_confidence(
     # The image is executed with the parameters set by the user.
     container = client.containers.run(
         image=image,
-        volumes=get_volume("tmp"),
+        volumes=get_volume(temp_folder_str),
         command=f"{tmp_output_file} {command}",
         detach=True,
         tty=True,
@@ -1745,7 +1934,7 @@ def weighted_confidence(
 
     # Output file is moved and the temporary directory is deleted
     shutil.move(tmp_output_file, output_file)
-    shutil.rmtree("tmp")
+    shutil.rmtree(temp_folder_str)
 
 
 if __name__ == "__main__":

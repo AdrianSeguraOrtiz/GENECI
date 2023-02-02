@@ -1,3 +1,6 @@
+# 1. Para cada red génica inferida, creamos una tabla resumen con los resultados de todas las técnicas.
+# En cada fila se recoge: Tecnica, AUPR, AUROC, Media((AUPR+AUROC) / 2) y Tiempo de ejecución.
+
 for network_folder in ../template/*/
 do
     base=$(basename $network_folder)
@@ -50,7 +53,11 @@ do
     done
 done
 
-# Unimos todos los resultados en una misma tabla dividiendo por tamaños
+# 2. Para cada grupo de tamaños unimos sus tablas en una sola. De esta forma compararemos 
+# el rendimiento de las técnicas para diferentes tamaños de redes, permitiendo la ausencia 
+# de ciertas técnicas en algunos grupos. Para cuantificar su rendimiento usamos el ranking 
+# estadístico de Friedman sobre cada uno de los scores: AUPR, AUROC, Media((AUPR+AUROC) / 2)
+
 sizes=(0 20 110)
 iters=$(( ${#sizes[@]} - 1 ))
 chmod a+x paste.pl

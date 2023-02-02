@@ -147,7 +147,7 @@ template/
 pareto_fronts/
 
 # Temp folder
-tmp/
+tmp*/
 
 utils/*.csv
 utils/*.tex

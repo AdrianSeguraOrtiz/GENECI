@@ -37,6 +37,7 @@ do
                     "NONLINEARODES" "INFERELATOR")
     lines=$(wc -l < $exp_file)
 
+    # Si la red supera los 20 genes, descartamos JUMP3
     if [ $lines -gt 20 ]
     then
         delete=("JUMP3")
@@ -46,6 +47,7 @@ do
         done
     fi
 
+    # Si la red supera los 110 genes, descartamos (además de JUMP3) TIGRESS, CMI2NI, LOCPCACMI, GRNVBEM y NONLINEARODES
     if [ $lines -gt 110 ]
     then
         delete=("TIGRESS" "CMI2NI" "LOCPCACMI" "GRNVBEM" "NONLINEARODES")

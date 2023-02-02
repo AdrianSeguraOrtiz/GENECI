@@ -1,7 +1,11 @@
-source ../.venv/bin/activate
+# 1. Copiamos la plantilla generada anteriormente a una nueva carpeta. El objetivo es 
+# que la plantilla no se vea afectada por la ejecución y pueda volver a ser usada para 
+# otros experimentos.
 
 mkdir -p ../inferred_networks
 cp -r ../template/* ../inferred_networks
+
+# 2. Definimos la lista de funciones de fitness que queremos ejecutar y las ordenamos alfabeticamente.
 
 functions=("loyaltyprogressivecurrentimpact"
             "loyaltyprogressivenextimpact"
@@ -27,7 +31,8 @@ functions=("loyaltyprogressivecurrentimpact"
             "pagerankdistribution")
 functions=($(for f in ${functions[@]}; do echo $f; done | sort))
 
-# Para cada red y función de fitness ejecutamos GENECI en modo mono-objetivo
+# 3. Para cada red y función de fitness ejecutamos GENECI en modo mono-objetivo.
+
 for network_folder in ../inferred_networks/*/
 do
     str=""
@@ -45,89 +50,75 @@ do
 
 done
 
-# Para las redes de tipo benchmark evaluamos la precisión de los ensembles generados 
+# 4. Para las redes de tipo benchmark evaluamos la precisión de los ensembles generados 
 
-## DREAM3
-for network_folder in ../inferred_networks/*-trajectories_exp/
+for network_folder in ../inferred_networks/*/
 do
     mkdir -p $network_folder/measurements
     > $network_folder/measurements/consensus.txt
 
-    id=$(echo $(basename $network_folder) | cut -d "-" -f 2)
-    size=$(echo $(basename $network_folder) | cut -d "-" -f 1)
-    size=${size#"InSilicoSize"}
+    base=$(basename $network_folder)
+    if [[ $base =~ [*-trajectories_exp] ]]
+    then
+        dream=true
+        id=$(echo $base | cut -d "-" -f 2)
+        size=$(echo $base | cut -d "-" -f 1)
+        size=${size#"InSilicoSize"}
+
+        challenge="D3C4"
+        network_id="${size}_${id}"
+        eval_files_str="--synapse-file ../input_data/DREAM3/EVAL/PDF_InSilicoSize${size}_${id}.mat --synapse-file ../input_data/DREAM3/EVAL/DREAM3GoldStandard_InSilicoSize${size}_${id}.txt"
+
+    elif [[ $base =~ [dream4*_exp] ]]
+    then
+        dream=true
+        id=$(echo $base | cut -d "_" -f 3)
+        id=${id#"0"}
+        size=$(echo $base | cut -d "_" -f 2)
+        size=${size#"0"}
+
+        challenge="D4C2"
+        network_id="${size}_${id}"
+        eval_files_str="--synapse-file ../input_data/DREAM4/EVAL/pdf_size${size}_${id}.mat"
+
+    elif [[ $base =~ [net*_exp] ]]
+    then
+        dream=true
+        id=${base#"net"}
+        id=${id%"_exp"}
+
+        challenge="D5C4"
+        network_id="$id"
+        eval_files_str="--synapse-file ../input_data/DREAM5/EVAL/DREAM5_NetworkInference_Edges_Network${id}.tsv --synapse-file ../input_data/DREAM5/EVAL/DREAM5_NetworkInference_GoldStandard_Network${id}.tsv --synapse-file ../input_data/DREAM5/EVAL/Network${id}_AUPR.mat --synapse-file ../input_data/DREAM5/EVAL/Network${id}_AUROC.mat"
+
+    elif [[ $base =~ [switch-*_exp] ]]
+    then
+        dream=false
+        gs="../input_data/IRMA/GS/irma_gs.csv"
+    else
+        dream=false
+        name=${base%"_exp"}
+        gs=$(ls ../input_data/*/GS/${name}_gs.csv)
+    fi
+
+    if [ "$dream" = true ]
+    then
+        tag="dream"
+        flags="--challenge $challenge --network-id $network_id $eval_files_str"
+    else
+        tag="generic"
+        flags="--gs-binary-matrix $gs"
+    fi
 
     for consensus_list in $network_folder/ea_consensus_*/final_list.csv
     do 
-        python ../geneci/main.py evaluate dream-prediction dream-list-of-links \
-                --challenge D3C4 \
-                --network-id ${size}_${id} \
-                --synapse-file ../input_data/DREAM3/EVAL/PDF_InSilicoSize${size}_${id}.mat \
-                --synapse-file ../input_data/DREAM3/EVAL/DREAM3GoldStandard_InSilicoSize${size}_${id}.txt \
-                --confidence-list $consensus_list >> $network_folder/measurements/consensus.txt
-    done
-done
-
-## DREAM4
-for network_folder in ../inferred_networks/dream4*_exp/
-do
-    mkdir -p $network_folder/measurements
-    > $network_folder/measurements/consensus.txt
-
-    id=$(echo $(basename $network_folder) | cut -d "_" -f 3)
-    id=${id#"0"}
-    size=$(echo $(basename $network_folder) | cut -d "_" -f 2)
-    size=${size#"0"}
-
-    for consensus_list in $network_folder/ea_consensus_*/final_list.csv
-    do 
-        python ../geneci/main.py evaluate dream-prediction dream-list-of-links \
-                    --challenge D4C2 \
-                    --network-id ${size}_${id} \
-                    --synapse-file ../input_data/DREAM4/EVAL/pdf_size${size}_${id}.mat \
+        python ../geneci/main.py evaluate ${tag}-prediction ${tag}-list-of-links $flags \
                     --confidence-list $consensus_list >> $network_folder/measurements/consensus.txt
     done
 done
 
-## DREAM5
-for network_folder in ../inferred_networks/net*_exp/
-do
-    mkdir -p $network_folder/measurements
-    > $network_folder/measurements/consensus.txt
-
-    id=$(basename $network_folder)
-    id=${id#"net"}
-    id=${id%"_exp"}
-
-    for consensus_list in $network_folder/ea_consensus_*/final_list.csv
-    do 
-        python ../geneci/main.py evaluate dream-prediction dream-list-of-links \
-                    --challenge D5C4 \
-                    --network-id $id \
-                    --synapse-file ../input_data/DREAM5/EVAL/DREAM5_NetworkInference_Edges_Network${id}.tsv \
-                    --synapse-file ../input_data/DREAM5/EVAL/DREAM5_NetworkInference_GoldStandard_Network${id}.tsv \
-                    --synapse-file ../input_data/DREAM5/EVAL/Network${id}_AUPR.mat \
-                    --synapse-file ../input_data/DREAM5/EVAL/Network${id}_AUROC.mat \
-                    --confidence-list $consensus_list >> $network_folder/measurements/consensus.txt
-    done
-done
-
-## IRMA
-for network_folder in ../inferred_networks/switch-*_exp/
-do
-    mkdir -p $network_folder/measurements
-    > $network_folder/measurements/consensus.txt
-
-    for consensus_list in $network_folder/ea_consensus_*/final_list.csv
-    do 
-        python ../geneci/main.py evaluate generic-prediction generic-list-of-links \
-                    --gs-binary-matrix ./../input_data/IRMA/GS/irma_gs.csv \
-                    --confidence-list $consensus_list >> $network_folder/measurements/consensus.txt
-    done
-done
-
-
-# Para las redes de tipo benchmark creamos los excel con los resultados de precisión
+# 5. Para cada red génica consensuada, creamos una tabla resumen con los resultados de todas las funciones.
+# En cada fila se recoge: Función de fitness, AUPR, AUROC, Media((AUPR+AUROC) / 2) y Tiempo de ejecución.
 
 for network_folder in ../inferred_networks/*/
 do
@@ -176,7 +167,11 @@ do
     done
 done
 
-# Unimos todos los resultados en una misma tabla dividiendo por tamaños
+# 6. Para cada grupo de tamaños unimos sus tablas en una sola. De esta forma compararemos 
+# el rendimiento de las funciones de fitness para diferentes tamaños de redes. Para 
+# cuantificar su rendimiento usamos el ranking estadístico de Friedman sobre cada uno de 
+# los scores: AUPR, AUROC, Media((AUPR+AUROC) / 2)
+
 sizes=(0 20 110)
 iters=$(( ${#sizes[@]} - 1 ))
 chmod a+x paste.pl
