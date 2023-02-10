@@ -8,7 +8,7 @@ Adrián Segura Ortiz
 
 ## DESCRIPTION
 
-This component is in charge of converting confidence lists into binary matrices by applying various criteria.
+This component is in charge of converting confidence lists into binary matrices by applying several criteria.
 
 # DOCKER
 

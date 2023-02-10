@@ -8,7 +8,7 @@ Adrián Segura Ortiz
 
 ## DESCRIPTION
 
-This component is responsible for calculating the weighted sum of the confidence levels reported in various files based on a given distribution of weights.
+This component is responsible for calculating the weighted sum of the confidence levels reported in several files based on a given distribution of weights.
 
 # DOCKER
 

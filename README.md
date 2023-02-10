@@ -152,7 +152,7 @@ $ [OPTIONS] COMMAND [ARGS]...
 * `infer-network`: Infer gene regulatory networks from expression data. Several techniques are available: ARACNE, BC3NET, C3NET, CLR, GENIE3, MRNET, MRNET, MRNETB and PCIT.
 * `optimize-ensemble`: Analyzes several trust lists and builds a consensus network by applying an evolutionary algorithm.
 * `run`: Infer gene regulatory network from expression data by employing multiple unsupervised learning techniques and applying a genetic algorithm for consensus optimization.
-* `weighted-confidence`: Calculate the weighted sum of the confidence levels reported in various files based on a given distribution of weights.
+* `weighted-confidence`: Calculate the weighted sum of the confidence levels reported in several files based on a given distribution of weights.
 
 ## `apply-cut`
 
@@ -338,13 +338,13 @@ $ extract-data [OPTIONS] COMMAND [ARGS]...
 
 **Commands**:
 
-* `evaluation-data`: Download evaluation data from various DREAM...
+* `evaluation-data`: Download evaluation data from several DREAM...
 * `expression-data`: Download time series of gene expression data from...
-* `gold-standard`: Download gold standards from various...
+* `gold-standard`: Download gold standards from several...
 
 ### `extract-data evaluation-data`
 
-Download evaluation data from various DREAM challenges.
+Download evaluation data from several DREAM challenges.
 
 **Usage**:
 
@@ -362,7 +362,7 @@ $ extract-data evaluation-data [OPTIONS]
 
 ### `extract-data expression-data`
 
-Download time series of gene expression data from various databases such as DREAM3, DREAM4, DREAM5, SynTReN, Rogers, GeneNetWeaver and IRMA.
+Download time series of gene expression data from several databases such as DREAM3, DREAM4, DREAM5, SynTReN, Rogers, GeneNetWeaver and IRMA.
 
 **Usage**:
 
@@ -380,7 +380,7 @@ $ extract-data expression-data [OPTIONS]
 
 ### `extract-data gold-standard`
 
-Download gold standards from various databases such as DREAM3, DREAM4, DREAM5, SynTReN, Rogers, GeneNetWeaver and IRMA.
+Download gold standards from several databases such as DREAM3, DREAM4, DREAM5, SynTReN, Rogers, GeneNetWeaver and IRMA.
 
 **Usage**:
 
@@ -476,7 +476,7 @@ $ run [OPTIONS]
 
 ## `weighted-confidence`
 
-Calculate the weighted sum of the confidence levels reported in various files based on a given distribution of weights.
+Calculate the weighted sum of the confidence levels reported in several files based on a given distribution of weights.
 
 **Usage**:
 

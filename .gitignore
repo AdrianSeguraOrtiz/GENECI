@@ -158,7 +158,7 @@ utils/controlTest/*.class
 logs.txt
 .vscode
 
-components/infer_network/*/mainstandaloneApplication/
-components/infer_network/*/adriansegura99/
+components/*/*/mainstandaloneApplication/
+components/*/*/adriansegura99/
 
 *.lock
