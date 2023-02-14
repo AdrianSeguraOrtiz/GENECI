@@ -37,6 +37,7 @@ import eagrn.fitnessfunction.impl.topology.impl.BetweennessDistribution;
 import eagrn.fitnessfunction.impl.topology.impl.BinarizedDegreeDistribution;
 import eagrn.fitnessfunction.impl.topology.impl.ClosenessDistribution;
 import eagrn.fitnessfunction.impl.topology.impl.EdgeBetweennessDistribution;
+import eagrn.fitnessfunction.impl.topology.impl.EdgeBetweennessReduceNonEssentialsInteractions;
 import eagrn.fitnessfunction.impl.topology.impl.EigenvectorDistribution;
 import eagrn.fitnessfunction.impl.topology.impl.GlobalClusteringMeasure;
 import eagrn.fitnessfunction.impl.topology.impl.KatzDistribution;
@@ -330,6 +331,9 @@ public final class StaticUtils {
                 break;
             case "edgebetweennessdistribution":
                 res = new EdgeBetweennessDistribution(geneNames);
+                break;
+            case "edgebetweennessreducenonessentialsinteractions":
+                res = new EdgeBetweennessReduceNonEssentialsInteractions(geneNames);
                 break;
             case "eigenvectordistribution":
                 res = new EigenvectorDistribution(geneNames);

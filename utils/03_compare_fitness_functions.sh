@@ -26,6 +26,7 @@ functions=("loyaltyprogressivecurrentimpact"
             "betweennessdistribution"
             "closenessdistribution"
             "edgebetweennessdistribution"
+            "edgebetweennessreducenonessentialsinteractions"
             "eigenvectordistribution"
             "katzdistribution"
             "pagerankdistribution")
