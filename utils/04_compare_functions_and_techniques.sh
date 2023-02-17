@@ -1,4 +1,4 @@
-sizes=(0 20 110)
+sizes=(0 20 110 250)
 iters=$(( ${#sizes[@]} - 1 ))
 for (( i=0; i<=$iters; i++ ))
 do

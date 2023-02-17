@@ -20,6 +20,7 @@ build-images:
 	@docker build -t adriansegura99/geneci_extract-data_dream5 -f components/extract_data/DREAM5/Dockerfile .
 	@docker build -t adriansegura99/geneci_extract-data_grndata -f components/extract_data/GRNDATA/Dockerfile .
 	@docker build -t adriansegura99/geneci_extract-data_irma -f components/extract_data/IRMA/Dockerfile .
+	@cd components/generate_data/SysGenSIM && matlab -nodisplay -nodesktop -r "run build.m" && cd adriansegura99/geneci_generate-data_sysgensimdocker && sed -i '4,8d' Dockerfile && docker build -t adriansegura99/geneci_generate-data_sysgensim . && cd ../../../../..
 	@docker build -t adriansegura99/geneci_infer-network_aracne -f components/infer_network/ARACNE/Dockerfile .
 	@docker build -t adriansegura99/geneci_infer-network_bc3net -f components/infer_network/BC3NET/Dockerfile .
 	@docker build -t adriansegura99/geneci_infer-network_c3net -f components/infer_network/C3NET/Dockerfile .
@@ -58,6 +59,7 @@ push-images:
 	@docker push adriansegura99/geneci_extract-data_dream5 
 	@docker push adriansegura99/geneci_extract-data_grndata 
 	@docker push adriansegura99/geneci_extract-data_irma 
+	@docker push adriansegura99/geneci_generate-data_sysgensim 
 	@docker push adriansegura99/geneci_infer-network_aracne 
 	@docker push adriansegura99/geneci_infer-network_bc3net 
 	@docker push adriansegura99/geneci_infer-network_c3net 
@@ -96,6 +98,7 @@ pull-images:
 	@docker pull adriansegura99/geneci_extract-data_dream5 
 	@docker pull adriansegura99/geneci_extract-data_grndata 
 	@docker pull adriansegura99/geneci_extract-data_irma 
+	@docker pull adriansegura99/geneci_generate-data_sysgensim
 	@docker pull adriansegura99/geneci_infer-network_aracne 
 	@docker pull adriansegura99/geneci_infer-network_bc3net 
 	@docker pull adriansegura99/geneci_infer-network_c3net 

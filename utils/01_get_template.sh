@@ -1,6 +1,7 @@
 # 1. Extraemos datos de las redes que queremos estudiar
 
-## Datos de expresión
+## 1.A. Benchmarks
+### Datos de expresión
 python ../geneci/main.py extract-data expression-data \
             --database DREAM3 --database DREAM4 --database DREAM5 \
             --database IRMA --database SynTReN --database Rogers \
@@ -9,7 +10,7 @@ python ../geneci/main.py extract-data expression-data \
             --password TFM-SynapsePassword \
             --output-dir ../input_data
 
-## Gold standards
+### Gold standards
 python ../geneci/main.py extract-data gold-standard \
             --database DREAM3 --database DREAM4 --database DREAM5 \
             --database IRMA --database SynTReN --database Rogers \
@@ -18,12 +19,59 @@ python ../geneci/main.py extract-data gold-standard \
             --password TFM-SynapsePassword \
             --output-dir ../input_data
 
-## Datos de evaluación 
+### Datos de evaluación 
 python ../geneci/main.py extract-data evaluation-data \
             --database DREAM3 --database DREAM4 --database DREAM5 \
             --username TFM-SynapseAccount \
             --password TFM-SynapsePassword \
             --output-dir ../input_data
+
+## 1.B. Simulated
+### From scratch
+sizes=(15 50 100 200)
+topologies=("scale-free" "eipo-modular")
+perturbations=("knockout" "knockdown" "overexpression")
+for size in ${sizes[@]}
+do
+    for topology in ${topologies[@]}
+    do
+        for perturbation in ${perturbations[@]}
+        do
+            python ../geneci/main.py generate-data generate-from-scratch \
+                        --topology $topology \
+                        --network-size $size \
+                        --perturbation $perturbation \
+                        --output-dir ../input_data
+        done
+    done
+done
+
+### From real
+databases=("TFLink" "TRRUST" "RegulonDB" "RegNetwork" "BioGrid" "GRNdb")
+for db in ${databases[@]}
+do
+    str=$(python ../geneci/main.py generate-data download-real-network --database $db --id . | grep -zo "following: \[.*\]")
+    str=${str#"following: ['"}
+    str=${str%"']"}
+    while IFS="', '" read -ra ids
+    do
+        for id in ${ids[@]}
+        do
+            python ../geneci/main.py generate-data download-real-network \
+                        --database $db \
+                        --id $id \
+                        --output-dir ../input_data
+        done
+    done <<< "$str"
+done
+
+for real_network in ../input_data/real_networks/RAW/*.tsv
+do
+    python ../geneci/main.py generate-data generate-from-real-network \
+            --real-list-of-links $real_network \
+            --perturbation mixed \
+            --output-dir ../input_data
+done
 
 # 2. Inferimos las redes de regulación génica a partir de todos los datos de expresión empleando 
 # todas las técnicas disponibles y copiamos las series temporales a la carpeta de salida
@@ -51,6 +99,16 @@ do
     if [ $lines -gt 110 ]
     then
         delete=("TIGRESS" "CMI2NI" "LOCPCACMI" "GRNVBEM" "NONLINEARODES")
+        for del in ${delete[@]}
+        do
+            techniques=("${techniques[@]/$del}")
+        done
+    fi
+
+    # Si la red supera los 250 genes, descartamos (además de los anteriores) PCACMI, PLSNET, INFERELATOR, GENIE3_RF, GENIE3_ET y GRNBOOST2
+    if [ $lines -gt 250 ]
+    then
+        delete=("PCACMI" "PLSNET" "INFERELATOR" "GENIE3_RF" "GENIE3_ET" "GRNBOOST2")
         for del in ${delete[@]}
         do
             techniques=("${techniques[@]/$del}")

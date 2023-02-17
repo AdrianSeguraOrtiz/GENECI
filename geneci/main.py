@@ -3,12 +3,15 @@ import math
 import multiprocessing
 import random
 import re
+import requests
+import zipfile
 import shutil
 import string
 import csv
 from enum import Enum
 from pathlib import Path
 from typing import List, Optional
+from io import BytesIO
 
 import docker
 import numpy as np
@@ -97,6 +100,85 @@ class Perturbation(str, Enum):
     Knockdown = "knockdown"
     Overexpression = "overexpression"
     Mixed = "mixed"
+
+
+class FromRealGenerateDatabase(str, Enum):
+    TFLink = "TFLink"
+    TRRUST = "TRRUST"
+    RegulonDB = "RegulonDB"
+    RegNetwork = "RegNetwork"
+    BioGrid = "BioGrid"
+    GRNdb = "GRNdb"
+
+
+real_networks_dict = {
+    "TFLink": [
+        "Caenorhabditis_elegans",
+        "Drosophila_melanogaster",
+        "Rattus_norvegicus",
+        "Saccharomyces_cerevisiae",
+    ],
+    "TRRUST": ["human", "mouse"],
+    "RegulonDB": ["Escherichia_coli"],
+    "RegNetwork": ["human", "mouse"],
+    "BioGrid": [
+        "Human_papillomavirus_5",
+        "Human_papillomavirus_6b",
+        "Human_papillomavirus_9",
+        "Bacillus_subtilis_168",
+        "Bos_taurus",
+        "Macaca_mulatta",
+        "Middle-East_Respiratory_Syndrome-related_Coronavirus",
+        "Canis_familiaris",
+        "Chlamydomonas_reinhardtii",
+        "Mycobacterium_tuberculosis_H37Rv",
+        "Chlorocebus_sabaeus",
+        "Neurospora_crassa_OR74A",
+        "Cricetulus_griseus",
+        "Danio_rerio",
+        "Oryctolagus_cuniculus",
+        "Dictyostelium_discoideum_AX4",
+        "Oryza_sativa_Japonica",
+        "Emericella_nidulans_FGSC_A4",
+        "Pan_troglodytes",
+        "Plasmodium_falciparum_3D7",
+        "Gallus_gallus",
+        "Glycine_max",
+        "Hepatitus_C_Virus",
+        "Simian_Immunodeficiency_Virus",
+        "Human_Herpesvirus_1",
+        "Simian_Virus_40",
+        "Solanum_lycopersicum",
+        "Human_Herpesvirus_4",
+        "Human_Herpesvirus_5",
+        "Streptococcus_pneumoniae_ATCCBAA255",
+        "Strongylocentrotus_purpuratus",
+        "Sus_scrofa",
+        "Human_Herpesvirus_8",
+        "Vaccinia_Virus",
+        "Human_Immunodeficiency_Virus_2",
+        "Xenopus_laevis",
+        "Human_papillomavirus_16",
+        "Zea_mays",
+        "Human_papillomavirus_32",
+    ],
+    "GRNdb": [
+        "Fetal-Brain",
+        "Fetal-Thymus",
+        "Adult-Pancreas",
+        "Adult-Muscle",
+        "Adult-Adipose",
+        "Adult-Ascending-Colon",
+        "Adult-Lung",
+        "Adult-Liver",
+        "Mammary-Gland-Lactation",
+        "Mammary-Gland-Virgin-CD45",
+        "Fetal-Calvaria",
+        "Adult-Epityphlon",
+        "Adult-Rectum",
+    ]
+}
+
 
 class Database(str, Enum):
     DREAM3 = "DREAM3"
@@ -367,6 +449,7 @@ def get_optimal_cpu_distribution(tecs, cores_ids):
     # Return final dict
     return res
 
+
 # Applications for the definition of Typer commands and subcommands.
 app = typer.Typer(rich_markup_mode="rich")
 
@@ -415,16 +498,22 @@ app.add_typer(
 
 # Command for expression data simulation from scratch.
 @generate_data_app.command()
-def from_scratch(
+def generate_from_scratch(
     topology: Topology = typer.Option(
-        ..., case_sensitive=False, help="The type of topology to be attributed to the simulated gene network."
+        ...,
+        case_sensitive=False,
+        help="The type of topology to be attributed to the simulated gene network.",
     ),
     network_size: int = typer.Option(
-        ..., min=20, help="Number of genes that will make up the simulated gene network."
-    ), 
+        ...,
+        min=20,
+        help="Number of genes that will make up the simulated gene network.",
+    ),
     perturbation: Perturbation = typer.Option(
-        ..., case_sensitive=False, help="Type of perturbation to apply on the network to simulate expression levels for genes."
-    ), 
+        ...,
+        case_sensitive=False,
+        help="Type of perturbation to apply on the network to simulate expression levels for genes.",
+    ),
     output_dir: Path = typer.Option(
         Path("./input_data"), help="Path to the output folder."
     ),
@@ -434,7 +523,9 @@ def from_scratch(
     """
 
     # Report information to the user.
-    print(f"\n Simulate network of {network_size} genes with {topology.name} topology applying {perturbation.name} perturbation.")
+    print(
+        f"\n Simulate network of {network_size} genes with {topology.name} topology applying {perturbation.name} perturbation."
+    )
 
     # Create temporary folder.
     tmp_folder = Path(temp_folder_str)
@@ -447,7 +538,7 @@ def from_scratch(
     if not image in available_images:
         print("Downloading docker image ...")
         client.images.pull(repository=image)
-    
+
     # Run container
     container = client.containers.run(
         image=image,
@@ -467,12 +558,18 @@ def from_scratch(
     exp_df = pd.read_csv(exp_file, sep="\t")
     top_df = pd.read_csv(top_file, sep="\t")
     genes = top_df.iloc[:, 0]
-    completed_exp_df = pd.concat([genes, exp_df.iloc[:, :-1]], join="inner", axis = 1)
+    completed_exp_df = pd.concat([genes, exp_df.iloc[:, :-1]], join="inner", axis=1)
 
     # Process the edge list so that it is in the correct format.
     edge_file = next(tmp_folder.glob("*_edge_list.tsv"))
     edge_list = pd.read_csv(edge_file, sep="\t", names=["source", "target", "weight"])
-    edge_df = edge_list.pivot(index='source', columns='target', values='weight').reindex(columns=genes, index=genes).fillna(0).abs().astype(int)
+    edge_df = (
+        edge_list.pivot(index="source", columns="target", values="weight")
+        .reindex(columns=genes, index=genes)
+        .fillna(0)
+        .abs()
+        .astype(int)
+    )
 
     # Create output folders
     output_folder_exp = Path(f"./{output_dir}/simulated_scratch/EXP/")
@@ -482,8 +579,144 @@ def from_scratch(
 
     # Save tables to their final destinations
     name = f"sim_{topology}_size-{network_size}_{perturbation}"
-    completed_exp_df.to_csv(f"{output_folder_exp}/{name}_exp.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
+    completed_exp_df.to_csv(
+        f"{output_folder_exp}/{name}_exp.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
+    )
     edge_df.to_csv(f"{output_folder_gs}/{name}_gs.csv", quoting=csv.QUOTE_NONNUMERIC)
+
+    # Remove temp folder.
+    shutil.rmtree(temp_folder_str)
+
+
+# Command to download real networks, perform filtering and formatting
+@generate_data_app.command()
+def download_real_network(
+    database: FromRealGenerateDatabase = typer.Option(
+        ...,
+        case_sensitive=False,
+        help="Database from which the real gene regulatory network is to be obtained.",
+    ),
+    id: str = typer.Option(
+        ..., help="The identifier of the gene network within the selected database."
+    ),
+    output_dir: Path = typer.Option(
+        Path("./input_data"), help="Path to the output folder."
+    ),
+):
+    """
+    Download real gene regulatory networks in the form of interaction lists to be fed into the expression data simulator.
+    """
+
+    # Report information to the user.
+    print(f"Downloading real network {id} from {database} database")
+
+    # Check that the identifier represents a gene network in the selected database.
+    if id not in real_networks_dict[database]:
+        print("The entered id is not available in the selected database.")
+        print(f"Please choose one of the following: {real_networks_dict[database]}")
+        raise typer.Exit()
+
+    # Define link
+    sep = "\t"
+    header = 0
+    is_zip = False
+    if database == FromRealGenerateDatabase.TFLink:
+        link = f"https://cdn.netbiol.org/tflink/download_files/TFLink_{id}_interactions_SS_simpleFormat_v1.0.tsv"
+    elif database == FromRealGenerateDatabase.TRRUST:
+        link = f"https://www.grnpedia.org/trrust/data/trrust_rawdata.{id}.tsv"
+        header = None
+    elif database == FromRealGenerateDatabase.RegulonDB:
+        link = "http://regulondb.ccg.unam.mx/menu/download/datasets/files/NetWorkTFGene.txt"
+    elif database == FromRealGenerateDatabase.RegNetwork:
+        link = "https://regnetworkweb.org/download/RegulatoryDirections.zip"
+        net_file = f"new_kegg.{id}.reg.direction.txt"
+        sep = " "
+        header = None
+        is_zip = True
+    elif database == FromRealGenerateDatabase.BioGrid:
+        link = "https://downloads.thebiogrid.org/Download/BioGRID/Release-Archive/BIOGRID-4.4.218/BIOGRID-ORGANISM-4.4.218.tab3.zip"
+        net_file = f"BIOGRID-ORGANISM-{id}-4.4.218.tab3.txt"
+        header = None
+        is_zip = True
+    elif database == FromRealGenerateDatabase.GRNdb:
+        link = f"http://www.grndb.com/download/txt?condition={id}"
+    else:
+        print(
+            "The selected database is not currently available, please choose another one."
+        )
+        raise typer.Exit()
+
+    # Create temporary folder
+    tmp_folder = Path(temp_folder_str)
+    tmp_folder.mkdir(exist_ok=True, parents=True)
+
+    # Define temporal file
+    local_tmp_file = f"{temp_folder_str}/raw_real_network.tsv"
+
+    # Doownload raw data
+    with requests.get(link, stream=True, verify=False) as r:
+        if is_zip:
+            zip_file = zipfile.ZipFile(BytesIO(r.content))
+            zip_file.extract(net_file, temp_folder_str)
+            shutil.move(f"{temp_folder_str}/{net_file}", local_tmp_file)
+        else:
+            with open(local_tmp_file, "wb") as f:
+                shutil.copyfileobj(r.raw, f)
+
+    # Insert data in pandas dataframe
+    df = pd.read_csv(local_tmp_file, sep=sep, header=header, comment="#")
+
+    # Process dataframe
+    if database == FromRealGenerateDatabase.TFLink:
+        df = df[["Name.TF", "Name.Target", "Detection.method"]]
+        df = df[df["Name.Target"] != "-"]
+        df[["Name.TF", "Name.Target"]] = df[["Name.TF", "Name.Target"]].replace(
+            {",|;": "-"}, regex=True
+        )
+        cnt = 0
+        while len(df.index) > 500:
+            df = df[df["Detection.method"].str.count(";") > cnt]
+            print(len(df.index))
+            cnt += 1
+        df["Detection.method"] = 1
+    elif database == FromRealGenerateDatabase.TRRUST:
+        df = df.iloc[:, [0, 1, 2]]
+        df.columns = ["Name.TF", "Name.Target", "Regulation.Sign"]
+        df = df[df["Regulation.Sign"] != "Unknown"]
+        df["Regulation.Sign"] = df["Regulation.Sign"].replace(["Activation"], 1)
+        df["Regulation.Sign"] = df["Regulation.Sign"].replace(["Repression"], -1)
+    elif database == FromRealGenerateDatabase.RegulonDB:
+        df = df.iloc[:, [1, 4, 5, 6]]
+        df.columns = ["Name.TF", "Name.Target", "Regulation.Sign", "Confidence"]
+        df = df[df["Confidence"] != "Weak"]
+        df = df.iloc[:, [0, 1, 2]]
+        df["Regulation.Sign"] = df["Regulation.Sign"].replace(["+"], 1)
+        df["Regulation.Sign"] = df["Regulation.Sign"].replace(["-"], -1)
+    elif database == FromRealGenerateDatabase.RegNetwork:
+        df = df.iloc[:, [0, 2, 4]]
+        df.columns = ["Name.TF", "Name.Target", "Regulation.Sign"]
+        df["Regulation.Sign"] = df["Regulation.Sign"].replace(["-->"], 1)
+        df["Regulation.Sign"] = df["Regulation.Sign"].replace(["--|", "-/-", "-p"], -1)
+    elif database == FromRealGenerateDatabase.BioGrid:
+        df = df.iloc[:, [7,8]]
+        df.insert(2, "Sign", 1)
+    elif database == FromRealGenerateDatabase.GRNdb:
+        df = df[["TF", "gene", "Confidence"]]
+        df = df[df["Confidence"] == "High"]
+        df["Confidence"] = 1
+    else:
+        print(
+            "The selected database is not currently available, please choose another one."
+        )
+        raise typer.Exit()
+    
+    # Remove duplicates
+    df = df.drop_duplicates()
+
+    # Save in output file
+    output_folder = f"{output_dir}/real_networks/RAW/"
+    Path(output_folder).mkdir(exist_ok=True, parents=True)
+    df.to_csv(f"{output_folder}/{database}_{id}.tsv", header=False, index=False)
 
     # Remove temp folder.
     shutil.rmtree(temp_folder_str)
@@ -491,13 +724,16 @@ def from_scratch(
 
 # Command for expression data simulation from scratch.
 @generate_data_app.command()
-def from_real_network(
-    network: Path = typer.Option(
-        ..., help="Path to the csv file with the list of links. You can only specify either a value of 1 for an activation link or -1 to indicate inhibition."
+def generate_from_real_network(
+    real_list_of_links: Path = typer.Option(
+        ...,
+        help="Path to the csv file with the list of links. You can only specify either a value of 1 for an activation link or -1 to indicate inhibition.",
     ),
     perturbation: Perturbation = typer.Option(
-        ..., case_sensitive=False, help="Type of perturbation to apply on the network to simulate expression levels for genes."
-    ), 
+        ...,
+        case_sensitive=False,
+        help="Type of perturbation to apply on the network to simulate expression levels for genes.",
+    ),
     output_dir: Path = typer.Option(
         Path("./input_data"), help="Path to the output folder."
     ),
@@ -507,16 +743,26 @@ def from_real_network(
     """
 
     # Report information to the user.
-    print(f"\n Simulate expression data from {network.name} real-world network applying {perturbation.name} perturbation.")
+    print(
+        f"\n Simulate expression data from {real_list_of_links.name} real-world network applying {perturbation.name} perturbation."
+    )
 
     # Create temporary folder.
     tmp_folder = Path(temp_folder_str)
     tmp_folder.mkdir(exist_ok=True, parents=True)
 
-    # TODO: Process imput file TSV -> CSV + G1 G2 G3 ...
-    # Temporarily copy the input file to the temporary folder in order to facilitate the container volume.
-    tmp_network_dir = f"./{temp_folder_str}/{Path(network).name}"
-    shutil.copyfile(network, tmp_network_dir)
+    # Process the input list of links so that it can be correctly interpreted by the simulator.
+    gene_names = list(get_gene_names_from_conf_list(real_list_of_links))
+    tmp_gene_names = ["G" + str(i) for i in range(1, len(gene_names) + 1)]
+    map_names = {gene_names[i]: tmp_gene_names[i] for i in range(len(gene_names))}
+    df_links = pd.read_csv(
+        real_list_of_links, header=None, names=["Source", "Target", "Conf"]
+    )
+    df_links = df_links.replace({"Source": map_names, "Target": map_names})
+
+    # Temporarily save modified input file to the temporary folder in order to facilitate the container volume.
+    tmp_network_dir = f"./{temp_folder_str}/{Path(real_list_of_links).stem}.tsv"
+    df_links.to_csv(tmp_network_dir, sep="\t", header=False, index=False)
 
     # Define docker image
     image = "adriansegura99/geneci_generate-data_sysgensim"
@@ -525,7 +771,7 @@ def from_real_network(
     if not image in available_images:
         print("Downloading docker image ...")
         client.images.pull(repository=image)
-    
+
     # Run container
     container = client.containers.run(
         image=image,
@@ -544,23 +790,40 @@ def from_real_network(
     top_file = next(tmp_folder.glob("*_topological_properties.tsv"))
     exp_df = pd.read_csv(exp_file, sep="\t")
     top_df = pd.read_csv(top_file, sep="\t")
-    genes = top_df.iloc[:, 0]
-    completed_exp_df = pd.concat([genes, exp_df.iloc[:, :-1]], join="inner", axis = 1)
+    tmp_genes = top_df.iloc[:, 0]
+    map_tmp_names = {
+        tmp_gene_names[i]: gene_names[i] for i in range(len(tmp_gene_names))
+    }
+    genes = [map_tmp_names[key] for key in tmp_genes]
+    completed_exp_df = pd.concat(
+        [pd.Series(genes), exp_df.iloc[:, :-1]], join="inner", axis=1
+    )
 
     # Process the edge list so that it is in the correct format.
     edge_file = next(tmp_folder.glob("*_edge_list.tsv"))
     edge_list = pd.read_csv(edge_file, sep="\t", names=["source", "target", "weight"])
-    edge_df = edge_list.pivot(index='source', columns='target', values='weight').reindex(columns=genes, index=genes).fillna(0).abs().astype(int)
+    print(edge_list)
+    edge_df = (
+        edge_list.pivot(index="source", columns="target", values="weight")
+        .reindex(columns=tmp_genes, index=tmp_genes)
+        .fillna(0)
+        .abs()
+        .astype(int)
+    )
+    edge_df.columns = genes
+    edge_df.index = genes
 
     # Create output folders
-    output_folder_exp = Path(f"./{output_dir}/simulated_scratch/EXP/")
+    output_folder_exp = Path(f"./{output_dir}/simulated_based_on_real/EXP/")
     output_folder_exp.mkdir(exist_ok=True, parents=True)
-    output_folder_gs = Path(f"./{output_dir}/simulated_scratch/GS/")
+    output_folder_gs = Path(f"./{output_dir}/simulated_based_on_real/GS/")
     output_folder_gs.mkdir(exist_ok=True, parents=True)
 
     # Save tables to their final destinations
-    name = f"sim_{network.stem}_{perturbation}"
-    completed_exp_df.to_csv(f"{output_folder_exp}/{name}_exp.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
+    name = f"sim_{real_list_of_links.stem}_{perturbation}"
+    completed_exp_df.to_csv(
+        f"{output_folder_exp}/{name}_exp.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
+    )
     edge_df.to_csv(f"{output_folder_gs}/{name}_gs.csv", quoting=csv.QUOTE_NONNUMERIC)
 
     # Remove temp folder.
@@ -924,7 +1187,9 @@ def infer_network(
         try:
             cores_ids = [int(i) for i in str_threads.split(",")]
         except:
-            print(f"The str_threads variable must be a comma-separated list of integers. The value entered: {str_threads} does not satisfy this condition")
+            print(
+                f"The str_threads variable must be a comma-separated list of integers. The value entered: {str_threads} does not satisfy this condition"
+            )
             raise typer.Exit()
     else:
         cores_ids = list(range(threads))

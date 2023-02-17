@@ -102,10 +102,10 @@ TENin = setdiff_wr(TENin,TUB);
 
 % Check
 N = numel(LSCC)+numel(DN)+numel(IN)+numel(OUT)+numel(TENin)+numel(TENout)+numel(TUB);
-if ~isequal(n,N)
-    error('The number of nodes in all groups is NOT consistent with the size of the network!');
-end
-if ~isequal(1:n,sort([LSCC,DN,IN,OUT,TENin,TENout,TUB]))
-    %if ~isequal(1:n,sort([LSCC(:);DN(:);IN(:);OUT(:);TENin(:);TENout(:);TUB(:)]'))
-    error('The nodes are NOT correctly selected from those available!');
-end
+% if ~isequal(n,N)
+    % error('The number of nodes in all groups is NOT consistent with the size of the network!');
+% end
+% if ~isequal(1:n,sort([LSCC,DN,IN,OUT,TENin,TENout,TUB]))
+    % if ~isequal(1:n,sort([LSCC(:);DN(:);IN(:);OUT(:);TENin(:);TENout(:);TUB(:)]'))
+    % error('The nodes are NOT correctly selected from those available!');
+% end

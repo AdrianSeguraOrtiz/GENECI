@@ -173,7 +173,7 @@ done
 # cuantificar su rendimiento usamos el ranking estadístico de Friedman sobre cada uno de 
 # los scores: AUPR, AUROC, Media((AUPR+AUROC) / 2)
 
-sizes=(0 20 110)
+sizes=(0 20 110 250)
 iters=$(( ${#sizes[@]} - 1 ))
 chmod a+x paste.pl
 for (( i=0; i<=$iters; i++ ))

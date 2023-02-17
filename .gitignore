@@ -162,3 +162,6 @@ components/*/*/mainstandaloneApplication/
 components/*/*/adriansegura99/
 
 *.lock
+
+EAGRN-JMetal/src/main/java/eagrn/ChatGPT*.java
+components/infer_network/MUFOCI/*
