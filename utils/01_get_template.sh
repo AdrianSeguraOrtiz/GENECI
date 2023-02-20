@@ -76,8 +76,9 @@ done
 # 2. Inferimos las redes de regulación génica a partir de todos los datos de expresión empleando 
 # todas las técnicas disponibles y copiamos las series temporales a la carpeta de salida
 
-for exp_file in ../input_data/*/EXP/*.csv
-do
+infer_network_from_exp_file () {
+    exp_file=$1
+    str_threads=$2
     techniques=("ARACNE" "BC3NET" "C3NET" "CLR" "GENIE3_RF" "GRNBOOST2" 
                     "GENIE3_ET" "MRNET" "MRNETB" "PCIT" "TIGRESS" "KBOOST"
                     "MEOMI" "JUMP3" "NARROMI" "CMI2NI" "RSNET" "PCACMI"
@@ -121,8 +122,22 @@ do
         str_tecs+="--technique $tec "
     done
 
-    python ../geneci/main.py infer-network $str_tecs --expression-data $exp_file --output-dir ../template
+    python ../geneci/main.py infer-network $str_tecs --expression-data $exp_file --output-dir ../template --str-threads $str_threads
     cp $exp_file ../template/$(basename $exp_file .csv)/
+}
+export -f infer_network_from_exp_file
+
+## GNU parallel
+exp_files=($(ls ../input_data/*/EXP/*.csv))
+n_cores=$(nproc --all)
+n_files_parallel=$(echo "scale=0; x=$n_cores/32; if(x<1) x=1; x" | bc)
+n_cores_each_file=$(( $n_cores/$n_files_parallel ))
+n_iters=$(echo "scale=0; (${#exp_files[@]} + $n_files_parallel - 1)/$n_files_parallel" | bc)
+for ((x=0; x<$n_iters; x++))
+do
+    parallel_files=(${exp_files[@]:$(( $x * $n_files_parallel )):$n_files_parallel})
+    str_threads_list=($(echo $(seq 0 $(( $n_cores - 1 ))) | xargs -n $n_cores_each_file | tr ' ' ,))
+    parallel --link infer_network_from_exp_file ::: ${parallel_files[@]} ::: ${str_threads_list[@]}
 done
 
 # 3. Para las redes de tipo benchmark evaluamos la precisión de cada una de las técnicas empleadas, así como
