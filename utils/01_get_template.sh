@@ -28,7 +28,7 @@ python ../geneci/main.py extract-data evaluation-data \
 
 ## 1.B. Simulated
 ### From scratch
-sizes=(15 50 100 200)
+sizes=(20 50 100 200)
 topologies=("scale-free" "eipo-modular")
 perturbations=("knockout" "knockdown" "overexpression")
 for size in ${sizes[@]}
@@ -65,7 +65,7 @@ do
     done <<< "$str"
 done
 
-for real_network in ../input_data/real_networks/RAW/*.tsv
+for real_network in ../input_data/simulated_based_on_real/RAW/*.tsv
 do
     python ../geneci/main.py generate-data generate-from-real-network \
             --real-list-of-links $real_network \

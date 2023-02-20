@@ -104,7 +104,6 @@ class Perturbation(str, Enum):
 
 class FromRealGenerateDatabase(str, Enum):
     TFLink = "TFLink"
-    TRRUST = "TRRUST"
     RegulonDB = "RegulonDB"
     RegNetwork = "RegNetwork"
     BioGrid = "BioGrid"
@@ -118,7 +117,6 @@ real_networks_dict = {
         "Rattus_norvegicus",
         "Saccharomyces_cerevisiae",
     ],
-    "TRRUST": ["human", "mouse"],
     "RegulonDB": ["Escherichia_coli"],
     "RegNetwork": ["human", "mouse"],
     "BioGrid": [
@@ -131,7 +129,6 @@ real_networks_dict = {
         "Middle-East_Respiratory_Syndrome-related_Coronavirus",
         "Canis_familiaris",
         "Chlamydomonas_reinhardtii",
-        "Mycobacterium_tuberculosis_H37Rv",
         "Chlorocebus_sabaeus",
         "Neurospora_crassa_OR74A",
         "Cricetulus_griseus",
@@ -140,7 +137,6 @@ real_networks_dict = {
         "Dictyostelium_discoideum_AX4",
         "Oryza_sativa_Japonica",
         "Emericella_nidulans_FGSC_A4",
-        "Pan_troglodytes",
         "Plasmodium_falciparum_3D7",
         "Gallus_gallus",
         "Glycine_max",
@@ -171,8 +167,6 @@ real_networks_dict = {
         "Adult-Ascending-Colon",
         "Adult-Lung",
         "Adult-Liver",
-        "Mammary-Gland-Lactation",
-        "Mammary-Gland-Virgin-CD45",
         "Fetal-Calvaria",
         "Adult-Epityphlon",
         "Adult-Rectum",
@@ -622,9 +616,6 @@ def download_real_network(
     is_zip = False
     if database == FromRealGenerateDatabase.TFLink:
         link = f"https://cdn.netbiol.org/tflink/download_files/TFLink_{id}_interactions_SS_simpleFormat_v1.0.tsv"
-    elif database == FromRealGenerateDatabase.TRRUST:
-        link = f"https://www.grnpedia.org/trrust/data/trrust_rawdata.{id}.tsv"
-        header = None
     elif database == FromRealGenerateDatabase.RegulonDB:
         link = "http://regulondb.ccg.unam.mx/menu/download/datasets/files/NetWorkTFGene.txt"
     elif database == FromRealGenerateDatabase.RegNetwork:
@@ -679,16 +670,11 @@ def download_real_network(
             print(len(df.index))
             cnt += 1
         df["Detection.method"] = 1
-    elif database == FromRealGenerateDatabase.TRRUST:
-        df = df.iloc[:, [0, 1, 2]]
-        df.columns = ["Name.TF", "Name.Target", "Regulation.Sign"]
-        df = df[df["Regulation.Sign"] != "Unknown"]
-        df["Regulation.Sign"] = df["Regulation.Sign"].replace(["Activation"], 1)
-        df["Regulation.Sign"] = df["Regulation.Sign"].replace(["Repression"], -1)
     elif database == FromRealGenerateDatabase.RegulonDB:
         df = df.iloc[:, [1, 4, 5, 6]]
         df.columns = ["Name.TF", "Name.Target", "Regulation.Sign", "Confidence"]
         df = df[df["Confidence"] != "Weak"]
+        df = df[df["Regulation.Sign"] != "?"]
         df = df.iloc[:, [0, 1, 2]]
         df["Regulation.Sign"] = df["Regulation.Sign"].replace(["+"], 1)
         df["Regulation.Sign"] = df["Regulation.Sign"].replace(["-"], -1)
@@ -714,7 +700,7 @@ def download_real_network(
     df = df.drop_duplicates()
 
     # Save in output file
-    output_folder = f"{output_dir}/real_networks/RAW/"
+    output_folder = f"{output_dir}/simulated_based_on_real/RAW/"
     Path(output_folder).mkdir(exist_ok=True, parents=True)
     df.to_csv(f"{output_folder}/{database}_{id}.tsv", header=False, index=False)
 
@@ -802,7 +788,6 @@ def generate_from_real_network(
     # Process the edge list so that it is in the correct format.
     edge_file = next(tmp_folder.glob("*_edge_list.tsv"))
     edge_list = pd.read_csv(edge_file, sep="\t", names=["source", "target", "weight"])
-    print(edge_list)
     edge_df = (
         edge_list.pivot(index="source", columns="target", values="weight")
         .reindex(columns=tmp_genes, index=tmp_genes)
