@@ -106,10 +106,10 @@ infer_network_from_exp_file () {
         done
     fi
 
-    # Si la red supera los 250 genes, descartamos (además de los anteriores) PCACMI, PLSNET, INFERELATOR, GENIE3_RF, GENIE3_ET y GRNBOOST2
+    # Si la red supera los 250 genes, descartamos (además de los anteriores) PCACMI, PLSNET, INFERELATOR, GENIE3_RF, GENIE3_ET, GRNBOOST2 y MEOMI
     if [ $lines -gt 250 ]
     then
-        delete=("PCACMI" "PLSNET" "INFERELATOR" "GENIE3_RF" "GENIE3_ET" "GRNBOOST2")
+        delete=("PCACMI" "PLSNET" "INFERELATOR" "GENIE3_RF" "GENIE3_ET" "GRNBOOST2" "MEOMI")
         for del in ${delete[@]}
         do
             techniques=("${techniques[@]/$del}")
@@ -154,7 +154,7 @@ do
     files=""
 
     base=$(basename $network_folder)
-    if [[ $base =~ [*-trajectories_exp] ]]
+    if [[ $base =~ ^.*-trajectories_exp ]]
     then
         dream=true
         id=$(echo $base | cut -d "-" -f 2)
@@ -165,7 +165,7 @@ do
         network_id="${size}_${id}"
         eval_files_str="--synapse-file ../input_data/DREAM3/EVAL/PDF_InSilicoSize${size}_${id}.mat --synapse-file ../input_data/DREAM3/EVAL/DREAM3GoldStandard_InSilicoSize${size}_${id}.txt"
 
-    elif [[ $base =~ [dream4*_exp] ]]
+    elif [[ $base =~ ^dream4.*_exp ]]
     then
         dream=true
         id=$(echo $base | cut -d "_" -f 3)
@@ -177,7 +177,7 @@ do
         network_id="${size}_${id}"
         eval_files_str="--synapse-file ../input_data/DREAM4/EVAL/pdf_size${size}_${id}.mat"
 
-    elif [[ $base =~ [net*_exp] ]]
+    elif [[ $base =~ ^net.*_exp ]]
     then
         dream=true
         id=${base#"net"}
@@ -187,7 +187,7 @@ do
         network_id="$id"
         eval_files_str="--synapse-file ../input_data/DREAM5/EVAL/DREAM5_NetworkInference_Edges_Network${id}.tsv --synapse-file ../input_data/DREAM5/EVAL/DREAM5_NetworkInference_GoldStandard_Network${id}.tsv --synapse-file ../input_data/DREAM5/EVAL/Network${id}_AUPR.mat --synapse-file ../input_data/DREAM5/EVAL/Network${id}_AUROC.mat"
 
-    elif [[ $base =~ [switch-*_exp] ]]
+    elif [[ $base =~ ^switch-.*_exp ]]
     then
         dream=false
         gs="../input_data/IRMA/GS/irma_gs.csv"

@@ -59,7 +59,7 @@ do
     > $network_folder/measurements/consensus.txt
 
     base=$(basename $network_folder)
-    if [[ $base =~ [*-trajectories_exp] ]]
+    if [[ $base =~ ^.*-trajectories_exp ]]
     then
         dream=true
         id=$(echo $base | cut -d "-" -f 2)
@@ -70,7 +70,7 @@ do
         network_id="${size}_${id}"
         eval_files_str="--synapse-file ../input_data/DREAM3/EVAL/PDF_InSilicoSize${size}_${id}.mat --synapse-file ../input_data/DREAM3/EVAL/DREAM3GoldStandard_InSilicoSize${size}_${id}.txt"
 
-    elif [[ $base =~ [dream4*_exp] ]]
+    elif [[ $base =~ ^dream4.*_exp ]]
     then
         dream=true
         id=$(echo $base | cut -d "_" -f 3)
@@ -82,7 +82,7 @@ do
         network_id="${size}_${id}"
         eval_files_str="--synapse-file ../input_data/DREAM4/EVAL/pdf_size${size}_${id}.mat"
 
-    elif [[ $base =~ [net*_exp] ]]
+    elif [[ $base =~ ^net.*_exp ]]
     then
         dream=true
         id=${base#"net"}
@@ -92,7 +92,7 @@ do
         network_id="$id"
         eval_files_str="--synapse-file ../input_data/DREAM5/EVAL/DREAM5_NetworkInference_Edges_Network${id}.tsv --synapse-file ../input_data/DREAM5/EVAL/DREAM5_NetworkInference_GoldStandard_Network${id}.tsv --synapse-file ../input_data/DREAM5/EVAL/Network${id}_AUPR.mat --synapse-file ../input_data/DREAM5/EVAL/Network${id}_AUROC.mat"
 
-    elif [[ $base =~ [switch-*_exp] ]]
+    elif [[ $base =~ ^switch-.*_exp ]]
     then
         dream=false
         gs="../input_data/IRMA/GS/irma_gs.csv"
@@ -124,14 +124,14 @@ done
 for network_folder in ../inferred_networks/*/
 do
     base=$(basename $network_folder)
-    if [[ $base =~ [*-trajectories_exp] ]]
+    if [[ $base =~ ^.*-trajectories_exp ]]
     then
         id=$(echo $base | cut -d "-" -f 2)
         size=$(echo $base | cut -d "-" -f 1)
         size=${size#"InSilicoSize"}
         name="D3_${size}_${id}"
 
-    elif [[ $base =~ [dream4*_exp] ]]
+    elif [[ $base =~ ^dream4.*_exp ]]
     then
         id=$(echo $base | cut -d "_" -f 3)
         id=${id#"0"}
@@ -139,13 +139,13 @@ do
         size=${size#"0"}
         name="D4_${size}_${id}"
 
-    elif [[ $base =~ [net*_exp] ]]
+    elif [[ $base =~ ^net.*_exp ]]
     then
         id=${base#"net"}
         id=${id%"_exp"}
         name="D5_${id}"
 
-    elif [[ $base =~ [switch-*_exp] ]]
+    elif [[ $base =~ ^switch-.*_exp ]]
     then
         id=${base%"_exp"}
         name="IRMA_${id}"

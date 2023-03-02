@@ -4,14 +4,14 @@
 for network_folder in ../template/*/
 do
     base=$(basename $network_folder)
-    if [[ $base =~ [*-trajectories_exp] ]]
+    if [[ $base =~ ^.*-trajectories_exp ]]
     then
         id=$(echo $base | cut -d "-" -f 2)
         size=$(echo $base | cut -d "-" -f 1)
         size=${size#"InSilicoSize"}
         name="D3_${size}_${id}"
 
-    elif [[ $base =~ [dream4*_exp] ]]
+    elif [[ $base =~ ^dream4.*_exp ]]
     then
         id=$(echo $base | cut -d "_" -f 3)
         id=${id#"0"}
@@ -19,13 +19,13 @@ do
         size=${size#"0"}
         name="D4_${size}_${id}"
 
-    elif [[ $base =~ [net*_exp] ]]
+    elif [[ $base =~ ^net.*_exp ]]
     then
         id=${base#"net"}
         id=${id%"_exp"}
         name="D5_${id}"
 
-    elif [[ $base =~ [switch-*_exp] ]]
+    elif [[ $base =~ ^switch-.*_exp ]]
     then
         id=${base%"_exp"}
         name="IRMA_${id}"
