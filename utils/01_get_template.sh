@@ -26,6 +26,9 @@ python ../geneci/main.py extract-data evaluation-data \
             --password TFM-SynapsePassword \
             --output-dir ../input_data
 
+### Eliminamos la segunda red del reto DREAM5
+rm -f ../input_data/DREAM5/*/net2_*.csv
+
 ## 1.B. Simulated
 ### From scratch
 sizes=(20 50 100 200)

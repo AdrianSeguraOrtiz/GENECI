@@ -12,6 +12,7 @@ from enum import Enum
 from pathlib import Path
 from typing import List, Optional
 from io import BytesIO
+from scipy import stats
 
 import docker
 import numpy as np
@@ -784,6 +785,13 @@ def generate_from_real_network(
     completed_exp_df = pd.concat(
         [pd.Series(genes), exp_df.iloc[:, :-1]], join="inner", axis=1
     )
+
+    # Cap high outliers
+    for col in completed_exp_df.columns[1:]:
+        zscore = np.abs(stats.zscore(completed_exp_df[col]))
+        outliers = zscore > 3
+        upper_limit = np.max(completed_exp_df.loc[zscore <= 3, col])
+        completed_exp_df.loc[outliers, col] = upper_limit
 
     # Process the edge list so that it is in the correct format.
     edge_file = next(tmp_folder.glob("*_edge_list.tsv"))

@@ -10,12 +10,13 @@ readme = "README.md"
 geneci = "geneci.main:app"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = ">=3.9,<3.12"
 typer = {extras = ["all"], version = "^0.6"}
 docker = "^5.0.3"
 pandas = "^1.5.1"
 plotly = "^5.11.0"
 iteround = "^1.0.4"
+scipy = "^1.10.1"
 
 [tool.poetry.dev-dependencies]
 
