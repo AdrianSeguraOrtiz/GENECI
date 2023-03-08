@@ -141,7 +141,6 @@ real_networks_dict = {
         "Plasmodium_falciparum_3D7",
         "Gallus_gallus",
         "Glycine_max",
-        "Hepatitus_C_Virus",
         "Simian_Immunodeficiency_Virus",
         "Human_Herpesvirus_1",
         "Simian_Virus_40",
