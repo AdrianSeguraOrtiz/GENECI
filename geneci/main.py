@@ -667,7 +667,6 @@ def download_real_network(
         cnt = 0
         while len(df.index) > 500:
             df = df[df["Detection.method"].str.count(";") > cnt]
-            print(len(df.index))
             cnt += 1
         df["Detection.method"] = 1
     elif database == FromRealGenerateDatabase.RegulonDB:

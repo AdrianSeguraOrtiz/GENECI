@@ -50,7 +50,7 @@ do
 done
 
 ### From real
-databases=("TFLink" "TRRUST" "RegulonDB" "RegNetwork" "BioGrid" "GRNdb")
+databases=("TFLink" "RegulonDB" "RegNetwork" "BioGrid" "GRNdb")
 for db in ${databases[@]}
 do
     str=$(python ../geneci/main.py generate-data download-real-network --database $db --id . | grep -zo "following: \[.*\]")
