@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.jgrapht.Graph;
 import org.jgrapht.alg.scoring.EdgeBetweennessCentrality;
 import org.jgrapht.graph.DefaultEdge;

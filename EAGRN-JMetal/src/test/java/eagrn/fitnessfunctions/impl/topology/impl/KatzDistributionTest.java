@@ -3,7 +3,6 @@ package eagrn.fitnessfunctions.impl.topology.impl;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.function.Supplier;
 
 import org.jgrapht.Graph;
@@ -12,6 +11,7 @@ import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleDirectedGraph;
 import org.jgrapht.util.SupplierUtil;
 import org.testng.annotations.Test;
+import org.uma.jmetal.util.pseudorandom.JMetalRandom;
 
 import eagrn.fitnessfunction.impl.topology.impl.KatzDistribution;
 
@@ -50,7 +50,7 @@ public class KatzDistributionTest {
 
     private Map<String, Double> getMapFromGraph(Graph<String, DefaultEdge> graph){
         Map<String, Double> map = new HashMap<>();
-        Random random = new Random();
+        JMetalRandom random = JMetalRandom.getInstance();
         for (DefaultEdge edge : graph.edgeSet()) {
             String[] strEdge = edge.toString().split("[ ():]");
             map.put(strEdge[1] + ";" + strEdge[4], random.nextDouble(0.5, 1.0));

@@ -20,10 +20,13 @@ import eagrn.cutoffcriteria.CutOffCriteria;
 import eagrn.cutoffcriteria.impl.NumLinksWithBestConfCriteria;
 import eagrn.cutoffcriteria.impl.PercLinksWithBestConfCriteria;
 import eagrn.fitnessfunction.FitnessFunction;
+import eagrn.fitnessfunction.impl.dynamic.impl.DynamicsMeasureAutovectorsStability;
+import eagrn.fitnessfunction.impl.dynamic.impl.DynamicsMeasureTimeStability;
 import eagrn.fitnessfunction.impl.loyalty.impl.LoyaltyFinal;
 import eagrn.fitnessfunction.impl.loyalty.impl.LoyaltyProgressiveCurrentImpact;
 import eagrn.fitnessfunction.impl.loyalty.impl.LoyaltyProgressiveNextImpact;
 import eagrn.fitnessfunction.impl.loyalty.impl.LoyaltyProgressiveNextNextImpact;
+import eagrn.fitnessfunction.impl.motif.impl.MotifDetection;
 import eagrn.fitnessfunction.impl.quality.impl.QualityMean;
 import eagrn.fitnessfunction.impl.quality.impl.QualityMeanAboveAverage;
 import eagrn.fitnessfunction.impl.quality.impl.QualityMeanAboveAverageWithContrast;
@@ -344,6 +347,88 @@ public final class StaticUtils {
             case "pagerankdistribution":
                 res = new PageRankDistribution(geneNames);
                 break;
+            case "dynamicsmeasureautovectorsstability":
+                res = new DynamicsMeasureAutovectorsStability(geneNames);
+                break;
+            case "dynamicsmeasuretimestability":
+                res = new DynamicsMeasureTimeStability(geneNames);
+                break;
+            case "motifdetection":
+                res = new MotifDetection(cutOffCriteria, new String[]{
+                    "FeedforwardLoop",
+                    "CoRegulation",
+                    "Cascade",
+                    "FeedbackLoopWithCoRegulation",
+                    "FeedbackLoopWithBifurcation",
+                    "FeedforwardChain",
+                    "Differentiation",
+                    "RegulatoryRoute",
+                    "Bifurcation",
+                    "Coupling",
+                    "Transduction",
+                    "BiParallel",
+                });
+                break;
+            case "motifdetectionfeedforwardloop":
+                res = new MotifDetection(cutOffCriteria, new String[]{
+                    "FeedforwardLoop",
+                });
+                break;
+            case "motifdetectioncoregulation":
+                res = new MotifDetection(cutOffCriteria, new String[]{
+                    "CoRegulation",
+                });
+                break;
+            case "motifdetectioncascade":
+                res = new MotifDetection(cutOffCriteria, new String[]{
+                    "Cascade",
+                });
+                break;
+            case "motifdetectionfeedbackloopwithcoregulation":
+                res = new MotifDetection(cutOffCriteria, new String[]{
+                    "FeedbackLoopWithCoRegulation",
+                });
+                break;
+            case "motifdetectionfeedbackloopwithbifurcation":
+                res = new MotifDetection(cutOffCriteria, new String[]{
+                    "FeedbackLoopWithBifurcation",
+                });
+                break;
+            case "motifdetectionfeedforwardchain":
+                res = new MotifDetection(cutOffCriteria, new String[]{
+                    "FeedforwardChain",
+                });
+                break;
+            case "motifdetectiondifferentiation":
+                res = new MotifDetection(cutOffCriteria, new String[]{
+                    "Differentiation",
+                });
+                break;
+            case "motifdetectionregulatoryroute":
+                res = new MotifDetection(cutOffCriteria, new String[]{
+                    "RegulatoryRoute",
+                });
+                break;
+            case "motifdetectionbifurcation":
+                res = new MotifDetection(cutOffCriteria, new String[]{
+                    "Bifurcation",
+                });
+                break;
+            case "motifdetectioncoupling":
+                res = new MotifDetection(cutOffCriteria, new String[]{
+                    "Coupling",
+                });
+                break;
+            case "motifdetectiontransduction":
+                res = new MotifDetection(cutOffCriteria, new String[]{
+                    "Transduction",
+                });
+                break;
+            case "motifdetectionbiparallel":
+                res = new MotifDetection(cutOffCriteria, new String[]{
+                    "BiParallel",
+                });
+                break;
             default:
                 throw new RuntimeException("The evaluation term " + str + " is not implemented.");
         }
@@ -434,5 +519,26 @@ public final class StaticUtils {
             v = Math.round(v/sum * 10000.0) / 10000.0;
             solution.variables().set(i, v);
         }
+    }
+
+    public static double[][] getMatrixFromEdgeList(Map<String, Double> links, ArrayList<String> geneNames) {
+        /**
+         * this function takes care of obtaining the decimal 
+         * adjacency matrix from the list of interactions
+         */
+        
+        int numberOfNodes = geneNames.size();
+        double[][] network = new double[numberOfNodes][numberOfNodes];
+
+        for (Map.Entry<String, Double> pair : links.entrySet()) {
+            String [] parts = pair.getKey().split(";");
+            int g1 = geneNames.indexOf(parts[0]);
+            int g2 = geneNames.indexOf(parts[1]);
+            if (g1 != -1 && g2 != -1) {
+                network[g1][g2] = pair.getValue();
+            }
+        }
+        
+        return network;
     }
 }
