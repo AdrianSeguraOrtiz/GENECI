@@ -7,11 +7,7 @@ cp -r ../template/* ../inferred_networks
 
 # 2. Definimos la lista de funciones de fitness que queremos ejecutar y las ordenamos alfabeticamente.
 
-functions=("loyaltyprogressivecurrentimpact"
-            "loyaltyprogressivenextimpact"
-            "loyaltyprogressivenextnextimpact"
-            "loyaltyfinal"
-            "qualitymean"
+functions=("qualitymean"
             "qualitymedian"
             "qualitymeanaboveaverage"
             "qualitymedianaboveaverage"
@@ -29,7 +25,23 @@ functions=("loyaltyprogressivecurrentimpact"
             "edgebetweennessreducenonessentialsinteractions"
             "eigenvectordistribution"
             "katzdistribution"
-            "pagerankdistribution")
+            "pagerankdistribution"
+            "dynamicsmeasureautovectorsstability"
+            "dynamicsmeasuretimestability"
+            "motifdetection"
+            "motifdetectionfeedforwardloop"
+            "motifdetectioncoregulation"
+            "motifdetectioncascade"
+            "motifdetectionfeedbackloopwithcoregulation"
+            "motifdetectionfeedbackloopwithbifurcation"
+            "motifdetectionfeedforwardchain"
+            "motifdetectiondifferentiation"
+            "motifdetectionregulatoryroute"
+            "motifdetectionbifurcation"
+            "motifdetectioncoupling"
+            "motifdetectiontransduction"
+            "motifdetectionbiparallel"
+)
 functions=($(for f in ${functions[@]}; do echo $f; done | sort))
 
 # 3. Para cada red y función de fitness ejecutamos GENECI en modo mono-objetivo.

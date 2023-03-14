@@ -2152,6 +2152,11 @@ def run(
         help="Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.",
         rich_help_panel="Orchestration",
     ),
+    str_threads: str = typer.Option(
+        None,
+        help="Comma-separated list with the identifying numbers of the threads to be used. If specified, the threads variable will automatically be set to the length of the list.",
+        rich_help_panel="Orchestration",
+    ),
     plot_evolution: bool = typer.Option(
         False,
         help="Indicate if you want to represent the evolution of the fitness value.",
@@ -2171,7 +2176,7 @@ def run(
     print(f"\n Run algorithm for {expression_data}")
 
     # Run inference command
-    infer_network(expression_data, technique, output_dir)
+    infer_network(expression_data, technique, threads, str_threads, output_dir)
 
     # Extract results
     confidence_list = list(
