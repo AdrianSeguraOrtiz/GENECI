@@ -141,7 +141,6 @@ real_networks_dict = {
         "Plasmodium_falciparum_3D7",
         "Gallus_gallus",
         "Glycine_max",
-        "Hepatitus_C_Virus",
         "Simian_Immunodeficiency_Virus",
         "Human_Herpesvirus_1",
         "Simian_Virus_40",
@@ -668,7 +667,6 @@ def download_real_network(
         cnt = 0
         while len(df.index) > 500:
             df = df[df["Detection.method"].str.count(";") > cnt]
-            print(len(df.index))
             cnt += 1
         df["Detection.method"] = 1
     elif database == FromRealGenerateDatabase.RegulonDB:
