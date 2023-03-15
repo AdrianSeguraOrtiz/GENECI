@@ -2,7 +2,6 @@ package eagrn.fitnessfunction.impl.motif.impl;
 
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
-import org.jgrapht.alg.cycle.CycleDetector;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleDirectedGraph;
 
@@ -51,11 +50,6 @@ public class MotifDetection implements FitnessFunction {
                         return detectFeedbackLoopWithCoRegulation(graph);
                     };
                     break;
-                case "feedbackloopwithbifurcation":
-                    function = (Graph<Integer, DefaultEdge> graph) -> {
-                        return detectFeedbackLoopWithBifurcation(graph);
-                    };
-                    break;
                 case "feedforwardchain":
                     function = (Graph<Integer, DefaultEdge> graph) -> {
                         return detectFeedforwardChain(graph);
@@ -79,11 +73,6 @@ public class MotifDetection implements FitnessFunction {
                 case "coupling":
                     function = (Graph<Integer, DefaultEdge> graph) -> {
                         return detectCoupling(graph);
-                    };
-                    break;
-                case "transduction":
-                    function = (Graph<Integer, DefaultEdge> graph) -> {
-                        return detectTransduction(graph);
                     };
                     break;
                 case "biparallel":
@@ -160,32 +149,6 @@ public class MotifDetection implements FitnessFunction {
         return count;
     }
 
-    public int detectTransduction(Graph<Integer, DefaultEdge> graph) {
-        int transductionCount = 0;
-
-        // Detecta ciclos en el grafo
-        CycleDetector<Integer, DefaultEdge> cycleDetector = new CycleDetector<>(graph);
-        List<Integer> verticesInCycles = new ArrayList<>();
-        for (Integer vertex : graph.vertexSet()) {
-            if (cycleDetector.detectCyclesContainingVertex(vertex)) {
-                verticesInCycles.add(vertex);
-            }
-        }
-
-        // Busca transducciones en el grafo
-        for (Integer vertex : verticesInCycles) {
-            Set<DefaultEdge> outgoingEdges = graph.outgoingEdgesOf(vertex);
-            for (DefaultEdge outgoingEdge : outgoingEdges) {
-                Integer targetVertex = graph.getEdgeTarget(outgoingEdge);
-                if (cycleDetector.detectCyclesContainingVertex(targetVertex)) {
-                    transductionCount++;
-                }
-            }
-        }
-
-        return transductionCount;
-    }
-
     public int detectCoRegulation(Graph<Integer, DefaultEdge> graph) {
         int count = 0;
         Map<Integer, Set<Integer>> successors = new HashMap<>();
@@ -246,19 +209,23 @@ public class MotifDetection implements FitnessFunction {
                 int loops = 0;
                 int lastChainScore = 0;
                 int current = i;
-                boolean init = Graphs.successorListOf(graph, current).size() == 1 && (Graphs.predecessorListOf(graph, current).size() == 0 || Graphs.predecessorListOf(graph, current).size() == 1);
+                boolean init = Graphs.successorListOf(graph, current).size() == 1
+                        && (Graphs.predecessorListOf(graph, current).size() == 0
+                                || Graphs.predecessorListOf(graph, current).size() == 1);
                 List<Integer> successors = Graphs.successorListOf(graph, current);
                 List<Integer> predecessors = Graphs.predecessorListOf(graph, current);
 
-                while ((current == i && init) || 
-                        ((successors.size() == 1 || successors.size() == 2) && 
-                        (predecessors.size() == 1 || predecessors.size() == 2))) {
+                while ((current == i && init) ||
+                        ((successors.size() == 1 || successors.size() == 2) &&
+                                (predecessors.size() == 1 || predecessors.size() == 2))) {
 
                     chain.add(current);
 
                     if (current == i) {
-                        if (predecessors.size() == 2) break;
-                        if (predecessors.size() == 1) uncheckedLoops.add(predecessors.get(0));
+                        if (predecessors.size() == 2)
+                            break;
+                        if (predecessors.size() == 1)
+                            uncheckedLoops.add(predecessors.get(0));
                     } else if (predecessors.size() == 2) {
                         int unchecked;
                         if (chain.get(chain.size() - 2) == predecessors.get(0)) {
@@ -268,7 +235,8 @@ public class MotifDetection implements FitnessFunction {
                         } else {
                             break;
                         }
-                        if (chain.contains(unchecked)) break;
+                        if (chain.contains(unchecked))
+                            break;
                         uncheckedLoops.add(unchecked);
                     }
 
@@ -286,7 +254,7 @@ public class MotifDetection implements FitnessFunction {
                         if ((chain.contains(successors.get(0)) && chain.contains(successors.get(1)) ||
                                 !chain.contains(successors.get(0)) && !chain.contains(successors.get(1)))) {
                             break;
-                        } 
+                        }
                         loops++;
                         uncheckedLoops.remove(Integer.valueOf(current));
                         current = chain.contains(successors.get(0)) ? successors.get(1) : successors.get(0);
@@ -323,9 +291,11 @@ public class MotifDetection implements FitnessFunction {
                 int current = i;
                 int next = -1;
                 int size = 0;
-                while (current == i || (Graphs.successorListOf(graph, current).size() == 1 && Graphs.predecessorListOf(graph, current).size() == 1)) {
+                while (current == i || (Graphs.successorListOf(graph, current).size() == 1
+                        && Graphs.predecessorListOf(graph, current).size() == 1)) {
                     next = Graphs.successorListOf(graph, current).get(0);
-                    if (visited[next]) break;
+                    if (visited[next])
+                        break;
                     current = next;
                     visited[current] = true;
                     size++;
@@ -346,14 +316,13 @@ public class MotifDetection implements FitnessFunction {
                 Set<Integer> s1 = new HashSet<>(Graphs.successorListOf(graph, successors.get(0)));
                 Set<Integer> s2 = new HashSet<>(Graphs.successorListOf(graph, successors.get(1)));
                 s1.retainAll(s2);
-                if (! s1.isEmpty()) {
+                if (!s1.isEmpty()) {
                     count += s1.size();
                 }
             }
         }
         return count;
     }
-    
 
     public int detectCascade(Graph<Integer, DefaultEdge> graph) {
         int count = 0;
@@ -392,42 +361,6 @@ public class MotifDetection implements FitnessFunction {
             }
         }
 
-        return count;
-    }
-
-    public static int detectFeedbackLoopWithBifurcation(Graph<Integer, DefaultEdge> graph) {
-        Map<Integer, Set<Integer>> successors = new HashMap<>();
-        for (int vertex : graph.vertexSet()) {
-            successors.put(vertex, new HashSet<>(Graphs.successorListOf(graph, vertex)));
-        }
-
-        int count = 0;
-        for (int g1 : graph.vertexSet()) {
-            List<DefaultEdge> outEdges = new ArrayList<>(graph.outgoingEdgesOf(g1));
-            if (outEdges.size() > 1) {
-                for (int i = 0; i < outEdges.size(); i++) {
-                    int g2 = graph.getEdgeTarget(outEdges.get(i));
-                    Set<Integer> g2Successors = successors.get(g2);
-                    for (int j = i + 1; j < outEdges.size(); j++) {
-                        int g3 = graph.getEdgeTarget(outEdges.get(j));
-                        Set<Integer> g3Successors = successors.get(g3);
-                        Set<Integer> candidates = new HashSet<>(g2Successors);
-                        candidates.retainAll(g3Successors);
-                        for (int g4 : candidates) {
-                            if (g4 == g1)
-                                continue;
-                            Set<Integer> g4Successors = successors.get(g4);
-                            for (int g5 : g4Successors) {
-                                if (g5 == g1 || g5 == g2 || g5 == g3)
-                                    continue;
-                                if (graph.containsEdge(g5, g1))
-                                    count++;
-                            }
-                        }
-                    }
-                }
-            }
-        }
         return count;
     }
 

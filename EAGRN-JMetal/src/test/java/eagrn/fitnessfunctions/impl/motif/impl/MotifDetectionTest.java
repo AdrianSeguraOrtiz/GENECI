@@ -147,33 +147,6 @@ public class MotifDetectionTest {
     }
 
     @Test
-    void checkFeedbackLoopWithBifurcation() {
-        Graph<String, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class);
-
-        ArrayList<String> geneNames = new ArrayList<>(Arrays.asList("A", "B", "C", "D", "E"));
-        for (String gene : geneNames) {
-            graph.addVertex(gene);
-        }
-
-        graph.addEdge("A", "B");
-        graph.addEdge("A", "D");
-        graph.addEdge("B", "C");
-        graph.addEdge("D", "C");
-        graph.addEdge("C", "E");
-        graph.addEdge("E", "A");
-
-        Map<String, Double> motifMap = getMapFromGraph(graph);
-
-        Double[] x = new Double[] {};
-
-        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0, geneNames),
-                new String[] { "FeedbackLoopWithBifurcation" });
-        double fitnessValue = motifDetection.run(motifMap, x);
-
-        assert (fitnessValue == -1);
-    }
-
-    @Test
     void checkFeedforwardChainA() {
         Graph<String, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class);
 
@@ -378,32 +351,6 @@ public class MotifDetectionTest {
         double fitnessValue = motifDetection.run(motifMap, x);
 
         assert (fitnessValue == -1);
-    }
-
-    @Test
-    void checkTransduction() {
-        Graph<String, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class);
-
-        ArrayList<String> geneNames = new ArrayList<>(Arrays.asList("A", "B", "C", "D", "E"));
-        for (String gene : geneNames) {
-            graph.addVertex(gene);
-        }
-
-        graph.addEdge("A", "B");
-        graph.addEdge("B", "C");
-        graph.addEdge("C", "D");
-        graph.addEdge("D", "E");
-        graph.addEdge("E", "B");
-
-        Map<String, Double> motifMap = getMapFromGraph(graph);
-
-        Double[] x = new Double[] {};
-
-        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0, geneNames),
-                new String[] { "Transduction" });
-        double fitnessValue = motifDetection.run(motifMap, x);
-
-        assert (fitnessValue == -4);
     }
 
     @Test

@@ -359,13 +359,11 @@ public final class StaticUtils {
                     "CoRegulation",
                     "Cascade",
                     "FeedbackLoopWithCoRegulation",
-                    "FeedbackLoopWithBifurcation",
                     "FeedforwardChain",
                     "Differentiation",
                     "RegulatoryRoute",
                     "Bifurcation",
                     "Coupling",
-                    "Transduction",
                     "BiParallel",
                 });
                 break;
@@ -387,11 +385,6 @@ public final class StaticUtils {
             case "motifdetectionfeedbackloopwithcoregulation":
                 res = new MotifDetection(cutOffCriteria, new String[]{
                     "FeedbackLoopWithCoRegulation",
-                });
-                break;
-            case "motifdetectionfeedbackloopwithbifurcation":
-                res = new MotifDetection(cutOffCriteria, new String[]{
-                    "FeedbackLoopWithBifurcation",
                 });
                 break;
             case "motifdetectionfeedforwardchain":
@@ -417,11 +410,6 @@ public final class StaticUtils {
             case "motifdetectioncoupling":
                 res = new MotifDetection(cutOffCriteria, new String[]{
                     "Coupling",
-                });
-                break;
-            case "motifdetectiontransduction":
-                res = new MotifDetection(cutOffCriteria, new String[]{
-                    "Transduction",
                 });
                 break;
             case "motifdetectionbiparallel":
