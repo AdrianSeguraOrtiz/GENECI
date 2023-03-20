@@ -29,9 +29,9 @@ public class EdgeBetweennessReduceNonEssentialsInteractions extends Topology {
         for (int i = 0; i < n ; i++) {
             sum += scores[i];
         }
-        double mean = sum / n;
+        double mean = sum / (double)n;
 
-        return 1 / mean;
+        return 1.0 / mean;
     }
     
 }

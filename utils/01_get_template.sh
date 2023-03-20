@@ -89,8 +89,8 @@ infer_network_from_exp_file () {
                     "NONLINEARODES" "INFERELATOR")
     lines=$(wc -l < $exp_file)
 
-    # Si la red supera los 20 genes, descartamos JUMP3
-    if [ $lines -gt 20 ]
+    # Si la red supera los 25 genes, descartamos JUMP3
+    if [ $lines -gt 25 ]
     then
         delete=("JUMP3")
         for del in ${delete[@]}
@@ -113,6 +113,16 @@ infer_network_from_exp_file () {
     if [ $lines -gt 250 ]
     then
         delete=("PCACMI" "PLSNET" "INFERELATOR" "GENIE3_RF" "GENIE3_ET" "GRNBOOST2" "MEOMI")
+        for del in ${delete[@]}
+        do
+            techniques=("${techniques[@]/$del}")
+        done
+    fi
+
+    # Si la red supera los 2000 genes, descartamos (además de los anteriores) PUC y PIDC
+    if [ $lines -gt 2000 ]
+    then
+        delete=("PUC" "PIDC")
         for del in ${delete[@]}
         do
             techniques=("${techniques[@]/$del}")

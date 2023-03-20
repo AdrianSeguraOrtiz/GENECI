@@ -33,13 +33,11 @@ functions=("qualitymean"
             "motifdetectioncoregulation"
             "motifdetectioncascade"
             "motifdetectionfeedbackloopwithcoregulation"
-            "motifdetectionfeedbackloopwithbifurcation"
             "motifdetectionfeedforwardchain"
             "motifdetectiondifferentiation"
             "motifdetectionregulatoryroute"
             "motifdetectionbifurcation"
             "motifdetectioncoupling"
-            "motifdetectiontransduction"
             "motifdetectionbiparallel"
 )
 functions=($(for f in ${functions[@]}; do echo $f; done | sort))
@@ -58,7 +56,7 @@ do
     for func in ${functions[@]}
     do
         echo $func >> $network_folder/measurements/functions_times.txt
-        { time python ../geneci/main.py optimize-ensemble $str --gene-names $network_folder/gene_names.txt --time-series $network_folder/$(basename $network_folder).csv --function $func --num-evaluations 500000 --population-size 200 --algorithm GA --plot-evolution --output-dir $network_folder/ea_consensus_$func ; } 2>> $network_folder/measurements/functions_times.txt
+        { time python ../geneci/main.py optimize-ensemble $str --gene-names $network_folder/gene_names.txt --time-series $network_folder/$(basename $network_folder).csv --function $func --num-evaluations 50000 --population-size 100 --algorithm GA --plot-evolution --output-dir $network_folder/ea_consensus_$func ; } 2>> $network_folder/measurements/functions_times.txt
     done
 
 done
@@ -169,8 +167,8 @@ do
     echo "$name;$name;$name;$name;$name" > $file
     echo "Fitness Function;AUPR;AUROC;Mean;Time" >> $file
 
-    aupr=($(grep -o "AUPR: 0.[0-9]*" $network_folder/measurements/consensus.txt | cut -d " " -f 2))
-    auroc=($(grep -o "AUROC: 0.[0-9]*" $network_folder/measurements/consensus.txt | cut -d " " -f 2))
+    aupr=($(grep -o "AUPR: 1\|AUPR: 0.[0-9]*" $network_folder/measurements/consensus.txt | cut -d " " -f 2))
+    auroc=($(grep -o "AUROC: 1\|AUPR: 0.[0-9]*" $network_folder/measurements/consensus.txt | cut -d " " -f 2))
     times=($(grep -Po "real[^ ]*" $network_folder/measurements/functions_times.txt | cut -d $'\t' -f 2))
 
     for (( i=0; i<${#functions[@]}; i++ ))
@@ -185,7 +183,7 @@ done
 # cuantificar su rendimiento usamos el ranking estadístico de Friedman sobre cada uno de 
 # los scores: AUPR, AUROC, Media((AUPR+AUROC) / 2)
 
-sizes=(0 20 110 250)
+sizes=(0 25 110 250 2000)
 iters=$(( ${#sizes[@]} - 1 ))
 chmod a+x paste.pl
 for (( i=0; i<=$iters; i++ ))
@@ -250,9 +248,9 @@ do
     sed -i '1s/^/Network/' Mean_${name}_functions.csv
 
     # Ejecutamos los tests de Friedman
-    cd controlTest && java Friedman.java ../AUPR_${name}_functions.csv > ../AUPR_${name}_functions.tex && cd ..
-    cd controlTest && java Friedman.java ../AUROC_${name}_functions.csv > ../AUROC_${name}_functions.tex && cd ..
-    cd controlTest && java Friedman.java ../Mean_${name}_functions.csv > ../Mean_${name}_functions.tex && cd ..
+    cd controlTest && java Friedman ../AUPR_${name}_functions.csv > ../AUPR_${name}_functions.tex && cd ..
+    cd controlTest && java Friedman ../AUROC_${name}_functions.csv > ../AUROC_${name}_functions.tex && cd ..
+    cd controlTest && java Friedman ../Mean_${name}_functions.csv > ../Mean_${name}_functions.tex && cd ..
 
     # Creamos tabla de tiempos
     max=$(( ${#tables[@]}*4+1 ))

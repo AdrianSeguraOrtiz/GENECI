@@ -1,4 +1,4 @@
-sizes=(0 20 110 250)
+sizes=(0 25 110 250 2000)
 iters=$(( ${#sizes[@]} - 1 ))
 for (( i=0; i<=$iters; i++ ))
 do
@@ -25,8 +25,8 @@ do
     rm temp_Mean.csv
 
     # Ejecutamos los tests de Friedman
-    cd controlTest && java Friedman.java ../AUPR_${name}.csv > ../AUPR_${name}.tex && cd ..
-    cd controlTest && java Friedman.java ../AUROC_${name}.csv > ../AUROC_${name}.tex && cd ..
-    cd controlTest && java Friedman.java ../Mean_${name}.csv > ../Mean_${name}.tex && cd ..
+    cd controlTest && java Friedman ../AUPR_${name}.csv > ../AUPR_${name}.tex && cd ..
+    cd controlTest && java Friedman ../AUROC_${name}.csv > ../AUROC_${name}.tex && cd ..
+    cd controlTest && java Friedman ../Mean_${name}.csv > ../Mean_${name}.tex && cd ..
 
 done

@@ -123,7 +123,6 @@ real_networks_dict = {
     "BioGrid": [
         "Human_papillomavirus_5",
         "Human_papillomavirus_6b",
-        "Human_papillomavirus_9",
         "Bacillus_subtilis_168",
         "Bos_taurus",
         "Macaca_mulatta",
@@ -135,7 +134,6 @@ real_networks_dict = {
         "Cricetulus_griseus",
         "Danio_rerio",
         "Oryctolagus_cuniculus",
-        "Dictyostelium_discoideum_AX4",
         "Oryza_sativa_Japonica",
         "Emericella_nidulans_FGSC_A4",
         "Plasmodium_falciparum_3D7",
@@ -144,7 +142,6 @@ real_networks_dict = {
         "Simian_Immunodeficiency_Virus",
         "Human_Herpesvirus_1",
         "Simian_Virus_40",
-        "Solanum_lycopersicum",
         "Human_Herpesvirus_4",
         "Human_Herpesvirus_5",
         "Streptococcus_pneumoniae_ATCCBAA255",
@@ -156,7 +153,6 @@ real_networks_dict = {
         "Xenopus_laevis",
         "Human_papillomavirus_16",
         "Zea_mays",
-        "Human_papillomavirus_32",
     ],
     "GRNdb": [
         "Fetal-Brain",
@@ -406,7 +402,7 @@ def get_optimal_cpu_distribution(tecs, cores_ids):
 
         cpus_set_list[idx_group_of_ones] = 0
         surplus_distributed = [
-            (cpu / sum(cpus_set_list)) * surplus for cpu in cpus_set_list
+            (cpu / max(1, sum(cpus_set_list))) * surplus for cpu in cpus_set_list
         ]
         scaled_groups_sums = [
             sum(x) for x in zip(scaled_groups_sums, surplus_distributed)
@@ -1187,7 +1183,7 @@ def infer_network(
     cpus_dict = get_optimal_cpu_distribution(technique, cores_ids)
 
     # Report information to the user.
-    print(f"\n Total cores: {threads}")
+    print(f"\n Total cores: {len(cores_ids)}")
     print("Distribution:")
     print(cpus_dict)
 
