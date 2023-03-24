@@ -19,7 +19,7 @@ import eagrn.fitnessfunction.FitnessFunction;
 public class MotifDetection implements FitnessFunction {
     private CutOffCriteria cutOffCriteria;
     private MotifFitnessInterface[] motifFunctions;
-    private Map<String, Double> cache;
+    private Map<Integer, Double> cache;
 
     public interface MotifFitnessInterface {
         int count(Graph<Integer, DefaultEdge> graph);
@@ -371,7 +371,7 @@ public class MotifDetection implements FitnessFunction {
     public double run(Map<String, Double> consensus, Double[] x) {
         double score = 0.0;
         int[][] adjacencyMatrix = cutOffCriteria.getNetwork(consensus);
-        String key = Arrays.toString(adjacencyMatrix);
+        int key = Arrays.deepHashCode(adjacencyMatrix);
 
         if (this.cache.containsKey(key)){
             score = this.cache.get(key);

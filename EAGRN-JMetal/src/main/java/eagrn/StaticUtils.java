@@ -509,7 +509,7 @@ public final class StaticUtils {
         }
     }
 
-    public static double[][] getMatrixFromEdgeList(Map<String, Double> links, ArrayList<String> geneNames) {
+    public static double[][] getMatrixFromEdgeList(Map<String, Double> links, ArrayList<String> geneNames, int decimals) {
         /**
          * this function takes care of obtaining the decimal 
          * adjacency matrix from the list of interactions
@@ -518,12 +518,13 @@ public final class StaticUtils {
         int numberOfNodes = geneNames.size();
         double[][] network = new double[numberOfNodes][numberOfNodes];
 
+        double factor = Math.pow(10, decimals);
         for (Map.Entry<String, Double> pair : links.entrySet()) {
             String [] parts = pair.getKey().split(";");
             int g1 = geneNames.indexOf(parts[0]);
             int g2 = geneNames.indexOf(parts[1]);
             if (g1 != -1 && g2 != -1) {
-                network[g1][g2] = pair.getValue();
+                network[g1][g2] = (double) Math.round(pair.getValue() * factor) / factor;
             }
         }
         

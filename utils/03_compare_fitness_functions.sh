@@ -28,7 +28,6 @@ functions=("qualitymean"
             "pagerankdistribution"
             "dynamicsmeasureautovectorsstability"
             "dynamicsmeasuretimestability"
-            "motifdetection"
             "motifdetectionfeedforwardloop"
             "motifdetectioncoregulation"
             "motifdetectioncascade"
@@ -56,7 +55,7 @@ do
     for func in ${functions[@]}
     do
         echo $func >> $network_folder/measurements/functions_times.txt
-        { time python ../geneci/main.py optimize-ensemble $str --gene-names $network_folder/gene_names.txt --time-series $network_folder/$(basename $network_folder).csv --function $func --num-evaluations 50000 --population-size 100 --algorithm GA --plot-evolution --output-dir $network_folder/ea_consensus_$func ; } 2>> $network_folder/measurements/functions_times.txt
+        { time python ../geneci/main.py optimize-ensemble $str --gene-names $network_folder/gene_names.txt --time-series $network_folder/$(basename $network_folder).csv --function $func --num-evaluations 25000 --population-size 100 --algorithm GA --plot-evolution --output-dir $network_folder/ea_consensus_$func ; } 2>> $network_folder/measurements/functions_times.txt
     done
 
 done

@@ -31,6 +31,7 @@ public class GRNProblemBestFitnessEvolution extends GRNProblemFitnessEvolution {
                 progressiveValues.compareAndSet(i, currentMin, result.objectives()[i]);
             }
             if (cnt % populationSize == 0){
+                System.out.println(cnt);
                 generationFitness[i].add(progressiveValues.get(i));
             }
         }

@@ -2,7 +2,6 @@ package eagrn.fitnessfunction.impl.topology;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Map;
 
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
@@ -15,22 +14,36 @@ import eagrn.fitnessfunction.FitnessFunction;
 
 public abstract class Topology implements FitnessFunction {
 
-    protected Graph<String, DefaultEdge> getGraphFromConsensus(Map<String, Double> consensus, ArrayList<String> geneNames, boolean directed, boolean weighted) {
-        Graph<String, DefaultEdge> graph;
-        if (weighted) {
-            graph = directed ? new SimpleDirectedWeightedGraph<>(DefaultEdge.class) : new SimpleWeightedGraph<>(DefaultEdge.class);
-        } else {
-            graph = directed ? new SimpleDirectedGraph<>(DefaultEdge.class) : new SimpleGraph<>(DefaultEdge.class);
-        }
-        
+    protected Graph<String, DefaultEdge> getGraphFromNetwork(int[][] network, ArrayList<String> geneNames, boolean directed) {
+        Graph<String, DefaultEdge> graph = directed ? new SimpleDirectedGraph<>(DefaultEdge.class) : new SimpleGraph<>(DefaultEdge.class);
+
         for (String gene : geneNames) {
             graph.addVertex(gene);
         }
 
-        for (Map.Entry<String, Double> pair : consensus.entrySet()) {
-            String[] genes = pair.getKey().split(";");
-            graph.addEdge(genes[0], genes[1]);
-            if (weighted) graph.setEdgeWeight(genes[0], genes[1], pair.getValue());
+        for (int i = 0; i < network.length; i++) {
+            for (int j = 0; j < network.length; j++){
+                if (i != j && network[i][j] != 0) graph.addEdge(geneNames.get(i), geneNames.get(j));
+            }
+        }
+
+        return graph;
+    }
+
+    protected Graph<String, DefaultEdge> getGraphFromWeightedNetwork(double[][] network, ArrayList<String> geneNames, boolean directed) {
+        Graph<String, DefaultEdge> graph = directed ? new SimpleDirectedWeightedGraph<>(DefaultEdge.class) : new SimpleWeightedGraph<>(DefaultEdge.class);
+
+        for (String gene : geneNames) {
+            graph.addVertex(gene);
+        }
+
+        for (int i = 0; i < network.length; i++) {
+            for (int j = 0; j < network.length; j++){
+                if (i != j && network[i][j] != 0){
+                    graph.addEdge(geneNames.get(i), geneNames.get(j));
+                    graph.setEdgeWeight(geneNames.get(i), geneNames.get(j), network[i][j]);
+                }
+            }
         }
 
         return graph;
