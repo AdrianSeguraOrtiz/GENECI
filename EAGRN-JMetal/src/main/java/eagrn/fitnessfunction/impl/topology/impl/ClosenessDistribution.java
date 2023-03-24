@@ -32,7 +32,6 @@ public class ClosenessDistribution extends Topology {
 
         if (this.cache.containsKey(key)){
             score = this.cache.get(key);
-            System.out.println("cacheada");
         } else {
             Graph<String, DefaultEdge> graph = super.getGraphFromWeightedNetwork(adjacencyMatrix, geneNames, true);
             HarmonicCentrality<String, DefaultEdge> evaluator = new HarmonicCentrality<>(graph);

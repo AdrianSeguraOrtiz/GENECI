@@ -32,7 +32,6 @@ public class PageRankDistribution extends Topology {
 
         if (this.cache.containsKey(key)){
             score = this.cache.get(key);
-            System.out.println("cacheada");
         } else {
             Graph<String, DefaultEdge> graph = super.getGraphFromWeightedNetwork(adjacencyMatrix, geneNames, true);
             PageRank<String, DefaultEdge> evaluator = new PageRank<>(graph);
