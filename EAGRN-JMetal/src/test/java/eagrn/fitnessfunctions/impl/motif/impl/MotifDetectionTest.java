@@ -267,7 +267,7 @@ public class MotifDetectionTest {
         }
 
         graph.addEdge("A", "B");
-        graph.addEdge("A", "C");
+        graph.addEdge("B", "C");
 
         Map<String, Double> motifMap = getMapFromGraph(graph);
 
@@ -277,7 +277,7 @@ public class MotifDetectionTest {
                 new String[] { "Differentiation" });
         double fitnessValue = motifDetection.run(motifMap, x);
 
-        assert (fitnessValue == -1);
+        assert (fitnessValue == -2);
     }
 
     @Test
@@ -304,7 +304,7 @@ public class MotifDetectionTest {
                 new String[] { "RegulatoryRoute" });
         double fitnessValue = motifDetection.run(motifMap, x);
 
-        assert (fitnessValue == -25);
+        assert (fitnessValue == -36);
     }
 
     @Test

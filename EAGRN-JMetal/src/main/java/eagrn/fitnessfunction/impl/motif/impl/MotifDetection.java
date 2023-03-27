@@ -174,33 +174,37 @@ public class MotifDetection implements FitnessFunction {
 
     public int detectDifferentiation(Graph<Integer, DefaultEdge> graph) {
         int count = 0;
+        Set<Integer> visited = new HashSet<>();
         for (int i = 0; i < graph.vertexSet().size(); i++) {
-            if (Graphs.predecessorListOf(graph, i).isEmpty()) {
-                Set<Integer> visited = new HashSet<>();
-                visited.add(i);
-                if (detectDifferentiationHelper(graph, i, visited)) {
+            if (!visited.contains(i)) {
+                if (detectDifferentiationHelper(graph, i, visited, new HashSet<>())) {
                     count++;
                 }
             }
         }
         return count;
     }
-
-    private boolean detectDifferentiationHelper(Graph<Integer, DefaultEdge> graph, int vertex, Set<Integer> visited) {
+    
+    private boolean detectDifferentiationHelper(Graph<Integer, DefaultEdge> graph, int vertex, Set<Integer> visited, Set<Integer> callStack) {
+        if (callStack.contains(vertex)) {
+            return false; // se ha encontrado un ciclo, se devuelve false
+        }
         if (Graphs.successorListOf(graph, vertex).isEmpty()) {
             return true;
         } else {
+            visited.add(vertex);
+            callStack.add(vertex);
             boolean result = false;
             for (int neighbor : Graphs.successorListOf(graph, vertex)) {
-                if (!visited.contains(neighbor)) {
-                    visited.add(neighbor);
-                    result |= detectDifferentiationHelper(graph, neighbor, visited);
-                    visited.remove(neighbor);
+                if (visited.contains(neighbor)) {
+                    continue;
                 }
+                result |= detectDifferentiationHelper(graph, neighbor, visited, callStack);
             }
+            callStack.remove(vertex);
             return result;
         }
-    }
+    }    
 
     public int detectFeedforwardChain(Graph<Integer, DefaultEdge> graph) {
         int count = 0;
@@ -294,13 +298,16 @@ public class MotifDetection implements FitnessFunction {
                 int current = i;
                 int next = -1;
                 int size = 0;
+                List<Integer> visitedVertices = new ArrayList<>();
                 while (current == i || (Graphs.successorListOf(graph, current).size() == 1
                         && Graphs.predecessorListOf(graph, current).size() == 1)) {
                     next = Graphs.successorListOf(graph, current).get(0);
-                    if (visited[next])
+                    if (visited[next] || visitedVertices.contains(next)) {
                         break;
+                    }
                     current = next;
                     visited[current] = true;
+                    visitedVertices.add(current);
                     size++;
                 }
                 if (graph.containsEdge(current, i)) {
@@ -309,7 +316,7 @@ public class MotifDetection implements FitnessFunction {
             }
         }
         return count;
-    }
+    } 
 
     public int detectBiParallel(Graph<Integer, DefaultEdge> graph) {
         int count = 0;
