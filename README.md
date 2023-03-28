@@ -1,4 +1,4 @@
-# GENECI
+![Alt text](https://github.com/AdrianSeguraOrtiz/GENECI/raw/dev/docs/logo.svg)
 
 ![CI](https://github.com/AdrianSeguraOrtiz/GENECI/actions/workflows/ci.yml/badge.svg)
 ![Release](https://github.com/AdrianSeguraOrtiz/GENECI/actions/workflows/release.yml/badge.svg)
