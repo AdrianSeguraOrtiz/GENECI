@@ -9,33 +9,33 @@ import eagrn.fitnessfunction.FitnessFunction;
 
 
 public abstract class Quality implements FitnessFunction{
-    private Map<String, Double[]> inferredNetworks;
-    private Map<String, Double[]> trendMeasureIntervalMap;
+    private Map<String, Float[]> inferredNetworks;
+    private Map<String, Float[]> trendMeasureIntervalMap;
 
-    public Quality (Map<String, Double[]> inferredNetworks, TrendMeasureEnum trendMeasure) {
+    public Quality (Map<String, Float[]> inferredNetworks, TrendMeasureEnum trendMeasure) {
         this.inferredNetworks = inferredNetworks;
         this.trendMeasureIntervalMap = calculateTrendMeasureIntervalMap(inferredNetworks, trendMeasure);
     }
 
-    protected Map<String, Double[]> calculateTrendMeasureIntervalMap(Map<String, Double[]> inferredNetworks, TrendMeasureEnum trendMeasure) {
+    protected Map<String, Float[]> calculateTrendMeasureIntervalMap(Map<String, Float[]> inferredNetworks, TrendMeasureEnum trendMeasure) {
         /**
          * For each interaction, calculate the trend measure and the distance to the farthest point 
          * of it for the confidence levels reported by each technique.
          */
 
-        Map<String, Double[]> res = new HashMap<>();
+        Map<String, Float[]> res = new HashMap<>();
 
-        for (Map.Entry<String, Double[]> entry : inferredNetworks.entrySet()) {
-            Double[] confidences = entry.getValue();
+        for (Map.Entry<String, Float[]> entry : inferredNetworks.entrySet()) {
+            Float[] confidences = entry.getValue();
 
-            double trendMeasureValue = 0.0;
+            float trendMeasureValue = 0.0f;
             switch (trendMeasure) {
                 case MEDIAN:
-                    Double[] cloneSorted = confidences.clone();
+                    Float[] cloneSorted = confidences.clone();
                     Arrays.sort(cloneSorted);
                     int middle = cloneSorted.length / 2;
                     if (cloneSorted.length % 2 == 0) {
-                        trendMeasureValue = (cloneSorted[middle - 1] + cloneSorted[middle]) / 2.0;
+                        trendMeasureValue = (float) ((cloneSorted[middle - 1] + cloneSorted[middle]) / 2.0);
                     } else {
                         trendMeasureValue = cloneSorted[middle];
                     }
@@ -45,35 +45,35 @@ public abstract class Quality implements FitnessFunction{
                     for (int i = 0; i < confidences.length; i++) {
                         sum += confidences[i];
                     }
-                    trendMeasureValue = sum / Double.valueOf(confidences.length);
+                    trendMeasureValue = (float) (sum / Float.valueOf(confidences.length));
                     break;
             }
 
-            double min = Collections.min(Arrays.asList(confidences));
-            double max = Collections.max(Arrays.asList(confidences));
-            double interval = Math.max(trendMeasureValue - min, max - trendMeasureValue);
+            float min = Collections.min(Arrays.asList(confidences));
+            float max = Collections.max(Arrays.asList(confidences));
+            float interval = Math.max(trendMeasureValue - min, max - trendMeasureValue);
 
-            res.put(entry.getKey(), new Double[]{trendMeasureValue, interval});
+            res.put(entry.getKey(), new Float[]{trendMeasureValue, interval});
         }
 
         return res;
     }
 
-    protected Map<String, Double> makeDistanceMap(Map<String, Double> consensus, Double[] x){
-        Map<String, Double> distanceMap = new HashMap<>();
+    protected Map<String, Float> makeDistanceMap(Map<String, Float> consensus, Double[] x){
+        Map<String, Float> distanceMap = new HashMap<>();
 
-        for (Map.Entry<String, Double[]> pair : this.inferredNetworks.entrySet()) {
-            Double[] trendMeasureIntervalArray = this.trendMeasureIntervalMap.get(pair.getKey());
-            double trendMeasure = trendMeasureIntervalArray[0];
-            double interval = trendMeasureIntervalArray[1];
+        for (Map.Entry<String, Float[]> pair : this.inferredNetworks.entrySet()) {
+            Float[] trendMeasureIntervalArray = this.trendMeasureIntervalMap.get(pair.getKey());
+            float trendMeasure = trendMeasureIntervalArray[0];
+            float interval = trendMeasureIntervalArray[1];
 
-            Double[] weightDistances = new Double[x.length];
+            Float[] weightDistances = new Float[x.length];
             for (int i = 0; i < x.length; i++) {
-                weightDistances[i] = ((Math.abs(trendMeasure - pair.getValue()[i]) / interval) + x[i]) / 2.0;
+                weightDistances[i] = (float) (((Math.abs(trendMeasure - pair.getValue()[i]) / interval) + x[i]) / 2.0);
             }
 
-            double min = Collections.min(Arrays.asList(weightDistances));
-            double max = Collections.max(Arrays.asList(weightDistances));
+            float min = Collections.min(Arrays.asList(weightDistances));
+            float max = Collections.max(Arrays.asList(weightDistances));
 
             distanceMap.put(pair.getKey(), max - min);
         }

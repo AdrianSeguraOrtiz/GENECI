@@ -14,7 +14,7 @@ import eagrn.fitnessfunction.FitnessFunction;
 
 public abstract class Topology implements FitnessFunction {
 
-    protected Graph<String, DefaultEdge> getGraphFromNetwork(int[][] network, ArrayList<String> geneNames, boolean directed) {
+    protected Graph<String, DefaultEdge> getGraphFromNetwork(boolean[][] network, ArrayList<String> geneNames, boolean directed) {
         Graph<String, DefaultEdge> graph = directed ? new SimpleDirectedGraph<>(DefaultEdge.class) : new SimpleGraph<>(DefaultEdge.class);
 
         for (String gene : geneNames) {
@@ -23,14 +23,14 @@ public abstract class Topology implements FitnessFunction {
 
         for (int i = 0; i < network.length; i++) {
             for (int j = 0; j < network.length; j++){
-                if (i != j && network[i][j] != 0) graph.addEdge(geneNames.get(i), geneNames.get(j));
+                if (i != j && network[i][j]) graph.addEdge(geneNames.get(i), geneNames.get(j));
             }
         }
 
         return graph;
     }
 
-    protected Graph<String, DefaultEdge> getGraphFromWeightedNetwork(double[][] network, ArrayList<String> geneNames, boolean directed) {
+    protected Graph<String, DefaultEdge> getGraphFromWeightedNetwork(float[][] network, ArrayList<String> geneNames, boolean directed) {
         Graph<String, DefaultEdge> graph = directed ? new SimpleDirectedWeightedGraph<>(DefaultEdge.class) : new SimpleWeightedGraph<>(DefaultEdge.class);
 
         for (String gene : geneNames) {

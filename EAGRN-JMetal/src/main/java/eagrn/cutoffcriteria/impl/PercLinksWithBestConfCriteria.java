@@ -8,20 +8,20 @@ public class PercLinksWithBestConfCriteria implements CutOffCriteria {
     private final int max;
     private ArrayList<String> geneNames;
 
-    public PercLinksWithBestConfCriteria(double perc, ArrayList<String> geneNames) {
+    public PercLinksWithBestConfCriteria(float perc, ArrayList<String> geneNames) {
         int numberOfNodes = geneNames.size();
         int maxPossibleLinks = numberOfNodes * (numberOfNodes - 1);
         this.max = (int)Math.round(perc * Double.valueOf(maxPossibleLinks));
         this.geneNames = geneNames;
     }
 
-    public int[][] getNetwork (Map<String, Double> links) {
+    public boolean[][] getNetwork (Map<String, Float> links) {
         int numberOfNodes = geneNames.size();
-        int[][] network = new int[numberOfNodes][numberOfNodes];
+        boolean[][] network = new boolean[numberOfNodes][numberOfNodes];
 
-        List<Map.Entry<String, Double>> list = new ArrayList<>(links.entrySet());
+        List<Map.Entry<String, Float>> list = new ArrayList<>(links.entrySet());
         list.sort(Collections.reverseOrder(Map.Entry.comparingByValue()));
-        Iterator<Map.Entry<String, Double>> iterator = list.iterator();
+        Iterator<Map.Entry<String, Float>> iterator = list.iterator();
 
         int g1, g2, cnt = 0;
         while (cnt < max) {
@@ -31,7 +31,7 @@ public class PercLinksWithBestConfCriteria implements CutOffCriteria {
                 g1 = geneNames.indexOf(parts[0]);
                 g2 = geneNames.indexOf(parts[1]);
                 if (g1 != -1 && g2 != -1) {
-                    network[g1][g2] = 1;
+                    network[g1][g2] = true;
                 }
                 cnt += 1;
             }
@@ -41,16 +41,16 @@ public class PercLinksWithBestConfCriteria implements CutOffCriteria {
     }
 
     @Override
-    public Map<String, Double> getCutMap(Map<String, Double> links) {
-        Map<String, Double> res = new HashMap<>();
+    public Map<String, Float> getCutMap(Map<String, Float> links) {
+        Map<String, Float> res = new HashMap<>();
 
-        List<Map.Entry<String, Double>> list = new ArrayList<>(links.entrySet());
+        List<Map.Entry<String, Float>> list = new ArrayList<>(links.entrySet());
         list.sort(Collections.reverseOrder(Map.Entry.comparingByValue()));
-        Iterator<Map.Entry<String, Double>> iterator = list.iterator();
+        Iterator<Map.Entry<String, Float>> iterator = list.iterator();
 
         int cnt = 0;
         while (cnt < max) {
-            Map.Entry<String, Double> entry = iterator.next();
+            Map.Entry<String, Float> entry = iterator.next();
             res.put(entry.getKey(), entry.getValue());
             cnt += 1;
         }

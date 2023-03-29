@@ -16,24 +16,24 @@ import eagrn.fitnessfunction.impl.quality.TrendMeasureEnum;
 
 public class QualityMean extends Quality {
     
-    public QualityMean(Map<String, Double[]> inferredNetworks) {
+    public QualityMean(Map<String, Float[]> inferredNetworks) {
         super(inferredNetworks, TrendMeasureEnum.MEAN);
     }
 
-    public double run(Map<String, Double> consensus, Double[] x) {
+    public double run(Map<String, Float> consensus, Double[] x) {
         /** 
          * 1. We create the map with the distances corresponding to the difference between the maximum and minimum 
          * of the vectors containing the mean between the weight and the distance normalized to the mean of the total 
          * number of techniques 
          */
-        Map<String, Double> distances = super.makeDistanceMap(consensus, x);
+        Map<String, Float> distances = super.makeDistanceMap(consensus, x);
 
         /** 2. Calculate the mean of the confidence-distance means. */
-        double conf, dist, confDistSum = 0;
-        for (Map.Entry<String, Double> pair : consensus.entrySet()) {
+        float conf, dist, confDistSum = 0;
+        for (Map.Entry<String, Float> pair : consensus.entrySet()) {
             conf = pair.getValue();
             dist = distances.get(pair.getKey());
-            confDistSum += (conf + (1 - dist)) / 2.0;
+            confDistSum += (float) ((conf + (1 - dist)) / 2.0);
         }
         double mean = confDistSum / consensus.size();
 

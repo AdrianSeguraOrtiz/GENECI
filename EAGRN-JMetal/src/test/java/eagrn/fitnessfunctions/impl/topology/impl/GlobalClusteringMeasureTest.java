@@ -48,11 +48,11 @@ public class GlobalClusteringMeasureTest {
         };
     }
 
-    private Map<String, Double> getMapFromGraph(Graph<String, DefaultEdge> graph){
-        Map<String, Double> map = new HashMap<>();
+    private Map<String, Float> getMapFromGraph(Graph<String, DefaultEdge> graph){
+        Map<String, Float> map = new HashMap<>();
         for (DefaultEdge edge : graph.edgeSet()) {
             String[] strEdge = edge.toString().split("[ ():]");
-            map.put(strEdge[1] + ";" + strEdge[4], 1.0);
+            map.put(strEdge[1] + ";" + strEdge[4], 1.0f);
         }
         return map;
     }
@@ -62,12 +62,12 @@ public class GlobalClusteringMeasureTest {
         Graph<String, DefaultEdge> randomGraph = new SimpleDirectedGraph<>(getVertexSupplier(), SupplierUtil.createDefaultEdgeSupplier(), false);
         GnpRandomGraphGenerator<String, DefaultEdge> randomGenerator = new GnpRandomGraphGenerator<>(size, 0.5);
         randomGenerator.generateGraph(randomGraph);
-        Map<String, Double> badTopologyConsensus = getMapFromGraph(randomGraph);
+        Map<String, Float> badTopologyConsensus = getMapFromGraph(randomGraph);
 
         Graph<String, DefaultEdge> completeGraph = new SimpleDirectedGraph<>(getVertexSupplier(), SupplierUtil.createDefaultEdgeSupplier(), false);
         CompleteGraphGenerator<String, DefaultEdge> completeGenerator = new CompleteGraphGenerator<>(size);
         completeGenerator.generateGraph(completeGraph);
-        Map<String, Double> goodTopologyConsensus = getMapFromGraph(completeGraph);
+        Map<String, Float> goodTopologyConsensus = getMapFromGraph(completeGraph);
 
         Supplier<String> vSupplier = getVertexSupplier();
         ArrayList<String> geneNames = new ArrayList<>();
@@ -77,7 +77,7 @@ public class GlobalClusteringMeasureTest {
 
         Double[] x = new Double[]{};
 
-        GlobalClusteringMeasure topology = new GlobalClusteringMeasure(geneNames, new MinConfCriteria(0.0, geneNames));
+        GlobalClusteringMeasure topology = new GlobalClusteringMeasure(geneNames, new MinConfCriteria(0.0f, geneNames));
         double fitnessGoodTopologyConsensus = topology.run(goodTopologyConsensus, x);
         double fitnessBadTopologyConsensus = topology.run(badTopologyConsensus, x);
 

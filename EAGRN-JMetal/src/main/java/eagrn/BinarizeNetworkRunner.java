@@ -15,7 +15,7 @@ public class BinarizeNetworkRunner {
         String geneNamesStrFile;
         String outputStrFile;
         String strCutOffCriteria;
-        double cutOffValue;
+        float cutOffValue;
 
         if (args.length > 2) {
             listOfLinksStrFile = args[0];
@@ -23,10 +23,10 @@ public class BinarizeNetworkRunner {
             outputStrFile = args[2];
             if (args.length == 5) {
                 strCutOffCriteria = args[3];
-                cutOffValue = Double.parseDouble(args[4]);
+                cutOffValue = Float.parseFloat(args[4]);
             } else {
                 strCutOffCriteria = "MinConfidence";
-                cutOffValue = 0.1;
+                cutOffValue = 0.1f;
             }
         } else {
             throw new RuntimeException("The list of confidence values, the list of gene names and the path to the output file are three required parameters.");
@@ -39,10 +39,10 @@ public class BinarizeNetworkRunner {
         cutOffCriteriaOnlyConf = (CutOffCriteria) StaticUtils.getCutOffCriteriaFromString(strCutOffCriteria, cutOffValue, geneNames);
 
         /** Extract the list of links */
-        Map<String, Double> map = StaticUtils.getMapWithLinks(new File(listOfLinksStrFile));
+        Map<String, Float> map = StaticUtils.getMapWithLinks(new File(listOfLinksStrFile));
 
         /** Calculate the binary matrix according to the selected criteria */
-        int[][] binaryNetwork = cutOffCriteriaOnlyConf.getNetwork(map);
+        boolean[][] binaryNetwork = cutOffCriteriaOnlyConf.getNetwork(map);
 
         /** Write the resulting binary matrix to an output csv file */
         StaticUtils.writeBinaryNetwork(outputStrFile, binaryNetwork, geneNames);

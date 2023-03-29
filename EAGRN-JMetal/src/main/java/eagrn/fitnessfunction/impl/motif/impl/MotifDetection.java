@@ -91,7 +91,7 @@ public class MotifDetection implements FitnessFunction {
         }
     }
 
-    public Graph<Integer, DefaultEdge> createGraphFromMatrix(int[][] adjMatrix) {
+    public Graph<Integer, DefaultEdge> createGraphFromMatrix(boolean[][] adjMatrix) {
 
         Graph<Integer, DefaultEdge> graph = new SimpleDirectedGraph<>(DefaultEdge.class);
 
@@ -102,7 +102,7 @@ public class MotifDetection implements FitnessFunction {
         // Agregamos las aristas al grafo
         for (int i = 0; i < adjMatrix.length; i++) {
             for (int j = 0; j < adjMatrix[i].length; j++) {
-                if (adjMatrix[i][j] == 1) {
+                if (adjMatrix[i][j]) {
                     graph.addEdge(i, j);
                 }
             }
@@ -375,9 +375,9 @@ public class MotifDetection implements FitnessFunction {
     }
 
     @Override
-    public double run(Map<String, Double> consensus, Double[] x) {
+    public double run(Map<String, Float> consensus, Double[] x) {
         double score = 0.0;
-        int[][] adjacencyMatrix = cutOffCriteria.getNetwork(consensus);
+        boolean[][] adjacencyMatrix = cutOffCriteria.getNetwork(consensus);
         int key = Arrays.deepHashCode(adjacencyMatrix);
 
         if (this.cache.containsKey(key)){

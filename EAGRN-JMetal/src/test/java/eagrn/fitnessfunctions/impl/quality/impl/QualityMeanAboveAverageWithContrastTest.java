@@ -12,11 +12,11 @@ public class QualityMeanAboveAverageWithContrastTest {
 
     @Test
     void shouldReturnFitnessValueCaseA() {
-        Map<String, Double[]> inferredNetworks = new HashMap<>();
-        inferredNetworks.put("G1;G2", new Double[]{0.78, 0.9, 0.69});
-        inferredNetworks.put("G5;G6", new Double[]{0.63, 0.71, 0.0});
-        inferredNetworks.put("G4;G3", new Double[]{0.21, 0.0, 0.48});
-        inferredNetworks.put("G2;G3", new Double[]{0.0, 0.53, 0.36});
+        Map<String, Float[]> inferredNetworks = new HashMap<>();
+        inferredNetworks.put("G1;G2", new Float[]{0.78f, 0.9f, 0.69f});
+        inferredNetworks.put("G5;G6", new Float[]{0.63f, 0.71f, 0.0f});
+        inferredNetworks.put("G4;G3", new Float[]{0.21f, 0.0f, 0.48f});
+        inferredNetworks.put("G2;G3", new Float[]{0.0f, 0.53f, 0.36f});
 
         ArrayList<String> geneNames = new ArrayList<>();
         geneNames.add("G1");
@@ -29,10 +29,10 @@ public class QualityMeanAboveAverageWithContrastTest {
         QualityMeanAboveAverageWithContrast qualityMeanAboveAverageWithContrast = new QualityMeanAboveAverageWithContrast(geneNames.size(), inferredNetworks);
 
         Double[] goodWeights = new Double[]{0.5, 0.3, 0.2};
-        Map<String, Double> consensusOfGoodWeights = StaticUtils.makeConsensus(goodWeights, inferredNetworks);
+        Map<String, Float> consensusOfGoodWeights = StaticUtils.makeConsensus(goodWeights, inferredNetworks);
 
         Double[] badWeights = new Double[]{0.2, 0.3, 0.5};
-        Map<String, Double> consensusOfBadWeights = StaticUtils.makeConsensus(badWeights, inferredNetworks);
+        Map<String, Float> consensusOfBadWeights = StaticUtils.makeConsensus(badWeights, inferredNetworks);
 
         double fitnessGoodWeights = qualityMeanAboveAverageWithContrast.run(consensusOfGoodWeights, goodWeights);
         double fitnessBadWeights = qualityMeanAboveAverageWithContrast.run(consensusOfBadWeights, badWeights);

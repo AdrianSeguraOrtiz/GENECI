@@ -49,13 +49,13 @@ import eagrn.fitnessfunction.impl.topology.impl.WeightedDegreeDistribution;
 import eagrn.cutoffcriteria.impl.MinConfCriteria;
 
 public final class StaticUtils {
-    public static Map<String, Double> getMapWithLinks(File listFile) {
+    public static Map<String, Float> getMapWithLinks(File listFile) {
         /**
          * This function takes as input the file with the list of links and 
          * their respective confidence levels, and returns a map containing 
          * all information
          */
-        Map<String, Double> map = new HashMap<String, Double>();
+        Map<String, Float> map = new HashMap<String, Float>();
 
         try {
             Scanner sc = new Scanner(listFile);
@@ -64,7 +64,7 @@ public final class StaticUtils {
                 String[] splitLine = line.split(",");
 
                 String key = splitLine[0] + ";" + splitLine[1];
-                Double value = Double.parseDouble(splitLine[2]);
+                float value = Float.parseFloat(splitLine[2]);
                 map.put(key, value);
             }
             sc.close();
@@ -106,7 +106,7 @@ public final class StaticUtils {
         return geneNames;
     }
 
-    public static CutOffCriteria getCutOffCriteriaFromString(String strCutOffCriteria, double cutOffValue, ArrayList<String> geneNames) {
+    public static CutOffCriteria getCutOffCriteriaFromString(String strCutOffCriteria, float cutOffValue, ArrayList<String> geneNames) {
         /**
          * This function takes as input a character string representing a 
          * cut-off criteria and returns the object corresponding to it
@@ -151,7 +151,7 @@ public final class StaticUtils {
         }
     }
 
-    public static void writeConsensus(String strFile, Map<String, Double> consensus) {
+    public static void writeConsensus(String strFile, Map<String, Float> consensus) {
         /**
          * This function is responsible for writing the consensus list of 
          * a solution to an output csv file specified as a parameter.
@@ -160,7 +160,7 @@ public final class StaticUtils {
             File outputFile = new File(strFile);
             BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
 
-            for (Map.Entry<String, Double> pair : consensus.entrySet()) {
+            for (Map.Entry<String, Float> pair : consensus.entrySet()) {
                 String [] vKeySplit = pair.getKey().split(";");
                 bw.write(vKeySplit[0] + "," + vKeySplit[1] + "," + pair.getValue());
                 bw.newLine();
@@ -172,7 +172,7 @@ public final class StaticUtils {
         }
     }
 
-    public static void writeBinaryNetwork(String strFile, int[][] binaryNetwork, ArrayList<String> geneNames) {
+    public static void writeBinaryNetwork(String strFile, boolean[][] binaryNetwork, ArrayList<String> geneNames) {
         /**
          * This function is responsible for writing the binary network 
          * of a solution to an output csv file specified as a parameter.
@@ -186,7 +186,7 @@ public final class StaticUtils {
             for (int i = 0; i < binaryNetwork.length; i++) {
                 bw.write(geneNames.get(i) + ",");
                 for (int j = 0; j < binaryNetwork[i].length; j++) {
-                    bw.write(binaryNetwork[i][j] + ((j == binaryNetwork[i].length - 1) ? "" : ","));
+                    bw.write((binaryNetwork[i][j] ? 1 : 0) + ((j == binaryNetwork[i].length - 1) ? "" : ","));
                 }
                 bw.newLine();
             }
@@ -197,16 +197,16 @@ public final class StaticUtils {
         }
     }
 
-    public static Map<String, Double> makeConsensus(Double[] weights, Map<String, Double[]> inferredNetworks) {
+    public static Map<String, Float> makeConsensus(Double[] weights, Map<String, Float[]> inferredNetworks) {
         /**
          * This function calculates the weighted sum of 
          * confidence levels based on the weights.
          */
 
-        Map<String, Double> consensus = new HashMap<>();
+        Map<String, Float> consensus = new HashMap<>();
 
-        for (Map.Entry<String, Double[]> pair : inferredNetworks.entrySet()) {
-            double confidence = 0.0;
+        for (Map.Entry<String, Float[]> pair : inferredNetworks.entrySet()) {
+            float confidence = 0.0f;
 
             for (int i = 0; i < weights.length; i++) {
                 confidence += weights[i] * pair.getValue()[i];
@@ -218,21 +218,21 @@ public final class StaticUtils {
         return consensus;
     }
 
-    public static Map<String, Double[]> readAllInferredNetworkFiles(File[] inferredNetworkFiles) {
+    public static Map<String, Float[]> readAllInferredNetworkFiles(File[] inferredNetworkFiles) {
         /**
          * It scans the lists of links offered by the different techniques and stores them in a map 
          * with vector values for later query during the construction of the consensus network.
          */
 
-        Map<String, Double[]> res = new HashMap<String, Double[]>();
-        Double[] initialValue = new Double[inferredNetworkFiles.length];
+        Map<String, Float[]> res = new HashMap<>();
+        Float[] initialValue = new Float[inferredNetworkFiles.length];
         Arrays.fill(initialValue, 0.0);
 
         for (int i = 0; i < inferredNetworkFiles.length; i++) {
-            Map<String, Double> map = StaticUtils.getMapWithLinks(inferredNetworkFiles[i]);
+            Map<String, Float> map = StaticUtils.getMapWithLinks(inferredNetworkFiles[i]);
 
-            for (Map.Entry<String, Double> entry : map.entrySet()) {
-                Double[] value = res.getOrDefault(entry.getKey(), initialValue.clone());
+            for (Map.Entry<String, Float> entry : map.entrySet()) {
+                Float[] value = res.getOrDefault(entry.getKey(), initialValue.clone());
                 value[i] = entry.getValue();
                 res.put(entry.getKey(), value);
             }
@@ -271,7 +271,7 @@ public final class StaticUtils {
         return res;
     }
 
-    public static FitnessFunction getBasicFitnessFunction(String str, ArrayList<String> geneNames, Map<String, Double[]> inferredNetworks, CutOffCriteria cutOffCriteria, Map<String, Double[]> timeSeriesMap) {
+    public static FitnessFunction getBasicFitnessFunction(String str, ArrayList<String> geneNames, Map<String, Float[]> inferredNetworks, CutOffCriteria cutOffCriteria, Map<String, Double[]> timeSeriesMap) {
         /** 
          * Function to return a basic FitnessFunction object based on a identifier string 
          */
@@ -423,7 +423,7 @@ public final class StaticUtils {
         return res;
     }
 
-    public static FitnessFunction getCompositeFitnessFunction(String formula, ArrayList<String> geneNames, Map<String, Double[]> inferredNetworks, CutOffCriteria cutOffCriteria, Map<String, Double[]> timeSeriesMap) {
+    public static FitnessFunction getCompositeFitnessFunction(String formula, ArrayList<String> geneNames, Map<String, Float[]> inferredNetworks, CutOffCriteria cutOffCriteria, Map<String, Double[]> timeSeriesMap) {
         /**
          * Function to return a composite FitnessFunction object based on a formula string
          */
@@ -457,7 +457,7 @@ public final class StaticUtils {
                 throw new RuntimeException("The weights of all the terms in the formula must add up to 1. Currently total " + totalWeight);
             }
 
-            function = (Map<String, Double> consensus, Double[] x) -> {
+            function = (Map<String, Float> consensus, Double[] x) -> {
                 double res = 0;
                 for (int j = 0; j < functions.length; j++) {
                     res += weights[j] * functions[j].run(consensus, x);
@@ -509,22 +509,22 @@ public final class StaticUtils {
         }
     }
 
-    public static double[][] getMatrixFromEdgeList(Map<String, Double> links, ArrayList<String> geneNames, int decimals) {
+    public static float[][] getMatrixFromEdgeList(Map<String, Float> links, ArrayList<String> geneNames, int decimals) {
         /**
          * this function takes care of obtaining the decimal 
          * adjacency matrix from the list of interactions
          */
         
         int numberOfNodes = geneNames.size();
-        double[][] network = new double[numberOfNodes][numberOfNodes];
+        float[][] network = new float[numberOfNodes][numberOfNodes];
 
-        double factor = Math.pow(10, decimals);
-        for (Map.Entry<String, Double> pair : links.entrySet()) {
+        float factor = (float) Math.pow(10, decimals);
+        for (Map.Entry<String, Float> pair : links.entrySet()) {
             String [] parts = pair.getKey().split(";");
             int g1 = geneNames.indexOf(parts[0]);
             int g2 = geneNames.indexOf(parts[1]);
             if (g1 != -1 && g2 != -1) {
-                network[g1][g2] = (double) Math.round(pair.getValue() * factor) / factor;
+                network[g1][g2] = (float) Math.round(pair.getValue() * factor) / factor;
             }
         }
         

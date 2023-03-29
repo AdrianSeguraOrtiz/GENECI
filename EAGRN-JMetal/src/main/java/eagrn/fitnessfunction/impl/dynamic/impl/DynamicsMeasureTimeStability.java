@@ -14,8 +14,8 @@ public class DynamicsMeasureTimeStability implements FitnessFunction {
     }
 
     @Override
-    public double run(Map<String, Double> consensus, Double[] x) {
-        double[][] adjacencyMatrix = StaticUtils.getMatrixFromEdgeList(consensus, geneNames, 4);
+    public double run(Map<String, Float> consensus, Double[] x) {
+        float[][] adjacencyMatrix = StaticUtils.getMatrixFromEdgeList(consensus, geneNames, 4);
         return dynamicsMeasureTimeStability(adjacencyMatrix, 0.01);
     }
 
@@ -23,7 +23,7 @@ public class DynamicsMeasureTimeStability implements FitnessFunction {
      * En términos generales, un valor intermedio para el parámetro threshold en
      * este tipo de algoritmos suele ser alrededor del 0.01 o 0.05.
      */
-    public double dynamicsMeasureTimeStability(double[][] adjacencyMatrix, double threshold) {
+    public static double dynamicsMeasureTimeStability(float[][] adjacencyMatrix, double threshold) {
         int numNodes = adjacencyMatrix.length;
         double[] nodeActivities = new double[numNodes];
         double[] previousActivities = new double[numNodes];
@@ -45,6 +45,7 @@ public class DynamicsMeasureTimeStability implements FitnessFunction {
                 for (int j = 0; j < numNodes; j++) {
                     nodeActivities[i] += adjacencyMatrix[i][j] * previousActivities[j];
                 }
+                nodeActivities[i] /= numNodes;
             }
 
             // Actualizamos la delta

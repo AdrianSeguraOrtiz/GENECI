@@ -17,35 +17,35 @@ import eagrn.fitnessfunction.impl.quality.TrendMeasureEnum;
 public class QualityMedianAboveAverageWithContrast extends Quality {
     private int numberOfNodes;
     
-    public QualityMedianAboveAverageWithContrast(int numberOfNodes, Map<String, Double[]> inferredNetworks) {
+    public QualityMedianAboveAverageWithContrast(int numberOfNodes, Map<String, Float[]> inferredNetworks) {
         super(inferredNetworks, TrendMeasureEnum.MEDIAN);
         this.numberOfNodes = numberOfNodes;
     }
 
-    public double run(Map<String, Double> consensus, Double[] x) {
+    public double run(Map<String, Float> consensus, Double[] x) {
         /** 
          * 1. We create the map with the distances corresponding to the difference between the maximum and minimum 
          * of the vectors containing the mean between the weight and the distance normalized to the median of the total 
          * number of techniques 
          */
-        Map<String, Double> distances = super.makeDistanceMap(consensus, x);
+        Map<String, Float> distances = super.makeDistanceMap(consensus, x);
 
         /** 2. Calculate the mean of the confidence-distance means. */
-        double conf, dist, confDistSum = 0;
-        for (Map.Entry<String, Double> pair : consensus.entrySet()) {
+        float conf, dist, confDistSum = 0;
+        for (Map.Entry<String, Float> pair : consensus.entrySet()) {
             conf = pair.getValue();
             dist = distances.get(pair.getKey());
-            confDistSum += (conf + (1 - dist)) / 2.0;
+            confDistSum += (float) ((conf + (1 - dist)) / 2.0);
         }
         double mean = confDistSum / consensus.size();
 
         /** 3. Quantify the number of high quality links and calculate the average of their confidence-distance means */
         confDistSum = 0;
-        double confDist, cnt = 0;
-        for (Map.Entry<String, Double> pair : consensus.entrySet()) {
+        float confDist, cnt = 0;
+        for (Map.Entry<String, Float> pair : consensus.entrySet()) {
             conf = pair.getValue();
             dist = distances.get(pair.getKey());
-            confDist = (conf + (1 - dist)) / 2.0;
+            confDist = (float) ((conf + (1 - dist)) / 2.0);
             if (confDist > mean) {
                 confDistSum += confDist;
                 cnt += 1;

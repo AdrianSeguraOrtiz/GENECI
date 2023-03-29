@@ -13,13 +13,13 @@ public class WeightedDegreeDistribution extends Topology {
         this.geneNames = geneNames;
     }
 
-    public double run(Map<String, Double> consensus, Double[] x) {
+    public double run(Map<String, Float> consensus, Double[] x) {
         
-        Map<String, Double> undirectedDegreesMap = new HashMap<>();
-        for (Map.Entry<String, Double> pair : consensus.entrySet()) {
+        Map<String, Float> undirectedDegreesMap = new HashMap<>();
+        for (Map.Entry<String, Float> pair : consensus.entrySet()) {
             String[] genes = pair.getKey().split(";");
-            undirectedDegreesMap.put(genes[0], undirectedDegreesMap.getOrDefault(genes[0], 0.0) + pair.getValue());
-            undirectedDegreesMap.put(genes[1], undirectedDegreesMap.getOrDefault(genes[1], 0.0) + pair.getValue());
+            undirectedDegreesMap.put(genes[0], undirectedDegreesMap.getOrDefault(genes[0], 0.0f) + pair.getValue());
+            undirectedDegreesMap.put(genes[1], undirectedDegreesMap.getOrDefault(genes[1], 0.0f) + pair.getValue());
         }
 
         double[] undirectedDegreesPlusMin = new double[geneNames.size()];

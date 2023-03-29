@@ -14,15 +14,15 @@ public class BinarizedDegreeDistribution extends Topology {
         this.numberOfNodes = numberOfNodes;
     }
 
-    public double run(Map<String, Double> consensus, Double[] x) {
+    public double run(Map<String, Float> consensus, Double[] x) {
         
-        int[][] binaryNetwork = cutOffCriteria.getNetwork(consensus);
+        boolean[][] binaryNetwork = cutOffCriteria.getNetwork(consensus);
         double[] undirectedDegreesPlusOne = new double[this.numberOfNodes];
 
         for (int i = 0; i < this.numberOfNodes; i++) {
             undirectedDegreesPlusOne[i] = 1;
             for (int j = 0; j < this.numberOfNodes; j++) {
-                undirectedDegreesPlusOne[i] += binaryNetwork[i][j] + binaryNetwork[j][i];
+                undirectedDegreesPlusOne[i] += (binaryNetwork[i][j] ? 1 : 0) + (binaryNetwork[j][i] ? 1 : 0);
             }
         }
 

@@ -22,21 +22,21 @@ public class LoyaltyTest {
 
         LoyaltyProgressiveCurrentImpact loyaltyProgressiveCurrentImpact = new LoyaltyProgressiveCurrentImpact(timeSeriesMap);
 
-        Map<String, Double[]> inferredNetworks = new HashMap<>();
-        inferredNetworks.put("G1;G2", new Double[]{0.78, 0.9, 0.69}); //Activa
-        inferredNetworks.put("G5;G6", new Double[]{0.63, 0.71, 0.0}); //Inhibe
-        inferredNetworks.put("G4;G3", new Double[]{0.21, 0.0, 0.48}); //Activa
-        inferredNetworks.put("G2;G3", new Double[]{0.0, 0.53, 0.36}); //Inhibe
+        Map<String, Float[]> inferredNetworks = new HashMap<>();
+        inferredNetworks.put("G1;G2", new Float[]{0.78f, 0.9f, 0.69f}); //Activa
+        inferredNetworks.put("G5;G6", new Float[]{0.63f, 0.71f, 0.0f}); //Inhibe
+        inferredNetworks.put("G4;G3", new Float[]{0.21f, 0.0f, 0.48f}); //Activa
+        inferredNetworks.put("G2;G3", new Float[]{0.0f, 0.53f, 0.36f}); //Inhibe
 
         /**
          * Since all interactions have been strictly reflected in the time series, the best distribution of weights 
          * in this case is the one that achieves the highest confidence values in the consensus network.
          */
         Double[] goodWeights = new Double[]{0.2, 0.6, 0.2};
-        Map<String, Double> consensusOfGoodWeights = StaticUtils.makeConsensus(goodWeights, inferredNetworks);
+        Map<String, Float> consensusOfGoodWeights = StaticUtils.makeConsensus(goodWeights, inferredNetworks);
 
         Double[] badWeights = new Double[]{0.5, 0.1, 0.4};
-        Map<String, Double> consensusOfBadWeights = StaticUtils.makeConsensus(badWeights, inferredNetworks);
+        Map<String, Float> consensusOfBadWeights = StaticUtils.makeConsensus(badWeights, inferredNetworks);
 
         double fitnessGoodWeights = loyaltyProgressiveCurrentImpact.run(consensusOfGoodWeights, goodWeights);
         double fitnessBadWeights = loyaltyProgressiveCurrentImpact.run(consensusOfBadWeights, badWeights);

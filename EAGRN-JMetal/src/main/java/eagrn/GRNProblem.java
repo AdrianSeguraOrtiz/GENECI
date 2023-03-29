@@ -11,14 +11,14 @@ import org.uma.jmetal.solution.doublesolution.impl.DefaultDoubleSolution;
 
 
 public class GRNProblem extends AbstractDoubleProblem {
-    private Map<String, Double[]> inferredNetworks;
+    private Map<String, Float[]> inferredNetworks;
     private ArrayList<String> geneNames;
     private CutOffCriteria cutOffCriteria;
     protected FitnessFunction[] fitnessFunctions;
     private Map<String, Double[]> timeSeriesMap;
 
     /** Constructor creates a default instance of the GRN problem */
-    public GRNProblem(Map<String, Double[]> inferredNetworks, ArrayList<String> geneNames, CutOffCriteria cutOffCriteria, String strFitnessFormulas, String strTimeSeriesFile) {
+    public GRNProblem(Map<String, Float[]> inferredNetworks, ArrayList<String> geneNames, CutOffCriteria cutOffCriteria, String strFitnessFormulas, String strTimeSeriesFile) {
         
         this.inferredNetworks = inferredNetworks;
         this.geneNames = geneNames;
@@ -67,7 +67,7 @@ public class GRNProblem extends AbstractDoubleProblem {
             x[i] = solution.variables().get(i);
         }
 
-        Map<String, Double> consensus = StaticUtils.makeConsensus(x, this.inferredNetworks);
+        Map<String, Float> consensus = StaticUtils.makeConsensus(x, this.inferredNetworks);
         for (int i = 0; i < fitnessFunctions.length; i++){
             solution.objectives()[i] = fitnessFunctions[i].run(consensus, x);
         }

@@ -13,89 +13,89 @@ public class MinConfCriteriaTest {
 
     @Test
     void shouldReturnNetworkCaseA() {
-        Map<String, Double> links = new HashMap<>();
-        links.put("A;B", 0.0);
-        links.put("A;C", 0.0);
-        links.put("B;C", 0.0);
+        Map<String, Float> links = new HashMap<>();
+        links.put("A;B", 0.0f);
+        links.put("A;C", 0.0f);
+        links.put("B;C", 0.0f);
 
         ArrayList<String> geneNames = new ArrayList<>();
         geneNames.add("A");
         geneNames.add("B");
         geneNames.add("C");
 
-        MinConfCriteria minConfCriteria = new MinConfCriteria(1.0, geneNames);
-        int[][] matrix = minConfCriteria.getNetwork(links);
+        MinConfCriteria minConfCriteria = new MinConfCriteria(1f, geneNames);
+        boolean[][] matrix = minConfCriteria.getNetwork(links);
 
-        assertArrayEquals(new int[]{0, 0, 0}, matrix[0]);
-        assertArrayEquals(new int[]{0, 0, 0}, matrix[1]);
-        assertArrayEquals(new int[]{0, 0, 0}, matrix[2]);
+        assertArrayEquals(new boolean[]{false, false, false}, matrix[0]);
+        assertArrayEquals(new boolean[]{false, false, false}, matrix[1]);
+        assertArrayEquals(new boolean[]{false, false, false}, matrix[2]);
 
-        Map<String, Double> goodLinks = minConfCriteria.getCutMap(links);
-        Map<String, Double> test = new HashMap<>();
+        Map<String, Float> goodLinks = minConfCriteria.getCutMap(links);
+        Map<String, Float> test = new HashMap<>();
 
         assertTrue(goodLinks.equals(test));
     }
 
     @Test
     void shouldReturnNetworkCaseB() {
-        Map<String, Double> links = new HashMap<>();
-        links.put("A;B", 0.6);
-        links.put("A;C", 0.4);
-        links.put("B;C", 0.0);
+        Map<String, Float> links = new HashMap<>();
+        links.put("A;B", 0.6f);
+        links.put("A;C", 0.4f);
+        links.put("B;C", 0.0f);
 
         ArrayList<String> geneNames = new ArrayList<>();
         geneNames.add("A");
         geneNames.add("B");
         geneNames.add("C");
 
-        MinConfCriteria minConfCriteria = new MinConfCriteria(0.5, geneNames);
-        int[][] matrix = minConfCriteria.getNetwork(links);
+        MinConfCriteria minConfCriteria = new MinConfCriteria(0.5f, geneNames);
+        boolean[][] matrix = minConfCriteria.getNetwork(links);
 
-        assertArrayEquals(new int[]{0, 1, 0}, matrix[0]);
-        assertArrayEquals(new int[]{0, 0, 0}, matrix[1]);
-        assertArrayEquals(new int[]{0, 0, 0}, matrix[2]);
+        assertArrayEquals(new boolean[]{false, true, false}, matrix[0]);
+        assertArrayEquals(new boolean[]{false, false, false}, matrix[1]);
+        assertArrayEquals(new boolean[]{false, false, false}, matrix[2]);
 
-        Map<String, Double> goodLinks = minConfCriteria.getCutMap(links);
-        Map<String, Double> test = new HashMap<>();
-        test.put("A;B", 0.6);
+        Map<String, Float> goodLinks = minConfCriteria.getCutMap(links);
+        Map<String, Float> test = new HashMap<>();
+        test.put("A;B", 0.6f);
 
         assertTrue(goodLinks.equals(test));
     }
 
     @Test
     void shouldReturnNetworkCaseC() {
-        Map<String, Double> links = new HashMap<>();
-        links.put("A;B", 1.0);
-        links.put("A;C", 0.2);
-        links.put("B;C", 0.6);
+        Map<String, Float> links = new HashMap<>();
+        links.put("A;B", 1.0f);
+        links.put("A;C", 0.2f);
+        links.put("B;C", 0.6f);
 
         ArrayList<String> geneNames = new ArrayList<>();
         geneNames.add("A");
         geneNames.add("B");
         geneNames.add("C");
 
-        MinConfCriteria minConfCriteria = new MinConfCriteria(0.5, geneNames);
-        int[][] matrix = minConfCriteria.getNetwork(links);
+        MinConfCriteria minConfCriteria = new MinConfCriteria(0.5f, geneNames);
+        boolean[][] matrix = minConfCriteria.getNetwork(links);
 
-        assertArrayEquals(new int[]{0, 1, 0}, matrix[0]);
-        assertArrayEquals(new int[]{0, 0, 1}, matrix[1]);
-        assertArrayEquals(new int[]{0, 0, 0}, matrix[2]);
+        assertArrayEquals(new boolean[]{false, true, false}, matrix[0]);
+        assertArrayEquals(new boolean[]{false, false, true}, matrix[1]);
+        assertArrayEquals(new boolean[]{false, false, false}, matrix[2]);
 
-        Map<String, Double> goodLinks = minConfCriteria.getCutMap(links);
-        Map<String, Double> test = new HashMap<>();
-        test.put("A;B", 1.0);
-        test.put("B;C", 0.6);
+        Map<String, Float> goodLinks = minConfCriteria.getCutMap(links);
+        Map<String, Float> test = new HashMap<>();
+        test.put("A;B", 1.0f);
+        test.put("B;C", 0.6f);
 
         assertTrue(goodLinks.equals(test));
     }
 
     @Test
     void shouldReturnNetworkCaseD() {
-        Map<String, Double> links = new HashMap<>();
-        links.put("A;B", 0.3);
-        links.put("A;D", 0.5);
-        links.put("B;C", 0.1);
-        links.put("C;D", 0.1);
+        Map<String, Float> links = new HashMap<>();
+        links.put("A;B", 0.3f);
+        links.put("A;D", 0.5f);
+        links.put("B;C", 0.1f);
+        links.put("C;D", 0.1f);
 
         ArrayList<String> geneNames = new ArrayList<>();
         geneNames.add("A");
@@ -103,18 +103,18 @@ public class MinConfCriteriaTest {
         geneNames.add("C");
         geneNames.add("D");
 
-        MinConfCriteria minConfCriteria = new MinConfCriteria(0.2, geneNames);
-        int[][] matrix = minConfCriteria.getNetwork(links);
+        MinConfCriteria minConfCriteria = new MinConfCriteria(0.2f, geneNames);
+        boolean[][] matrix = minConfCriteria.getNetwork(links);
 
-        assertArrayEquals(new int[]{0, 1, 0, 1}, matrix[0]);
-        assertArrayEquals(new int[]{0, 0, 0, 0}, matrix[1]);
-        assertArrayEquals(new int[]{0, 0, 0, 0}, matrix[2]);
-        assertArrayEquals(new int[]{0, 0, 0, 0}, matrix[3]);
+        assertArrayEquals(new boolean[]{false, true, false, true}, matrix[0]);
+        assertArrayEquals(new boolean[]{false, false, false, false}, matrix[1]);
+        assertArrayEquals(new boolean[]{false, false, false, false}, matrix[2]);
+        assertArrayEquals(new boolean[]{false, false, false, false}, matrix[3]);
 
-        Map<String, Double> goodLinks = minConfCriteria.getCutMap(links);
-        Map<String, Double> test = new HashMap<>();
-        test.put("A;B", 0.3);
-        test.put("A;D", 0.5);
+        Map<String, Float> goodLinks = minConfCriteria.getCutMap(links);
+        Map<String, Float> test = new HashMap<>();
+        test.put("A;B", 0.3f);
+        test.put("A;D", 0.5f);
 
         assertTrue(goodLinks.equals(test));
     }

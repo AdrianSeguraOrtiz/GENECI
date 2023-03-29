@@ -25,15 +25,16 @@ public class KatzDistribution extends Topology {
     }
 
     @Override
-    public double run(Map<String, Double> consensus, Double[] x) {
+    public double run(Map<String, Float> consensus, Double[] x) {
         double score = 0.0;
-        double[][] adjacencyMatrix = StaticUtils.getMatrixFromEdgeList(consensus, geneNames, decimals);
+        float[][] adjacencyMatrix = StaticUtils.getMatrixFromEdgeList(consensus, geneNames, decimals);
         int key = Arrays.deepHashCode(adjacencyMatrix);
 
         if (this.cache.containsKey(key)){
             score = this.cache.get(key);
         } else {
             Graph<String, DefaultEdge> graph = super.getGraphFromWeightedNetwork(adjacencyMatrix, geneNames, true);
+            adjacencyMatrix = null;
             KatzCentrality<String, DefaultEdge> evaluator = new KatzCentrality<>(graph);
             Double[] scores = evaluator.getScores().values().toArray(new Double[0]);
             for (int i = 0; i < scores.length; i++) {

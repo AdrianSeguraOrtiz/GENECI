@@ -66,7 +66,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         int populationSize;
         int numEvaluations;
         String strCutOffCriteria;
-        double cutOffValue;
+        float cutOffValue;
         String strFitnessFormulas;
         String strAlgorithm;
         int numOfThreads;
@@ -81,7 +81,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 populationSize = Integer.parseInt(args[3]);
                 numEvaluations = Integer.parseInt(args[4]);
                 strCutOffCriteria = args[5];
-                cutOffValue = Double.parseDouble(args[6]);
+                cutOffValue = Float.parseFloat(args[6]);
                 strFitnessFormulas = args[7];
                 strAlgorithm = args[8];
                 numOfThreads = Integer.parseInt(args[9]);
@@ -93,7 +93,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 populationSize = 100;
                 numEvaluations = 25000;
                 strCutOffCriteria = "MinConf";
-                cutOffValue = 0.5;
+                cutOffValue = 0.5f;
                 strFitnessFormulas = "Quality;BinarizedDegreeDistribution";
                 strAlgorithm = "NSGAII";
                 numOfThreads = Runtime.getRuntime().availableProcessors();
@@ -130,7 +130,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         File[] files = StaticUtils.getCSVFilesFromDirectory(networkFolder + "/lists/");
 
         /** Extract inferred networks */
-        Map<String, Double[]> inferredNetworks = StaticUtils.readAllInferredNetworkFiles(files);
+        Map<String, Float[]> inferredNetworks = StaticUtils.readAllInferredNetworkFiles(files);
 
         /** Extracting gene names. */
         ArrayList<String> geneNames = StaticUtils.getGeneNames(networkFolder + "/gene_names.txt");
@@ -355,8 +355,8 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             }
 
             /** Get weighted confidence map from winner. */
-            Map<String, Double> consensus = StaticUtils.makeConsensus(winner, inferredNetworks);
-            Map<String, Double> consensusSorted = new LinkedHashMap<>();
+            Map<String, Float> consensus = StaticUtils.makeConsensus(winner, inferredNetworks);
+            Map<String, Float> consensusSorted = new LinkedHashMap<>();
             consensus.entrySet()
                     .stream()
                     .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
@@ -366,7 +366,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             StaticUtils.writeConsensus(outputFolder + "/final_list.csv", consensusSorted);
 
             /** Calculate the binary matrix from the list above. */
-            int[][] binaryNetwork = cutOffCriteria.getNetwork(consensusSorted);
+            boolean[][] binaryNetwork = cutOffCriteria.getNetwork(consensusSorted);
 
             /** Write the resulting binary matrix to an output csv file. */
             StaticUtils.writeBinaryNetwork(outputFolder + "/final_network.csv", binaryNetwork, geneNames);

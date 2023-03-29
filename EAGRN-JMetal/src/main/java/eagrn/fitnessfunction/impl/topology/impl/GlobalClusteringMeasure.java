@@ -24,15 +24,16 @@ public class GlobalClusteringMeasure extends Topology {
     }
 
     @Override
-    public double run(Map<String, Double> consensus, Double[] x) { 
+    public double run(Map<String, Float> consensus, Double[] x) { 
         double score = 0.0;
-        int[][] adjacencyMatrix = cutOffCriteria.getNetwork(consensus);
+        boolean[][] adjacencyMatrix = cutOffCriteria.getNetwork(consensus);
         int key = Arrays.deepHashCode(adjacencyMatrix);
 
         if (this.cache.containsKey(key)){
             score = this.cache.get(key);
         } else {
             Graph<String, DefaultEdge> graph = super.getGraphFromNetwork(adjacencyMatrix, geneNames, false);
+            adjacencyMatrix = null;
             ClusteringCoefficient<String, DefaultEdge> evaluator = new ClusteringCoefficient<>(graph);
             score = -evaluator.getGlobalClusteringCoefficient();
             this.cache.put(key, score);

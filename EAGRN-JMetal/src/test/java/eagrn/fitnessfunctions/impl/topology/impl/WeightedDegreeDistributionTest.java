@@ -48,12 +48,12 @@ public class WeightedDegreeDistributionTest {
         };
     }
 
-    private Map<String, Double> getMapFromGraph(Graph<String, DefaultEdge> graph){
-        Map<String, Double> map = new HashMap<>();
+    private Map<String, Float> getMapFromGraph(Graph<String, DefaultEdge> graph){
+        Map<String, Float> map = new HashMap<>();
         JMetalRandom random = JMetalRandom.getInstance();
         for (DefaultEdge edge : graph.edgeSet()) {
             String[] strEdge = edge.toString().split("[ ():]");
-            map.put(strEdge[1] + ";" + strEdge[4], random.nextDouble(0.5, 1.0));
+            map.put(strEdge[1] + ";" + strEdge[4], (float) random.nextDouble(0.5, 1.0));
         }
         return map;
     }
@@ -63,12 +63,12 @@ public class WeightedDegreeDistributionTest {
         Graph<String, DefaultEdge> randomGraph = new SimpleDirectedGraph<>(getVertexSupplier(), SupplierUtil.createDefaultEdgeSupplier(), false);
         GnpRandomGraphGenerator<String, DefaultEdge> randomGenerator = new GnpRandomGraphGenerator<>(size, 0.5);
         randomGenerator.generateGraph(randomGraph);
-        Map<String, Double> badTopologyConsensus = getMapFromGraph(randomGraph);
+        Map<String, Float> badTopologyConsensus = getMapFromGraph(randomGraph);
 
         Graph<String, DefaultEdge> scaleFreeGraph = new SimpleDirectedGraph<>(getVertexSupplier(), SupplierUtil.createDefaultEdgeSupplier(), false);
         ScaleFreeGraphGenerator<String, DefaultEdge> scaleFreeGenerator = new ScaleFreeGraphGenerator<>(size);
         scaleFreeGenerator.generateGraph(scaleFreeGraph);
-        Map<String, Double> goodTopologyConsensus = getMapFromGraph(scaleFreeGraph);
+        Map<String, Float> goodTopologyConsensus = getMapFromGraph(scaleFreeGraph);
 
         Supplier<String> vSupplier = getVertexSupplier();
         ArrayList<String> geneNames = new ArrayList<>();

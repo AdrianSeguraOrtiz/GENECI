@@ -13,13 +13,13 @@ public class LoyaltyProgressiveCurrentImpact extends Loyalty {
     }
 
     @Override
-    public double run(Map<String, Double> consensus, Double[] x) {
+    public double run(Map<String, Float> consensus, Double[] x) {
 
         double sumSquareError = 0;
         int cnt = 0;
         for (Map.Entry<String, Double[]> tsPair : super.timeSeriesMap.entrySet()) {
             Map<String, Double> factors = new HashMap<String, Double>();
-            for (Map.Entry<String, Double> cPair : consensus.entrySet()) {
+            for (Map.Entry<String, Float> cPair : consensus.entrySet()) {
                 String[] genes = cPair.getKey().split(";");
                 if (tsPair.getKey().equals(genes[1])){
                     factors.put(genes[0], cPair.getValue() * super.regulationSigns.get(cPair.getKey()));
@@ -32,7 +32,6 @@ public class LoyaltyProgressiveCurrentImpact extends Loyalty {
                 double prediction = currExpLevel;
                 for (Map.Entry<String, Double> factor : factors.entrySet()) {
                     prediction += super.variationsMap.get(factor.getKey())[i] * factor.getValue();
-                    // prediction += this.variationsMap.get(factor.getKey())[i-1] * factor.getValue();
                 }
                 sumSquareError += Math.pow(nextExpLevel - prediction, 2);
                 cnt ++;

@@ -10,7 +10,7 @@ import eagrn.utils.fitnessevolution.GRNProblemFitnessEvolution;
 
 public class GRNProblemAverageFitnessEvolution extends GRNProblemFitnessEvolution {
     
-    public GRNProblemAverageFitnessEvolution(Map<String, Double[]> inferredNetworks, ArrayList<String> geneNames,
+    public GRNProblemAverageFitnessEvolution(Map<String, Float[]> inferredNetworks, ArrayList<String> geneNames,
             CutOffCriteria cutOffCriteria, String strFitnessFormulas, String strTimeSeriesFile) {
         super(inferredNetworks, geneNames, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
     }

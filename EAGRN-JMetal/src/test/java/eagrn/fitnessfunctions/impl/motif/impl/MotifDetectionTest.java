@@ -15,11 +15,11 @@ import eagrn.fitnessfunction.impl.motif.impl.MotifDetection;
 
 public class MotifDetectionTest {
 
-    private Map<String, Double> getMapFromGraph(Graph<String, DefaultEdge> graph) {
-        Map<String, Double> map = new HashMap<>();
+    private Map<String, Float> getMapFromGraph(Graph<String, DefaultEdge> graph) {
+        Map<String, Float> map = new HashMap<>();
         for (DefaultEdge edge : graph.edgeSet()) {
             String[] strEdge = edge.toString().split("[ ():]");
-            map.put(strEdge[1] + ";" + strEdge[4], 1.0);
+            map.put(strEdge[1] + ";" + strEdge[4], 1.0f);
         }
         return map;
     }
@@ -37,11 +37,11 @@ public class MotifDetectionTest {
         graph.addEdge("B", "C");
         graph.addEdge("A", "C");
 
-        Map<String, Double> motifMap = getMapFromGraph(graph);
+        Map<String, Float> motifMap = getMapFromGraph(graph);
 
         Double[] x = new Double[] {};
 
-        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0, geneNames),
+        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0f, geneNames),
                 new String[] { "FeedforwardLoop" });
         double fitnessValue = motifDetection.run(motifMap, x);
 
@@ -60,11 +60,11 @@ public class MotifDetectionTest {
         graph.addEdge("A", "C");
         graph.addEdge("B", "C");
 
-        Map<String, Double> motifMap = getMapFromGraph(graph);
+        Map<String, Float> motifMap = getMapFromGraph(graph);
 
         Double[] x = new Double[] {};
 
-        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0, geneNames),
+        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0f, geneNames),
                 new String[] { "CoRegulation" });
         double fitnessValue = motifDetection.run(motifMap, x);
 
@@ -85,11 +85,11 @@ public class MotifDetectionTest {
         graph.addEdge("C", "D");
         graph.addEdge("D", "E");
 
-        Map<String, Double> motifMap = getMapFromGraph(graph);
+        Map<String, Float> motifMap = getMapFromGraph(graph);
 
         Double[] x = new Double[] {};
 
-        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0, geneNames),
+        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0f, geneNames),
                 new String[] { "Cascade" });
         double fitnessValue = motifDetection.run(motifMap, x);
 
@@ -110,11 +110,11 @@ public class MotifDetectionTest {
         graph.addEdge("D", "E");
         graph.addEdge("E", "F");
 
-        Map<String, Double> motifMap = getMapFromGraph(graph);
+        Map<String, Float> motifMap = getMapFromGraph(graph);
 
         Double[] x = new Double[] {};
 
-        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0, geneNames),
+        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0f, geneNames),
                 new String[] { "Cascade" });
         double fitnessValue = motifDetection.run(motifMap, x);
 
@@ -135,11 +135,11 @@ public class MotifDetectionTest {
         graph.addEdge("C", "A");
         graph.addEdge("A", "C");
 
-        Map<String, Double> motifMap = getMapFromGraph(graph);
+        Map<String, Float> motifMap = getMapFromGraph(graph);
 
         Double[] x = new Double[] {};
 
-        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0, geneNames),
+        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0f, geneNames),
                 new String[] { "FeedbackLoopWithCoRegulation" });
         double fitnessValue = motifDetection.run(motifMap, x);
 
@@ -162,11 +162,11 @@ public class MotifDetectionTest {
 
         graph.addEdge("E", "B");
 
-        Map<String, Double> motifMap = getMapFromGraph(graph);
+        Map<String, Float> motifMap = getMapFromGraph(graph);
 
         Double[] x = new Double[] {};
 
-        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0, geneNames),
+        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0f, geneNames),
                 new String[] { "FeedforwardChain" });
         double fitnessValue = motifDetection.run(motifMap, x);
 
@@ -189,11 +189,11 @@ public class MotifDetectionTest {
 
         graph.addEdge("D", "A");
 
-        Map<String, Double> motifMap = getMapFromGraph(graph);
+        Map<String, Float> motifMap = getMapFromGraph(graph);
 
         Double[] x = new Double[] {};
 
-        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0, geneNames),
+        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0f, geneNames),
                 new String[] { "FeedforwardChain" });
         double fitnessValue = motifDetection.run(motifMap, x);
 
@@ -217,11 +217,11 @@ public class MotifDetectionTest {
         graph.addEdge("D", "A");
         graph.addEdge("E", "B");
 
-        Map<String, Double> motifMap = getMapFromGraph(graph);
+        Map<String, Float> motifMap = getMapFromGraph(graph);
 
         Double[] x = new Double[] {};
 
-        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0, geneNames),
+        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0f, geneNames),
                 new String[] { "FeedforwardChain" });
         double fitnessValue = motifDetection.run(motifMap, x);
 
@@ -246,11 +246,11 @@ public class MotifDetectionTest {
         graph.addEdge("D", "A");
         graph.addEdge("E", "B");
 
-        Map<String, Double> motifMap = getMapFromGraph(graph);
+        Map<String, Float> motifMap = getMapFromGraph(graph);
 
         Double[] x = new Double[] {};
 
-        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0, geneNames),
+        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0f, geneNames),
                 new String[] { "FeedforwardChain" });
         double fitnessValue = motifDetection.run(motifMap, x);
 
@@ -269,11 +269,11 @@ public class MotifDetectionTest {
         graph.addEdge("A", "B");
         graph.addEdge("B", "C");
 
-        Map<String, Double> motifMap = getMapFromGraph(graph);
+        Map<String, Float> motifMap = getMapFromGraph(graph);
 
         Double[] x = new Double[] {};
 
-        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0, geneNames),
+        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0f, geneNames),
                 new String[] { "Differentiation" });
         double fitnessValue = motifDetection.run(motifMap, x);
 
@@ -296,15 +296,15 @@ public class MotifDetectionTest {
         graph.addEdge("E", "F");
         graph.addEdge("F", "A");
 
-        Map<String, Double> motifMap = getMapFromGraph(graph);
+        Map<String, Float> motifMap = getMapFromGraph(graph);
 
         Double[] x = new Double[] {};
 
-        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0, geneNames),
+        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0f, geneNames),
                 new String[] { "RegulatoryRoute" });
         double fitnessValue = motifDetection.run(motifMap, x);
 
-        assert (fitnessValue == -36);
+        assert (fitnessValue == -25);
     }
 
     @Test
@@ -319,11 +319,11 @@ public class MotifDetectionTest {
         graph.addEdge("A", "B");
         graph.addEdge("A", "C");
 
-        Map<String, Double> motifMap = getMapFromGraph(graph);
+        Map<String, Float> motifMap = getMapFromGraph(graph);
 
         Double[] x = new Double[] {};
 
-        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0, geneNames),
+        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0f, geneNames),
                 new String[] { "Bifurcation" });
         double fitnessValue = motifDetection.run(motifMap, x);
 
@@ -342,11 +342,11 @@ public class MotifDetectionTest {
         graph.addEdge("A", "B");
         graph.addEdge("B", "A");
 
-        Map<String, Double> motifMap = getMapFromGraph(graph);
+        Map<String, Float> motifMap = getMapFromGraph(graph);
 
         Double[] x = new Double[] {};
 
-        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0, geneNames),
+        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0f, geneNames),
                 new String[] { "Coupling" });
         double fitnessValue = motifDetection.run(motifMap, x);
 
@@ -367,11 +367,11 @@ public class MotifDetectionTest {
         graph.addEdge("C", "D");
         graph.addEdge("B", "D");
 
-        Map<String, Double> motifMap = getMapFromGraph(graph);
+        Map<String, Float> motifMap = getMapFromGraph(graph);
 
         Double[] x = new Double[] {};
 
-        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0, geneNames),
+        MotifDetection motifDetection = new MotifDetection(new MinConfCriteria(0.0f, geneNames),
                 new String[] { "BiParallel" });
         double fitnessValue = motifDetection.run(motifMap, x);
 

@@ -10,7 +10,7 @@ import eagrn.utils.fitnessevolution.GRNProblemFitnessEvolution;
 
 public class GRNProblemBestFitnessEvolution extends GRNProblemFitnessEvolution {
     
-    public GRNProblemBestFitnessEvolution(Map<String, Double[]> inferredNetworks, ArrayList<String> geneNames,
+    public GRNProblemBestFitnessEvolution(Map<String, Float[]> inferredNetworks, ArrayList<String> geneNames,
             CutOffCriteria cutOffCriteria, String strFitnessFormulas, String strTimeSeriesFile) {
         super(inferredNetworks, geneNames, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
         for (int i = 0; i < fitnessFunctions.length; i++){
