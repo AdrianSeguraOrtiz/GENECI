@@ -573,16 +573,16 @@ def infer_network(
         typer.echo(f"Infer network from {expression_data} with {tec}")
         # The image is selected according to the chosen technique.
         if tec == "GENIE3_RF":
-            image = f"adriansegura99/geneci_infer-network_genie3"
+            image = f"adriansegura99/geneci_infer-network_genie3:{tag}"
             variant = "RF"
         elif tec == "GENIE3_GBM":
-            image = f"adriansegura99/geneci_infer-network_genie3"
+            image = f"adriansegura99/geneci_infer-network_genie3:{tag}"
             variant = "GBM"
         elif tec == "GENIE3_ET":
-            image = f"adriansegura99/geneci_infer-network_genie3"
+            image = f"adriansegura99/geneci_infer-network_genie3:{tag}"
             variant = "ET"
         else:
-            image = f"adriansegura99/geneci_infer-network_{tec.lower()}"
+            image = f"adriansegura99/geneci_infer-network_{tec.lower()}:{tag}"
             variant = None
 
         # In case it is not available on the device, it is downloaded from the repository.
