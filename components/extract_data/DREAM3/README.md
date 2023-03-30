@@ -15,7 +15,7 @@ This component is responsible for downloading differential expression data, gold
 ## Build
 
 ```
-docker build -t adriansegura99/geneci_extract-data_dream3 -f components/extract_data/DREAM3/Dockerfile .
+docker build -t adriansegura99/geneci_extract-data_dream3:1.0.0 -f components/extract_data/DREAM3/Dockerfile .
 ```
 
 ## Run

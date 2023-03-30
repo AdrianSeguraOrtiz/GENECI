@@ -15,7 +15,7 @@ This component is responsible for downloading differential expression data and g
 ## Build
 
 ```
-docker build -t adriansegura99/geneci_extract-data_grndata -f components/extract_data/GRNDATA/Dockerfile .
+docker build -t adriansegura99/geneci_extract-data_grndata:1.0.0 -f components/extract_data/GRNDATA/Dockerfile .
 ```
 
 ## Run

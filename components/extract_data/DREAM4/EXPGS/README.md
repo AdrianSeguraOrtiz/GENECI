@@ -15,7 +15,7 @@ This component is responsible for downloading differential expression data and g
 ## Build
 
 ```
-docker build -t adriansegura99/geneci_extract-data_dream4-expgs -f components/extract_data/DREAM4/EXPGS/Dockerfile .
+docker build -t adriansegura99/geneci_extract-data_dream4-expgs:1.0.0 -f components/extract_data/DREAM4/EXPGS/Dockerfile .
 ```
 
 ## Run

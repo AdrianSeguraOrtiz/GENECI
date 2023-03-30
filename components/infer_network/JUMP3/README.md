@@ -15,7 +15,7 @@ Given a CSV file with differential expression data, this component infers its ge
 ## Build
 
 ```
-docker build -t adriansegura99/geneci_infer-network_jump3 -f components/infer_network/JUMP3/Dockerfile .
+docker build -t adriansegura99/geneci_infer-network_jump3:1.0.0 -f components/infer_network/JUMP3/Dockerfile .
 ```
 
 ## Run

@@ -27,8 +27,10 @@ app.add_typer(
 client = docker.from_env()
 # List available images on the current device.
 available_images = [
-    i.tags[0].split(":")[0] if len(i.tags) > 0 else None for i in client.images.list()
+   img for tags in [i.tags if len(i.tags) > 0 else None for i in client.images.list()] for img in tags
 ]
+# Set docker tag
+tag = "1.0.0"
 
 # Definition of enumerated classes.
 class Database(str, Enum):
@@ -169,7 +171,7 @@ def expression_data(
         # Execute the corresponding image according to the database.
         if db == "DREAM3":
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_dream3"
+            image = f"adriansegura99/geneci_extract-data_dream3:{tag}"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 typer.echo("Downloading docker image ...")
@@ -190,7 +192,7 @@ def expression_data(
 
         elif db == "DREAM4":
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_dream4-expgs"
+            image = f"adriansegura99/geneci_extract-data_dream4-expgs:{tag}"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 typer.echo("Downloading docker image ...")
@@ -211,7 +213,7 @@ def expression_data(
 
         elif db == "DREAM5":
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_dream5"
+            image = f"adriansegura99/geneci_extract-data_dream5:{tag}"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 typer.echo("Downloading docker image ...")
@@ -232,7 +234,7 @@ def expression_data(
 
         elif db == "IRMA":
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_irma"
+            image = f"adriansegura99/geneci_extract-data_irma:{tag}"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 typer.echo("Downloading docker image ...")
@@ -253,7 +255,7 @@ def expression_data(
 
         else:
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_grndata"
+            image = f"adriansegura99/geneci_extract-data_grndata:{tag}"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 typer.echo("Downloading docker image ...")
@@ -324,7 +326,7 @@ def gold_standard(
         # Execute the corresponding image according to the database.
         if db == "DREAM3":
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_dream3"
+            image = f"adriansegura99/geneci_extract-data_dream3:{tag}"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 typer.echo("Downloading docker image ...")
@@ -345,7 +347,7 @@ def gold_standard(
 
         elif db == "DREAM4":
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_dream4-expgs"
+            image = f"adriansegura99/geneci_extract-data_dream4-expgs:{tag}"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 typer.echo("Downloading docker image ...")
@@ -366,7 +368,7 @@ def gold_standard(
 
         elif db == "DREAM5":
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_dream5"
+            image = f"adriansegura99/geneci_extract-data_dream5:{tag}"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 typer.echo("Downloading docker image ...")
@@ -387,7 +389,7 @@ def gold_standard(
 
         elif db == "IRMA":
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_irma"
+            image = f"adriansegura99/geneci_extract-data_irma:{tag}"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 typer.echo("Downloading docker image ...")
@@ -408,7 +410,7 @@ def gold_standard(
 
         else:
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_grndata"
+            image = f"adriansegura99/geneci_extract-data_grndata:{tag}"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 typer.echo("Downloading docker image ...")
@@ -464,7 +466,7 @@ def evaluation_data(
         # Execute the corresponding image according to the database.
         if db == "DREAM3":
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_dream3"
+            image = f"adriansegura99/geneci_extract-data_dream3:{tag}"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 typer.echo("Downloading docker image ...")
@@ -485,7 +487,7 @@ def evaluation_data(
 
         elif db == "DREAM4":
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_dream4-eval"
+            image = f"adriansegura99/geneci_extract-data_dream4-eval:{tag}"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 typer.echo("Downloading docker image ...")
@@ -506,7 +508,7 @@ def evaluation_data(
 
         elif db == "DREAM5":
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_dream5"
+            image = f"adriansegura99/geneci_extract-data_dream5:{tag}"
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
                 typer.echo("Downloading docker image ...")
@@ -690,7 +692,7 @@ def apply_cut(
     output_file.parent.mkdir(exist_ok=True, parents=True)
 
     # Define docker image
-    image = "adriansegura99/geneci_apply-cut"
+    image = f"adriansegura99/geneci_apply-cut:{tag}"
     # In case it is not available on the device, it is downloaded from the repository.
     if not image in available_images:
         typer.echo("Downloading docker image ...")
@@ -821,7 +823,7 @@ def optimize_ensemble(
             f.write(",".join(sorted(gene_list)))
 
     # Define docker image
-    image = "adriansegura99/geneci_optimize-ensemble"
+    image = f"adriansegura99/geneci_optimize-ensemble:{tag}"
     # In case it is not available on the device, it is downloaded from the repository.
     if not image in available_images:
         typer.echo("Downloading docker image ...")
@@ -915,7 +917,7 @@ def dream_prediction(
     shutil.copyfile(confidence_list, tmp_confidence_list_dir)
 
     # Define docker image
-    image = "adriansegura99/geneci_evaluate_dream-prediction"
+    image = f"adriansegura99/geneci_evaluate_dream-prediction:{tag}"
     # In case it is not available on the device, it is downloaded from the repository.
     if not image in available_images:
         typer.echo("Downloading docker image ...")
@@ -969,7 +971,7 @@ def generic_prediction(
     shutil.copyfile(gs_binary_matrix, tmp_gsbm_dir)
 
     # Define docker image
-    image = "adriansegura99/geneci_evaluate_generic-prediction"
+    image = f"adriansegura99/geneci_evaluate_generic-prediction:{tag}"
     # In case it is not available on the device, it is downloaded from the repository.
     if not image in available_images:
         typer.echo("Downloading docker image ...")
@@ -1123,7 +1125,7 @@ def draw_network(
         shutil.copyfile(file, tmp_file_dir)
 
     # Define docker image
-    image = "adriansegura99/geneci_draw-network"
+    image = f"adriansegura99/geneci_draw-network:{tag}"
     # In case it is not available on the device, it is downloaded from the repository.
     if not image in available_images:
         typer.echo("Downloading docker image ...")
