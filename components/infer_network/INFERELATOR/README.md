@@ -15,7 +15,7 @@ Given a CSV file with time series of gene expression data, this component infers
 ## Build
 
 ```
-docker build -t adriansegura99/geneci_infer-network_inferelator -f components/infer_network/INFERELATOR/Dockerfile .
+docker build -t adriansegura99/geneci_infer-network_inferelator:2.0.0 -f components/infer_network/INFERELATOR/Dockerfile .
 ```
 
 ## Run

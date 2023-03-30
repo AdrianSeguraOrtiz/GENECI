@@ -15,7 +15,7 @@ Given a CSV file with time series of gene expression data, this component infers
 ## Build
 
 ```
-docker build -t adriansegura99/geneci_infer-network_meomi -f components/infer_network/MEOMI/Dockerfile .
+docker build -t adriansegura99/geneci_infer-network_meomi:2.0.0 -f components/infer_network/MEOMI/Dockerfile .
 ```
 
 ## Run

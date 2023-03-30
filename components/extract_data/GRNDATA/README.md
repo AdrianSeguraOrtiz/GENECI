@@ -15,7 +15,7 @@ This component is responsible for downloading time series of gene expression dat
 ## Build
 
 ```
-docker build -t adriansegura99/geneci_extract-data_grndata -f components/extract_data/GRNDATA/Dockerfile .
+docker build -t adriansegura99/geneci_extract-data_grndata:2.0.0 -f components/extract_data/GRNDATA/Dockerfile .
 ```
 
 ## Run

@@ -38,7 +38,7 @@ public class DynamicsMeasureAutovectorsStability implements FitnessFunction{
         return 1.0 / score;
     }
 
-    public static double[][] getDoubleMatrixFromEdgeList(Map<String, Float> links, ArrayList<String> geneNames, int decimals) {
+    public double[][] getDoubleMatrixFromEdgeList(Map<String, Float> links, ArrayList<String> geneNames, int decimals) {
         int numberOfNodes = geneNames.size();
         double[][] network = new double[numberOfNodes][numberOfNodes];
 

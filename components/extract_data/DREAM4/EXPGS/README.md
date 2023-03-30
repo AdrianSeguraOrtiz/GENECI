@@ -15,7 +15,7 @@ This component is responsible for downloading time series of gene expression dat
 ## Build
 
 ```
-docker build -t adriansegura99/geneci_extract-data_dream4-expgs -f components/extract_data/DREAM4/EXPGS/Dockerfile .
+docker build -t adriansegura99/geneci_extract-data_dream4-expgs:2.0.0 -f components/extract_data/DREAM4/EXPGS/Dockerfile .
 ```
 
 ## Run

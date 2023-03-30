@@ -15,7 +15,7 @@ This component is responsible for drawing gene regulatory networks from confiden
 ## Build
 
 ```
-docker build -t adriansegura99/geneci_draw-network -f components/draw_network/Dockerfile .
+docker build -t adriansegura99/geneci_draw-network:2.0.0 -f components/draw_network/Dockerfile .
 ```
 
 ## Run

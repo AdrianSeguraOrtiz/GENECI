@@ -15,7 +15,7 @@ This component is responsible for downloading evaluation data from DREAM4 challe
 ## Build
 
 ```
-docker build -t adriansegura99/geneci_extract-data_dream4-eval -f components/extract_data/DREAM4/EVAL/Dockerfile .
+docker build -t adriansegura99/geneci_extract-data_dream4-eval:2.0.0 -f components/extract_data/DREAM4/EVAL/Dockerfile .
 ```
 
 ## Run

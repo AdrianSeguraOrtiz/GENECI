@@ -23,7 +23,7 @@ public class DynamicsMeasureTimeStability implements FitnessFunction {
      * En términos generales, un valor intermedio para el parámetro threshold en
      * este tipo de algoritmos suele ser alrededor del 0.01 o 0.05.
      */
-    public static double dynamicsMeasureTimeStability(float[][] adjacencyMatrix, double threshold) {
+    public double dynamicsMeasureTimeStability(float[][] adjacencyMatrix, double threshold) {
         int numNodes = adjacencyMatrix.length;
         double[] nodeActivities = new double[numNodes];
         double[] previousActivities = new double[numNodes];
