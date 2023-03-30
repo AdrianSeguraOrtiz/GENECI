@@ -250,8 +250,11 @@ client = docker.from_env()
 
 # List available images on the current device.
 available_images = [
-    i.tags[0].split(":")[0] if len(i.tags) > 0 else None for i in client.images.list()
+    img for tags in [i.tags if len(i.tags) > 0 else None for i in client.images.list()] for img in tags
 ]
+
+# Set docker tag
+tag = "2.0.0"
 
 # Function for obtaining the list of genes from lists of confidence levels.
 def get_gene_names_from_conf_list(conf_list):
@@ -522,7 +525,7 @@ def generate_from_scratch(
     tmp_folder.mkdir(exist_ok=True, parents=True)
 
     # Define docker image
-    image = "adriansegura99/geneci_generate-data_sysgensim"
+    image = f"adriansegura99/geneci_generate-data_sysgensim:{tag}"
 
     # In case it is not available on the device, it is downloaded from the repository.
     if not image in available_images:
@@ -746,7 +749,7 @@ def generate_from_real_network(
     df_links.to_csv(tmp_network_dir, sep="\t", header=False, index=False)
 
     # Define docker image
-    image = "adriansegura99/geneci_generate-data_sysgensim"
+    image = f"adriansegura99/geneci_generate-data_sysgensim:{tag}"
 
     # In case it is not available on the device, it is downloaded from the repository.
     if not image in available_images:
@@ -862,7 +865,7 @@ def expression_data(
         if db == Database.DREAM3:
 
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_dream3"
+            image = f"adriansegura99/geneci_extract-data_dream3:{tag}"
 
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
@@ -875,7 +878,7 @@ def expression_data(
         elif db == Database.DREAM4:
 
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_dream4-expgs"
+            image = f"adriansegura99/geneci_extract-data_dream4-expgs:{tag}"
 
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
@@ -888,7 +891,7 @@ def expression_data(
         elif db == Database.DREAM5:
 
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_dream5"
+            image = f"adriansegura99/geneci_extract-data_dream5:{tag}"
 
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
@@ -901,7 +904,7 @@ def expression_data(
         elif db == Database.IRMA:
 
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_irma"
+            image = f"adriansegura99/geneci_extract-data_irma:{tag}"
 
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
@@ -914,7 +917,7 @@ def expression_data(
         else:
 
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_grndata"
+            image = f"adriansegura99/geneci_extract-data_grndata:{tag}"
 
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
@@ -983,7 +986,7 @@ def gold_standard(
         if db == Database.DREAM3:
 
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_dream3"
+            image = f"adriansegura99/geneci_extract-data_dream3:{tag}"
 
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
@@ -996,7 +999,7 @@ def gold_standard(
         elif db == Database.DREAM4:
 
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_dream4-expgs"
+            image = f"adriansegura99/geneci_extract-data_dream4-expgs:{tag}"
 
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
@@ -1009,7 +1012,7 @@ def gold_standard(
         elif db == Database.DREAM5:
 
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_dream5"
+            image = f"adriansegura99/geneci_extract-data_dream5:{tag}"
 
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
@@ -1022,7 +1025,7 @@ def gold_standard(
         elif db == Database.IRMA:
 
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_irma"
+            image = f"adriansegura99/geneci_extract-data_irma:{tag}"
 
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
@@ -1035,7 +1038,7 @@ def gold_standard(
         else:
 
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_grndata"
+            image = f"adriansegura99/geneci_extract-data_grndata:{tag}"
 
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
@@ -1089,7 +1092,7 @@ def evaluation_data(
         if db == Database.DREAM3:
 
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_dream3"
+            image = f"adriansegura99/geneci_extract-data_dream3:{tag}"
 
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
@@ -1102,7 +1105,7 @@ def evaluation_data(
         elif db == Database.DREAM4:
 
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_dream4-eval"
+            image = f"adriansegura99/geneci_extract-data_dream4-eval:{tag}"
 
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
@@ -1117,7 +1120,7 @@ def evaluation_data(
         elif db == Database.DREAM5:
 
             # Define docker image
-            image = "adriansegura99/geneci_extract-data_dream5"
+            image = f"adriansegura99/geneci_extract-data_dream5:{tag}"
 
             # In case it is not available on the device, it is downloaded from the repository.
             if not image in available_images:
@@ -1204,16 +1207,16 @@ def infer_network(
 
         # The image is selected according to the chosen technique.
         if tec == Technique.GENIE3_RF:
-            image = f"adriansegura99/geneci_infer-network_genie3"
+            image = f"adriansegura99/geneci_infer-network_genie3:{tag}"
             variant = "RF"
         elif tec == Technique.GRNBOOST2:
-            image = f"adriansegura99/geneci_infer-network_genie3"
+            image = f"adriansegura99/geneci_infer-network_genie3:{tag}"
             variant = "GBM"
         elif tec == Technique.GENIE3_ET:
-            image = f"adriansegura99/geneci_infer-network_genie3"
+            image = f"adriansegura99/geneci_infer-network_genie3:{tag}"
             variant = "ET"
         else:
-            image = f"adriansegura99/geneci_infer-network_{tec.lower()}"
+            image = f"adriansegura99/geneci_infer-network_{tec.lower()}:{tag}"
             variant = None
 
         # In case the image comes from a matlab tool, we assign the corresponding prefix.
@@ -1367,7 +1370,7 @@ def apply_cut(
     Path(output_file).parent.mkdir(exist_ok=True, parents=True)
 
     # Define docker image
-    image = "adriansegura99/geneci_apply-cut"
+    image = f"adriansegura99/geneci_apply-cut:{tag}"
 
     # In case it is not available on the device, it is downloaded from the repository.
     if not image in available_images:
@@ -1521,7 +1524,7 @@ def optimize_ensemble(
         shutil.copyfile(time_series, tmp_time_series_dir)
 
     # Define docker image
-    image = "adriansegura99/geneci_optimize-ensemble"
+    image = f"adriansegura99/geneci_optimize-ensemble:{tag}"
 
     # In case it is not available on the device, it is downloaded from the repository.
     if not image in available_images:
@@ -1686,7 +1689,7 @@ def dream_list_of_links(
     shutil.copyfile(confidence_list, tmp_confidence_list_dir)
 
     # Define docker image
-    image = "adriansegura99/geneci_evaluate_dream-prediction"
+    image = f"adriansegura99/geneci_evaluate_dream-prediction:{tag}"
 
     # In case it is not available on the device, it is downloaded from the repository.
     if not image in available_images:
@@ -1915,7 +1918,7 @@ def generic_list_of_links(
     shutil.copyfile(gs_binary_matrix, tmp_gsbm_dir)
 
     # Define docker image
-    image = "adriansegura99/geneci_evaluate_generic-prediction"
+    image = f"adriansegura99/geneci_evaluate_generic-prediction:{tag}"
 
     # In case it is not available on the device, it is downloaded from the repository.
     if not image in available_images:
@@ -2236,7 +2239,7 @@ def draw_network(
         shutil.copyfile(file, tmp_file_dir)
 
     # Define docker image
-    image = "adriansegura99/geneci_draw-network"
+    image = f"adriansegura99/geneci_draw-network:{tag}"
 
     # In case it is not available on the device, it is downloaded from the repository.
     if not image in available_images:
@@ -2344,7 +2347,7 @@ def weighted_confidence(
         raise typer.Abort()
 
     # Define docker image
-    image = "adriansegura99/geneci_weighted-confidence"
+    image = f"adriansegura99/geneci_weighted-confidence:{tag}"
 
     # In case it is not available on the device, it is downloaded from the repository.
     if not image in available_images:
