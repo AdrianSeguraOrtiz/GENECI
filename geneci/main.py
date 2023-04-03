@@ -25,7 +25,7 @@ from plotly.subplots import make_subplots
 from rich import print
 
 # Header
-__version__ = "0.0.1"
+__version__ = "2.0.1"
 __author__ = "Adrian Segura Ortiz <adrianseor.99@uma.es>"
 
 HEADER = "\n".join(
@@ -250,7 +250,7 @@ client = docker.from_env()
 
 # List available images on the current device.
 available_images = [
-    img for tags in [i.tags if len(i.tags) > 0 else None for i in client.images.list()] for img in tags
+    img for tags in [i.tags for i in client.images.list() if len(i.tags) > 0] for img in tags
 ]
 
 # Set docker tag

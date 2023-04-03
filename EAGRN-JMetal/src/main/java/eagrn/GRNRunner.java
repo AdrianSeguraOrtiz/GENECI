@@ -1,6 +1,7 @@
 package eagrn;
 
 import eagrn.algorithm.AsynchronousMultiThreadedGeneticAlgorithmGoodParents;
+import eagrn.algorithm.AsynchronousMultiThreadedNSGAIIGoodParents;
 import eagrn.cutoffcriteria.CutOffCriteria;
 import eagrn.operator.crossover.SimplexCrossover;
 import eagrn.operator.mutation.SimplexMutation;
@@ -19,7 +20,6 @@ import org.uma.jmetal.operator.crossover.CrossoverOperator;
 import org.uma.jmetal.operator.mutation.MutationOperator;
 import org.uma.jmetal.operator.selection.impl.BinaryTournamentSelection;
 import org.uma.jmetal.operator.selection.impl.NaryTournamentSelection;
-import org.uma.jmetal.parallel.asynchronous.algorithm.impl.AsynchronousMultiThreadedNSGAII;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 import org.uma.jmetal.util.AbstractAlgorithmRunner;
 import org.uma.jmetal.util.archive.BoundedArchive;
@@ -52,6 +52,9 @@ public class GRNRunner extends AbstractAlgorithmRunner {
      *                               .
      */
     public static void main(String[] args) throws IOException {
+        /** Config sort. NOTE: https://github.com/jMetal/jMetal/issues/446 */
+        System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
+
         /** Declare the main execution variables. */
         GRNProblem problem;
         CrossoverOperator<DoubleSolution> crossover;
@@ -248,7 +251,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 long initTime = System.currentTimeMillis();
 
                 /** Instantiate the evolutionary algorithm. */
-                AsynchronousMultiThreadedNSGAII<DoubleSolution> algorithm = new AsynchronousMultiThreadedNSGAII<DoubleSolution>(
+                AsynchronousMultiThreadedNSGAIIGoodParents<DoubleSolution> algorithm = new AsynchronousMultiThreadedNSGAIIGoodParents<DoubleSolution>(
                         numOfThreads,
                         problem,
                         populationSize,

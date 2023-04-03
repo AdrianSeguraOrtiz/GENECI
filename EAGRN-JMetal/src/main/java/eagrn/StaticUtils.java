@@ -226,7 +226,7 @@ public final class StaticUtils {
 
         Map<String, Float[]> res = new HashMap<>();
         Float[] initialValue = new Float[inferredNetworkFiles.length];
-        Arrays.fill(initialValue, 0.0);
+        Arrays.fill(initialValue, 0.0f);
 
         for (int i = 0; i < inferredNetworkFiles.length; i++) {
             Map<String, Float> map = StaticUtils.getMapWithLinks(inferredNetworkFiles[i]);

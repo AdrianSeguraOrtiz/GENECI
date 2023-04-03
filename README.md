@@ -73,69 +73,131 @@ pip install geneci
 
 # Example procedure
 
-1. **Download simulated expression data and their respective gold standards**. For this purpose, the **extract-data** command is used with the subcommands expression-data and gold-standard, to which the database and the output folder are specified:
+1. **Obtain simulated expression data and their respective gold standards**. To do this, we have two options: 
+
+- **Extraction**: Use the **extract-data** command to download expression data from known challenges and benchmarks.
 
 ```sh
 # Expression data
-geneci extract-data expression-data --database DREAM4
+geneci extract-data expression-data --database DREAM4 --output-dir input_data
 
 # Gold standard
-geneci extract-data gold-standard --database DREAM4
+geneci extract-data gold-standard --database DREAM4 --output-dir input_data
+```
+
+- **Simulation**: Use the **generate-data** command to generate expression data through the SysGenSIM simulator. In this case, data can be generated from scratch by choosing a particular node size and distribution, or from real biological networks stored in multiple databases. In both cases, the type of perturbation to be simulated must be specified.
+
+```sh
+# From scratch
+geneci generate-data generate-from-scratch --topology eipo-modular \
+                                           --network-size 20 \
+                                           --perturbation knockout \
+                                           --output-dir input_data
+
+# From real network
+geneci generate-data download-real-network --database BioGrid \
+                                           --id Oryza_sativa_Japonica \
+                                           --output-dir input_data
+geneci generate-data generate-from-real-network --real-list-of-links input_data/simulated_based_on_real/RAW/BioGrid_Oryza_sativa_Japonica.tsv 
+                                                --perturbation overexpression
+                                                --output-dir input_data
 ```
 
 2. **Inference and consensus** of networks for the selected expression data. To perform this task, you can make use of the **run** command or proceed to an equivalent execution consisting of the **infer-network** and **optimize-ensemble** commands. This can be very useful when you need to incorporate external trust lists or run the evolutionary algorithm with different configurations on the same files, without the need to infer them several times.
 
-- **Form 1**: Procedure prefixed by the command run
+- **Form 1**: Procedure prefixed by the command run.
 
 ```sh
-geneci run --expression-data input_data/DREAM4/EXP/dream4_010_01_exp.csv \
-           --technique aracne --technique bc3net --technique c3net \
-           --technique clr --technique genie3_rf --technique genie3_gbm \
-           --technique genie3_et --technique mrnet --technique mrnetb \
-           --technique pcit --technique tigress --technique kboost
+geneci run --expression-data input_data/DREAM4/EXP/dream4_100_01_exp.csv \
+           --technique ARACNE --technique BC3NET --technique C3NET --technique CLR \
+           --technique GENIE3_RF --technique GRNBOOST2 --technique GENIE3_ET \
+           --technique MRNET --technique MRNETB --technique PCIT --technique TIGRESS \
+           --technique KBOOST --technique MEOMI --technique NARROMI --technique CMI2NI \
+           --technique RSNET --technique PCACMI --technique LOCPCACMI --technique PLSNET \
+           --technique PIDC --technique PUC --technique GRNVBEM --technique LEAP \
+           --technique NONLINEARODES --technique INFERELATOR \
+           --crossover-probability 0.9 --mutation-probability 0.05 --population-size 100 \
+           --num-evaluations 50000 --cut-off-criteria PercLinksWithBestConf --cut-off-value 0.4 \
+           --function quality --function topology --function dynamics --function motifs \
+           --algorithm NSGAII --plot-evolution --output-dir inferred_networks
 ```
 
 - **Form 2**: Division of the procedure into several commands
 
 ```sh
 # 1. Inference using individual techniques
-geneci infer-network --expression-data input_data/DREAM4/EXP/dream4_010_01_exp.csv \
-                     --technique aracne --technique bc3net --technique c3net --technique clr --technique mrnet \
-                     --technique mrnetb --technique genie3_rf --technique genie3_gbm --technique genie3_et \
-                     --technique pcit --technique tigress --technique kboost
+geneci infer-network --expression-data input_data/DREAM4/EXP/dream4_100_01_exp.csv \
+                     --technique ARACNE --technique BC3NET --technique C3NET --technique CLR \
+                     --technique GENIE3_RF --technique GRNBOOST2 --technique GENIE3_ET \
+                     --technique MRNET --technique MRNETB --technique PCIT --technique TIGRESS \
+                     --technique KBOOST --technique MEOMI --technique NARROMI --technique CMI2NI \
+                     --technique RSNET --technique PCACMI --technique LOCPCACMI --technique PLSNET \
+                     --technique PIDC --technique PUC --technique GRNVBEM --technique LEAP \
+                     --technique NONLINEARODES --technique INFERELATOR \
+                     --output-dir inferred_networks
 
 # 2. Optimize the assembly of the trust lists resulting from the above command
-geneci optimize-ensemble --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_ARACNE.csv \
-                         --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_BC3NET.csv \
-                         --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_C3NET.csv \
-                         --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_CLR.csv \
-                         --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_RF.csv \
-                         --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_GBM.csv \
-                         --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_ET.csv \
-                         --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNET.csv \
-                         --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNETB.csv \
-                         --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_PCIT.csv \
-                         --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_TIGRESS.csv \
-                         --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_KBOOST.csv \
-                         --gene-names inferred_networks/dream4_010_01_exp/gene_names.txt
+geneci optimize-ensemble --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_LOCPCACMI.csv \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_BC3NET.csv \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_PLSNET.csv \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_GRNVBEM.csv \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_CMI2NI.csv \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_CLR.csv \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_INFERELATOR.csv \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_GRNBOOST2.csv \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_PCACMI.csv \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_MRNET.csv \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_PCIT.csv \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_KBOOST.csv \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_MEOMI.csv \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_NONLINEARODES.csv \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_GENIE3_ET.csv \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_NARROMI.csv \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_GENIE3_RF.csv \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_RSNET.csv \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_PIDC.csv \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_ARACNE.csv \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_MRNETB.csv \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_TIGRESS.csv \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_LEAP.csv \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_PUC.csv \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_C3NET.csv' \
+                         --crossover-probability 0.9 --mutation-probability 0.05 --population-size 100 \
+                         --num-evaluations 50000 --cut-off-criteria PercLinksWithBestConf --cut-off-value 0.4 \
+                         --function quality --function topology --function dynamics --function motifs \
+                         --algorithm NSGAII --plot-evolution --output-dir inferred_networks
 ```
 
 3. **Representation** of inferred networks using the **draw-network** command:
 
 ```sh
-geneci draw-network --confidence-list inferred_networks/dream4_010_01_exp/ea_consensus/final_list.csv \
-                    --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_ARACNE.csv \
-                    --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_BC3NET.csv \
-                    --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_C3NET.csv \
-                    --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_CLR.csv \
-                    --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_RF.csv \
-                    --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_GBM.csv \
-                    --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_GENIE3_ET.csv \
-                    --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNET.csv \
-                    --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_MRNETB.csv \
-                    --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_PCIT.csv \
-                    --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_TIGRESS.csv \
-                    --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_KBOOST.csv
+geneci draw-network --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_LOCPCACMI.csv \
+                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_BC3NET.csv \
+                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_PLSNET.csv \
+                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_GRNVBEM.csv \
+                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_CMI2NI.csv \
+                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_CLR.csv \
+                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_INFERELATOR.csv \
+                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_GRNBOOST2.csv \
+                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_PCACMI.csv \
+                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_MRNET.csv \
+                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_PCIT.csv \
+                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_KBOOST.csv \
+                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_MEOMI.csv \
+                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_NONLINEARODES.csv \
+                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_GENIE3_ET.csv \
+                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_NARROMI.csv \
+                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_GENIE3_RF.csv \
+                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_RSNET.csv \
+                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_PIDC.csv \
+                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_ARACNE.csv \
+                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_MRNETB.csv \
+                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_TIGRESS.csv \
+                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_LEAP.csv \
+                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_PUC.csv \
+                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_C3NET.csv \
+                    --mode Both --nodes-distribution Spring \
+                    --output-folder inferred_networks/dream4_100_01_exp/network_graphics
 ```
 
 4. **Evaluation** of the quality of the inferred gene network with respect to the gold standard. To do this, the evaluation data is previously downloaded with the **extract-data** command and the **evaluation-data** subcommand, which is provided with the database and the credentials of an account on the Synapse platform. After that, the **evaluate** command is executed with the subcommand **dream-prediction** to which the challenge identifier, the network identifier and the path to the evaluation files are given:
@@ -147,14 +209,20 @@ geneci extract-data evaluation-data --database DREAM4 --username TFM-SynapseAcco
 # 2. Evaluate the accuracy of the inferred consensus network.
 geneci evaluate dream-prediction --challenge D4C2 --network-id 10_1 \
                                  --synapse-file input_data/DREAM4/EVAL/pdf_size10_1.mat \
-                                 --confidence-list inferred_networks/dream4_010_01_exp/ea_consensus/final_list.csv
+                                 --confidence-list inferred_networks/dream4_100_01_exp/ea_consensus/final_list.csv
 ```
 
 5. **Binarization** of the inferred gene network. In many cases, it is useful to apply a cutoff criterion to convert a list of confidence values into a real network that asserts the specific interaction between genes. For this purpose, the **apply-cut** command is used, which is provided with the list of confidence values, the cutoff criterion and its corresponding threshold value.
 
 ```sh
-geneci apply-cut --confidence-list inferred_networks/dream4_010_01_exp/ea_consensus/final_list.csv \
+geneci apply-cut --confidence-list inferred_networks/dream4_100_01_exp/ea_consensus/final_list.csv \
                  --cut-off-criteria MinConfidence --cut-off-value 0.2
+```
+
+6. **Consensus under own criteria** assigning specific weights to each of the files resulting from each technique. In case the researcher has some experience in this domain, he can determine for himself the weights he wants to assign to each inferred network to build his own consensus network.
+
+```sh
+
 ```
 
 # `geneci`
