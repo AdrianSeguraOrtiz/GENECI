@@ -27,12 +27,9 @@ functions=("qualitymean"
             "katzdistribution"
             "pagerankdistribution"
             "dynamicsmeasureautovectorsstability"
-            "dynamicsmeasuretimestability"
             "motifdetectionfeedforwardloop"
             "motifdetectioncoregulation"
-            "motifdetectioncascade"
             "motifdetectionfeedbackloopwithcoregulation"
-            "motifdetectionfeedforwardchain"
             "motifdetectiondifferentiation"
             "motifdetectionregulatoryroute"
             "motifdetectionbifurcation"
@@ -43,22 +40,48 @@ functions=($(for f in ${functions[@]}; do echo $f; done | sort))
 
 # 3. Para cada red y función de fitness ejecutamos GENECI en modo mono-objetivo.
 
+## Ordenamos las redes por tamaño de menor a mayor
+sizes=()
 for network_folder in ../inferred_networks/*/
 do
+    filename=$(basename $network_folder)
+    exp_file="$network_folder/$filename.csv"
+    lines=$(wc -l < $exp_file)
+    sizes+=($lines)
+done
+sorted_sizes=($(printf '%s\n' "${sizes[@]}" | sort -nu))
+
+sorted_networks=()
+for size in ${sorted_sizes[@]}
+do
+    for network_folder in ../inferred_networks/*/
+    do
+        filename=$(basename $network_folder)
+        exp_file="$network_folder/$filename.csv"
+        lines=$(wc -l < $exp_file)
+        if [ $lines == $size ]
+        then
+            sorted_networks+=($network_folder)
+        fi
+    done
+done
+
+## Aplicamos GNU parallel
+opt_ensemble_mono_obj() {
+    nf=$1
+    func=$2
+
     str=""
-    for confidence_list in $network_folder/lists/*.csv
+    for confidence_list in $nf/lists/*.csv
     do 
         str+="--confidence-list $confidence_list "
     done
 
-    > $network_folder/measurements/functions_times.txt
-    for func in ${functions[@]}
-    do
-        echo $func >> $network_folder/measurements/functions_times.txt
-        { time python ../geneci/main.py optimize-ensemble $str --gene-names $network_folder/gene_names.txt --time-series $network_folder/$(basename $network_folder).csv --function $func --num-evaluations 25000 --population-size 100 --algorithm GA --plot-evolution --output-dir $network_folder/ea_consensus_$func ; } 2>> $network_folder/measurements/functions_times.txt
-    done
-
-done
+    { time python ../geneci/main.py optimize-ensemble $str --gene-names $nf/gene_names.txt --time-series $nf/$(basename $nf).csv --function $func --num-evaluations 25000 --population-size 100 --algorithm GA --plot-evolution --threads 16 --output-dir $nf/ea_consensus_$func ; } 2>> $nf/measurements/functions_times.txt
+    echo "^ $func" >> $nf/measurements/functions_times.txt
+}
+export -f opt_ensemble_mono_obj
+parallel --jobs 8 opt_ensemble_mono_obj ::: ${sorted_networks[@]} ::: ${functions[@]}
 
 # 4. Para las redes de tipo benchmark evaluamos la precisión de los ensembles generados 
 
@@ -162,13 +185,18 @@ do
         name=$base
     fi
 
-    file=$network_folder/measurements/${name}-functions_scores.csv.csv
+    file=$network_folder/measurements/${name}-functions_scores.csv
     echo "$name;$name;$name;$name;$name" > $file
     echo "Fitness Function;AUPR;AUROC;Mean;Time" >> $file
 
     aupr=($(grep -o "AUPR: 1\|AUPR: 0.[0-9]*" $network_folder/measurements/consensus.txt | cut -d " " -f 2))
     auroc=($(grep -o "AUROC: 1\|AUPR: 0.[0-9]*" $network_folder/measurements/consensus.txt | cut -d " " -f 2))
-    times=($(grep -Po "real[^ ]*" $network_folder/measurements/functions_times.txt | cut -d $'\t' -f 2))
+
+    unsorted_times=($(grep -Po "real[^ ]*" $network_folder/measurements/functions_times.txt | cut -d $'\t' -f 2))
+    funcs=($(grep -o "\^ [^ ]*" $network_folder/measurements/functions_times.txt | cut -d ' ' -f 2))
+    paste <(printf "%s\n" "${funcs[@]}") <(printf "%s\n" "${unsorted_times[@]}") > temp
+    times=($(sort temp | awk '{print $2}'))
+    rm temp
 
     for (( i=0; i<${#functions[@]}; i++ ))
     do

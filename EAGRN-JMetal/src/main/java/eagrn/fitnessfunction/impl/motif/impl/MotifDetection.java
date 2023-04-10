@@ -133,7 +133,7 @@ public class MotifDetection implements FitnessFunction {
     public int detectBifurcation(Graph<Integer, DefaultEdge> graph) {
         int count = 0;
         for (int i = 0; i < graph.vertexSet().size(); i++) {
-            if (Graphs.successorListOf(graph, i).size() == 2) {
+            if (Graphs.predecessorListOf(graph, i).size() < 2 && Graphs.successorListOf(graph, i).size() > 1) {
                 count++;
             }
         }
@@ -165,7 +165,7 @@ public class MotifDetection implements FitnessFunction {
                 Set<Integer> commonSuccessors = new HashSet<>(iSuccessors);
                 commonSuccessors.retainAll(jSuccessors);
                 if (!commonSuccessors.isEmpty()) {
-                    count++;
+                    count += commonSuccessors.size();
                 }
             }
         }
@@ -216,11 +216,9 @@ public class MotifDetection implements FitnessFunction {
                 int loops = 0;
                 int lastChainScore = 0;
                 int current = i;
-                boolean init = Graphs.successorListOf(graph, current).size() == 1
-                        && (Graphs.predecessorListOf(graph, current).size() == 0
-                                || Graphs.predecessorListOf(graph, current).size() == 1);
                 List<Integer> successors = Graphs.successorListOf(graph, current);
                 List<Integer> predecessors = Graphs.predecessorListOf(graph, current);
+                boolean init = successors.size() == 1 && (predecessors.size() == 0 || predecessors.size() == 1);
 
                 while ((current == i && init) ||
                         ((successors.size() == 1 || successors.size() == 2) &&
@@ -320,16 +318,19 @@ public class MotifDetection implements FitnessFunction {
 
     public int detectBiParallel(Graph<Integer, DefaultEdge> graph) {
         int count = 0;
+        Set<Integer> successors, predecessors, intersection;
         for (int i = 0; i < graph.vertexSet().size(); i++) {
-            List<Integer> successors = Graphs.successorListOf(graph, i);
-            if (successors.size() == 2) {
-                Set<Integer> s1 = new HashSet<>(Graphs.successorListOf(graph, successors.get(0)));
-                Set<Integer> s2 = new HashSet<>(Graphs.successorListOf(graph, successors.get(1)));
-                s1.retainAll(s2);
-                if (!s1.isEmpty()) {
-                    count += s1.size();
+            successors = new HashSet<>(Graphs.successorListOf(graph, i));
+            for (int j = 0; j < graph.vertexSet().size(); j++) {
+                if (i != j) {
+                    predecessors = new HashSet<>(Graphs.predecessorListOf(graph, j));
+                    intersection = new HashSet<Integer>(successors);
+                    intersection.retainAll(predecessors);
+                    if (intersection.size() > 1) {
+                        count += intersection.size() - 1;
+                    }
                 }
-            }
+            }   
         }
         return count;
     }
