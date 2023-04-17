@@ -213,6 +213,7 @@ done
 sizes=(0 25 110 250 2000)
 iters=$(( ${#sizes[@]} - 1 ))
 chmod a+x paste.pl
+mkdir -p functions_comparison
 for (( i=0; i<=$iters; i++ ))
 do 
     tables=()
@@ -220,7 +221,10 @@ do
     do
         base=$(basename $network_folder)
         lines=$(wc -l < $network_folder/$base.csv)
-        if [ $i == $iters ] && [ $lines -gt ${sizes[$i]} ] || [ $lines -gt ${sizes[$i]} ] && [ $lines -lt ${sizes[$(( $i + 1 ))]} ]
+        if [ $i == $iters ] && [ $lines -gt ${sizes[$i]} ]
+        then
+            tables+=($(ls $network_folder/measurements/*-functions_scores.csv))
+        elif [ $lines -gt ${sizes[$i]} ] && [ $lines -lt ${sizes[$(( $i + 1 ))]} ]
         then
             tables+=($(ls $network_folder/measurements/*-functions_scores.csv))
         fi
@@ -232,60 +236,50 @@ do
         name+="-${sizes[$(( $i + 1 ))]}"
     fi
 
-    ./paste.pl $tables > all_networks_${name}_functions_scores.csv
-    echo -e ";$(cat all_networks_${name}_functions_scores.csv)" > all_networks_${name}_functions_scores.csv
+    ./paste.pl ${tables[@]} > functions_comparison/all_networks_${name}_functions_scores.csv
     cols="1"
     max=$(( ${#tables[@]}*5+2 ))
-    for i in `seq 7 5 $max`
+    for j in `seq 7 5 $max`
     do
-        cols+=",$i"
+        cols+=",$j"
     done
-
-    cut -d ';' -f$cols --complement all_networks_${name}_functions_scores.csv > tmp.csv && mv -f tmp.csv all_networks_${name}_functions_scores.csv
+    cut -d ';' -f$cols --complement functions_comparison/all_networks_${name}_functions_scores.csv > tmp.csv && mv -f tmp.csv functions_comparison/all_networks_${name}_functions_scores.csv
+    max=$(( ${#tables[@]}*4+2 ))
 
     # Creamos la tabla de AUPR para el test estadístico
-    max=$(( ${#tables[@]}*4+1 ))
     cols="1"
-    for i in `seq 2 4 $max`
+    for j in `seq 2 4 $max`
     do
-        cols+=",$i"
+        cols+=",$j"
     done
-    cut -d ';' -f$cols all_networks_${name}_functions_scores.csv | awk 'NR != 2' | csvtool transpose -t ';' - | tr ';' ',' > AUPR_${name}_functions.csv
-    sed -i '1s/^/Network/' AUPR_${name}_functions.csv
-
+    cut -d ';' -f$cols functions_comparison/all_networks_${name}_functions_scores.csv | awk 'NR != 2' | csvtool transpose -t ';' - | tr ';' ',' > functions_comparison/AUPR_${name}_functions.csv
 
     # Creamos la tabla de AUROC para el test estadístico
-    max=$(( ${#tables[@]}*4+1 ))
     cols="1"
-    for i in `seq 3 4 $max`
+    for j in `seq 3 4 $max`
     do
-        cols+=",$i"
+        cols+=",$j"
     done
-    cut -d ';' -f$cols all_networks_${name}_functions_scores.csv | awk 'NR != 2' | csvtool transpose -t ';' - | tr ';' ',' > AUROC_${name}_functions.csv
-    sed -i '1s/^/Network/' AUROC_${name}_functions.csv
+    cut -d ';' -f$cols functions_comparison/all_networks_${name}_functions_scores.csv | awk 'NR != 2' | csvtool transpose -t ';' - | tr ';' ',' > functions_comparison/AUROC_${name}_functions.csv
 
     # Creamos una tabla con la media de ambas métricas
-    max=$(( ${#tables[@]}*4+1 ))
     cols="1"
-    for i in `seq 4 4 $max`
+    for j in `seq 4 4 $max`
     do
-        cols+=",$i"
+        cols+=",$j"
     done
-    cut -d ';' -f$cols all_networks_${name}_functions_scores.csv | awk 'NR != 2' | csvtool transpose -t ';' - | tr ';' ',' > Mean_${name}_functions.csv
-    sed -i '1s/^/Network/' Mean_${name}_functions.csv
+    cut -d ';' -f$cols functions_comparison/all_networks_${name}_functions_scores.csv | awk 'NR != 2' | csvtool transpose -t ';' - | tr ';' ',' > functions_comparison/Mean_${name}_functions.csv
 
     # Ejecutamos los tests de Friedman
-    cd controlTest && java Friedman ../AUPR_${name}_functions.csv > ../AUPR_${name}_functions.tex && cd ..
-    cd controlTest && java Friedman ../AUROC_${name}_functions.csv > ../AUROC_${name}_functions.tex && cd ..
-    cd controlTest && java Friedman ../Mean_${name}_functions.csv > ../Mean_${name}_functions.tex && cd ..
+    cd controlTest && java Friedman ../functions_comparison/AUPR_${name}_functions.csv > ../functions_comparison/AUPR_${name}_functions.tex && cd ..
+    cd controlTest && java Friedman ../functions_comparison/AUROC_${name}_functions.csv > ../functions_comparison/AUROC_${name}_functions.tex && cd ..
+    cd controlTest && java Friedman ../functions_comparison/Mean_${name}_functions.csv > ../functions_comparison/Mean_${name}_functions.tex && cd ..
 
     # Creamos tabla de tiempos
-    max=$(( ${#tables[@]}*4+1 ))
     cols="1"
-    for i in `seq 5 4 $max`
+    for j in `seq 5 4 $max`
     do
-        cols+=",$i"
+        cols+=",$j"
     done
-    cut -d ';' -f$cols all_networks_${name}_functions_scores.csv | awk 'NR != 2' | csvtool transpose -t ';' - | tr ';' ',' > Time_${name}_functions.csv
-    sed -i '1s/^/Network/' Time_${name}_functions.csv
+    cut -d ';' -f$cols functions_comparison/all_networks_${name}_functions_scores.csv | awk 'NR != 2' | csvtool transpose -t ';' - | tr ';' ',' > functions_comparison/Time_${name}_functions.csv
 done

@@ -63,11 +63,16 @@ pip install geneci
 
 * **MEOMI**: [Mixed Entropy Optimizing context-related likelihood Mutual Information (MEOMI)](https://doi.org/10.1093/bioinformatics/btac717) is an information-theoretic method that estimates the mutual information matrix between genes from gene expression data. The method applies a matrix completion algorithm to handle the missing values in the data and estimate the full mutual information matrix. The resulting matrix is then used to infer the regulatory relationships among genes and construct the gene regulatory network. Compared to other methods, MEOMI achieves higher accuracy in both synthetic and real gene expression datasets. The method also handles large-scale datasets efficiently and is robust to noise in the data.
 
-* **NARROMI**:
-* **NONLINEARODES**:
-* **PCACMI**:
-* **PIDC**:
-* **PLSNET**:
+* **NARROMI**: [Noise And Redundancy reduction technology by combining Recursive Optimization and Mutual Information](https://doi.org/10.1093/bioinformatics/bts619) is a method that combines recursive optimization (RO) based on ordinary differential equations and mutual information (MI) based on information theory. NARROMI first removes noisy regulations with low pairwise correlations using MI and then excludes redundant regulations from indirect regulators through RO. The RO step can determine regulatory directions without prior knowledge of regulators, thereby improving the accuracy of inferred GRNs.
+
+* **NONLINEARODES**: [NON-LINEAR Ordinary Differential EquationS](https://doi.org/10.1093/bioinformatics/btaa032) is a method that uses non-linear ordinary differential equation (ODE) models to capture dynamic gene regulation and an importance measurement strategy to efficiently infer putative regulatory links. Compared to linear ODE models like implemented in [HIDI](https://doi.org/10.1093/bioinformatics/btx501) and [SCODE](https://doi.org/10.1093/bioinformatics/btx194), non-linear ODE models require more gene expression data and computational resources, but can capture a wider range of regulatory behaviors.
+
+* **PCACMI**: [Path Consistency Algorithm based on Conditional Mutual Information](https://doi.org/10.1093/bioinformatics/btr626) is a method that considers the non-linear dependence and topological structure of GRNs by using a path consistency algorithm (PCA) based on conditional mutual information (CMI). In this algorithm, the conditional dependence between a pair of genes is represented by the CMI between them. The algorithm starts with initializing the gene expression data and setting a parameter for deciding the independence. Then, it generates the complete network for all genes and sets L=-1. In the next step, the PCACMI algorithm increases the value of L by one unit (L=L+1) and then selects the adjacent genes that are connected with both genes i and j. If the number of adjacent genes is less than L, the algorithm stops. Otherwise, it selects L genes from the adjacent genes and computes the L-order CMI for all selections. The algorithm chooses the maximal CMI and sets the corresponding edge to zero if it is less than the parameter. The algorithm repeats these steps until all edges have been considered.
+
+* **PIDC**: [Partial Information Decomposition and context](https://doi.org/10.1016%2Fj.cels.2017.08.014) 
+
+* **PLSNET**: [PLS-based gene NETwork inference method](https://doi.org/10.1186/s12859-016-1398-6) is an ensemble gene regulatory network inference method that decomposes the problem of inferring a network of p genes into p subproblems. Each subproblem is solved using a Partial least squares (PLS) based feature selection algorithm. A statistical technique is used to refine the predictions and improve the inferred regulatory network. In this method, regulatory genes are scored based on their impacts on multiple target genes, and an updated adjacency matrix W is calculated based on the variances in each row of the original W matrix. If a regulatory gene regulates many target genes, its variance in the corresponding row of W is elevated.
+
 * **PUC**:
 * **RSNET**:
 
