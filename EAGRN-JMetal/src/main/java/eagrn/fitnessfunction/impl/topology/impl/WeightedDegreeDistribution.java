@@ -22,10 +22,10 @@ public class WeightedDegreeDistribution extends Topology {
             undirectedDegreesMap.put(genes[1], undirectedDegreesMap.getOrDefault(genes[1], 0.0f) + pair.getValue());
         }
 
-        double[] undirectedDegreesPlusMin = new double[geneNames.size()];
+        double[] undirectedDegreesPlusOne = new double[geneNames.size()];
         for (int i = 0; i < geneNames.size(); i++) {
-            undirectedDegreesPlusMin[i] = undirectedDegreesMap.getOrDefault(geneNames.get(i), 0.0f) + Double.MIN_VALUE;
+            undirectedDegreesPlusOne[i] = undirectedDegreesMap.getOrDefault(geneNames.get(i), 0.0f) + 1.0;
         }
-        return -super.paretoTest(undirectedDegreesPlusMin);
+        return super.paretoTest(undirectedDegreesPlusOne);
     }
 }

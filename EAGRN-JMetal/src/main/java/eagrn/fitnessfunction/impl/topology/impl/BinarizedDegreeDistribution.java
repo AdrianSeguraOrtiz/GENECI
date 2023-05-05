@@ -26,6 +26,6 @@ public class BinarizedDegreeDistribution extends Topology {
             }
         }
 
-        return -super.paretoTest(undirectedDegreesPlusOne);
+        return super.paretoTest(undirectedDegreesPlusOne);
     }
 }

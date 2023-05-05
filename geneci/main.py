@@ -1445,7 +1445,7 @@ def optimize_ensemble(
     ),
     function: Optional[List[str]] = typer.Option(
         ...,
-        help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: TODO.",
+        help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, DegreeDistribution and Motifs",
         rich_help_panel="Fitness",
     ),
     algorithm: Algorithm = typer.Option(
@@ -2138,7 +2138,7 @@ def run(
     ),
     function: Optional[List[str]] = typer.Option(
         ...,
-        help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: TODO.",
+        help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, DegreeDistribution and Motifs.",
         rich_help_panel="Fitness",
     ),
     algorithm: Algorithm = typer.Option(

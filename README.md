@@ -69,12 +69,13 @@ pip install geneci
 
 * **PCACMI**: [Path Consistency Algorithm based on Conditional Mutual Information](https://doi.org/10.1093/bioinformatics/btr626) is a method that considers the non-linear dependence and topological structure of GRNs by using a path consistency algorithm (PCA) based on conditional mutual information (CMI). In this algorithm, the conditional dependence between a pair of genes is represented by the CMI between them. The algorithm starts with initializing the gene expression data and setting a parameter for deciding the independence. Then, it generates the complete network for all genes and sets L=-1. In the next step, the PCACMI algorithm increases the value of L by one unit (L=L+1) and then selects the adjacent genes that are connected with both genes i and j. If the number of adjacent genes is less than L, the algorithm stops. Otherwise, it selects L genes from the adjacent genes and computes the L-order CMI for all selections. The algorithm chooses the maximal CMI and sets the corresponding edge to zero if it is less than the parameter. The algorithm repeats these steps until all edges have been considered.
 
-* **PIDC**: [Partial Information Decomposition and context](https://doi.org/10.1016%2Fj.cels.2017.08.014) 
+* **PIDC**: [Partial Information Decomposition and context](https://doi.org/10.1016%2Fj.cels.2017.08.014) is an algorithm for inferring gene interaction networks from single-cell data. It uses information about the local network context of each gene and its unique contribution to partial information dependence to infer relationships between genes, enabling it to distinguish between direct and indirect interactions. The implementation of the algorithm in the Julia programming language allows for fast and scalable calculation of gene interaction networks.
 
 * **PLSNET**: [PLS-based gene NETwork inference method](https://doi.org/10.1186/s12859-016-1398-6) is an ensemble gene regulatory network inference method that decomposes the problem of inferring a network of p genes into p subproblems. Each subproblem is solved using a Partial least squares (PLS) based feature selection algorithm. A statistical technique is used to refine the predictions and improve the inferred regulatory network. In this method, regulatory genes are scored based on their impacts on multiple target genes, and an updated adjacency matrix W is calculated based on the variances in each row of the original W matrix. If a regulatory gene regulates many target genes, its variance in the corresponding row of W is elevated.
 
-* **PUC**:
-* **RSNET**:
+* **PUC**: [Proportional Unique Contribution](https://doi.org/10.1016%2Fj.cels.2017.08.014) is a measure used in the inference of gene regulation networks that quantifies the unique contribution of each gene to the mutual information (MI) between two genes. This measure is used to identify the most important interactions between genes and to avoid overestimating the importance of redundant genes. It is integrated into the same Julia project as PIDC.
+
+* **RSNET**: [Redundancy Silencing and Network Enhancement Technique](https://doi.org/10.1186/s12859-022-04696-w) is a method for inferring gene regulatory networks that uses a redundancy silencing and network improvement technique to address the problem of numerous indirect interactions inherited in predictions. In the proposed method, redundant interactions, including weak and indirect connections, are silenced through recursive adaptive optimization. Meanwhile, highly correlated regulators are constrained to improve the true positive rate of prediction. The algorithm uses both linear and non-linear interactions to overcome the limitations of linear or non-linear methods.
 
 # Example procedure
 
@@ -123,7 +124,7 @@ geneci run --expression-data input_data/DREAM4/EXP/dream4_100_01_exp.csv \
            --technique NONLINEARODES --technique INFERELATOR \
            --crossover-probability 0.9 --mutation-probability 0.05 --population-size 100 \
            --num-evaluations 50000 --cut-off-criteria PercLinksWithBestConf --cut-off-value 0.4 \
-           --function quality --function topology --function dynamics --function motifs \
+           --function Quality --function DegreeDistribution --function Motifs \
            --algorithm NSGAII --plot-evolution --output-dir inferred_networks
 ```
 
@@ -169,8 +170,17 @@ geneci optimize-ensemble --confidence-list inferred_networks/dream4_100_01_exp/l
                          --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_C3NET.csv' \
                          --crossover-probability 0.9 --mutation-probability 0.05 --population-size 100 \
                          --num-evaluations 50000 --cut-off-criteria PercLinksWithBestConf --cut-off-value 0.4 \
-                         --function quality --function topology --function dynamics --function motifs \
+                         --function Quality --function DegreeDistribution --function Motifs \
                          --algorithm NSGAII --plot-evolution --output-dir inferred_networks
+```
+
+- **Consensus under own criteria**: Assign specific weights to each of the files resulting from each technique. In case the researcher has some experience in this domain, he can determine for himself the weights he wants to assign to each inferred network to build his own consensus network.
+
+```sh
+geneci weighted-confidence --weight-file-summand 0.5*inferred_networks/dream4_100_01_exp/lists/GRN_GENIE3_ET.csv \
+                           --weight-file-summand 0.25*inferred_networks/dream4_100_01_exp/lists/GRN_CMI2NI.csv \
+                           --weight-file-summand 0.25*inferred_networks/dream4_100_01_exp/lists/GRN_PIDC.csv \
+                           --output-file inferred_networks/dream4_100_01_exp/weighted_confidence.csv
 ```
 
 3. **Representation** of inferred networks using the **draw-network** command:
@@ -205,29 +215,33 @@ geneci draw-network --confidence-list inferred_networks/dream4_100_01_exp/lists/
                     --output-folder inferred_networks/dream4_100_01_exp/network_graphics
 ```
 
-4. **Evaluation** of the quality of the inferred gene network with respect to the gold standard. To do this, the evaluation data is previously downloaded with the **extract-data** command and the **evaluation-data** subcommand, which is provided with the database and the credentials of an account on the Synapse platform. After that, the **evaluate** command is executed with the subcommand **dream-prediction** to which the challenge identifier, the network identifier and the path to the evaluation files are given:
+4. **Evaluation** of the quality of the inferred gene network with respect to the gold standard. Two procedures have been implemented: one specific to networks extracted from DREAM challenges, and another generic one that approaches the problem as a binary classification exercise. In both cases, the evaluation procedure can be applied to a list of interactions with their respective confidence levels, a certain weight distribution referring to the consensus, or even a Pareto front generated by our multi-objective algorithm mode that allows the representation of a parallel coordinate plot including both fitness functions and AUROC and AUPR metrics (which is quite useful for identifying high-quality regions). 
+
+- **DREAM**: For the evaluation of networks from DREAM challenges, the evaluation data must be previously downloaded using the **extract-data** command and the **evaluation-data** subcommand, which requires providing the database and credentials of an account on the Synapse platform. After that, the **evaluate** command is used followed by the **dream-prediction** subcommand to access the three input options mentioned above. In any case, the challenge identifier, network identifier, evaluation files and input files need to be specified. The input files will depend on the chosen option: **dream-list-of-links**, **dream-weight-distribution** or **dream-pareto-front**.
 
 ```sh
 # 1. Download evaluation data
 geneci extract-data evaluation-data --database DREAM4 --username TFM-SynapseAccount --password TFM-SynapsePassword
 
 # 2. Evaluate the accuracy of the inferred consensus network.
-geneci evaluate dream-prediction --challenge D4C2 --network-id 10_1 \
-                                 --synapse-file input_data/DREAM4/EVAL/pdf_size10_1.mat \
-                                 --confidence-list inferred_networks/dream4_100_01_exp/ea_consensus/final_list.csv
+geneci evaluate dream-prediction dream-list-of-links --challenge D4C2 --network-id 100_1 \
+                                                     --synapse-file input_data/DREAM4/EVAL/pdf_size100_1.mat \
+                                                     --confidence-list inferred_networks/dream4_100_01_exp/ea_consensus/final_list.csv
+```
+
+- **Generic**: For network evaluation using the generic procedure, we directly use the **evaluate** command followed by the **generic-prediction** subcommand. This gives us access to the three types of input mentioned earlier, to which we must provide the gold standard of the problem and the relevant input files: **generic-list-of-links**, **generic-weight-distribution**, and **generic-pareto-front**.
+
+```sh
+geneci evaluate generic-prediction generic-list-of-links --confidence-list inferred_networks/sim_BioGrid_Oryza_sativa_Japonica_mixed_exp/ea_consensus/final_list.csv
+                                                         --gs-binary-matrix input_data/simulated_based_on_real/GS/sim_BioGrid_Oryza_sativa_Japonica_mixed_gs.csv
 ```
 
 5. **Binarization** of the inferred gene network. In many cases, it is useful to apply a cutoff criterion to convert a list of confidence values into a real network that asserts the specific interaction between genes. For this purpose, the **apply-cut** command is used, which is provided with the list of confidence values, the cutoff criterion and its corresponding threshold value.
 
 ```sh
 geneci apply-cut --confidence-list inferred_networks/dream4_100_01_exp/ea_consensus/final_list.csv \
-                 --cut-off-criteria MinConfidence --cut-off-value 0.2
-```
-
-6. **Consensus under own criteria** assigning specific weights to each of the files resulting from each technique. In case the researcher has some experience in this domain, he can determine for himself the weights he wants to assign to each inferred network to build his own consensus network.
-
-```sh
-
+                 --cut-off-criteria PercLinksWithBestConf --cut-off-value 0.4 \
+                 --output-file inferred_networks/dream4_100_01_exp/ea_consensus/final_list_binarized.csv
 ```
 
 # `geneci`
@@ -648,7 +662,7 @@ $ geneci optimize-ensemble [OPTIONS]
 * `--num-evaluations INTEGER`: Number of evaluations  [default: 25000]
 * `--cut-off-criteria [MinConf|NumLinksWithBestConf|PercLinksWithBestConf]`: Criteria for determining which links will be part of the final binary matrix.  [default: PercLinksWithBestConf]
 * `--cut-off-value FLOAT`: Numeric value associated with the selected criterion. Ex: MinConf = 0.5, NumLinksWithBestConf = 10, PercLinksWithBestConf = 0.4  [default: 0.4]
-* `--function TEXT`: A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: TODO.  [required]
+* `--function TEXT`: A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, DegreeDistribution and Motifs.  [required]
 * `--algorithm [GA|NSGAII|SMPSO]`: Evolutionary algorithm to be used during the optimization process. All are intended for a multi-objective approach with the exception of the genetic algorithm (GA).  [required]
 * `--threads INTEGER`: Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.  [default: 64]
 * `--plot-evolution / --no-plot-evolution`: Indicate if you want to represent the evolution of the fitness value.  [default: no-plot-evolution]
@@ -676,7 +690,7 @@ $ geneci run [OPTIONS]
 * `--num-evaluations INTEGER`: Number of evaluations  [default: 25000]
 * `--cut-off-criteria [MinConf|NumLinksWithBestConf|PercLinksWithBestConf]`: Criteria for determining which links will be part of the final binary matrix.  [default: PercLinksWithBestConf]
 * `--cut-off-value FLOAT`: Numeric value associated with the selected criterion. Ex: MinConf = 0.5, NumLinksWithBestConf = 10, PercLinksWithBestConf = 0.4  [default: 0.4]
-* `--function TEXT`: A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: TODO.  [required]
+* `--function TEXT`: A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, DegreeDistribution and Motifs.  [required]
 * `--algorithm [GA|NSGAII|SMPSO]`: Evolutionary algorithm to be used during the optimization process. All are intended for a multi-objective approach with the exception of the genetic algorithm (GA).  [required]
 * `--threads INTEGER`: Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.  [default: 64]
 * `--str-threads TEXT`: Comma-separated list with the identifying numbers of the threads to be used. If specified, the threads variable will automatically be set to the length of the list.

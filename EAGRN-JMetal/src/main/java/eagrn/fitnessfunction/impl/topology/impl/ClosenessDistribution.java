@@ -40,7 +40,7 @@ public class ClosenessDistribution extends Topology {
             for (int i = 0; i < scores.length; i++) {
                 scores[i] += 1;
             }
-            score = -super.paretoTest(ArrayUtils.toPrimitive(scores));
+            score = super.paretoTest(ArrayUtils.toPrimitive(scores));
             this.cache.put(key, score);
         }
 

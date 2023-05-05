@@ -14,7 +14,7 @@ public class GRNProblemBestFitnessEvolution extends GRNProblemFitnessEvolution {
             CutOffCriteria cutOffCriteria, String strFitnessFormulas, String strTimeSeriesFile) {
         super(inferredNetworks, geneNames, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile);
         for (int i = 0; i < fitnessFunctions.length; i++){
-            this.progressiveValues.set(i, 1.0);
+            this.progressiveValues.set(i, Double.MAX_VALUE);
         }
     }
 

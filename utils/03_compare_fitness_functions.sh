@@ -71,6 +71,10 @@ opt_ensemble_mono_obj() {
     nf=$1
     func=$2
 
+    if [ -d "$nf/ea_consensus_$func" ]; then
+        return 1
+    fi
+
     str=""
     for confidence_list in $nf/lists/*.csv
     do 

@@ -386,7 +386,7 @@ public class MotifDetection implements FitnessFunction {
         } else {
             Graph<Integer, DefaultEdge> graph = createGraphFromMatrix(adjacencyMatrix);
             for (int i = 0; i < this.motifFunctions.length; i++) {
-                score -= (this.motifFunctions.length - i) * motifFunctions[i].count(graph);
+                score -= motifFunctions[i].count(graph);
             }
             this.cache.put(key, score);
         }

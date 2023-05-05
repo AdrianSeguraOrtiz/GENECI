@@ -1,29 +1,59 @@
 source ../.venv/bin/activate
 
-functions=('qualitymeanaboveaverage' '0.5*globalclusteringmeasure+0.5*binarizeddegreedistribution' 'consistencywithtimeseriesprogressivecurrentimpact')
-
 # Para cada red ejecutamos GENECI en modo multi-objetivo
+
+## Ordenamos las redes por tamaño de menor a mayor
+sizes=()
 for network_folder in ../inferred_networks/*/
 do
+    filename=$(basename $network_folder)
+    exp_file="$network_folder/$filename.csv"
+    lines=$(wc -l < $exp_file)
+    sizes+=($lines)
+done
+sorted_sizes=($(printf '%s\n' "${sizes[@]}" | sort -nu))
+
+sorted_networks=()
+for size in ${sorted_sizes[@]}
+do
+    for network_folder in ../inferred_networks/*/
+    do
+        filename=$(basename $network_folder)
+        exp_file="$network_folder/$filename.csv"
+        lines=$(wc -l < $exp_file)
+        if [ $lines == $size ]
+        then
+            sorted_networks+=($network_folder)
+        fi
+    done
+done
+
+## Aplicamos GNU parallel
+opt_ensemble_multi_obj() {
+    nf=$1
+
+    if [ -d "$nf/ea_consensus_multi-objective_q-dd-m" ]; then
+        return 1
+    fi
+
     str=""
-    for confidence_list in $network_folder/lists/*.csv
+    for confidence_list in $nf/lists/*.csv
     do 
         str+="--confidence-list $confidence_list "
     done
 
+    functions=('quality' 'degreedistribution' 'motifs')
     str_func=""
     for func in ${functions[@]}
     do
         str_func+="--function $func "
     done
 
-    python ../geneci/main.py optimize-ensemble $str $str_func \
-        --gene-names $network_folder/gene_names.txt \
-        --time-series $network_folder/$(basename $network_folder).csv \
-        --algorithm SMPSO \
-        --plot-evolution \
-        --output-dir $network_folder/ea_consensus
-done
+    { time python ../geneci/main.py optimize-ensemble $str $str_func --gene-names $nf/gene_names.txt --time-series $nf/$(basename $nf).csv --num-evaluations 100000 --population-size 100 --algorithm NSGAII --plot-evolution --threads 60 --output-dir $nf/ea_consensus_multi-objective_q-dd-m ; } 2>> $nf/measurements/multi-objective_times.txt
+    echo "^ q-dd-m" >> $nf/measurements/multi-objective_times.txt
+}
+export -f opt_ensemble_multi_obj
+parallel --jobs 2 opt_ensemble_multi_obj ::: ${sorted_networks[@]}
 
 # Evaluamos el frente obtenido para cada red
 ## DREAM3

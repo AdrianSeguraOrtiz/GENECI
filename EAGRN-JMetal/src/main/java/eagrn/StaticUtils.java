@@ -278,17 +278,26 @@ public final class StaticUtils {
         
         FitnessFunction res;
         switch (str.toLowerCase()) {
-            case "loyaltyprogressivecurrentimpact":
-                res = new LoyaltyProgressiveCurrentImpact(timeSeriesMap);
-                break;
+
+            // Loyalty
+            case "loyalty":
             case "loyaltyprogressivenextimpact":
                 res = new LoyaltyProgressiveNextImpact(timeSeriesMap);
+                break;
+            case "loyaltyprogressivecurrentimpact":
+                res = new LoyaltyProgressiveCurrentImpact(timeSeriesMap);
                 break;
             case "loyaltyprogressivenextnextimpact":
                 res = new LoyaltyProgressiveNextNextImpact(timeSeriesMap);
                 break;
             case "loyaltyfinal":
                 res = new LoyaltyFinal(timeSeriesMap);
+                break;
+
+            // Quality
+            case "quality":
+            case "qualitymedianaboveaverage":
+                res = new QualityMedianAboveAverage(inferredNetworks);
                 break;
             case "qualitymean":
                 res = new QualityMean(inferredNetworks);
@@ -298,9 +307,6 @@ public final class StaticUtils {
                 break;
             case "qualitymeanaboveaverage":
                 res = new QualityMeanAboveAverage(inferredNetworks);
-                break;
-            case "qualitymedianaboveaverage":
-                res = new QualityMedianAboveAverage(inferredNetworks);
                 break;
             case "qualitymeanabovecutoff":
                 res = new QualityMeanAboveCutOff(inferredNetworks, cutOffCriteria);
@@ -314,17 +320,29 @@ public final class StaticUtils {
             case "qualitymedianaboveaveragewithcontrast":
                 res = new QualityMedianAboveAverageWithContrast(geneNames.size(), inferredNetworks);
                 break;
+
+            // Clustering
+            case "clustering":
             case "averagelocalclusteringmeasure":
                 res = new AverageLocalClusteringMeasure(geneNames, cutOffCriteria);
                 break;
             case "globalclusteringmeasure":
                 res = new GlobalClusteringMeasure(geneNames, cutOffCriteria);
                 break;
+
+            // Degree distribution
+            case "degreedistribution":
+            case "weighteddegreedistribution":
+                res = new WeightedDegreeDistribution(geneNames);
+                break;
             case "binarizeddegreedistribution":
                 res = new BinarizedDegreeDistribution(geneNames.size(), cutOffCriteria);
                 break;
-            case "weighteddegreedistribution":
-                res = new WeightedDegreeDistribution(geneNames);
+            
+            // Metric distribution
+            case "metricdistribution":
+            case "eigenvectordistribution":
+                res = new EigenvectorDistribution(geneNames);
                 break;
             case "betweennessdistribution":
                 res = new BetweennessDistribution(geneNames);
@@ -335,36 +353,35 @@ public final class StaticUtils {
             case "edgebetweennessdistribution":
                 res = new EdgeBetweennessDistribution(geneNames);
                 break;
-            case "edgebetweennessreducenonessentialsinteractions":
-                res = new EdgeBetweennessReduceNonEssentialsInteractions(geneNames);
-                break;
-            case "eigenvectordistribution":
-                res = new EigenvectorDistribution(geneNames);
-                break;
             case "katzdistribution":
                 res = new KatzDistribution(geneNames);
                 break;
             case "pagerankdistribution":
                 res = new PageRankDistribution(geneNames);
                 break;
+
+            // Reduce Non-Essentials Interactions
+            case "reducenonessentialsinteractions":
+            case "edgebetweennessreducenonessentialsinteractions":
+                res = new EdgeBetweennessReduceNonEssentialsInteractions(geneNames);
+                break;
+
+            // Dynamicity
+            case "dynamicity":
             case "dynamicsmeasureautovectorsstability":
                 res = new DynamicsMeasureAutovectorsStability(geneNames);
                 break;
             case "dynamicsmeasuretimestability":
                 res = new DynamicsMeasureTimeStability(geneNames);
                 break;
-            case "motifdetection":
+            
+            // Motifs
+            case "motifs":
                 res = new MotifDetection(cutOffCriteria, new String[]{
-                    "FeedforwardLoop",
-                    "CoRegulation",
-                    "Cascade",
-                    "FeedbackLoopWithCoRegulation",
-                    "FeedforwardChain",
                     "Differentiation",
                     "RegulatoryRoute",
                     "Bifurcation",
                     "Coupling",
-                    "BiParallel",
                 });
                 break;
             case "motifdetectionfeedforwardloop":

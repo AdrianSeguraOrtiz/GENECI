@@ -95,6 +95,6 @@ public abstract class Topology implements FitnessFunction {
 
         double Z0 = Math.pow(Z1, 2) + Math.pow(Z2, 2);
 
-        return Math.exp(-Z0 / 2.0);
+        return Z0;
     }
 }
