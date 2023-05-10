@@ -9,7 +9,6 @@ import java.util.Map;
 
 import org.uma.jmetal.algorithm.Algorithm;
 import org.uma.jmetal.algorithm.multiobjective.nsgaii.NSGAIIBuilder;
-import org.uma.jmetal.algorithm.multiobjective.smpso.SMPSOBuilder;
 import org.uma.jmetal.lab.experiment.Experiment;
 import org.uma.jmetal.lab.experiment.ExperimentBuilder;
 import org.uma.jmetal.lab.experiment.component.impl.ComputeQualityIndicators;
@@ -23,7 +22,6 @@ import org.uma.jmetal.lab.experiment.component.impl.GenerateWilcoxonTestTablesWi
 import org.uma.jmetal.lab.experiment.util.ExperimentAlgorithm;
 import org.uma.jmetal.lab.experiment.util.ExperimentProblem;
 import org.uma.jmetal.operator.selection.impl.BinaryTournamentSelection;
-import org.uma.jmetal.problem.doubleproblem.DoubleProblem;
 import org.uma.jmetal.qualityindicator.impl.Epsilon;
 import org.uma.jmetal.qualityindicator.impl.GenerationalDistance;
 import org.uma.jmetal.qualityindicator.impl.InvertedGenerationalDistance;
@@ -31,11 +29,8 @@ import org.uma.jmetal.qualityindicator.impl.InvertedGenerationalDistancePlus;
 import org.uma.jmetal.qualityindicator.impl.Spread;
 import org.uma.jmetal.qualityindicator.impl.hypervolume.impl.PISAHypervolume;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
-import org.uma.jmetal.util.archive.BoundedArchive;
-import org.uma.jmetal.util.archive.impl.CrowdingDistanceArchive;
 import org.uma.jmetal.util.comparator.RankingAndCrowdingDistanceComparator;
 import org.uma.jmetal.util.errorchecking.JMetalException;
-import org.uma.jmetal.util.evaluator.impl.SequentialSolutionListEvaluator;
 
 import eagrn.cutoffcriteria.CutOffCriteria;
 import eagrn.cutoffcriteria.impl.PercLinksWithBestConfCriteria;
@@ -43,7 +38,7 @@ import eagrn.operator.crossover.SimplexCrossover;
 import eagrn.operator.mutation.SimplexMutation;
 
 public class ComputingReferenceParetoFronts {
-    private static final int INDEPENDENT_RUNS = 25;
+    private static final int INDEPENDENT_RUNS = 10;
 
     public static void main(String[] args) throws IOException {
         if (args.length < 1) {
@@ -62,7 +57,7 @@ public class ComputingReferenceParetoFronts {
             geneNames[i] = StaticUtils.getGeneNames(networkFolders[i] + "/gene_names.txt");
         }
 
-        String strFitnessFormulas = "Quality;DegreeDistribution";
+        String strFitnessFormulas = "Quality;DegreeDistribution;Motifs";
         String strTimeSeriesFile = null;
 
         List<ExperimentProblem<DoubleSolution>> problemList = new ArrayList<>();
@@ -78,13 +73,13 @@ public class ComputingReferenceParetoFronts {
             configureAlgorithmList(problemList);
 
         Experiment<DoubleSolution, List<DoubleSolution>> experiment =
-                new ExperimentBuilder<DoubleSolution, List<DoubleSolution>>("GRN-ComputingReferenceParetoFronts-D3-100")
+                new ExperimentBuilder<DoubleSolution, List<DoubleSolution>>("GRN-ComputingReferenceParetoFronts_0-500")
                         .setAlgorithmList(algorithmList)
                         .setProblemList(problemList)
                         .setExperimentBaseDirectory(experimentBaseDirectory)
                         .setOutputParetoFrontFileName("FUN")
                         .setOutputParetoSetFileName("VAR")
-                        .setReferenceFrontDirectory(experimentBaseDirectory + "/GRN-ComputingReferenceParetoFronts-D3-100/referenceFronts")
+                        .setReferenceFrontDirectory(experimentBaseDirectory + "/GRN-ComputingReferenceParetoFronts_0-500/referenceFronts")
                         .setIndicatorList(Arrays.asList(
                                 new Epsilon(),
                                 new Spread(),
@@ -110,22 +105,34 @@ public class ComputingReferenceParetoFronts {
           List<ExperimentProblem<DoubleSolution>> problemList) {
 
         List<ExperimentAlgorithm<DoubleSolution, List<DoubleSolution>>> algorithms = new ArrayList<>();
-        int populationSize = 100;
         int numEvaluations = 100000;
 
         for (int run = 0; run < INDEPENDENT_RUNS; run++) {
-            for (ExperimentProblem<DoubleSolution> experimentProblem : problemList) {
-                Algorithm<List<DoubleSolution>> algorithm 
-                    = new NSGAIIBuilder<>(experimentProblem.getProblem(), 
-                                        new SimplexCrossover(3, 1, 0.9), 
-                                        new SimplexMutation(0.1, 0.1), 
-                                        populationSize)
-                        .setSelectionOperator(new BinaryTournamentSelection<>(new RankingAndCrowdingDistanceComparator<>()))
-                        .setMaxEvaluations(numEvaluations)
-                        .build();
-                algorithms.add(new ExperimentAlgorithm<>(algorithm, "NSGAII", experimentProblem, run));
+
+            // NSGAII
+            double[] crossoverProbabilities = new double[]{0.7, 0.75, 0.8, 0.85, 0.9, 0.95};
+            double[] mutationProbabilities = new double[]{0.05, 0.1, 0.15, 0.2, 0.25, 0.3};
+            int[] populationSizes = new int[]{100, 150, 200, 250, 300};
+            for(double cp : crossoverProbabilities){
+                for(double mp : mutationProbabilities){
+                    for(int ps : populationSizes) {
+                        for (ExperimentProblem<DoubleSolution> experimentProblem : problemList) {
+                            Algorithm<List<DoubleSolution>> algorithm 
+                                = new NSGAIIBuilder<>(experimentProblem.getProblem(), 
+                                                    new SimplexCrossover(3, 1, cp), 
+                                                    new SimplexMutation(mp, 0.1), 
+                                                    ps)
+                                    .setSelectionOperator(new BinaryTournamentSelection<>(new RankingAndCrowdingDistanceComparator<>()))
+                                    .setMaxEvaluations(numEvaluations)
+                                    .build();
+                            algorithms.add(new ExperimentAlgorithm<>(algorithm, "NSGAII-PS" + ps + "-CP" + cp + "-MP" + mp, experimentProblem, run));
+                        }
+                    }
+                }
             }
 
+            // SMPSO: has no crossing
+            /**
             for (ExperimentProblem<DoubleSolution> experimentProblem : problemList) {
                 BoundedArchive<DoubleSolution> archive = new CrowdingDistanceArchive<>(populationSize);
                 Algorithm<List<DoubleSolution>> algorithm 
@@ -137,6 +144,11 @@ public class ComputingReferenceParetoFronts {
                         .build();
                 algorithms.add(new ExperimentAlgorithm<>(algorithm, "SMPSO", experimentProblem, run));
             }
+            */
+
+            // MOEAD: Solo se puede usar importando jMetal-component y su versión no es compatible con la utilizada en el proyecto
+            // OMOPSO: It has its own mutation operators
+            // GDE3: It only allows a differential evolution type crossing
         }
         return algorithms;
     }

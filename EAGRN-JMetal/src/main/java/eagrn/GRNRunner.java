@@ -97,7 +97,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 numEvaluations = 25000;
                 strCutOffCriteria = "MinConf";
                 cutOffValue = 0.5f;
-                strFitnessFormulas = "Quality;BinarizedDegreeDistribution";
+                strFitnessFormulas = "Quality;DegreeDistribution";
                 strAlgorithm = "NSGAII";
                 numOfThreads = Runtime.getRuntime().availableProcessors();
                 printEvolution = false;
@@ -197,7 +197,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 computingTime = algorithm.getTotalComputingTime();
 
                 /** Extract the population of the last iteration. */
-                population = algorithm.getResult();
+                population = SolutionListUtils.getNonDominatedSolutions(algorithm.getResult());
 
             } else if (strAlgorithm.equals("GA-AsyncParallel")) {
                 /** Activate stopwatch. */
@@ -244,7 +244,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 computingTime = algorithmRunner.getComputingTime();
 
                 /** Extract the population of the last iteration. */
-                population = algorithm.getResult();
+                population = SolutionListUtils.getNonDominatedSolutions(algorithm.getResult());
 
             } else if (strAlgorithm.equals("NSGAII-AsyncParallel")) {
                 /** Activate stopwatch. */
@@ -288,7 +288,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 computingTime = algorithmRunner.getComputingTime();
 
                 /** Extract the population of the last iteration. */
-                population = algorithm.getResult();
+                population = SolutionListUtils.getNonDominatedSolutions(algorithm.getResult());
 
             } else if (strAlgorithm.equals("SMPSO-SyncParallel")) {
                 /** Create archive */
@@ -313,7 +313,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 computingTime = algorithmRunner.getComputingTime();
 
                 /** Extract the population of the last iteration. */
-                population = algorithm.getResult();
+                population = SolutionListUtils.getNonDominatedSolutions(algorithm.getResult());
 
                 /** Stop the evaluator */
                 evaluator.shutdown();

@@ -1458,9 +1458,19 @@ def optimize_ensemble(
         help="Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.",
         rich_help_panel="Orchestration",
     ),
-    plot_evolution: bool = typer.Option(
+    plot_fitness_evolution: bool = typer.Option(
         False,
-        help="Indicate if you want to represent the evolution of the fitness value.",
+        help="Indicate if you want to represent the evolution of the fitness values.",
+        rich_help_panel="Graphics",
+    ),
+    plot_pareto_front: bool = typer.Option(
+        False,
+        help="Indicate if you want to represent the Pareto front (only available for multi-objective mode of 2 or 3 functions).",
+        rich_help_panel="Graphics",
+    ),
+    plot_parallel_coordinates: bool = typer.Option(
+        False,
+        help="Indicate if you want to represent the parallel coordinate graph (only available for multi-objective mode).",
         rich_help_panel="Graphics",
     ),
     output_dir: Path = typer.Option(
@@ -1535,7 +1545,7 @@ def optimize_ensemble(
     container = client.containers.run(
         image=image,
         volumes=get_volume(temp_folder_str),
-        command=f"{temp_folder_str} {crossover_probability} {mutation_probability} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {str_functions} {algorithm} {threads} {plot_evolution}",
+        command=f"{temp_folder_str} {crossover_probability} {mutation_probability} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {str_functions} {algorithm} {threads} {plot_fitness_evolution}",
         detach=True,
         tty=True,
     )
@@ -1545,13 +1555,7 @@ def optimize_ensemble(
     print(logs)
 
     # If specified, the evolution of the fitness values ​​is graphed
-    if plot_evolution:
-
-        # Open the file with the fitness values
-        f = open(f"{temp_folder_str}/ea_consensus/fitness_evolution.txt", "r")
-
-        # Each line contains the evolution of a different objective
-        lines = f.readlines()
+    if plot_fitness_evolution:
 
         # Create grid for graphs
         if len(function) == 1:
@@ -1565,14 +1569,11 @@ def optimize_ensemble(
             c = 2
         fig = make_subplots(rows=r, cols=c, subplot_titles=function)
 
+        # Read file with the fitness values
+        df = pd.read_csv(f"{temp_folder_str}/ea_consensus/fitness_evolution.txt", header=None)
+
         # For each objective ...
-        for i in range(len(lines)):
-
-            # Read the evolution of its values
-            str_fitness = lines[i].split(", ")
-
-            # Convert it to the appropriate type (float)
-            fitness = [float(v) for v in str_fitness]
+        for i, fitness in df.iterrows():
 
             # Get row and column index
             curr_row = math.ceil((i + 1) / c)
@@ -1591,51 +1592,77 @@ def optimize_ensemble(
         fig.update_layout(title_text="Fitness evolution", showlegend=False)
         fig.write_html(f"{temp_folder_str}/ea_consensus/fitness_evolution.html")
 
-    # If there is more than one objective we paint the graph of parallel coordinates
-    if len(function) > 1:
+    # If specified, the Pareto front is represented
+    if plot_pareto_front:
 
-        # Open the file with the fitness values associated with the non-dominated solutions.
-        f = open(f"{temp_folder_str}/ea_consensus/FUN.csv", "r")
+        # Verify that the number of fitness functions is 2 or 3
+        if len(function) != 2 and len(function) != 3:
+            print("[bold yellow]Warning:[/bold yellow] The Pareto front cannot be represented if the number of objectives is other than 2 or 3. Your intention will be ignored.")
+        else:
 
-        # Each line contains the fitness values of a solution of the pareto front.
-        lines = f.readlines()
+            # Read file with the fitness values associated with the non-dominated solutions.
+            df = pd.read_csv(f"{temp_folder_str}/ea_consensus/FUN.csv")
 
-        # Create pandas dataframe
-        df = pd.DataFrame(columns=function)
+            # If there are two objectives ...
+            if len(function) == 2:
+                ## Get columns as lists
+                fitness_o1 = df[function[0]].tolist()
+                fitness_o2 = df[function[1]].tolist()
 
-        # For each solution add its fitness values to the dataframe
-        del lines[0]
-        for i, line in enumerate(lines):
-            df.loc[len(df.index)] = [float(v) for v in line.split(",")]
+                ## Obtain the order corresponding to the first objective in order to plot the front in an appropriate way.
+                sorted_idx = np.argsort(fitness_o1)
 
-        # If there are two objectives the pareto front is plotted
-        if len(function) == 2:
-            ## Get columns as lists
-            fitness_o1 = df[function[0]].tolist()
-            fitness_o2 = df[function[1]].tolist()
+                ## Sort all vectors according to the indices obtained above.
+                fitness_o1 = [fitness_o1[i] for i in sorted_idx]
+                fitness_o2 = [fitness_o2[i] for i in sorted_idx]
 
-            ## Obtain the order corresponding to the first objective in order to plot the front in an appropriate way.
-            sorted_idx = np.argsort(fitness_o1)
+                # Plot, customize, save the figure
+                fig = px.line(
+                    x=fitness_o1, y=fitness_o2, markers=True, title="Pareto front"
+                )
+                fig.update_xaxes(title_text=function[0])
+                fig.update_yaxes(title_text=function[1])
+                fig.write_html(f"{temp_folder_str}/ea_consensus/pareto_front.html")
 
-            ## Sort all vectors according to the indices obtained above.
-            fitness_o1 = [fitness_o1[i] for i in sorted_idx]
-            fitness_o2 = [fitness_o2[i] for i in sorted_idx]
+            elif len(function) == 3:
+                # Crear el gráfico tridimensional
+                fig = go.Figure(data=[go.Scatter3d(
+                    x=df[function[0]],
+                    y=df[function[1]],
+                    z=df[function[2]],
+                    mode='markers',
+                )])
 
-            # Plot, customize, save the figure
-            fig = px.line(
-                x=fitness_o1, y=fitness_o2, markers=True, title="Pareto front"
+                # Establecer los nombres de los ejes y el título del gráfico
+                fig.update_layout(
+                    scene=dict(
+                        xaxis_title=function[0],
+                        yaxis_title=function[1],
+                        zaxis_title=function[2]
+                    ),
+                    title='Pareto front'
+                )
+
+                # Mostrar el gráfico en HTML
+                fig.write_html(f"{temp_folder_str}/ea_consensus/pareto_front.html")
+
+    # If specified, the parallel coordinates graph is plotted
+    if plot_parallel_coordinates:
+
+        # Verify that the number of fitness functions is greater than 1
+        if len(function) == 1:
+            print("[bold yellow]Warning:[/bold yellow] Cannot graph parallel coordinates for a single fitness function. Your intention will be ignored.")
+        else:
+            # Read file with the fitness values associated with the non-dominated solutions.
+            df = pd.read_csv(f"{temp_folder_str}/ea_consensus/FUN.csv")
+
+            # Plot parallel coordinates graph
+            fig = px.parallel_coordinates(
+                df, dimensions=function, title="Graph of parallel coordinates"
             )
-            fig.update_xaxes(title_text=function[0])
-            fig.update_yaxes(title_text=function[1])
-            fig.write_html(f"{temp_folder_str}/ea_consensus/pareto_front.html")
-
-        # We paint the graph of parallel coordinates
-        fig = px.parallel_coordinates(
-            df, dimensions=function, title="Graph of parallel coordinates"
-        )
-        fig.write_html(
-            f"{temp_folder_str}/ea_consensus/fitness_parallel_coordinates.html"
-        )
+            fig.write_html(
+                f"{temp_folder_str}/ea_consensus/parallel_coordinates.html"
+            )
 
     # Define and create the output folder
     if str(output_dir) == "<<conf_list_path>>/../ea_consensus":
@@ -2156,9 +2183,19 @@ def run(
         help="Comma-separated list with the identifying numbers of the threads to be used. If specified, the threads variable will automatically be set to the length of the list.",
         rich_help_panel="Orchestration",
     ),
-    plot_evolution: bool = typer.Option(
+    plot_fitness_evolution: bool = typer.Option(
         False,
-        help="Indicate if you want to represent the evolution of the fitness value.",
+        help="Indicate if you want to represent the evolution of the fitness values.",
+        rich_help_panel="Graphics",
+    ),
+    plot_pareto_front: bool = typer.Option(
+        False,
+        help="Indicate if you want to represent the Pareto front (only available for multi-objective mode of 2 or 3 functions).",
+        rich_help_panel="Graphics",
+    ),
+    plot_parallel_coordinates: bool = typer.Option(
+        False,
+        help="Indicate if you want to represent the parallel coordinate graph (only available for multi-objective mode).",
         rich_help_panel="Graphics",
     ),
     output_dir: Path = typer.Option(
@@ -2197,7 +2234,9 @@ def run(
         function,
         algorithm,
         threads,
-        plot_evolution,
+        plot_fitness_evolution,
+        plot_pareto_front,
+        plot_parallel_coordinates,
         output_dir="<<conf_list_path>>/../ea_consensus",
     )
 

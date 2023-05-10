@@ -125,7 +125,8 @@ geneci run --expression-data input_data/DREAM4/EXP/dream4_100_01_exp.csv \
            --crossover-probability 0.9 --mutation-probability 0.05 --population-size 100 \
            --num-evaluations 50000 --cut-off-criteria PercLinksWithBestConf --cut-off-value 0.4 \
            --function Quality --function DegreeDistribution --function Motifs \
-           --algorithm NSGAII --plot-evolution --output-dir inferred_networks
+           --algorithm NSGAII --plot-fitness-evolution --plot-pareto-front \
+           --plot-parallel-coordinates --output-dir inferred_networks
 ```
 
 - **Form 2**: Division of the procedure into several commands
@@ -171,7 +172,8 @@ geneci optimize-ensemble --confidence-list inferred_networks/dream4_100_01_exp/l
                          --crossover-probability 0.9 --mutation-probability 0.05 --population-size 100 \
                          --num-evaluations 50000 --cut-off-criteria PercLinksWithBestConf --cut-off-value 0.4 \
                          --function Quality --function DegreeDistribution --function Motifs \
-                         --algorithm NSGAII --plot-evolution --output-dir inferred_networks
+                         --algorithm NSGAII --plot-fitness-evolution --plot-pareto-front \
+                         --plot-parallel-coordinates --output-dir inferred_networks
 ```
 
 - **Consensus under own criteria**: Assign specific weights to each of the files resulting from each technique. In case the researcher has some experience in this domain, he can determine for himself the weights he wants to assign to each inferred network to build his own consensus network.
@@ -665,7 +667,9 @@ $ geneci optimize-ensemble [OPTIONS]
 * `--function TEXT`: A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, DegreeDistribution and Motifs.  [required]
 * `--algorithm [GA|NSGAII|SMPSO]`: Evolutionary algorithm to be used during the optimization process. All are intended for a multi-objective approach with the exception of the genetic algorithm (GA).  [required]
 * `--threads INTEGER`: Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.  [default: 64]
-* `--plot-evolution / --no-plot-evolution`: Indicate if you want to represent the evolution of the fitness value.  [default: no-plot-evolution]
+* `--plot-fitness-evolution / --no-plot-fitness-evolution`: Indicate if you want to represent the evolution of the fitness values.  [default: no-plot-fitness-evolution]
+* `--plot-pareto-front / --no-plot-pareto-front`: Indicate if you want to represent the Pareto front (only available for multi-objective mode of 2 or 3 functions). [default: no-plot-pareto-front]
+* `--plot-parallel-coordinates / --no-plot-parallel-coordinates`: Indicate if you want to represent the parallel coordinate graph (only available for multi-objective mode). [default: no-plot-parallel-coordinates]
 * `--output-dir PATH`: Path to the output folder.  [default: <<conf_list_path>>/../ea_consensus]
 * `--help`: Show this message and exit.
 
@@ -694,7 +698,9 @@ $ geneci run [OPTIONS]
 * `--algorithm [GA|NSGAII|SMPSO]`: Evolutionary algorithm to be used during the optimization process. All are intended for a multi-objective approach with the exception of the genetic algorithm (GA).  [required]
 * `--threads INTEGER`: Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.  [default: 64]
 * `--str-threads TEXT`: Comma-separated list with the identifying numbers of the threads to be used. If specified, the threads variable will automatically be set to the length of the list.
-* `--plot-evolution / --no-plot-evolution`: Indicate if you want to represent the evolution of the fitness value.  [default: no-plot-evolution]
+* `--plot-fitness-evolution / --no-plot-fitness-evolution`: Indicate if you want to represent the evolution of the fitness values.  [default: no-plot-fitness-evolution]
+* `--plot-pareto-front / --no-plot-pareto-front`: Indicate if you want to represent the Pareto front (only available for multi-objective mode of 2 or 3 functions). [default: no-plot-pareto-front]
+* `--plot-parallel-coordinates / --no-plot-parallel-coordinates`: Indicate if you want to represent the parallel coordinate graph (only available for multi-objective mode). [default: no-plot-parallel-coordinates]
 * `--output-dir PATH`: Path to the output folder.  [default: inferred_networks]
 * `--help`: Show this message and exit.
 

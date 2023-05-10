@@ -81,7 +81,7 @@ opt_ensemble_mono_obj() {
         str+="--confidence-list $confidence_list "
     done
 
-    { time python ../geneci/main.py optimize-ensemble $str --gene-names $nf/gene_names.txt --time-series $nf/$(basename $nf).csv --function $func --num-evaluations 25000 --population-size 100 --algorithm GA --plot-evolution --threads 16 --output-dir $nf/ea_consensus_$func ; } 2>> $nf/measurements/functions_times.txt
+    { time python ../geneci/main.py optimize-ensemble $str --gene-names $nf/gene_names.txt --time-series $nf/$(basename $nf).csv --function $func --num-evaluations 25000 --population-size 100 --algorithm GA --plot-fitness-evolution --threads 16 --output-dir $nf/ea_consensus_$func ; } 2>> $nf/measurements/functions_times.txt
     echo "^ $func" >> $nf/measurements/functions_times.txt
 }
 export -f opt_ensemble_mono_obj

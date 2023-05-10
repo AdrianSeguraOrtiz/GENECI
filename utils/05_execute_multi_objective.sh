@@ -32,7 +32,7 @@ done
 opt_ensemble_multi_obj() {
     nf=$1
 
-    if [ -d "$nf/ea_consensus_multi-objective_q-dd-m" ]; then
+    if [ -d "$nf/ea_consensus_mo_q-dd-m" ]; then
         return 1
     fi
 
@@ -49,7 +49,7 @@ opt_ensemble_multi_obj() {
         str_func+="--function $func "
     done
 
-    { time python ../geneci/main.py optimize-ensemble $str $str_func --gene-names $nf/gene_names.txt --time-series $nf/$(basename $nf).csv --num-evaluations 100000 --population-size 100 --algorithm NSGAII --plot-evolution --threads 60 --output-dir $nf/ea_consensus_multi-objective_q-dd-m ; } 2>> $nf/measurements/multi-objective_times.txt
+    { time python ../geneci/main.py optimize-ensemble $str $str_func --gene-names $nf/gene_names.txt --time-series $nf/$(basename $nf).csv --num-evaluations 100000 --population-size 100 --algorithm NSGAII --plot-fitness-evolution --plot-pareto-front --plot-parallel-coordinates --threads 60 --output-dir $nf/ea_consensus_mo_q-dd-m ; } 2>> $nf/measurements/multi-objective_times.txt
     echo "^ q-dd-m" >> $nf/measurements/multi-objective_times.txt
 }
 export -f opt_ensemble_multi_obj
