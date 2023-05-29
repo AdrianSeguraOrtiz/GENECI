@@ -38,7 +38,7 @@ import eagrn.operator.crossover.SimplexCrossover;
 import eagrn.operator.mutation.SimplexMutation;
 
 public class ComputingReferenceParetoFronts {
-    private static final int INDEPENDENT_RUNS = 10;
+    private static final int INDEPENDENT_RUNS = 5;
 
     public static void main(String[] args) throws IOException {
         if (args.length < 1) {
@@ -110,22 +110,25 @@ public class ComputingReferenceParetoFronts {
         for (int run = 0; run < INDEPENDENT_RUNS; run++) {
 
             // NSGAII
-            double[] crossoverProbabilities = new double[]{0.7, 0.75, 0.8, 0.85, 0.9, 0.95};
-            double[] mutationProbabilities = new double[]{0.05, 0.1, 0.15, 0.2, 0.25, 0.3};
-            int[] populationSizes = new int[]{100, 150, 200, 250, 300};
+            double[] crossoverProbabilities = new double[]{0.7, 0.8, 0.9};
+            double[] mutationProbabilities = new double[]{0.05, 0.1, 0.2};
+            int[] populationSizes = new int[]{100, 200, 300};
+            int[] numParents = new int[]{3, 4};
             for(double cp : crossoverProbabilities){
                 for(double mp : mutationProbabilities){
                     for(int ps : populationSizes) {
-                        for (ExperimentProblem<DoubleSolution> experimentProblem : problemList) {
-                            Algorithm<List<DoubleSolution>> algorithm 
-                                = new NSGAIIBuilder<>(experimentProblem.getProblem(), 
-                                                    new SimplexCrossover(3, 1, cp), 
-                                                    new SimplexMutation(mp, 0.1), 
-                                                    ps)
-                                    .setSelectionOperator(new BinaryTournamentSelection<>(new RankingAndCrowdingDistanceComparator<>()))
-                                    .setMaxEvaluations(numEvaluations)
-                                    .build();
-                            algorithms.add(new ExperimentAlgorithm<>(algorithm, "NSGAII-PS" + ps + "-CP" + cp + "-MP" + mp, experimentProblem, run));
+                        for (int np : numParents) {
+                            for (ExperimentProblem<DoubleSolution> experimentProblem : problemList) {
+                                Algorithm<List<DoubleSolution>> algorithm 
+                                    = new NSGAIIBuilder<>(experimentProblem.getProblem(), 
+                                                        new SimplexCrossover(np, 1, cp), 
+                                                        new SimplexMutation(mp, 0.1), 
+                                                        ps)
+                                        .setSelectionOperator(new BinaryTournamentSelection<>(new RankingAndCrowdingDistanceComparator<>()))
+                                        .setMaxEvaluations(numEvaluations)
+                                        .build();
+                                algorithms.add(new ExperimentAlgorithm<>(algorithm, "NSGAII-PS" + ps + "-CP" + cp + "-MP" + mp + "-NP" + np, experimentProblem, run));
+                            }
                         }
                     }
                 }

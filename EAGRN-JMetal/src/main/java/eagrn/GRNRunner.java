@@ -65,6 +65,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         /** Read input parameters. */
         String networkFolder;
         double crossoverProbability;
+        int numParents;
         double mutationProbability;
         int populationSize;
         int numEvaluations;
@@ -80,18 +81,20 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
             if (args.length == 11) {
                 crossoverProbability = Double.parseDouble(args[1]);
-                mutationProbability = Double.parseDouble(args[2]);
-                populationSize = Integer.parseInt(args[3]);
-                numEvaluations = Integer.parseInt(args[4]);
-                strCutOffCriteria = args[5];
-                cutOffValue = Float.parseFloat(args[6]);
-                strFitnessFormulas = args[7];
-                strAlgorithm = args[8];
-                numOfThreads = Integer.parseInt(args[9]);
-                printEvolution = Boolean.parseBoolean(args[10]);
+                numParents = Integer.parseInt(args[2]);
+                mutationProbability = Double.parseDouble(args[3]);
+                populationSize = Integer.parseInt(args[4]);
+                numEvaluations = Integer.parseInt(args[5]);
+                strCutOffCriteria = args[6];
+                cutOffValue = Float.parseFloat(args[7]);
+                strFitnessFormulas = args[8];
+                strAlgorithm = args[9];
+                numOfThreads = Integer.parseInt(args[10]);
+                printEvolution = Boolean.parseBoolean(args[11]);
 
             } else {
                 crossoverProbability = 0.9;
+                numParents = 3;
                 mutationProbability = 0.1;
                 populationSize = 100;
                 numEvaluations = 25000;
@@ -157,7 +160,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         }
 
         /** Set the crossover operator. */
-        crossover = new SimplexCrossover(3, 1, crossoverProbability);
+        crossover = new SimplexCrossover(numParents, 1, crossoverProbability);
 
         /** Set the mutation operator. */
         mutation = new SimplexMutation(mutationProbability, 0.1);

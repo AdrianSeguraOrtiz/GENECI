@@ -1420,6 +1420,9 @@ def optimize_ensemble(
     crossover_probability: float = typer.Option(
         0.9, help="Crossover probability", rich_help_panel="Crossover"
     ),
+    num_parents: int = typer.Option(
+        3, help="Number of parents", rich_help_panel="Crossover"
+    ),
     mutation_probability: float = typer.Option(
         -1,
         help="Mutation probability. [default: 1/len(files)]",
@@ -1545,7 +1548,7 @@ def optimize_ensemble(
     container = client.containers.run(
         image=image,
         volumes=get_volume(temp_folder_str),
-        command=f"{temp_folder_str} {crossover_probability} {mutation_probability} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {str_functions} {algorithm} {threads} {plot_fitness_evolution}",
+        command=f"{temp_folder_str} {crossover_probability} {num_parents} {mutation_probability} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {str_functions} {algorithm} {threads} {plot_fitness_evolution}",
         detach=True,
         tty=True,
     )
@@ -2140,6 +2143,9 @@ def run(
     crossover_probability: float = typer.Option(
         0.9, help="Crossover probability", rich_help_panel="Crossover"
     ),
+    num_parents: int = typer.Option(
+        3, help="Number of parents", rich_help_panel="Crossover"
+    ),
     mutation_probability: float = typer.Option(
         -1,
         help="Mutation probability. [default: 1/len(files)]",
@@ -2226,6 +2232,7 @@ def run(
         gene_names,
         time_series,
         crossover_probability,
+        num_parents,
         mutation_probability,
         population_size,
         num_evaluations,
