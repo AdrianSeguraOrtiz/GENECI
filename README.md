@@ -659,6 +659,7 @@ $ geneci optimize-ensemble [OPTIONS]
 * `--gene-names PATH`: Path to the TXT file with the name of the contemplated genes separated by comma and without space. If not specified, only the genes specified in the lists of trusts will be considered.
 * `--time-series PATH`: Path to the CSV file with the time series from which the individual gene networks have been inferred. This parameter is only necessary in case of specifying the fitness function Loyalty.
 * `--crossover-probability FLOAT`: Crossover probability  [default: 0.9]
+* `--num-parents INTEGER`: Number of parents  [default: 3]
 * `--mutation-probability FLOAT`: Mutation probability. [default: 1/len(files)]
 * `--population-size INTEGER`: Population size  [default: 100]
 * `--num-evaluations INTEGER`: Number of evaluations  [default: 25000]
@@ -689,6 +690,7 @@ $ geneci run [OPTIONS]
 * `--time-series PATH`: Path to the CSV file with the time series from which the individual gene networks have been inferred. This parameter is only necessary in case of specifying the fitness function Loyalty.
 * `--technique [ARACNE|BC3NET|C3NET|CLR|GENIE3_RF|GRNBOOST2|GENIE3_ET|MRNET|MRNETB|PCIT|TIGRESS|KBOOST|MEOMI|JUMP3|NARROMI|CMI2NI|RSNET|PCACMI|LOCPCACMI|PLSNET|PIDC|PUC|GRNVBEM|LEAP|NONLINEARODES|INFERELATOR]`: Inference techniques to be performed.  [required]
 * `--crossover-probability FLOAT`: Crossover probability  [default: 0.9]
+* `--num-parents INTEGER`: Number of parents  [default: 3]
 * `--mutation-probability FLOAT`: Mutation probability. [default: 1/len(files)]
 * `--population-size INTEGER`: Population size  [default: 100]
 * `--num-evaluations INTEGER`: Number of evaluations  [default: 25000]
