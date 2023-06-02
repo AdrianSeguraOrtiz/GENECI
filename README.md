@@ -123,6 +123,7 @@ geneci run --expression-data input_data/DREAM4/EXP/dream4_100_01_exp.csv \
            --technique PIDC --technique PUC --technique GRNVBEM --technique LEAP \
            --technique NONLINEARODES --technique INFERELATOR \
            --crossover-probability 0.9 --mutation-probability 0.05 --population-size 100 \
+           --num-parents 3 --mutation-strength 0.1 \
            --num-evaluations 50000 --cut-off-criteria PercLinksWithBestConf --cut-off-value 0.4 \
            --function Quality --function DegreeDistribution --function Motifs \
            --algorithm NSGAII --plot-fitness-evolution --plot-pareto-front \
@@ -168,8 +169,9 @@ geneci optimize-ensemble --confidence-list inferred_networks/dream4_100_01_exp/l
                          --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_TIGRESS.csv \
                          --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_LEAP.csv \
                          --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_PUC.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_C3NET.csv' \
+                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_C3NET.csv \
                          --crossover-probability 0.9 --mutation-probability 0.05 --population-size 100 \
+                         --num-parents 3 --mutation-strength 0.1 \
                          --num-evaluations 50000 --cut-off-criteria PercLinksWithBestConf --cut-off-value 0.4 \
                          --function Quality --function DegreeDistribution --function Motifs \
                          --algorithm NSGAII --plot-fitness-evolution --plot-pareto-front \
@@ -661,6 +663,7 @@ $ geneci optimize-ensemble [OPTIONS]
 * `--crossover-probability FLOAT`: Crossover probability  [default: 0.9]
 * `--num-parents INTEGER`: Number of parents  [default: 3]
 * `--mutation-probability FLOAT`: Mutation probability. [default: 1/len(files)]
+* `--mutation-strength FLOAT`: Mutation strength. [default: 0.1]
 * `--population-size INTEGER`: Population size  [default: 100]
 * `--num-evaluations INTEGER`: Number of evaluations  [default: 25000]
 * `--cut-off-criteria [MinConf|NumLinksWithBestConf|PercLinksWithBestConf]`: Criteria for determining which links will be part of the final binary matrix.  [default: PercLinksWithBestConf]
@@ -692,6 +695,7 @@ $ geneci run [OPTIONS]
 * `--crossover-probability FLOAT`: Crossover probability  [default: 0.9]
 * `--num-parents INTEGER`: Number of parents  [default: 3]
 * `--mutation-probability FLOAT`: Mutation probability. [default: 1/len(files)]
+* `--mutation-strength FLOAT`: Mutation strength. [default: 0.1]
 * `--population-size INTEGER`: Population size  [default: 100]
 * `--num-evaluations INTEGER`: Number of evaluations  [default: 25000]
 * `--cut-off-criteria [MinConf|NumLinksWithBestConf|PercLinksWithBestConf]`: Criteria for determining which links will be part of the final binary matrix.  [default: PercLinksWithBestConf]

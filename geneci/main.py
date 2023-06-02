@@ -1429,6 +1429,9 @@ def optimize_ensemble(
         show_default=False,
         rich_help_panel="Mutation",
     ),
+    mutation_strength: float = typer.Option(
+        0.1, help="Mutation strength", rich_help_panel="Mutation"
+    ),
     population_size: int = typer.Option(
         100, help="Population size", rich_help_panel="Diversity and depth"
     ),
@@ -1548,7 +1551,7 @@ def optimize_ensemble(
     container = client.containers.run(
         image=image,
         volumes=get_volume(temp_folder_str),
-        command=f"{temp_folder_str} {crossover_probability} {num_parents} {mutation_probability} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {str_functions} {algorithm} {threads} {plot_fitness_evolution}",
+        command=f"{temp_folder_str} {crossover_probability} {num_parents} {mutation_probability} {mutation_strength} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {str_functions} {algorithm} {threads} {plot_fitness_evolution}",
         detach=True,
         tty=True,
     )
@@ -2152,6 +2155,9 @@ def run(
         show_default=False,
         rich_help_panel="Mutation",
     ),
+    mutation_strength: float = typer.Option(
+        0.1, help="Mutation strength", rich_help_panel="Mutation"
+    ),
     population_size: int = typer.Option(
         100, help="Population size", rich_help_panel="Diversity and depth"
     ),
@@ -2234,6 +2240,7 @@ def run(
         crossover_probability,
         num_parents,
         mutation_probability,
+        mutation_strength,
         population_size,
         num_evaluations,
         cut_off_criteria,

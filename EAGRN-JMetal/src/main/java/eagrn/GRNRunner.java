@@ -67,6 +67,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         double crossoverProbability;
         int numParents;
         double mutationProbability;
+        double mutationStrength;
         int populationSize;
         int numEvaluations;
         String strCutOffCriteria;
@@ -79,23 +80,25 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         if (args.length > 0) {
             networkFolder = args[0];
 
-            if (args.length == 11) {
+            if (args.length == 13) {
                 crossoverProbability = Double.parseDouble(args[1]);
                 numParents = Integer.parseInt(args[2]);
                 mutationProbability = Double.parseDouble(args[3]);
-                populationSize = Integer.parseInt(args[4]);
-                numEvaluations = Integer.parseInt(args[5]);
-                strCutOffCriteria = args[6];
-                cutOffValue = Float.parseFloat(args[7]);
-                strFitnessFormulas = args[8];
-                strAlgorithm = args[9];
-                numOfThreads = Integer.parseInt(args[10]);
-                printEvolution = Boolean.parseBoolean(args[11]);
+                mutationStrength = Double.parseDouble(args[4]);
+                populationSize = Integer.parseInt(args[5]);
+                numEvaluations = Integer.parseInt(args[6]);
+                strCutOffCriteria = args[7];
+                cutOffValue = Float.parseFloat(args[8]);
+                strFitnessFormulas = args[9];
+                strAlgorithm = args[10];
+                numOfThreads = Integer.parseInt(args[11]);
+                printEvolution = Boolean.parseBoolean(args[12]);
 
             } else {
                 crossoverProbability = 0.9;
                 numParents = 3;
                 mutationProbability = 0.1;
+                mutationStrength = 0.1;
                 populationSize = 100;
                 numEvaluations = 25000;
                 strCutOffCriteria = "MinConf";
@@ -163,7 +166,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         crossover = new SimplexCrossover(numParents, 1, crossoverProbability);
 
         /** Set the mutation operator. */
-        mutation = new SimplexMutation(mutationProbability, 0.1);
+        mutation = new SimplexMutation(mutationProbability, mutationStrength);
 
         /** Start selection operator. */
         selection = new BinaryTournamentSelection<>(new RankingAndCrowdingDistanceComparator<>());

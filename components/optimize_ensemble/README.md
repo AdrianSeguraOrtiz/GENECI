@@ -21,5 +21,5 @@ docker build -t adriansegura99/geneci_optimize-ensemble:2.0.0 -f components/opti
 ## Run
 
 ```
-docker run -v $(pwd)/tmp:/usr/local/src/tmp/ adriansegura99/geneci_optimize-ensemble tmp/dream4_010_01_exp/ 0.9 3 0.1 StandardizationRepairer 100 25000 MinConfDist 0.5 Quality;DegreeDistribution NSGAII 8 false
+docker run -v $(pwd)/tmp:/usr/local/src/tmp/ adriansegura99/geneci_optimize-ensemble tmp/dream4_010_01_exp/ 0.9 3 0.1 0.1 StandardizationRepairer 100 25000 MinConfDist 0.5 Quality;DegreeDistribution NSGAII 8 false
 ```
