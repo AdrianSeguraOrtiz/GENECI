@@ -142,7 +142,7 @@ geneci infer-network --expression-data input_data/DREAM4/EXP/dream4_100_01_exp.c
                      --technique RSNET --technique PCACMI --technique LOCPCACMI --technique PLSNET \
                      --technique PIDC --technique PUC --technique GRNVBEM --technique LEAP \
                      --technique NONLINEARODES --technique INFERELATOR \
-                     --output-dir inferred_networks
+                     --output-dir inferred_networks/geneci_consensus
 
 # 2. Optimize the assembly of the trust lists resulting from the above command
 geneci optimize-ensemble --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_LOCPCACMI.csv \
@@ -175,7 +175,7 @@ geneci optimize-ensemble --confidence-list inferred_networks/dream4_100_01_exp/l
                          --num-evaluations 50000 --cut-off-criteria PercLinksWithBestConf --cut-off-value 0.4 \
                          --function Quality --function DegreeDistribution --function Motifs \
                          --algorithm NSGAII --plot-fitness-evolution --plot-pareto-front \
-                         --plot-parallel-coordinates --output-dir inferred_networks
+                         --plot-parallel-coordinates --output-dir inferred_networks/geneci_consensus
 ```
 
 - **Consensus under own criteria**: Assign specific weights to each of the files resulting from each technique. In case the researcher has some experience in this domain, he can determine for himself the weights he wants to assign to each inferred network to build his own consensus network.
