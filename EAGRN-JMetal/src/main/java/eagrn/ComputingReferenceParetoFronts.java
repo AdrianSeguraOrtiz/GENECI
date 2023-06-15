@@ -112,8 +112,8 @@ public class ComputingReferenceParetoFronts {
             // NSGAII
             double[] crossoverProbabilities = new double[]{0.7, 0.8, 0.9};
             double[] mutationProbabilities = new double[]{0.05, 0.1, 0.2};
-            double[] mutationStrength = new double[]{0.1, 0.2};
-            int[] populationSizes = new int[]{102, 201, 300};
+            double[] mutationStrength = new double[]{0.1, 0.2, 0.3};
+            int[] populationSizes = new int[]{100, 200, 300};
             int[] numParents = new int[]{3, 4};
             for(double cp : crossoverProbabilities){
                 for(double mp : mutationProbabilities){
@@ -130,8 +130,8 @@ public class ComputingReferenceParetoFronts {
                                             .setMaxEvaluations(numEvaluations)
                                             .build();
                                     String tag = String.valueOf(ps);
-                                    if (ps == 102) tag = "100";
-                                    else if (ps == 201) tag = "200";
+                                    //if (ps == 102) tag = "100";
+                                    //else if (ps == 201) tag = "200";
                                     algorithms.add(new ExperimentAlgorithm<>(algorithm, "NSGAII-PS" + tag + "-CP" + cp + "-MP" + mp + "-NP" + np + "-MS" + ms, experimentProblem, run));
                                 }
                             }

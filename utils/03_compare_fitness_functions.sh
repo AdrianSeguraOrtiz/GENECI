@@ -209,10 +209,70 @@ do
     done
 done
 
-# 6. Para cada grupo de tamaños unimos sus tablas en una sola. De esta forma compararemos 
-# el rendimiento de las funciones de fitness para diferentes tamaños de redes. Para 
-# cuantificar su rendimiento usamos el ranking estadístico de Friedman sobre cada uno de 
-# los scores: AUPR, AUROC, Media((AUPR+AUROC) / 2)
+# 6. Comparamos todas las funciones de fitness. Para cuantificar su rendimiento usamos el ranking 
+# estadístico de Friedman sobre cada uno de los scores: AUPR, AUROC, Media((AUPR+AUROC) / 2)
+
+chmod a+x paste.pl
+mkdir -p functions_comparison
+
+tables=()
+for network_folder in ../inferred_networks/*/
+do
+    tables+=($(ls $network_folder/measurements/*-functions_scores.csv))
+done
+
+./paste.pl ${tables[@]} > functions_comparison/all_networks_functions_scores.csv
+cols="1"
+max=$(( ${#tables[@]}*5+2 ))
+for j in `seq 7 5 $max`
+do
+    cols+=",$j"
+done
+cut -d ';' -f$cols --complement functions_comparison/all_networks_functions_scores.csv > tmp.csv && mv -f tmp.csv functions_comparison/all_networks_functions_scores.csv
+max=$(( ${#tables[@]}*4+2 ))
+
+# Creamos la tabla de AUPR para el test estadístico
+cols="1"
+for j in `seq 2 4 $max`
+do
+    cols+=",$j"
+done
+cut -d ';' -f$cols functions_comparison/all_networks_functions_scores.csv | awk 'NR != 2' | csvtool transpose -t ';' - | tr ';' ',' > functions_comparison/AUPR_functions.csv
+
+# Creamos la tabla de AUROC para el test estadístico
+cols="1"
+for j in `seq 3 4 $max`
+do
+    cols+=",$j"
+done
+cut -d ';' -f$cols functions_comparison/all_networks_functions_scores.csv | awk 'NR != 2' | csvtool transpose -t ';' - | tr ';' ',' > functions_comparison/AUROC_functions.csv
+
+# Creamos una tabla con la media de ambas métricas
+cols="1"
+for j in `seq 4 4 $max`
+do
+    cols+=",$j"
+done
+cut -d ';' -f$cols functions_comparison/all_networks_functions_scores.csv | awk 'NR != 2' | csvtool transpose -t ';' - | tr ';' ',' > functions_comparison/Mean_functions.csv
+
+# Ejecutamos los tests de Friedman
+cd controlTest && java Friedman ../functions_comparison/AUPR_functions.csv > ../functions_comparison/AUPR_functions.tex && cd ..
+cd controlTest && java Friedman ../functions_comparison/AUROC_functions.csv > ../functions_comparison/AUROC_functions.tex && cd ..
+cd controlTest && java Friedman ../functions_comparison/Mean_functions.csv > ../functions_comparison/Mean_functions.tex && cd ..
+
+# Creamos tabla de tiempos
+cols="1"
+for j in `seq 5 4 $max`
+do
+    cols+=",$j"
+done
+cut -d ';' -f$cols functions_comparison/all_networks_functions_scores.csv | awk 'NR != 2' | csvtool transpose -t ';' - | tr ';' ',' > functions_comparison/Time_functions.csv
+
+
+# 7. Ahora por grupos: Para cada grupo de tamaños unimos sus tablas en una sola. 
+# De esta forma compararemos el rendimiento de las funciones de fitness para 
+# diferentes tamaños de redes. Para cuantificar su rendimiento usamos el ranking 
+# estadístico de Friedman sobre cada uno de los scores: AUPR, AUROC, Media((AUPR+AUROC) / 2)
 
 sizes=(0 25 110 250 2000)
 iters=$(( ${#sizes[@]} - 1 ))
@@ -286,4 +346,94 @@ do
         cols+=",$j"
     done
     cut -d ';' -f$cols functions_comparison/all_networks_${name}_functions_scores.csv | awk 'NR != 2' | csvtool transpose -t ';' - | tr ';' ',' > functions_comparison/Time_${name}_functions.csv
+done
+
+# 8. Ahora por modalidad
+modalities=("quality" "metric" "motifs" "degree" "clustering")
+iters=$(( ${#modalities[@]} - 1 ))
+chmod a+x paste.pl
+mkdir -p functions_comparison
+for (( i=0; i<=$iters; i++ ))
+do 
+    mkdir -p ${modalities[i]}
+    for network_folder in ../inferred_networks/*/
+    do
+        table=$(ls $network_folder/measurements/*-functions_scores.csv)
+        base=$(basename $network_folder)
+        head -n 2 $table > ${modalities[i]}/$base.csv
+
+        if [[ ${modalities[i]} == "quality" ]]
+        then
+            grep "quality" $table >> ${modalities[i]}/$base.csv
+        elif [[ ${modalities[i]} == "degree" ]]
+        then
+            grep "degree" $table >> ${modalities[i]}/$base.csv
+        elif [[ ${modalities[i]} == "metric" ]]
+        then
+            awk '!/degree/ && /distribution/' $table >> ${modalities[i]}/$base.csv
+        elif [[ ${modalities[i]} == "motifs" ]]
+        then
+            grep "motifdetection" $table >> ${modalities[i]}/$base.csv
+        elif [[ ${modalities[i]} == "clustering" ]]
+        then
+            grep "clustering" $table >> ${modalities[i]}/$base.csv
+        fi
+    done
+    tables=($(ls ${modalities[i]}/*.csv))
+    name=${modalities[i]}
+
+    ./paste.pl ${tables[@]} > functions_comparison/all_networks_${name}_functions_scores.csv
+    cols="1"
+    max=$(( ${#tables[@]}*5+2 ))
+    for j in `seq 7 5 $max`
+    do
+        cols+=",$j"
+    done
+    cut -d ';' -f$cols --complement functions_comparison/all_networks_${name}_functions_scores.csv > tmp.csv && mv -f tmp.csv functions_comparison/all_networks_${name}_functions_scores.csv
+    max=$(( ${#tables[@]}*4+2 ))
+
+    # Creamos la tabla de AUPR para el test estadístico
+    cols="1"
+    for j in `seq 2 4 $max`
+    do
+        cols+=",$j"
+    done
+    cut -d ';' -f$cols functions_comparison/all_networks_${name}_functions_scores.csv | awk 'NR != 2' | csvtool transpose -t ';' - | tr ';' ',' > functions_comparison/AUPR_${name}_functions.csv
+
+    # Creamos la tabla de AUROC para el test estadístico
+    cols="1"
+    for j in `seq 3 4 $max`
+    do
+        cols+=",$j"
+    done
+    cut -d ';' -f$cols functions_comparison/all_networks_${name}_functions_scores.csv | awk 'NR != 2' | csvtool transpose -t ';' - | tr ';' ',' > functions_comparison/AUROC_${name}_functions.csv
+
+    # Creamos una tabla con la media de ambas métricas
+    cols="1"
+    for j in `seq 4 4 $max`
+    do
+        cols+=",$j"
+    done
+    cut -d ';' -f$cols functions_comparison/all_networks_${name}_functions_scores.csv | awk 'NR != 2' | csvtool transpose -t ';' - | tr ';' ',' > functions_comparison/Mean_${name}_functions.csv
+
+    # Ejecutamos los tests de Friedman
+    cd controlTest
+    java Friedman ../functions_comparison/AUPR_${name}_functions.csv > ../functions_comparison/AUPR_${name}_functions.tex
+    cd ..
+    cd controlTest
+    java Friedman ../functions_comparison/AUROC_${name}_functions.csv > ../functions_comparison/AUROC_${name}_functions.tex
+    cd ..
+    cd controlTest
+    java Friedman ../functions_comparison/Mean_${name}_functions.csv > ../functions_comparison/Mean_${name}_functions.tex
+    cd ..
+
+    # Creamos tabla de tiempos
+    cols="1"
+    for j in `seq 5 4 $max`
+    do
+        cols+=",$j"
+    done
+    cut -d ';' -f$cols functions_comparison/all_networks_${name}_functions_scores.csv | awk 'NR != 2' | csvtool transpose -t ';' - | tr ';' ',' > functions_comparison/Time_${name}_functions.csv
+
+    rm -r ${modalities[i]}
 done
