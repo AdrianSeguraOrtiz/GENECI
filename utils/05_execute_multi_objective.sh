@@ -21,12 +21,17 @@ do
         filename=$(basename $network_folder)
         exp_file="$network_folder/$filename.csv"
         lines=$(wc -l < $exp_file)
-        if [ $lines == $size ]
+        if [ $lines == $size ] && [ ! -d $network_folder/ea_consensus_mo_q-dd-m ]
         then
             sorted_networks+=($network_folder)
+            
+            file=$network_folder/measurements/multi-objective_times.txt
+            [ -e $file ] && rm $file
         fi
     done
 done
+
+echo ${sorted_networks[@]}
 
 ## Aplicamos GNU parallel
 opt_ensemble_multi_obj() {
@@ -53,8 +58,8 @@ opt_ensemble_multi_obj() {
                                                     --crossover-probability 0.9 --num-parents 4 --mutation-probability 0.05 --mutation-strength 0.1 \
                                                     --population-size 300 --num-evaluations 250000 --algorithm NSGAII \
                                                     --plot-fitness-evolution --plot-pareto-front --plot-parallel-coordinates \
-                                                    --threads 30 --output-dir $nf/ea_consensus_mo_q-dd-m ; } 2>> $nf/measurements/multi-objective_times.txt
+                                                    --threads 50 --output-dir $nf/ea_consensus_mo_q-dd-m ; } 2>> $nf/measurements/multi-objective_times.txt
     echo "^ q-dd-m" >> $nf/measurements/multi-objective_times.txt
 }
 export -f opt_ensemble_multi_obj
-parallel --jobs 2 opt_ensemble_multi_obj ::: ${sorted_networks[@]}
+parallel --jobs 1 opt_ensemble_multi_obj ::: ${sorted_networks[@]}
