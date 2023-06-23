@@ -312,7 +312,7 @@ def get_volume(folder, isMatlab=False):
 
 
 # Function to get weights from VAR.csv file
-def get_weights(filename, header=True):
+def get_weights(filename):
 
     ## Open the file with the weights assigned to each inference technique.
     f = open(filename, "r")
@@ -320,9 +320,11 @@ def get_weights(filename, header=True):
     ## Each line contains the distribution of weights proposed by a solution of the pareto front.
     lines = f.readlines()
 
-    ## Remove header if exist
-    if header:
-        del lines[0]
+    ## Extract filenames from header
+    filenames = lines[0].replace("\n", "").split(",")
+    
+    # Eliminate header before reading weights
+    del lines[0]
 
     ## The vector that will store the vectors with these weights is created (list formed by lists).
     weights = list()
@@ -337,7 +339,7 @@ def get_weights(filename, header=True):
         weights.append(solution)
 
     # Return list of weights
-    return weights
+    return (filenames, weights)
 
 
 # Function to write evaluation CSV file
@@ -1817,9 +1819,9 @@ def dream_pareto_front(
         file_okay=True,
         help="File with the fitness values corresponding to a pareto front.",
     ),
-    confidence_list: Optional[List[str]] = typer.Option(
+    confidence_folder: Path = typer.Option(
         ...,
-        help="Paths to the CSV files with the confidence lists in the same order in which the weights and fitness values are specified in the corresponding files.",
+        help="Folder route that contains the confidence lists whose names correspond to those registered in the file of the file 'weights_file'",
     ),
     output_dir: Path = typer.Option("<<weights_file_dir>>", help="Output folder path"),
     plot_metrics: bool = typer.Option(
@@ -1837,7 +1839,7 @@ def dream_pareto_front(
     output_dir.mkdir(exist_ok=True, parents=True)
 
     # 1. Distribution of weights
-    weights = get_weights(weights_file)
+    filenames, weights = get_weights(weights_file)
 
     # 2. Evaluation Metrics
     ## The lists where the auroc and aupr values are going to be stored are created.
@@ -1850,7 +1852,7 @@ def dream_pareto_front(
         # The list of summands formed by products between the weights and the inference files provided in the input is constructed.
         weight_file_summand = list()
         for i in range(len(solution)):
-            weight_file_summand.append(f"{solution[i]}*{confidence_list[i]}")
+            weight_file_summand.append(f"{solution[i]}*{confidence_folder}/{filenames[i]}")
 
         # The function responsible for evaluating weight distributions is called
         values = dream_weight_distribution(
@@ -2031,9 +2033,9 @@ def generic_pareto_front(
         file_okay=True,
         help="File with the fitness values corresponding to a pareto front.",
     ),
-    confidence_list: Optional[List[str]] = typer.Option(
+    confidence_folder: Path = typer.Option(
         ...,
-        help="Paths to the CSV files with the confidence lists in the same order in which the weights and fitness values are specified in the corresponding files.",
+        help="Folder route that contains the confidence lists whose names correspond to those registered in the file of the file 'weights_file'",
     ),
     gs_binary_matrix: Path = typer.Option(
         ..., exists=True, file_okay=True, help="Gold standard binary network"
@@ -2054,7 +2056,7 @@ def generic_pareto_front(
     output_dir.mkdir(exist_ok=True, parents=True)
 
     # 1. Distribution of weights
-    weights = get_weights(weights_file)
+    filenames, weights = get_weights(weights_file)
 
     # 2. Evaluation Metrics
     ## The lists where the auroc and aupr values are going to be stored are created.
@@ -2067,7 +2069,7 @@ def generic_pareto_front(
         # The list of summands formed by products between the weights and the inference files provided in the input is constructed.
         weight_file_summand = list()
         for i in range(len(solution)):
-            weight_file_summand.append(f"{solution[i]}*{confidence_list[i]}")
+            weight_file_summand.append(f"{solution[i]}*{confidence_folder}/{filenames[i]}")
 
         # The function responsible for evaluating weight distributions is called
         values = generic_weight_distribution(

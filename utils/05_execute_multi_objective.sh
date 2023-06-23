@@ -63,3 +63,69 @@ opt_ensemble_multi_obj() {
 }
 export -f opt_ensemble_multi_obj
 parallel --jobs 1 opt_ensemble_multi_obj ::: ${sorted_networks[@]}
+
+# Evaluamos los frentes de pareto generados
+
+for network_folder in ../inferred_networks/*/
+do
+    mkdir -p $network_folder/measurements
+
+    base=$(basename $network_folder)
+    if [[ $base =~ ^.*-trajectories_exp ]]
+    then
+        dream=true
+        id=$(echo $base | cut -d "-" -f 2)
+        size=$(echo $base | cut -d "-" -f 1)
+        size=${size#"InSilicoSize"}
+
+        challenge="D3C4"
+        network_id="${size}_${id}"
+        eval_files_str="--synapse-file ../input_data/DREAM3/EVAL/PDF_InSilicoSize${size}_${id}.mat --synapse-file ../input_data/DREAM3/EVAL/DREAM3GoldStandard_InSilicoSize${size}_${id}.txt"
+
+    elif [[ $base =~ ^dream4.*_exp ]]
+    then
+        dream=true
+        id=$(echo $base | cut -d "_" -f 3)
+        id=${id#"0"}
+        size=$(echo $base | cut -d "_" -f 2)
+        size=${size#"0"}
+
+        challenge="D4C2"
+        network_id="${size}_${id}"
+        eval_files_str="--synapse-file ../input_data/DREAM4/EVAL/pdf_size${size}_${id}.mat"
+
+    elif [[ $base =~ ^net.*_exp ]]
+    then
+        dream=true
+        id=${base#"net"}
+        id=${id%"_exp"}
+
+        challenge="D5C4"
+        network_id="$id"
+        eval_files_str="--synapse-file ../input_data/DREAM5/EVAL/DREAM5_NetworkInference_Edges_Network${id}.tsv --synapse-file ../input_data/DREAM5/EVAL/DREAM5_NetworkInference_GoldStandard_Network${id}.tsv --synapse-file ../input_data/DREAM5/EVAL/Network${id}_AUPR.mat --synapse-file ../input_data/DREAM5/EVAL/Network${id}_AUROC.mat"
+
+    elif [[ $base =~ ^switch-.*_exp ]]
+    then
+        dream=false
+        gs="../input_data/IRMA/GS/irma_gs.csv"
+    else
+        dream=false
+        name=${base%"_exp"}
+        gs=$(ls ../input_data/*/GS/${name}_gs.csv)
+    fi
+
+    if [ "$dream" = true ]
+    then
+        tag="dream"
+        flags="--challenge $challenge --network-id $network_id $eval_files_str"
+    else
+        tag="generic"
+        flags="--gs-binary-matrix $gs"
+    fi
+
+    python ../geneci/main.py evaluate ${tag}-prediction ${tag}-pareto-front $flags \
+                --weights-file $network_folder/ea_consensus_mo_q-dd-m/VAR.csv \
+                --fitness-file $network_folder/ea_consensus_mo_q-dd-m/FUN.csv \
+                --confidence-folder $network_folder/lists \
+                --output-dir $network_folder/measurements
+done

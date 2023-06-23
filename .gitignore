@@ -144,7 +144,7 @@ jMetal.log.lck
 # Inferred Networks
 inferred_networks*/
 template/
-pareto_fronts/
+pareto_fronts*/
 
 # Temp folder
 tmp*/
