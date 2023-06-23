@@ -39,7 +39,7 @@ do
 
     tecs=($(awk '/GRN_/,/.csv/ {printf "%s", $0}' $network_folder/measurements/techniques.txt | sed -r 's/\.\.\// /g' | grep -Po "(?<=GRN_)[^ ]*(?=.csv)"))
     aupr=($(grep -o "AUPR: 1\|AUPR: 0.[0-9]*" $network_folder/measurements/techniques.txt | cut -d " " -f 2))
-    auroc=($(grep -o "AUROC: 1\|AUPR: 0.[0-9]*" $network_folder/measurements/techniques.txt | cut -d " " -f 2))
+    auroc=($(grep -o "AUROC: 1\|AUROC: 0.[0-9]*" $network_folder/measurements/techniques.txt | cut -d " " -f 2))
     times=()
     for tec in ${tecs[@]}
     do

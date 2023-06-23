@@ -1903,7 +1903,7 @@ def dream_pareto_front(
 
     ## Write CSV file
     write_evaluation_csv(
-        output_dir, sorted_idx, confidence_list, objective_labels, weights, df
+        output_dir, sorted_idx, [f"{confidence_folder}/{f}" for f in filenames], objective_labels, weights, df
     )
 
 
@@ -2118,7 +2118,7 @@ def generic_pareto_front(
 
     ## Write CSV file
     write_evaluation_csv(
-        output_dir, sorted_idx, confidence_list, objective_labels, weights, df
+        output_dir, sorted_idx, [f"{confidence_folder}/{f}" for f in filenames], objective_labels, weights, df
     )
 
 
@@ -2346,7 +2346,7 @@ def weighted_confidence(
 
     # Report information to the user.
     print(
-        f"\n Calculating the weighted sum of confidence levels for entry {', '.join(weight_file_summand)}"
+        f"\n Calculating the weighted sum of confidence levels"
     )
 
     # Create input temporary folder.
