@@ -21,12 +21,9 @@ do
         filename=$(basename $network_folder)
         exp_file="$network_folder/$filename.csv"
         lines=$(wc -l < $exp_file)
-        if [ $lines == $size ] && [ ! -d $network_folder/ea_consensus_mo_q-dd-m ]
+        if [ $lines == $size ]
         then
             sorted_networks+=($network_folder)
-            
-            file=$network_folder/measurements/multi-objective_times.txt
-            [ -e $file ] && rm $file
         fi
     done
 done
@@ -66,11 +63,12 @@ parallel --jobs 1 opt_ensemble_multi_obj ::: ${sorted_networks[@]}
 
 # Evaluamos los frentes de pareto generados
 
-for network_folder in ../inferred_networks/*/
-do
-    mkdir -p $network_folder/measurements
+pareto_eval() {
+    nf=$1
 
-    base=$(basename $network_folder)
+    mkdir -p $nf/measurements
+
+    base=$(basename $nf)
     if [[ $base =~ ^.*-trajectories_exp ]]
     then
         dream=true
@@ -124,8 +122,21 @@ do
     fi
 
     python ../geneci/main.py evaluate ${tag}-prediction ${tag}-pareto-front $flags \
-                --weights-file $network_folder/ea_consensus_mo_q-dd-m/VAR.csv \
-                --fitness-file $network_folder/ea_consensus_mo_q-dd-m/FUN.csv \
-                --confidence-folder $network_folder/lists \
-                --output-dir $network_folder/measurements
+                --weights-file $nf/ea_consensus_mo_q-dd-m/VAR.csv \
+                --fitness-file $nf/ea_consensus_mo_q-dd-m/FUN.csv \
+                --confidence-folder $nf/lists \
+                --output-dir $nf/measurements
+}
+export -f pareto_eval
+parallel --jobs 10 pareto_eval ::: ${sorted_networks[@]}
+
+# Juntamos los valores de precisión de las técnicas con los de geneci
+for network_folder in ${sorted_networks[@]}
+do
+    tecs_file=$(ls $network_folder/measurements/*-techniques_scores.csv)
+    python join_scores.py --tecs-file $tecs_file \
+                                --geneci-file $network_folder/measurements/evaluated_front.csv \
+                                --mean-file $network_folder/measurements/mean.txt \
+                                --median-file $network_folder/measurements/median.txt \
+                                --output-file $network_folder/measurements/scores.csv
 done

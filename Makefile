@@ -51,6 +51,7 @@ build-images:
 	@docker build -t adriansegura99/geneci_evaluate_dream-prediction:2.0.0 -f components/evaluate/dream_prediction/Dockerfile .
 	@docker build -t adriansegura99/geneci_draw-network:2.0.0 -f components/draw_network/Dockerfile .
 	@docker build -t adriansegura99/geneci_weighted-confidence:2.0.0 -f components/weighted_confidence/Dockerfile .
+	@docker build -t adriansegura99/geneci_cluster-network:2.0.0 -f components/cluster_network/Dockerfile .
 
 push-images:
 	@docker push adriansegura99/geneci_extract-data_dream3:2.0.0
@@ -90,6 +91,7 @@ push-images:
 	@docker push adriansegura99/geneci_evaluate_dream-prediction:2.0.0
 	@docker push adriansegura99/geneci_draw-network:2.0.0
 	@docker push adriansegura99/geneci_weighted-confidence:2.0.0
+	@docker push adriansegura99/geneci_cluster-network:2.0.0
 
 pull-images:
 	@docker pull adriansegura99/geneci_extract-data_dream3:2.0.0
@@ -129,6 +131,7 @@ pull-images:
 	@docker pull adriansegura99/geneci_evaluate_dream-prediction:2.0.0
 	@docker pull adriansegura99/geneci_draw-network:2.0.0
 	@docker pull adriansegura99/geneci_weighted-confidence:2.0.0
+	@docker pull adriansegura99/geneci_cluster-network:2.0.0
 
 release:
 	@echo Bump version to v$$(poetry version --short)
