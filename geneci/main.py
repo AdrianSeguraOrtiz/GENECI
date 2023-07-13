@@ -1931,6 +1931,11 @@ def dream_pareto_front(
     ## Get mean between auprs and aurocs values
     acc_means = [(aupr + auroc) / 2 for aupr, auroc in zip(auprs, aurocs)]
 
+    ## Get order
+    auprs_scaled = (auprs - min(auprs)) / (max(auprs) - min(auprs))
+    aurocs_scaled = (aurocs - min(aurocs)) / (max(aurocs) - min(aurocs))
+    score = [(aupr + auroc) / 2 for aupr, auroc in zip(auprs_scaled, aurocs_scaled)]
+
     # 3. Fitness Values
     ## Get fitness dataframe
     fitness_df = pd.read_csv(fitness_file)
@@ -1940,7 +1945,7 @@ def dream_pareto_front(
 
     ## Create evaluation dataframe
     evaluation_df = pd.DataFrame(
-        data={"acc_mean": acc_means, "aupr": auprs, "auroc": aurocs}
+        data={"score": score, "acc_mean": acc_means, "aupr": auprs, "auroc": aurocs}
     )
 
     ## Concat both dataframes
@@ -1959,7 +1964,7 @@ def dream_pareto_front(
 
     # 5. Writing the output CSV file
     ## Get the order corresponding to the best mean between aupr and auroc
-    sorted_idx = np.argsort([-m for m in acc_means])
+    sorted_idx = np.argsort([-s for s in score])
 
     ## Write CSV file
     write_evaluation_csv(
@@ -2146,6 +2151,11 @@ def generic_pareto_front(
     ## Get mean between auprs and aurocs values
     acc_means = [(aupr + auroc) / 2 for aupr, auroc in zip(auprs, aurocs)]
 
+    ## Get order
+    auprs_scaled = (auprs - min(auprs)) / (max(auprs) - min(auprs))
+    aurocs_scaled = (aurocs - min(aurocs)) / (max(aurocs) - min(aurocs))
+    score = [(aupr + auroc) / 2 for aupr, auroc in zip(auprs_scaled, aurocs_scaled)]
+
     # 3. Fitness Values
     ## Get fitness dataframe
     fitness_df = pd.read_csv(fitness_file)
@@ -2155,7 +2165,7 @@ def generic_pareto_front(
 
     ## Create evaluation dataframe
     evaluation_df = pd.DataFrame(
-        data={"acc_mean": acc_means, "aupr": auprs, "auroc": aurocs}
+        data={"score": score, "acc_mean": acc_means, "aupr": auprs, "auroc": aurocs}
     )
 
     ## Concat both dataframes
@@ -2174,7 +2184,7 @@ def generic_pareto_front(
 
     # 5. Writing the output CSV file
     ## Get the order corresponding to the best mean between aupr and auroc
-    sorted_idx = np.argsort([-m for m in acc_means])
+    sorted_idx = np.argsort([-s for s in score])
 
     ## Write CSV file
     write_evaluation_csv(
