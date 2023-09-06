@@ -301,3 +301,52 @@ for net in ${nets[@]}; do
     i=$(( $i + 1 ))
 
 done
+
+# Makes final groups graphics
+nets=(
+# 0-25:
+"D4_10_3:dream4_010_03_exp;D4_10_5:dream4_010_05_exp;D3_10_E1:InSilicoSize10-Ecoli1-trajectories_exp;D3_10_Y2:InSilicoSize10-Yeast2-trajectories_exp;BG-SV40-M:sim_BioGrid_Simian_Virus_40_mixed_exp;TFL-RN-M:sim_TFLink_Rattus_norvegicus_mixed_exp;BG-CR-M:sim_BioGrid_Chlamydomonas_reinhardtii_mixed_exp;BG-SIV-M:sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp;FS-EM20-KO:sim_eipo-modular_size-20_knockout_exp;FS-SF20-O:sim_scale-free_size-20_overexpression_exp"
+
+# 25-110:
+"D3_50_Y2:InSilicoSize50-Yeast2-trajectories_exp;D3_50_Y3:InSilicoSize50-Yeast3-trajectories_exp;D3_100_E1:InSilicoSize100-Ecoli1-trajectories_exp;FS-EM50-KO:sim_eipo-modular_size-50_knockout_exp;FS-SF50-O:sim_scale-free_size-50_overexpression_exp;FS-EM100-KD:sim_eipo-modular_size-100_knockdown_exp;FS-SF100-KD:sim_scale-free_size-100_knockdown_exp;BG-EN-M:sim_BioGrid_Emericella_nidulans_FGSC_A4_mixed_exp;D4-100-2:dream4_100_02_exp;D4-100-5:dream4_100_05_exp"
+
+# 110-250:
+"BG-SS-M:sim_BioGrid_Sus_scrofa_mixed_exp;BG-HPV5-M:sim_BioGrid_Human_papillomavirus_5_mixed_exp;BG-HHV5-M:sim_BioGrid_Human_Herpesvirus_5_mixed_exp;TFL-DM-M:sim_TFLink_Drosophila_melanogaster_mixed_exp;FS-EM200-KD:sim_eipo-modular_size-200_knockdown_exp;FS-EM200-KO:sim_eipo-modular_size-200_knockout_exp;FS-EM200-O:sim_eipo-modular_size-200_overexpression_exp;FS-SF200-KD:sim_scale-free_size-200_knockdown_exp;FS-SF200-KO:sim_scale-free_size-200_knockout_exp;FS-SF200-O:sim_scale-free_size-200_overexpression_exp"
+
+# 250-2000:
+"RN-MOUSE-M:sim_RegNetwork_mouse_mixed_exp;RN-HUMAN-M:sim_RegNetwork_human_mixed_exp;SNT1000:syntren1000_exp;BG-GG-M:sim_BioGrid_Gallus_gallus_mixed_exp;BG-DR-M:sim_BioGrid_Danio_rerio_mixed_exp;BG-MERSC-M:sim_BioGrid_Middle-East_Respiratory_Syndrome-related_Coronavirus_mixed_exp;BG-HHV8-M:sim_BioGrid_Human_Herpesvirus_8_mixed_exp;GRNdb-FB-M:sim_GRNdb_Fetal-Brain_mixed_exp;GRNdb-AA-M:sim_GRNdb_Adult-Adipose_mixed_exp;GRNdb-AM-M:sim_GRNdb_Adult-Muscle_mixed_exp"
+)
+
+mkdir -p final_grouped_graphics
+i=0
+
+# Recorrer la lista de redes génicas
+for net in ${nets[@]}; do
+
+    # Separar las redes génicas dentro de cada elemento
+    IFS=';' read -ra networks <<< "$net"
+
+    # Argumentos para ejecutar el script
+    str=""
+    
+    # Recorrer las redes génicas separadas
+    for network in ${networks[@]}; do
+        # Dividir el elemento en el identificador y el nombre de la red génica
+        IFS=':' read -r id name <<< "$network"
+      
+        # Añadir al argumento el identificador y el nombre
+        str+="$id ../inferred_networks/$name/measurements/scores.csv "
+    done
+
+    # Barplot
+    Rscript barplot.R $str final_grouped_graphics/barplot$i.pdf
+
+    # Radar
+    Rscript radar.R $str final_grouped_graphics/radar$i.pdf
+
+    # Lines
+    Rscript lines.R $str final_grouped_graphics/lines$i.pdf
+
+    i=$(( $i + 1 ))
+
+done

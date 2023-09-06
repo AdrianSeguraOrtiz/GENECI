@@ -124,11 +124,11 @@ generar_grafica <- function(df, output_file) {
     ## AUROC
     tecs_max1 <- subset(df1, Group == "Tecs") %>%
       group_by(File) %>%
-      filter(Value == max(Value))
+      slice(which.max(Value))
     ## AUPR
     tecs_max2 <- subset(df2, Group == "Tecs") %>%
       group_by(File) %>%
-      filter(Value == max(Value))
+      slice(which.max(Value))
 
     # Añadir etiquetas encima de las barras más altas del grupo "Tecs" en cada facet
     ## AUROC

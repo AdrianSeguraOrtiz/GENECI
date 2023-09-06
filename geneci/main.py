@@ -1706,7 +1706,25 @@ def optimize_ensemble(
                     scene=dict(
                         xaxis_title=function[0],
                         yaxis_title=function[1],
-                        zaxis_title=function[2]
+                        zaxis_title=function[2],
+                        xaxis_title_font=dict(size=20),
+                        yaxis_title_font=dict(size=20), 
+                        zaxis_title_font=dict(size=20),
+                        xaxis=dict(
+                            tickfont=dict(
+                                size=14  # Tamaño de la fuente del eje X
+                            )
+                        ),
+                        yaxis=dict(
+                            tickfont=dict(
+                                size=14  # Tamaño de la fuente del eje Y
+                            )
+                        ),
+                        zaxis=dict(
+                            tickfont=dict(
+                                size=14  # Tamaño de la fuente del eje Z
+                            )
+                        ),
                     ),
                     title='Pareto front'
                 )

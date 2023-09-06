@@ -68,7 +68,7 @@ generar_grafica <- function(df, output_file, tecnica_resaltada) {
             theme(plot.title = element_text(color = "#333333", size = 12, face = "bold")) +
             theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
             guides(color = guide_legend(ncol = 1)) +
-            theme(legend.key.size = unit(0.5, "cm"))
+            theme(legend.key.size = unit(0.4, "cm"))
     
     df2 <- subset(df, Metric == "AUPR")
     p2 <- ggplot(df2, aes(x = File, y = Value, group = Technique, color = Technique)) +
@@ -92,7 +92,7 @@ generar_grafica <- function(df, output_file, tecnica_resaltada) {
             theme(plot.title = element_text(color = "#333333", size = 12, face = "bold")) +
             theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
             guides(color = guide_legend(ncol = 1)) +
-            theme(legend.key.size = unit(0.5, "cm"))
+            theme(legend.key.size = unit(0.4, "cm"))
 
 
     # Combinar gráficas con patchwork
