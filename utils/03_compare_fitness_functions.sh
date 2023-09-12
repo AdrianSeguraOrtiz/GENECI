@@ -194,7 +194,7 @@ do
     echo "Fitness Function;AUPR;AUROC;Mean;Time" >> $file
 
     aupr=($(grep -o "AUPR: 1\|AUPR: 0.[0-9]*" $network_folder/measurements/consensus.txt | cut -d " " -f 2))
-    auroc=($(grep -o "AUROC: 1\|AUPR: 0.[0-9]*" $network_folder/measurements/consensus.txt | cut -d " " -f 2))
+    auroc=($(grep -o "AUROC: 1\|AUROC: 0.[0-9]*" $network_folder/measurements/consensus.txt | cut -d " " -f 2))
 
     unsorted_times=($(grep -Po "real[^ ]*" $network_folder/measurements/functions_times.txt | cut -d $'\t' -f 2))
     funcs=($(grep -o "\^ [^ ]*" $network_folder/measurements/functions_times.txt | cut -d ' ' -f 2))
