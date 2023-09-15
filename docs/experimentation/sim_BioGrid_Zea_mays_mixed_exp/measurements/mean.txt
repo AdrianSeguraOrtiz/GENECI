@@ -1,0 +1,54 @@
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+
+ Calculating the weighted sum of confidence levels for entry 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_ARACNE.csv, 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_BC3NET.csv, 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_C3NET.csv, 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_CLR.csv, 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_CMI2NI.csv, 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_GENIE3_ET.csv
+, 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_GENIE3_RF.csv
+, 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_GRNBOOST2.csv
+, 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_GRNVBEM.csv, 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_INFERELATOR.c
+sv, 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_JUMP3.csv, 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_KBOOST.csv, 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_LEAP.csv, 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_LOCPCACMI.csv
+, 0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_MEOMI.csv, 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_MRNETB.csv, 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_MRNET.csv, 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_NARROMI.csv, 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_NONLINEARODES
+.csv, 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_PCACMI.csv, 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_PCIT.csv, 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_PIDC.csv, 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_PLSNET.csv, 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_PUC.csv, 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_RSNET.csv, 
+0.0384615384*../template/sim_BioGrid_Zea_mays_mixed_exp//lists/GRN_TIGRESS.csv
+chmod: cannot access './tmp': No such file or directory
+
+Evaluate ./tmp-celoajcucp/temporal_list.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Zea_mays_mixed_gs.csv gold 
+standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.759529147982063"
+[1] "AUPR: 0.724541645686006"
+

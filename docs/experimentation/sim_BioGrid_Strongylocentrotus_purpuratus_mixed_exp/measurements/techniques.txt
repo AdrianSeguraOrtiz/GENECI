@@ -1,0 +1,546 @@
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_ARACNE
+.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.544405594405594"
+[1] "AUPR: 0.0753192777317389"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_BC3NET
+.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.479020979020979"
+[1] "AUPR: 0.0590346287597824"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_C3NET.
+csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.504195804195804"
+[1] "AUPR: 0.0662495278243834"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_CLR.cs
+v prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.546153846153846"
+[1] "AUPR: 0.0751586984987515"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_CMI2NI
+.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.803496503496503"
+[1] "AUPR: 0.19911549662725"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_GENIE3
+_ET.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.421328671328671"
+[1] "AUPR: 0.0529312372155259"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_GENIE3
+_RF.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.595804195804196"
+[1] "AUPR: 0.0725038829212048"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_GRNBOO
+ST2.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.616083916083916"
+[1] "AUPR: 0.0784721939008558"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_GRNVBE
+M.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.611188811188811"
+[1] "AUPR: 0.270087032819793"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_INFERE
+LATOR.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.726923076923077"
+[1] "AUPR: 0.122559465061241"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_JUMP3.
+csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.426573426573427"
+[1] "AUPR: 0.0798643882683033"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_KBOOST
+.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.951048951048951"
+[1] "AUPR: 0.468936748473256"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_LEAP.c
+sv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.586713286713287"
+[1] "AUPR: 0.112683928593691"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_LOCPCA
+CMI.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.845454545454545"
+[1] "AUPR: 0.214806481272984"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_MEOMI.
+csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.437062937062937"
+[1] "AUPR: 0.0529376181383084"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_MRNETB
+.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.548951048951049"
+[1] "AUPR: 0.0793463345990977"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_MRNET.
+csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.571678321678322"
+[1] "AUPR: 0.0792250270032586"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_NARROM
+I.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.486013986013986"
+[1] "AUPR: 0.0605483652803522"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_NONLIN
+EARODES.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.425174825174825"
+[1] "AUPR: 0.0515779495205053"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_PCACMI
+.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.803496503496503"
+[1] "AUPR: 0.19911549662725"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_PCIT.c
+sv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.5"
+[1] "AUPR: 0.065359477124183"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_PIDC.c
+sv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.674825174825175"
+[1] "AUPR: 0.211572070160986"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_PLSNET
+.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 1"
+[1] "AUPR: 1"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_PUC.cs
+v prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.707692307692308"
+[1] "AUPR: 0.113260334584084"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_RSNET.
+csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.808391608391608"
+[1] "AUPR: 0.213529485979269"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Strongylocentrotus_purpuratus_mixed_exp/lists/GRN_TIGRES
+S.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Strongylocentrotus_purpurat
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.477622377622378"
+[1] "AUPR: 0.0579522522621635"
+

@@ -1,0 +1,338 @@
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_ARACNE.csv prediction for 10_3 
+network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.27711317047276596
+AUROC: 0.5617777777777778
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_BC3NET.csv prediction for 10_3 
+network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.1936306935130352
+AUROC: 0.5671111111111111
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_C3NET.csv prediction for 10_3 
+network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.26247780556135364
+AUROC: 0.5262222222222223
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_CLR.csv prediction for 10_3 
+network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.26934586610637845
+AUROC: 0.5946666666666667
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_CMI2NI.csv prediction for 10_3 
+network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.2491280180725825
+AUROC: 0.6177777777777778
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_GENIE3_ET.csv prediction for 
+10_3 network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.24819699153654334
+AUROC: 0.648
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_GENIE3_RF.csv prediction for 
+10_3 network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.36539839542814845
+AUROC: 0.6817777777777778
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_GRNBOOST2.csv prediction for 
+10_3 network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.3363706685352069
+AUROC: 0.7075555555555555
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_GRNVBEM.csv prediction for 10_3
+network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.2534343582850817
+AUROC: 0.5777777777777777
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_INFERELATOR.csv prediction for 
+10_3 network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.2433219133316383
+AUROC: 0.5813333333333333
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_JUMP3.csv prediction for 10_3 
+network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.36884398737320434
+AUROC: 0.6835555555555555
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_KBOOST.csv prediction for 10_3 
+network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.2532615194027117
+AUROC: 0.576
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_LEAP.csv prediction for 10_3 
+network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.2988083777859266
+AUROC: 0.6311111111111111
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_LOCPCACMI.csv prediction for 
+10_3 network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.20933850040107121
+AUROC: 0.5537777777777778
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_MEOMI.csv prediction for 10_3 
+network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.17816076678731485
+AUROC: 0.5266666666666666
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_MRNETB.csv prediction for 10_3 
+network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.29363129126972787
+AUROC: 0.6302222222222221
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_MRNET.csv prediction for 10_3 
+network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.27437350340254174
+AUROC: 0.5422222222222223
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_NARROMI.csv prediction for 10_3
+network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.2217204268938417
+AUROC: 0.5702222222222222
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_NONLINEARODES.csv prediction 
+for 10_3 network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.1574405965313906
+AUROC: 0.4862222222222222
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_PCACMI.csv prediction for 10_3 
+network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.24733175205743613
+AUROC: 0.49955555555555564
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_PCIT.csv prediction for 10_3 
+network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.2083688215647319
+AUROC: 0.5648888888888889
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_PIDC.csv prediction for 10_3 
+network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.2396194295734828
+AUROC: 0.6106666666666667
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_PLSNET.csv prediction for 10_3 
+network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.2983701065394436
+AUROC: 0.648
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_PUC.csv prediction for 10_3 
+network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.22903320891902418
+AUROC: 0.6106666666666667
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_RSNET.csv prediction for 10_3 
+network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.2506039241183148
+AUROC: 0.648
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/dream4_010_03_exp/lists/GRN_TIGRESS.csv prediction for 10_3
+network in D4C2 challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.16739525115273635
+AUROC: 0.48711111111111105
+
