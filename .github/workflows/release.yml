@@ -24,8 +24,7 @@ jobs:
     - name: Bootstrap poetry
       shell: bash
       run: |
-        curl -sL https://raw.githubusercontent.com/python-poetry/poetry/1.5/install-poetry.py \
-          | python - -y --git https://github.com/python-poetry/poetry.git
+        curl -sSL https://install.python-poetry.org | python -
     - name: Update PATH
       shell: bash
       run: echo "$HOME/.local/bin" >> $GITHUB_PATH
