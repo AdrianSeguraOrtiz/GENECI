@@ -1,0 +1,42 @@
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+
+ Calculating the weighted sum of confidence levels for entry 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_ARACNE.csv, 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_BC3NET.csv, 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_C3NET.csv, 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_CLR.csv, 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_CMI2NI.csv, 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_GENIE3_ET.csv, 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_GENIE3_RF.csv, 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_GRNBOOST2.csv, 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_GRNVBEM.csv, 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_INFERELATOR.csv, 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_KBOOST.csv, 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_LEAP.csv, 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_LOCPCACMI.csv, 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_MEOMI.csv, 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_MRNETB.csv, 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_MRNET.csv, 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_NARROMI.csv, 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_NONLINEARODES.csv, 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_PCACMI.csv, 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_PCIT.csv, 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_PIDC.csv, 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_PLSNET.csv, 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_PUC.csv, 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_RSNET.csv, 
+0.0400000000*../template/dream4_100_05_exp//lists/GRN_TIGRESS.csv
+chmod: cannot access './tmp': No such file or directory
+
+Evaluate ./tmp-vatqgvvudp/temporal_list.csv prediction for 100_5 network in D4C2
+challenge
+Creating directory /root/.config/dreamtools 
+AUPR: 0.10934665265345946
+AUROC: 0.7412438329051574
+

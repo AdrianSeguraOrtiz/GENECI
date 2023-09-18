@@ -1,0 +1,49 @@
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+
+ Calculating the weighted sum of confidence levels for entry 
+0.0769230769*../template/sim_TFLink_Saccharomyces_cerevisiae_mixed_exp//lists/GR
+N_ARACNE.csv, 
+0.0769230769*../template/sim_TFLink_Saccharomyces_cerevisiae_mixed_exp//lists/GR
+N_BC3NET.csv, 
+0.0769230769*../template/sim_TFLink_Saccharomyces_cerevisiae_mixed_exp//lists/GR
+N_C3NET.csv, 
+0.0769230769*../template/sim_TFLink_Saccharomyces_cerevisiae_mixed_exp//lists/GR
+N_CLR.csv, 
+0.0769230769*../template/sim_TFLink_Saccharomyces_cerevisiae_mixed_exp//lists/GR
+N_KBOOST.csv, 
+0.0769230769*../template/sim_TFLink_Saccharomyces_cerevisiae_mixed_exp//lists/GR
+N_LEAP.csv, 
+0.0769230769*../template/sim_TFLink_Saccharomyces_cerevisiae_mixed_exp//lists/GR
+N_MRNETB.csv, 
+0.0769230769*../template/sim_TFLink_Saccharomyces_cerevisiae_mixed_exp//lists/GR
+N_MRNET.csv, 
+0.0769230769*../template/sim_TFLink_Saccharomyces_cerevisiae_mixed_exp//lists/GR
+N_NARROMI.csv, 
+0.0769230769*../template/sim_TFLink_Saccharomyces_cerevisiae_mixed_exp//lists/GR
+N_PCIT.csv, 
+0.0769230769*../template/sim_TFLink_Saccharomyces_cerevisiae_mixed_exp//lists/GR
+N_PIDC.csv, 
+0.0769230769*../template/sim_TFLink_Saccharomyces_cerevisiae_mixed_exp//lists/GR
+N_PUC.csv, 
+0.0769230769*../template/sim_TFLink_Saccharomyces_cerevisiae_mixed_exp//lists/GR
+N_RSNET.csv
+chmod: cannot access './tmp': No such file or directory
+
+Evaluate ./tmp-fxqdiesutl/temporal_list.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_TFLink_Saccharomyces_cerevisiae_mix
+ed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.930455590991195"
+[1] "AUPR: 0.275965402467625"
+

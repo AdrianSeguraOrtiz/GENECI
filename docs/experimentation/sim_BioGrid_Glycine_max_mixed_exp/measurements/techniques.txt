@@ -1,0 +1,501 @@
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_ARACNE.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.740767045454545"
+[1] "AUPR: 0.0936123246249707"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_BC3NET.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.75830078125"
+[1] "AUPR: 0.114880369246522"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_C3NET.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.622159090909091"
+[1] "AUPR: 0.0590347466201645"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_CLR.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.771750710227273"
+[1] "AUPR: 0.0848272593528088"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_CMI2NI.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.785688920454545"
+[1] "AUPR: 0.116523295422869"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_GENIE3_ET.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.693004261363636"
+[1] "AUPR: 0.0436462869537789"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_GENIE3_RF.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.6826171875"
+[1] "AUPR: 0.045593387700662"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_GRNBOOST2.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.676669034090909"
+[1] "AUPR: 0.0401634835347974"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_GRNVBEM.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.615589488636364"
+[1] "AUPR: 0.0353996869331311"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_INFERELATOR.csv
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.808061079545455"
+[1] "AUPR: 0.102732716906716"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_KBOOST.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.628639914772727"
+[1] "AUPR: 0.0587911750886496"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_LEAP.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.667702414772727"
+[1] "AUPR: 0.0526713876586471"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_LOCPCACMI.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.807572798295455"
+[1] "AUPR: 0.121853789076175"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_MEOMI.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.594992897727273"
+[1] "AUPR: 0.0353343116082653"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_MRNETB.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.775168678977273"
+[1] "AUPR: 0.0957179538426901"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_MRNET.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.768510298295455"
+[1] "AUPR: 0.0839211925350603"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_NARROMI.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.587713068181818"
+[1] "AUPR: 0.196083893201936"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_NONLINEARODES.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.46435546875"
+[1] "AUPR: 0.00979416634712313"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_PCACMI.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.784090909090909"
+[1] "AUPR: 0.108184648982859"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_PCIT.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.5"
+[1] "AUPR: 0.0106280193236715"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_PIDC.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.654518821022727"
+[1] "AUPR: 0.0235995704673508"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_PLSNET.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.689453125"
+[1] "AUPR: 0.0795134301904395"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_PUC.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.619895241477273"
+[1] "AUPR: 0.044101591734648"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_RSNET.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.787508877840909"
+[1] "AUPR: 0.193144492048059"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Glycine_max_mixed_exp/lists/GRN_TIGRESS.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Glycine_max_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.767001065340909"
+[1] "AUPR: 0.132804063369934"
+

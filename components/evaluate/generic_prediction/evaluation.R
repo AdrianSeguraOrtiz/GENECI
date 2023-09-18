@@ -34,7 +34,7 @@ v.inferred <- unlist(mcmapply(1:nrow(inferred_network), FUN = function(row) {
 
 v.gs <- unlist(mcmapply(1:nrow(gs_network), FUN = function(row) {
     mcmapply(1:row, FUN = function(col) {
-        return(ifelse(gs_network[row, col] == 1 | gs_network[col, row] == 1, 1, 0))
+        return(gs_network[row, col])
     })
 }))
 

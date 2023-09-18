@@ -37,7 +37,7 @@ network <- tigress(ex_matrix, allsteps=FALSE)
 dt.cl <- GetConfList(network)
 colnames(dt.cl)[3] <- paste0(colnames(dt.cl)[3], "_1")
 
-for (i in 2:11) {
+for (i in 2:5) {
     network <- tigress(ex_matrix, allsteps=FALSE)
     conf_list_i <- GetConfList(network)
     dt.cl <- merge(dt.cl, conf_list_i, by=c(1,2), all.x=TRUE, all.y=TRUE, suffixes = c("", paste0("_", i)))
@@ -51,4 +51,4 @@ conf_list <- ProcessList(conf_list)
 
 # Save list
 file_id <- tools::file_path_sans_ext(basename(in_file))
-write.table(conf_list, paste0("./", output_folder, "/", file_id, "/lists/GRN_TIGRESS.csv"), sep=",", col.names=F, row.names=F, quote=F)
+write.table(conf_list, paste0("./", output_folder, "/GRN_TIGRESS.csv"), sep=",", col.names=F, row.names=F, quote=F)

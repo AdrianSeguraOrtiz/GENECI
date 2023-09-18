@@ -33,13 +33,13 @@ if (category == "ExpressionData") {
     mtx.exp_off <- t(irma_off)
 
     # Save expression data
-    write.table(mtx.exp_on, paste0("./", output_folder, "/IRMA/EXP/switch-on_exp.csv"), sep=",", col.names = NA)
-    write.table(mtx.exp_off, paste0("./", output_folder, "/IRMA/EXP/switch-off_exp.csv"), sep=",", col.names = NA)
+    write.table(mtx.exp_on, paste0("./", output_folder, "/switch-on_exp.csv"), sep=",", col.names = NA)
+    write.table(mtx.exp_off, paste0("./", output_folder, "/switch-off_exp.csv"), sep=",", col.names = NA)
 
 } else if (category == "GoldStandard") {
     # Extract gold standard adjacency matrix
     data(IRMA_Gold)
 
     # Save gold standard
-    write.table(IRMA_Gold, paste0("./", output_folder, "/IRMA/GS/irma_gs.csv"), sep=",", col.names = NA)
+    write.table(IRMA_Gold, paste0("./", output_folder, "/irma_gs.csv"), sep=",", col.names = NA)
 }

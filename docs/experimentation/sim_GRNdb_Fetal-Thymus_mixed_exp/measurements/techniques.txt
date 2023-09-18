@@ -1,0 +1,260 @@
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_GRNdb_Fetal-Thymus_mixed_exp/lists/GRN_ARACNE.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_GRNdb_Fetal-Thymus_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.817232745172394"
+[1] "AUPR: 0.226369090925492"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_GRNdb_Fetal-Thymus_mixed_exp/lists/GRN_BC3NET.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_GRNdb_Fetal-Thymus_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.830942807744316"
+[1] "AUPR: 0.242964118307145"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_GRNdb_Fetal-Thymus_mixed_exp/lists/GRN_C3NET.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_GRNdb_Fetal-Thymus_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.769827558955243"
+[1] "AUPR: 0.194395912304827"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_GRNdb_Fetal-Thymus_mixed_exp/lists/GRN_CLR.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_GRNdb_Fetal-Thymus_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.888869133261986"
+[1] "AUPR: 0.21291163283392"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_GRNdb_Fetal-Thymus_mixed_exp/lists/GRN_KBOOST.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_GRNdb_Fetal-Thymus_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.612735914868362"
+[1] "AUPR: 0.00204208349432304"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_GRNdb_Fetal-Thymus_mixed_exp/lists/GRN_LEAP.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_GRNdb_Fetal-Thymus_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.520349740399694"
+[1] "AUPR: 0.00466324472138542"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_GRNdb_Fetal-Thymus_mixed_exp/lists/GRN_MRNETB.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_GRNdb_Fetal-Thymus_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.889109113847109"
+[1] "AUPR: 0.142121568520959"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_GRNdb_Fetal-Thymus_mixed_exp/lists/GRN_MRNET.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_GRNdb_Fetal-Thymus_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.889936527378785"
+[1] "AUPR: 0.182810059660476"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_GRNdb_Fetal-Thymus_mixed_exp/lists/GRN_NARROMI.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_GRNdb_Fetal-Thymus_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.502717575583637"
+[1] "AUPR: 0.00699991108710991"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_GRNdb_Fetal-Thymus_mixed_exp/lists/GRN_PCIT.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_GRNdb_Fetal-Thymus_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.5"
+[1] "AUPR: 0.00144619479926101"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_GRNdb_Fetal-Thymus_mixed_exp/lists/GRN_PIDC.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_GRNdb_Fetal-Thymus_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.818461193922239"
+[1] "AUPR: 0.0219459386097908"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_GRNdb_Fetal-Thymus_mixed_exp/lists/GRN_PUC.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_GRNdb_Fetal-Thymus_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.829289303309619"
+[1] "AUPR: 0.0358616883262944"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_GRNdb_Fetal-Thymus_mixed_exp/lists/GRN_RSNET.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_GRNdb_Fetal-Thymus_mixed_gs.csv 
+gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.891020241202869"
+[1] "AUPR: 0.168329548709063"
+

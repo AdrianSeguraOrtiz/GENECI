@@ -1,0 +1,5 @@
+
+real	1m16,955s
+user	0m3,938s
+sys	0m7,016s
+^ q-dd-m

@@ -33,7 +33,7 @@ def dream5(
             net_exp.columns = [f'V{str(i)}' for i in range(1, ncol + 1)]
             net_exp.index = [f'G{str(i)}' for i in range(1, nrow + 1)]
 
-            net_exp.to_csv(f'{output_folder}/DREAM5/EXP/{file_ids[i]}_exp.csv', quoting=2)
+            net_exp.to_csv(f'{output_folder}/{file_ids[i]}_exp.csv', quoting=2)
             Path(net_exp_metadata.path).unlink()
 
     elif category.name == "GoldStandard":
@@ -50,7 +50,7 @@ def dream5(
             for ind in list_gs.index[list_gs.iloc[:, 2] == 1]:
                 net_gs.loc[list_gs.iloc[ind, 0], list_gs.iloc[ind, 1]] = 1
 
-            net_gs.to_csv(f'{output_folder}/DREAM5/GS/{file_ids[i]}_gs.csv', quoting=2)
+            net_gs.to_csv(f'{output_folder}/{file_ids[i]}_gs.csv', quoting=2)
             Path(list_gs_metadata.path).unlink()
 
     elif category.name == "EvaluationData":
@@ -62,7 +62,7 @@ def dream5(
         for f in zip_infos:
             if not f.filename.startswith("__MACOSX") and (f.filename.endswith(".mat") or f.filename.endswith(".tsv")):
                 f.filename = Path(f.filename).name
-                zip_data.extract(f, f'{output_folder}/DREAM5/EVAL/')
+                zip_data.extract(f, output_folder)
         
         Path(zip_metadata.path).unlink()
 

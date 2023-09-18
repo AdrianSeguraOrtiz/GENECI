@@ -1,234 +1,180 @@
 package eagrn;
 
+import eagrn.algorithm.AsynchronousMultiThreadedGeneticAlgorithmGoodParents;
+import eagrn.algorithm.AsynchronousMultiThreadedNSGAIIGoodParents;
 import eagrn.cutoffcriteria.CutOffCriteria;
-import eagrn.cutoffcriteria.impl.MaxNumLinksBestConfCriteria;
-import eagrn.cutoffcriteria.impl.MinConfDistCriteria;
-import eagrn.cutoffcriteria.impl.MinConfidenceCriteria;
-import eagrn.operator.mutationwithrepair.impl.*;
-import eagrn.operator.repairer.impl.GreedyRepairer;
-import eagrn.operator.repairer.impl.StandardizationRepairer;
-import eagrn.operator.repairer.WeightRepairer;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
-import org.uma.jmetal.experimental.componentbasedalgorithm.algorithm.ComponentBasedEvolutionaryAlgorithm;
+import eagrn.operator.crossover.SimplexCrossover;
+import eagrn.operator.mutation.SimplexMutation;
+import eagrn.utils.fitnessevolution.GRNProblemFitnessEvolution;
+import eagrn.utils.fitnessevolution.impl.GRNProblemBestFitnessEvolution;
+import eagrn.utils.solutionlistoutputwithheader.SolutionListOutputWithHeader;
+
+import org.uma.jmetal.algorithm.Algorithm;
+import org.uma.jmetal.algorithm.multiobjective.nsgaii.NSGAIIBuilder;
+import org.uma.jmetal.algorithm.multiobjective.smpso.SMPSOBuilder;
+import org.uma.jmetal.example.AlgorithmRunner;
 import org.uma.jmetal.experimental.componentbasedalgorithm.algorithm.singleobjective.geneticalgorithm.GeneticAlgorithm;
-import org.uma.jmetal.experimental.componentbasedalgorithm.catalogue.evaluation.impl.MultithreadedEvaluation;
 import org.uma.jmetal.experimental.componentbasedalgorithm.catalogue.replacement.Replacement;
 import org.uma.jmetal.experimental.componentbasedalgorithm.catalogue.replacement.impl.MuPlusLambdaReplacement;
 import org.uma.jmetal.operator.crossover.CrossoverOperator;
-import org.uma.jmetal.operator.crossover.impl.*;
 import org.uma.jmetal.operator.mutation.MutationOperator;
 import org.uma.jmetal.operator.selection.impl.BinaryTournamentSelection;
 import org.uma.jmetal.operator.selection.impl.NaryTournamentSelection;
-import org.uma.jmetal.parallel.asynchronous.algorithm.impl.AsynchronousMultiThreadedGeneticAlgorithm;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 import org.uma.jmetal.util.AbstractAlgorithmRunner;
+import org.uma.jmetal.util.archive.BoundedArchive;
+import org.uma.jmetal.util.archive.impl.CrowdingDistanceArchive;
 import org.uma.jmetal.util.comparator.ObjectiveComparator;
 import org.uma.jmetal.util.comparator.RankingAndCrowdingDistanceComparator;
-import org.uma.jmetal.util.errorchecking.JMetalException;
-import org.uma.jmetal.util.grouping.CollectionGrouping;
-import org.uma.jmetal.util.grouping.impl.ListLinearGrouping;
+import org.uma.jmetal.util.evaluator.SolutionListEvaluator;
+import org.uma.jmetal.util.evaluator.impl.MultiThreadedSolutionListEvaluator;
+import org.uma.jmetal.util.evaluator.impl.SequentialSolutionListEvaluator;
+import org.uma.jmetal.util.fileoutput.impl.DefaultFileOutputContext;
 import org.uma.jmetal.util.termination.Termination;
 import org.uma.jmetal.util.termination.impl.TerminationByEvaluations;
+import org.uma.jmetal.util.SolutionListUtils;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
-import java.util.stream.Collectors;
 
 public class GRNRunner extends AbstractAlgorithmRunner {
     /**
      * @param args Command line arguments.
-     * @throws JMetalException
      * @throws FileNotFoundException Invoking command: java
-     *     org.uma.jmetal.runner.multiobjective.nsgaii.NSGAIIRunner problemName [referenceFront]
-    . */
-    public static void main(String[] args) throws JMetalException, IOException {
+     *                               org.uma.jmetal.runner.multiobjective.nsgaii.NSGAIIRunner
+     *                               problemName [referenceFront]
+     *                               .
+     */
+    public static void main(String[] args) throws IOException {
+        /** Config sort. NOTE: https://github.com/jMetal/jMetal/issues/446 */
+        System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");
+
         /** Declare the main execution variables. */
         GRNProblem problem;
         CrossoverOperator<DoubleSolution> crossover;
         MutationOperator<DoubleSolution> mutation;
-        WeightRepairer repairer;
         NaryTournamentSelection<DoubleSolution> selection;
         CutOffCriteria cutOffCriteria;
 
         /** Read input parameters. */
         String networkFolder;
-        String strCrossover;
         double crossoverProbability;
-        String strMutation;
+        int numParents;
         double mutationProbability;
-        String strRepairer;
+        double mutationStrength;
         int populationSize;
         int numEvaluations;
         String strCutOffCriteria;
-        double cutOffValue;
-        double qualityWeight;
-        double topologyWeight;
+        float cutOffValue;
+        String strFitnessFormulas;
         String strAlgorithm;
         int numOfThreads;
+        boolean printEvolution;
 
         if (args.length > 0) {
             networkFolder = args[0];
 
-            if (args.length == 14) {
-                strCrossover = args[1];
-                crossoverProbability = Double.parseDouble(args[2]);
-                strMutation = args[3];
-                mutationProbability = Double.parseDouble(args[4]);
-                strRepairer = args[5];
-                populationSize = Integer.parseInt(args[6]);
-                numEvaluations = Integer.parseInt(args[7]);
-                strCutOffCriteria = args[8];
-                cutOffValue = Double.parseDouble(args[9]);
-                qualityWeight = Double.parseDouble(args[10]);
-                topologyWeight = Double.parseDouble(args[11]);
-                strAlgorithm = args[12];
-                numOfThreads = Integer.parseInt(args[13]);
-                
+            if (args.length == 13) {
+                crossoverProbability = Double.parseDouble(args[1]);
+                numParents = Integer.parseInt(args[2]);
+                mutationProbability = Double.parseDouble(args[3]);
+                mutationStrength = Double.parseDouble(args[4]);
+                populationSize = Integer.parseInt(args[5]);
+                numEvaluations = Integer.parseInt(args[6]);
+                strCutOffCriteria = args[7];
+                cutOffValue = Float.parseFloat(args[8]);
+                strFitnessFormulas = args[9];
+                strAlgorithm = args[10];
+                numOfThreads = Integer.parseInt(args[11]);
+                printEvolution = Boolean.parseBoolean(args[12]);
+
             } else {
-                strCrossover = "SBXCrossover";
                 crossoverProbability = 0.9;
-                strMutation = "PolynomialMutation";
-                mutationProbability = 0.05;
-                strRepairer = "GreedyRepair";
+                numParents = 3;
+                mutationProbability = 0.1;
+                mutationStrength = 0.1;
                 populationSize = 100;
-                numEvaluations = 10000;
-                strCutOffCriteria = "MinConfDist";
-                cutOffValue = 0.2;
-                qualityWeight = 0.75;
-                topologyWeight = 0.25;
-                strAlgorithm = "AsyncParallel";
+                numEvaluations = 25000;
+                strCutOffCriteria = "MinConf";
+                cutOffValue = 0.5f;
+                strFitnessFormulas = "Quality;DegreeDistribution";
+                strAlgorithm = "NSGAII";
                 numOfThreads = Runtime.getRuntime().availableProcessors();
+                printEvolution = false;
             }
         } else {
             throw new RuntimeException("At least the folder with the input trust lists must be provided.");
         }
 
-        /** Establish the chromosome repairer. */
-        switch (strRepairer) {
-            case "StandardizationRepairer":
-                repairer = new StandardizationRepairer();
-                break;
-            case "GreedyRepair":
-                repairer = new GreedyRepairer();
-                break;
-            default:
-                throw new RuntimeException("The repairer operator entered is not available");
+        /**
+         * Refine the name of the algorithm to be executed according to the specified
+         * number of threads
+         */
+        if (numOfThreads < 0) {
+            throw new RuntimeException("The number of threads must be a positive number.");
+
+        } else if (numOfThreads > Runtime.getRuntime().availableProcessors()) {
+            throw new RuntimeException(
+                    "The specified number of threads is greater than that available on your device.");
+
+        } else if (numOfThreads == 1) {
+            strAlgorithm += "-SingleThread";
+
+        } else if (numOfThreads > 1) {
+            if (strAlgorithm.equals("GA") || strAlgorithm.equals("NSGAII")) {
+                strAlgorithm += "-AsyncParallel";
+
+            } else {
+                strAlgorithm += "-SyncParallel";
+            }
         }
 
         /** List CSV files stored in the input folder with inferred lists of links. */
-        File dir = new File(networkFolder + "/lists/");
-        FileFilter fileFilter = new WildcardFileFilter("*.csv");
-        File[] files = dir.listFiles(fileFilter);
+        File[] files = StaticUtils.getCSVFilesFromDirectory(networkFolder + "/lists/");
+
+        /** Extract inferred networks */
+        Map<String, Float[]> inferredNetworks = StaticUtils.readAllInferredNetworkFiles(files);
 
         /** Extracting gene names. */
-        File geneNamesFile = new File(networkFolder + "/gene_names.txt");
-        ArrayList<String> geneNames;
-        try {
-            Scanner sc = new Scanner(geneNamesFile);
-            String line = sc.nextLine();
-            String[] lineSplit = line.split(",");
-            geneNames = new ArrayList<>(List.of(lineSplit));
-            sc.close();
-        } catch (FileNotFoundException fnfe) {
-            throw new RuntimeException(fnfe.getMessage());
+        ArrayList<String> geneNames = StaticUtils.getGeneNames(networkFolder + "/gene_names.txt");
+
+        /** Extract the path to the file with the time series if provided */
+        String strTimeSeriesFile = networkFolder + "/time_series.csv";
+        if (!Files.exists(Paths.get(strTimeSeriesFile))) {
+            strTimeSeriesFile = null;
         }
 
         /** Establish the cut-off criteria. */
-        switch (strCutOffCriteria) {
-            case "MinConfidence":
-                cutOffCriteria = new MinConfidenceCriteria(cutOffValue);
-                break;
-            case "MaxNumLinksBestConf":
-                cutOffCriteria = new MaxNumLinksBestConfCriteria((int) cutOffValue);
-                break;
-            case "MinConfDist":
-                cutOffCriteria = new MinConfDistCriteria(cutOffValue);
-                break;
-            default:
-                throw new RuntimeException("The cut-off criteria entered is not available");
-        }
+        cutOffCriteria = StaticUtils.getCutOffCriteriaFromString(strCutOffCriteria, cutOffValue, geneNames);
 
         /** Initialize our problem with the extracted data. */
-        problem = new GRNProblem(files, geneNames, repairer, cutOffCriteria, qualityWeight, topologyWeight);
+        if (printEvolution) {
+            problem = new GRNProblemBestFitnessEvolution(inferredNetworks, geneNames, cutOffCriteria,
+                    strFitnessFormulas, strTimeSeriesFile);
+        } else {
+            problem = new GRNProblem(inferredNetworks, geneNames, cutOffCriteria, strFitnessFormulas,
+                    strTimeSeriesFile);
+        }
 
         /** Set the crossover operator. */
-        double crossoverDistributionIndex = 20.0;
-        int numPointsCrossover = 2;
-
-        switch (strCrossover) {
-            case "SBXCrossover":
-                crossover = new SBXCrossover(crossoverProbability, crossoverDistributionIndex);
-                break;
-            case "BLXAlphaCrossover":
-                crossover = new BLXAlphaCrossover(crossoverProbability);
-                break;
-            case "DifferentialEvolutionCrossover":
-                crossover = new DifferentialEvolutionCrossover();
-                break;
-            case "NPointCrossover":
-                crossover = new NPointCrossover(crossoverProbability, numPointsCrossover);
-                break;
-            case "NullCrossover":
-                crossover = new NullCrossover();
-                break;
-            case "WholeArithmeticCrossover":
-                crossover = new WholeArithmeticCrossover(crossoverProbability);
-                break;
-            default:
-                throw new RuntimeException("The crossover operator entered is not available");
-        }
+        crossover = new SimplexCrossover(numParents, 1, crossoverProbability);
 
         /** Set the mutation operator. */
-        double mutationDistributionIndex = 20.0;
-        double delta = 0.5;
-        int numberOfGroups = 4;
-        CollectionGrouping<List<Double>> grouping = new ListLinearGrouping<>(numberOfGroups);
-        double perturbation = 0.5;
-        int maxMutIterations = 10;
-
-        switch (strMutation) {
-            case "PolynomialMutation":
-                mutation = new PolynomialMutationWithRepair(mutationProbability, mutationDistributionIndex, repairer);
-                break;
-            case "CDGMutation":
-                mutation = new CDGMutationWithRepair(mutationProbability, delta, repairer);
-                break;
-            case "GroupedAndLinkedPolynomialMutation":
-                mutation = new GroupedAndLinkedPolynomialMutationWithRepair(mutationDistributionIndex, grouping, repairer);
-                break;
-            case "GroupedPolynomialMutation":
-                mutation = new GroupedPolynomialMutationWithRepair(mutationDistributionIndex, grouping, repairer);
-                break;
-            case "LinkedPolynomialMutation":
-                mutation = new LinkedPolynomialMutationWithRepair(mutationProbability, mutationDistributionIndex, repairer);
-                break;
-            case "NonUniformMutation":
-                mutation = new NonUniformMutationWithRepair(mutationProbability, perturbation, maxMutIterations, repairer);
-                break;
-            case "NullMutation":
-                mutation = new NullMutationWithRepair(repairer);
-                break;
-            case "SimpleRandomMutation":
-                mutation = new SimpleRandomMutationWithRepair(mutationProbability, repairer);
-                break;
-            case "UniformMutation":
-                mutation = new UniformMutationWithRepair(mutationProbability, perturbation, repairer);
-                break;
-            default:
-                throw new RuntimeException("The mutation operator entered is not available");
-        }
+        mutation = new SimplexMutation(mutationProbability, mutationStrength);
 
         /** Start selection operator. */
         selection = new BinaryTournamentSelection<>(new RankingAndCrowdingDistanceComparator<>());
 
-        /** Declare variable to contain the runtime and another to store the last generation of individuals. */
+        /**
+         * Declare variable to contain the runtime and another to store the last
+         * generation of individuals.
+         */
         long computingTime;
         List<DoubleSolution> population;
 
@@ -238,13 +184,33 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         int offspringPopulationSize = populationSize;
 
         /** Configure the specified evolutionary algorithm. */
-        if (strAlgorithm.equals("AsyncParallel")) {
-            /** Activate stopwatch. */
-            long initTime = System.currentTimeMillis();
+        if (problem.getNumberOfObjectives() == 1) {
+            if (strAlgorithm.equals("GA-SingleThread")) {
+                /** Instantiate the evolutionary algorithm. */
+                GeneticAlgorithm<DoubleSolution> algorithm = new GeneticAlgorithm<DoubleSolution>(
+                        problem,
+                        populationSize,
+                        offspringPopulationSize,
+                        selection,
+                        crossover,
+                        mutation,
+                        termination);
 
-            /** Instantiate the evolutionary algorithm. */
-            AsynchronousMultiThreadedGeneticAlgorithm<DoubleSolution> algorithm
-                 = new AsynchronousMultiThreadedGeneticAlgorithm <DoubleSolution>(
+                /** Execute the designed evolutionary algorithm. */
+                algorithm.run();
+
+                /** Extract the total execution time. */
+                computingTime = algorithm.getTotalComputingTime();
+
+                /** Extract the population of the last iteration. */
+                population = SolutionListUtils.getNonDominatedSolutions(algorithm.getResult());
+
+            } else if (strAlgorithm.equals("GA-AsyncParallel")) {
+                /** Activate stopwatch. */
+                long initTime = System.currentTimeMillis();
+
+                /** Instantiate the evolutionary algorithm. */
+                AsynchronousMultiThreadedGeneticAlgorithmGoodParents<DoubleSolution> algorithm = new AsynchronousMultiThreadedGeneticAlgorithmGoodParents<DoubleSolution>(
                         numOfThreads,
                         problem,
                         populationSize,
@@ -254,60 +220,114 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                         replacement,
                         termination);
 
-            /** Execute the designed evolutionary algorithm. */
-            algorithm.run();
-    
-            /** Stop stopwatch and calculate the total execution time. */
-            long endTime = System.currentTimeMillis();
-            computingTime = endTime - initTime;
+                /** Execute the designed evolutionary algorithm. */
+                algorithm.run();
 
-            /** Extract the population of the last iteration. */
-            population = algorithm.getResult();
+                /** Stop stopwatch and calculate the total execution time. */
+                long endTime = System.currentTimeMillis();
+                computingTime = endTime - initTime;
 
-        } else if (strAlgorithm.equals("SyncParallel")) {
-            /** Instantiate the evolutionary algorithm. */
-            ComponentBasedEvolutionaryAlgorithm<DoubleSolution> algorithm
-                 = new GeneticAlgorithm <DoubleSolution>(
+                /** Extract the population of the last iteration. */
+                population = SolutionListUtils.getNonDominatedSolutions(algorithm.getResult());
+
+            } else {
+                throw new RuntimeException(
+                        "The algorithm " + strAlgorithm + " is not available for single-objetive problems.");
+            }
+        } else {
+            if (strAlgorithm.equals("NSGAII-SingleThread")) {
+                /** Instantiate the evolutionary algorithm. */
+                Algorithm<List<DoubleSolution>> algorithm = new NSGAIIBuilder<>(problem, crossover, mutation,
+                        populationSize)
+                        .setSelectionOperator(selection)
+                        .setMaxEvaluations(numEvaluations)
+                        .build();
+
+                /** Execute the designed evolutionary algorithm. */
+                AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute();
+
+                /** Extract the total execution time. */
+                computingTime = algorithmRunner.getComputingTime();
+
+                /** Extract the population of the last iteration. */
+                population = SolutionListUtils.getNonDominatedSolutions(algorithm.getResult());
+
+            } else if (strAlgorithm.equals("NSGAII-AsyncParallel")) {
+                /** Activate stopwatch. */
+                long initTime = System.currentTimeMillis();
+
+                /** Instantiate the evolutionary algorithm. */
+                AsynchronousMultiThreadedNSGAIIGoodParents<DoubleSolution> algorithm = new AsynchronousMultiThreadedNSGAIIGoodParents<DoubleSolution>(
+                        numOfThreads,
                         problem,
                         populationSize,
-                        offspringPopulationSize,
-                        selection,
-                        crossover,
-                        mutation,
-                        termination).withEvaluation(new MultithreadedEvaluation<>(numOfThreads, problem));
-
-            /** Execute the designed evolutionary algorithm. */
-            algorithm.run();
-
-            /** Extract the total execution time. */
-            computingTime = algorithm.getTotalComputingTime();
-
-            /** Extract the population of the last iteration. */
-            population = algorithm.getResult();
-
-        } else if (strAlgorithm.equals("SingleThread")) {
-            /** Instantiate the evolutionary algorithm. */
-            GeneticAlgorithm<DoubleSolution> algorithm 
-                = new GeneticAlgorithm <DoubleSolution>(
-                        problem,
-                        populationSize,
-                        offspringPopulationSize,
-                        selection,
                         crossover,
                         mutation,
                         termination);
 
-            /** Execute the designed evolutionary algorithm. */
-            algorithm.run();
+                /** Execute the designed evolutionary algorithm. */
+                algorithm.run();
 
-            /** Extract the total execution time. */
-            computingTime = algorithm.getTotalComputingTime();
+                /** Stop stopwatch and calculate the total execution time. */
+                long endTime = System.currentTimeMillis();
+                computingTime = endTime - initTime;
 
-            /** Extract the population of the last iteration. */
-            population = algorithm.getResult();
+                /** Extract the population of the last iteration. */
+                population = SolutionListUtils.getNonDominatedSolutions(algorithm.getResult());
 
-        } else {
-            throw new RuntimeException("The algorithm name entered is not available");
+            } else if (strAlgorithm.equals("SMPSO-SingleThread")) {
+                /** Create archive */
+                BoundedArchive<DoubleSolution> archive = new CrowdingDistanceArchive<>(populationSize);
+
+                /** Instantiate the evolutionary algorithm. */
+                Algorithm<List<DoubleSolution>> algorithm = new SMPSOBuilder(problem, archive)
+                        .setMutation(mutation)
+                        .setMaxIterations(numEvaluations / populationSize)
+                        .setSwarmSize(populationSize)
+                        .setSolutionListEvaluator(new SequentialSolutionListEvaluator<DoubleSolution>())
+                        .build();
+
+                /** Execute the designed evolutionary algorithm. */
+                AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute();
+
+                /** Extract the total execution time. */
+                computingTime = algorithmRunner.getComputingTime();
+
+                /** Extract the population of the last iteration. */
+                population = SolutionListUtils.getNonDominatedSolutions(algorithm.getResult());
+
+            } else if (strAlgorithm.equals("SMPSO-SyncParallel")) {
+                /** Create archive */
+                BoundedArchive<DoubleSolution> archive = new CrowdingDistanceArchive<>(populationSize);
+
+                /** Instantiate the evaluator */
+                SolutionListEvaluator<DoubleSolution> evaluator = new MultiThreadedSolutionListEvaluator<DoubleSolution>(
+                        numOfThreads);
+
+                /** Instantiate the evolutionary algorithm. */
+                Algorithm<List<DoubleSolution>> algorithm = new SMPSOBuilder(problem, archive)
+                        .setMutation(mutation)
+                        .setMaxIterations(numEvaluations / populationSize)
+                        .setSwarmSize(populationSize)
+                        .setSolutionListEvaluator(evaluator)
+                        .build();
+
+                /** Execute the designed evolutionary algorithm. */
+                AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor(algorithm).execute();
+
+                /** Extract the total execution time. */
+                computingTime = algorithmRunner.getComputingTime();
+
+                /** Extract the population of the last iteration. */
+                population = SolutionListUtils.getNonDominatedSolutions(algorithm.getResult());
+
+                /** Stop the evaluator */
+                evaluator.shutdown();
+
+            } else {
+                throw new RuntimeException(
+                        "The algorithm " + strAlgorithm + " is not available for multi-objetive problems.");
+            }
         }
 
         /** Create output folder. */
@@ -319,107 +339,68 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         }
 
         /** Write the evolution of fitness values to an output txt file. */
-        try {
-            File outputFile = new File(outputFolder + "/fitness_evolution.txt");
-            BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
-
-            Map<String, Double[]> fitnessEvolution = problem.getFitnessEvolution();
-
-            String strFitnessVector = Arrays.toString(fitnessEvolution.get("Fitness"));
-            bw.write(strFitnessVector.substring(1, strFitnessVector.length() - 1) + "\n");
-
-            String strF1Vector = Arrays.toString(fitnessEvolution.get("F1"));
-            bw.write(strF1Vector.substring(1, strF1Vector.length() - 1) + "\n");
-            
-            String strF2Vector = Arrays.toString(fitnessEvolution.get("F2"));
-            bw.write(strF2Vector.substring(1, strF2Vector.length() - 1) + "\n");
-
-            bw.flush();
-            bw.close();
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe);
+        if (printEvolution) {
+            Map<String, Double[]> fitnessEvolution = ((GRNProblemFitnessEvolution) problem).getFitnessEvolution();
+            StaticUtils.writeFitnessEvolution(outputFolder + "/fitness_evolution.txt", fitnessEvolution);
         }
 
-        /** Transform the solution into a simple vector of weights. */
-        double[] winner = new double[problem.getNumberOfVariables()];
-        for (int i = 0; i < problem.getNumberOfVariables(); i++) {
-            winner[i] = population.get(0).variables().get(i);
+        /** Get files (techniques) tags */
+        String[] tags = new String[files.length];
+        for (int i = 0; i < files.length; i++) {
+            tags[i] = files[i].getName();
         }
 
-        /** Write the list of weights assigned to each technique in an output txt file. */
-        try {
-            File outputFile = new File(outputFolder + "/final_weights.txt");
-            BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
+        /** Write the data of the last population (pareto front approximation). */
+        new SolutionListOutputWithHeader(population, strFitnessFormulas.split(";"), tags)
+                .setVarFileOutputContext(new DefaultFileOutputContext(outputFolder + "/VAR.csv", ","))
+                .setFunFileOutputContext(new DefaultFileOutputContext(outputFolder + "/FUN.csv", ","))
+                .print();
 
-            String filename;
-            for (int i = 0; i < winner.length; i++) {
-                filename = files[i].getName();
-                bw.write(filename.substring(4, filename.lastIndexOf('.')) + ": " + winner[i]);
-                bw.newLine();
+        if (problem.getNumberOfObjectives() == 1) {
+            /** Transform the solution into a simple vector of weights. */
+            Double[] winner = new Double[problem.getNumberOfVariables()];
+            for (int i = 0; i < problem.getNumberOfVariables(); i++) {
+                winner[i] = population.get(0).variables().get(i);
             }
-            bw.flush();
-            bw.close();
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe.getMessage());
+
+            /** Get weighted confidence map from winner. */
+            Map<String, Float> consensus = StaticUtils.makeConsensus(winner, inferredNetworks);
+            Map<String, Float> consensusSorted = new LinkedHashMap<>();
+            consensus.entrySet()
+                    .stream()
+                    .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                    .forEachOrdered(x -> consensusSorted.put(x.getKey(), x.getValue()));
+
+            /** Write the resulting list of links to an output csv file. */
+            StaticUtils.writeConsensus(outputFolder + "/final_list.csv", consensusSorted);
+
+            /** Calculate the binary matrix from the list above. */
+            boolean[][] binaryNetwork = cutOffCriteria.getNetwork(consensusSorted);
+
+            /** Write the resulting binary matrix to an output csv file. */
+            StaticUtils.writeBinaryNetwork(outputFolder + "/final_network.csv", binaryNetwork, geneNames);
         }
 
-        /** Calculate the consensus list corresponding to the solution vector. */
-        Map<String, ConsensusTuple> consensus = problem.makeConsensus(winner)
-            .entrySet()
-            .stream()
-            .sorted(Map.Entry.<String, ConsensusTuple>comparingByValue())
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                (e1, e2) -> e1, LinkedHashMap::new));
-
-        /** Write the resulting list of links to an output csv file. */
-        try {
-            File outputFile = new File(outputFolder + "/final_list.csv");
-            BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
-
-            for (Map.Entry<String, ConsensusTuple> pair : consensus.entrySet()) {
-                String [] vKeySplit = pair.getKey().split(";");
-                bw.write(vKeySplit[0] + "," + vKeySplit[1] + "," + pair.getValue().getConf());
-                bw.newLine();
-            }
-            bw.flush();
-            bw.close();
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe.getMessage());
-        }
-
-        /** Calculate the binary matrix from the list above. */
-        int[][] binaryNetwork = cutOffCriteria.getNetworkFromConsensus(consensus, geneNames);
-
-        /** Write the resulting binary matrix to an output csv file. */
-        try {
-            File outputFile = new File(outputFolder + "/final_network.csv");
-            BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
-
-            bw.write("," + String.join(",", geneNames));
-            bw.newLine();
-            for (int i = 0; i < binaryNetwork.length; i++) {
-                bw.write(geneNames.get(i) + ",");
-                for (int j = 0; j < binaryNetwork[i].length; j++) {
-                    bw.write(binaryNetwork[i][j] + ((j == binaryNetwork[i].length - 1) ? "" : ","));
-                }
-                bw.newLine();
-            }
-            bw.flush();
-            bw.close();
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe.getMessage());
-        }
-
-        /** Report the execution time and return the best solution found by the algorithm. */
+        /**
+         * Report the execution time and return the best solution found by the
+         * algorithm.
+         */
         System.out.println("Evolutionary algorithm executed: " + strAlgorithm);
         System.out.println("Threads used: " + numOfThreads);
         System.out.println("Total execution time: " + computingTime + "ms");
-        System.out.println("The resulting list of links has been stored in " + outputFolder + "/final_list.csv");
-        System.out.println("The resulting binary matrix has been stored in " + outputFolder + "/final_network.csv");
-        System.out.println("The evolution of fitness values has been stored in " + outputFolder + "/fitness_evolution.txt");
-        System.out.println("List of the weights assigned to each technique has been stored in " + outputFolder + "/final_weights.txt");
+        System.out.println("The weights assigned to each technique/input-file have been stored in VAR.csv");
+        System.out.println("The fitness values for each of the solutions have been stored in FUN.csv");
+
+        if (printEvolution) {
+            System.out.println(
+                    "The evolution of fitness values has been stored in " + outputFolder + "/fitness_evolution.txt");
+        }
+
+        if (problem.getNumberOfObjectives() == 1) {
+            System.out.println("The resulting list of links has been stored in " + outputFolder + "/final_list.csv");
+            System.out.println("The resulting binary matrix has been stored in " + outputFolder + "/final_network.csv");
+        }
+
         System.exit(0);
     }
 }
-
-

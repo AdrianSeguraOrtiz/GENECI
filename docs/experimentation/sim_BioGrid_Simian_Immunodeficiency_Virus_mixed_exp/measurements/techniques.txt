@@ -1,0 +1,546 @@
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_ARACNE
+.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.771838331160365"
+[1] "AUPR: 0.561155299665737"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_BC3NET
+.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.793785310734463"
+[1] "AUPR: 0.591566663436573"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_C3NET.
+csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.717731421121252"
+[1] "AUPR: 0.505841962362012"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_CLR.cs
+v prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.879617557583659"
+[1] "AUPR: 0.556106482910611"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_CMI2NI
+.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.953063885267275"
+[1] "AUPR: 0.705433633220286"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_GENIE3
+_ET.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.874402433724468"
+[1] "AUPR: 0.532669680811952"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_GENIE3
+_RF.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.856149500217297"
+[1] "AUPR: 0.550360586710873"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_GRNBOO
+ST2.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.764884832681443"
+[1] "AUPR: 0.376251643200184"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_GRNVBE
+M.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.496088657105606"
+[1] "AUPR: 0.0743804079316336"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_INFERE
+LATOR.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.837244676227727"
+[1] "AUPR: 0.568447611219524"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_JUMP3.
+csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.636245110821382"
+[1] "AUPR: 0.148252282380912"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_KBOOST
+.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.679704476314646"
+[1] "AUPR: 0.245379082594688"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_LEAP.c
+sv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.700564971751412"
+[1] "AUPR: 0.136251648816014"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_LOCPCA
+CMI.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.862668405041286"
+[1] "AUPR: 0.675069121325668"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_MEOMI.
+csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.628857018687527"
+[1] "AUPR: 0.173453772222"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_MRNETB
+.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.871360278139939"
+[1] "AUPR: 0.569531965488914"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_MRNET.
+csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.869621903520209"
+[1] "AUPR: 0.565468496863335"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_NARROM
+I.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.688830943068231"
+[1] "AUPR: 0.463624691642902"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_NONLIN
+EARODES.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.671447196870926"
+[1] "AUPR: 0.133510112638916"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_PCACMI
+.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.953063885267275"
+[1] "AUPR: 0.705433633220286"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_PCIT.c
+sv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.5"
+[1] "AUPR: 0.068421052631579"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_PIDC.c
+sv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.774445893089961"
+[1] "AUPR: 0.334691677651292"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_PLSNET
+.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.670143415906128"
+[1] "AUPR: 0.389713590789818"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_PUC.cs
+v prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.782268578878748"
+[1] "AUPR: 0.476701828180689"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_RSNET.
+csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.950456323337679"
+[1] "AUPR: 0.678907351800728"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Simian_Immunodeficiency_Virus_mixed_exp/lists/GRN_TIGRES
+S.csv prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Simian_Immunodeficiency_Vir
+us_mixed_gs.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.94980443285528"
+[1] "AUPR: 0.678135036747493"
+

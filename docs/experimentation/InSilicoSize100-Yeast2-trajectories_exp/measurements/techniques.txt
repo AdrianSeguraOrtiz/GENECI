@@ -1,0 +1,366 @@
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_ARACNE.csv 
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.05297395767309327
+AUROC: 0.521588046204922
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_BC3NET.csv 
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.044104315297079325
+AUROC: 0.5167385673576721
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_C3NET.csv
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.05070378823587799
+AUROC: 0.5165397716998772
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_CLR.csv 
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.055682823075398506
+AUROC: 0.521017741870528
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_CMI2NI.csv 
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.04266236628481214
+AUROC: 0.47850804061539887
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_GENIE3_ET.csv 
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.05299561887025057
+AUROC: 0.535504688253001
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_GENIE3_RF.csv 
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.05908808129533331
+AUROC: 0.5549001710642716
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_GRNBOOST2.csv 
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.05584579092934136
+AUROC: 0.5486760155133591
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_GRNVBEM.csv 
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.06611167547698234
+AUROC: 0.5519402645401251
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_INFERELATOR.csv 
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.056037742879876326
+AUROC: 0.532402205645256
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_KBOOST.csv 
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.038910763016122965
+AUROC: 0.46918234845919193
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_LEAP.csv 
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.03727066731663043
+AUROC: 0.47340178967446434
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_LOCPCACMI.csv 
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.041399123429929165
+AUROC: 0.46306198289141054
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_MEOMI.csv
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.03939527200753
+AUROC: 0.5012268300349834
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_MRNETB.csv 
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.04821535063572883
+AUROC: 0.5115570416503255
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_MRNET.csv
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.05000956154158734
+AUROC: 0.5130452386480381
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_NARROMI.csv 
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.04880644957424192
+AUROC: 0.5174177971170711
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_NONLINEARODES.csv 
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.04434503078521366
+AUROC: 0.5321188103397527
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_PCACMI.csv 
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.03718890789657551
+AUROC: 0.4755340791977034
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_PCIT.csv 
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.04322623369254546
+AUROC: 0.4909014835751002
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_PIDC.csv 
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.0566991010422877
+AUROC: 0.5394797905496517
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_PLSNET.csv 
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.04619590436826138
+AUROC: 0.544729563576635
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_PUC.csv 
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.055425823243267544
+AUROC: 0.5356849692914092
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_RSNET.csv
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.043826453922695026
+AUROC: 0.49228643116251003
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Yeast2-trajectories_exp/lists/GRN_TIGRESS.csv 
+prediction for 100_Yeast2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.04030147689266796
+AUROC: 0.5154402465660789
+

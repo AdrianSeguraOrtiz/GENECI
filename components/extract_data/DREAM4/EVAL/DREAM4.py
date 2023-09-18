@@ -14,7 +14,7 @@ def dream4(
     syn_ids = ["syn4558440", "syn4558441", "syn4558442", "syn4558443", "syn4558444", "syn4558445", "syn4558446", "syn4558447", "syn4558448", "syn4558449"]
 
     for id in syn_ids:
-        syn.get(id, downloadLocation=f'{output_folder}/DREAM4/EVAL/')
+        syn.get(id, downloadLocation = output_folder)
 
 
 if __name__ == "__main__":

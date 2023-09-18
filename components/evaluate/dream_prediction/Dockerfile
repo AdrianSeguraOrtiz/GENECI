@@ -2,7 +2,7 @@ FROM python:3.5.6
 
 LABEL Khaos Research Group <khaos.uma.es>
 
-MAINTAINER Adrián Segura Ortiz <adrianseor.99@gmail.com>
+LABEL Adrián Segura Ortiz <adrianseor.99@gmail.com>
 
 RUN apt-get update && apt-get install -y \
    curl \
@@ -20,7 +20,7 @@ RUN pip install cython
 RUN pip install dreamtools argparse pandas
 
 
-COPY . /usr/local/src/
+COPY components /usr/local/src/components
 WORKDIR /usr/local/src/
 
 ENTRYPOINT ["python", "components/evaluate/dream_prediction/evaluation.py"]

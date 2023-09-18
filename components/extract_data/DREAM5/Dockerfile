@@ -2,7 +2,7 @@ FROM python:3.10.2
 
 LABEL Khaos Research Group <khaos.uma.es>
 
-MAINTAINER Adrián Segura Ortiz <adrianseor.99@gmail.com>
+LABEL Adrián Segura Ortiz <adrianseor.99@gmail.com>
 
 RUN apt-get update && apt-get install -y \
    curl \
@@ -16,7 +16,7 @@ RUN pip install --upgrade pip
 # Install packages
 RUN pip install typer synapseclient pandas
 
-COPY . /usr/local/src/
+COPY components /usr/local/src/components
 WORKDIR /usr/local/src/
 
 ENTRYPOINT ["python", "components/extract_data/DREAM5/DREAM5.py"]

@@ -8,14 +8,18 @@ Adrián Segura Ortiz
 
 ## DESCRIPTION
 
-This component is in charge of converting confidence lists into binary matrices by applying various criteria.
+This component is in charge of converting confidence lists into binary matrices by applying several criteria.
 
 # DOCKER
 
 ## Build
 
 ```
+<<<<<<< HEAD
 docker build -t adriansegura99/geneci_apply-cut:1.0.0 -f components/apply_cut/Dockerfile .
+=======
+docker build -t adriansegura99/geneci_apply-cut:2.0.0 -f components/apply_cut/Dockerfile .
+>>>>>>> dev
 ```
 
 ## Run

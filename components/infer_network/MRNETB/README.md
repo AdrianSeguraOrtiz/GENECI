@@ -8,14 +8,18 @@ Adrián Segura Ortiz
 
 ## DESCRIPTION
 
-Given a CSV file with differential expression data, this component infers its gene regulatory network by applying the MRNETB technique.
+Given a CSV file with time series of gene expression data, this component infers its gene regulatory network by applying the MRNETB technique.
 
 # DOCKER
 
 ## Build
 
 ```
+<<<<<<< HEAD
 docker build -t adriansegura99/geneci_infer-network_mrnetb:1.0.0 -f components/infer_network/MRNETB/Dockerfile .
+=======
+docker build -t adriansegura99/geneci_infer-network_mrnetb:2.0.0 -f components/infer_network/MRNETB/Dockerfile .
+>>>>>>> dev
 ```
 
 ## Run

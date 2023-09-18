@@ -1,0 +1,366 @@
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_ARACNE.csv 
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.018658927445699927
+AUROC: 0.5323333095634737
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_BC3NET.csv 
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.017481124833294368
+AUROC: 0.5285831130325557
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_C3NET.csv
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.017019310590786877
+AUROC: 0.5189116439950892
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_CLR.csv 
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.026761692452041925
+AUROC: 0.5909167061160424
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_CMI2NI.csv 
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.020264490965620562
+AUROC: 0.597749538420828
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_GENIE3_ET.csv 
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.036776382445570334
+AUROC: 0.5820726000245716
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_GENIE3_RF.csv 
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.0455606086813925
+AUROC: 0.5984652116648723
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_GRNBOOST2.csv 
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.050468092042703507
+AUROC: 0.5655631437729983
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_GRNVBEM.csv 
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.029099928151550342
+AUROC: 0.5939168633407764
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_INFERELATOR.csv 
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.029708322762071585
+AUROC: 0.541099232863578
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_KBOOST.csv 
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.013173348145145043
+AUROC: 0.506034250935831
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_LEAP.csv 
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.016843292779116236
+AUROC: 0.5780758269978066
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_LOCPCACMI.csv 
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.019534200804122742
+AUROC: 0.5786531768417418
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_MEOMI.csv
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.012288231717543136
+AUROC: 0.4991919679639568
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_MRNETB.csv 
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.023487073671583543
+AUROC: 0.6045389835721631
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_MRNET.csv
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.02285529846501013
+AUROC: 0.6001800781656084
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_NARROMI.csv 
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.025049952417813447
+AUROC: 0.561902299003642
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_NONLINEARODES.csv 
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.013475891530808104
+AUROC: 0.5299298330926276
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_PCACMI.csv 
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.009459988718703412
+AUROC: 0.39202355106238396
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_PCIT.csv 
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.024229404229545566
+AUROC: 0.5878894856173734
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_PIDC.csv 
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.04612439106990283
+AUROC: 0.5669575467442883
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_PLSNET.csv 
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.013841908688674933
+AUROC: 0.5075446393668396
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_PUC.csv 
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.04861546178038018
+AUROC: 0.5782450798538411
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_RSNET.csv
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.024321543668608933
+AUROC: 0.5833226655348777
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/InSilicoSize100-Ecoli2-trajectories_exp/lists/GRN_TIGRESS.csv 
+prediction for 100_Ecoli2 network in D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.028914964709383456
+AUROC: 0.5606290364013922
+

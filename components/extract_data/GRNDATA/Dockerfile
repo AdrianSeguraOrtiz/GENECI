@@ -2,7 +2,7 @@ FROM r-base:4.1.2
 
 LABEL Khaos Research Group <khaos.uma.es>
 
-MAINTAINER Adrián Segura Ortiz <adrianseor.99@gmail.com>
+LABEL Adrián Segura Ortiz <adrianseor.99@gmail.com>
 
 RUN apt-get update && apt-get install -y \
    curl \
@@ -17,7 +17,7 @@ RUN R -e "install.packages('BiocManager', repos='http://cran.us.r-project.org')"
 RUN R -e "BiocManager::install('grndata')"
 
 
-COPY . /usr/local/src/
+COPY components /usr/local/src/components
 WORKDIR /usr/local/src/
 
 ENTRYPOINT ["Rscript", "--vanilla", "components/extract_data/GRNDATA/GRNDATA.R"]

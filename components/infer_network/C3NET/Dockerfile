@@ -2,7 +2,7 @@ FROM r-base:4.1.2
 
 LABEL Khaos Research Group <khaos.uma.es>
 
-MAINTAINER Adrián Segura Ortiz <adrianseor.99@gmail.com>
+LABEL Adrián Segura Ortiz <adrianseor.99@gmail.com>
 
 RUN apt-get update && apt-get install -y \
    curl \
@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
 RUN R -e "install.packages('c3net', repos='http://cran.us.r-project.org')" \
    && R -e "install.packages('gdata', repos='http://cran.us.r-project.org')"
 
-COPY . /usr/local/src/
+COPY components /usr/local/src/components
 WORKDIR /usr/local/src/
 
 ENTRYPOINT ["Rscript", "--vanilla", "components/infer_network/C3NET/C3NET.R"]

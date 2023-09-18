@@ -1,0 +1,15 @@
+Infer gene regulatory network with available techniques: 
+	- ARACNE:	0 days 00:00:02.209347465
+	- BC3NET:	0 days 00:05:06.174927235
+	- C3NET:	0 days 00:00:14.509358290
+	- CLR:	0 days 00:00:02.195202656
+	- MRNET:	0 days 00:00:02.402223178
+	- MRNETB:	0 days 00:00:03.144445999
+	- PCIT:	0 days 00:00:16.025268968
+	- KBOOST:	0 days 00:03:11.604390823
+	- NARROMI:	0 days 00:01:06.013590277
+	- RSNET:	0 days 00:00:31.520980476
+	- PIDC:	0 days 00:00:57.372047137
+	- PUC:	0 days 00:00:53.582561899
+	- LEAP:	0 days 00:00:52.656672939
+

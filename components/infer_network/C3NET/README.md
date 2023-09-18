@@ -8,14 +8,18 @@ Adrián Segura Ortiz
 
 ## DESCRIPTION
 
-Given a CSV file with differential expression data, this component infers its gene regulatory network by applying the C3NET technique.
+Given a CSV file with time series of gene expression data, this component infers its gene regulatory network by applying the C3NET technique.
 
 # DOCKER
 
 ## Build
 
 ```
+<<<<<<< HEAD
 docker build -t adriansegura99/geneci_infer-network_c3net:1.0.0 -f components/infer_network/C3NET/Dockerfile .
+=======
+docker build -t adriansegura99/geneci_infer-network_c3net:2.0.0 -f components/infer_network/C3NET/Dockerfile .
+>>>>>>> dev
 ```
 
 ## Run

@@ -138,13 +138,28 @@ dask-worker-space/
 EAGRN-JMetal/.idea
 EAGRN-JMetal/*.csv
 EAGRN-JMetal/*.log
+jMetal.log
+jMetal.log.lck
 
 # Inferred Networks
 inferred_networks*/
+template/
+pareto_fronts*/
 
 # Temp folder
-tmp/
+tmp*/
 
-utils/
-hola.sh
+utils/*.csv
+utils/*.tex
+utils/controlTest/*.csv
+utils/controlTest/*.pdf
+utils/techniques_comparison*
+utils/functions_comparison*
+!EAGRN-JMetal/src/main/java/eagrn/utils/
+logs.txt
 .vscode
+
+components/*/*/mainstandaloneApplication/
+components/*/*/adriansegura99/
+
+*.lock

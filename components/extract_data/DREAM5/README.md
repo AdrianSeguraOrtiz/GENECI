@@ -8,14 +8,18 @@ Adrián Segura Ortiz
 
 ## DESCRIPTION
 
-This component is responsible for downloading differential expression data, gold standards and evaluation data from DREAM5 challenge.
+This component is responsible for downloading time series of gene expression data, gold standards and evaluation data from DREAM5 challenge.
 
 # DOCKER
 
 ## Build
 
 ```
+<<<<<<< HEAD
 docker build -t adriansegura99/geneci_extract-data_dream5:1.0.0 -f components/extract_data/DREAM5/Dockerfile .
+=======
+docker build -t adriansegura99/geneci_extract-data_dream5:2.0.0 -f components/extract_data/DREAM5/Dockerfile .
+>>>>>>> dev
 ```
 
 ## Run

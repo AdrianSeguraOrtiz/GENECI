@@ -1,0 +1,70 @@
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+
+ Calculating the weighted sum of confidence levels for entry 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_ARACN
+E.csv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_BC3NE
+T.csv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_C3NET
+.csv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_CLR.c
+sv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_CMI2N
+I.csv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_GENIE
+3_ET.csv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_GENIE
+3_RF.csv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_GRNBO
+OST2.csv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_GRNVB
+EM.csv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_INFER
+ELATOR.csv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_JUMP3
+.csv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_KBOOS
+T.csv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_LEAP.
+csv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_LOCPC
+ACMI.csv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_MEOMI
+.csv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_MRNET
+B.csv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_MRNET
+.csv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_NARRO
+MI.csv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_NONLI
+NEARODES.csv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_PCACM
+I.csv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_PCIT.
+csv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_PIDC.
+csv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_PLSNE
+T.csv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_PUC.c
+sv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_RSNET
+.csv, 
+0.0384615384*../template/InSilicoSize10-Yeast2-trajectories_exp//lists/GRN_TIGRE
+SS.csv
+chmod: cannot access './tmp': No such file or directory
+
+Evaluate ./tmp-ulszcbtodo/temporal_list.csv prediction for 10_Yeast2 network in 
+D3C4 challenge
+Creating directory /root/.config/dreamtools 
+Missing README.rst. Please add one in D3C4
+AUPR: 0.4457890178814686
+AUROC: 0.6418461538461537
+

@@ -1,0 +1,418 @@
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Human_Herpesvirus_5_mixed_exp/lists/GRN_ARACNE.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Human_Herpesvirus_5_mixed_g
+s.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.756923418440129"
+[1] "AUPR: 0.137397766866368"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Human_Herpesvirus_5_mixed_exp/lists/GRN_BC3NET.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Human_Herpesvirus_5_mixed_g
+s.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.597232634137821"
+[1] "AUPR: 0.0720285821949215"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Human_Herpesvirus_5_mixed_exp/lists/GRN_C3NET.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Human_Herpesvirus_5_mixed_g
+s.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.674617528894582"
+[1] "AUPR: 0.106954681014188"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Human_Herpesvirus_5_mixed_exp/lists/GRN_CLR.csv
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Human_Herpesvirus_5_mixed_g
+s.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.813065882558444"
+[1] "AUPR: 0.135781535981649"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Human_Herpesvirus_5_mixed_exp/lists/GRN_GENIE3_ET.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Human_Herpesvirus_5_mixed_g
+s.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.824291646045009"
+[1] "AUPR: 0.0805795520293071"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Human_Herpesvirus_5_mixed_exp/lists/GRN_GENIE3_RF.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Human_Herpesvirus_5_mixed_g
+s.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.827472233543917"
+[1] "AUPR: 0.0821190661577376"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Human_Herpesvirus_5_mixed_exp/lists/GRN_GRNBOOST2.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Human_Herpesvirus_5_mixed_g
+s.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.774839696934409"
+[1] "AUPR: 0.0656244333913585"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Human_Herpesvirus_5_mixed_exp/lists/GRN_INFERELATOR.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Human_Herpesvirus_5_mixed_g
+s.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.743801675449067"
+[1] "AUPR: 0.129869838842959"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Human_Herpesvirus_5_mixed_exp/lists/GRN_KBOOST.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Human_Herpesvirus_5_mixed_g
+s.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.612296755364057"
+[1] "AUPR: 0.0408154931876003"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Human_Herpesvirus_5_mixed_exp/lists/GRN_LEAP.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Human_Herpesvirus_5_mixed_g
+s.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.65787395557367"
+[1] "AUPR: 0.0516800861907601"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Human_Herpesvirus_5_mixed_exp/lists/GRN_MEOMI.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Human_Herpesvirus_5_mixed_g
+s.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.54134217881161"
+[1] "AUPR: 0.0094178982400877"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Human_Herpesvirus_5_mixed_exp/lists/GRN_MRNETB.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Human_Herpesvirus_5_mixed_g
+s.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.8100863562258"
+[1] "AUPR: 0.130895112687703"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Human_Herpesvirus_5_mixed_exp/lists/GRN_MRNET.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Human_Herpesvirus_5_mixed_g
+s.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.809170208739701"
+[1] "AUPR: 0.134781898061716"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Human_Herpesvirus_5_mixed_exp/lists/GRN_NARROMI.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Human_Herpesvirus_5_mixed_g
+s.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.499694314244956"
+[1] "AUPR: 0.00565163672681194"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Human_Herpesvirus_5_mixed_exp/lists/GRN_PCACMI.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Human_Herpesvirus_5_mixed_g
+s.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.815314856327695"
+[1] "AUPR: 0.154939400618826"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Human_Herpesvirus_5_mixed_exp/lists/GRN_PCIT.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Human_Herpesvirus_5_mixed_g
+s.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.5"
+[1] "AUPR: 0.00567375886524823"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Human_Herpesvirus_5_mixed_exp/lists/GRN_PIDC.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Human_Herpesvirus_5_mixed_g
+s.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.773816195522432"
+[1] "AUPR: 0.0596773194497687"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Human_Herpesvirus_5_mixed_exp/lists/GRN_PLSNET.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Human_Herpesvirus_5_mixed_g
+s.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.634041384028647"
+[1] "AUPR: 0.024771887737681"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate ../template/sim_BioGrid_Human_Herpesvirus_5_mixed_exp/lists/GRN_PUC.csv
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Human_Herpesvirus_5_mixed_g
+s.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.78115811231768"
+[1] "AUPR: 0.0656749070836242"
+
+                 __  ___  _  _  ___   __  __            
+                / _)(  _)( \( )(  _) / _)(  )           
+               ( (/\ ) _) )  (  ) _)( (_  )(            
+                \__/(___)(_)\_)(___) \__)(__)           
+                                                        
+ version: 0.0.1     Author: Adrian Segura Ortiz <adrianseor.99@uma.es>        
+                                                        
+Evaluate 
+../template/sim_BioGrid_Human_Herpesvirus_5_mixed_exp/lists/GRN_RSNET.csv 
+prediction with respect 
+../input_data/simulated_based_on_real/GS/sim_BioGrid_Human_Herpesvirus_5_mixed_g
+s.csv gold standard
+ARGS == 1: the argument will be treated as csv file with the inferred network 
+ARGS == 2: the argument will be treated as csv file with the gold standard 
+Loading required package: PRROC
+Loading required package: parallel
+   PRROC parallel 
+    TRUE     TRUE 
+[1] "AUROC: 0.815115614719497"
+[1] "AUPR: 0.149248836292632"
+
