@@ -77,7 +77,7 @@ public class AverageLocalClusteringMeasureTest {
 
         Double[] x = new Double[]{};
 
-        AverageLocalClusteringMeasure topology = new AverageLocalClusteringMeasure(geneNames, new MinConfCriteria(0.0f, geneNames));
+        AverageLocalClusteringMeasure topology = new AverageLocalClusteringMeasure(new MinConfCriteria(0.0f, geneNames));
         double fitnessGoodTopologyConsensus = topology.run(goodTopologyConsensus, x);
         double fitnessBadTopologyConsensus = topology.run(badTopologyConsensus, x);
 

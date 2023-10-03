@@ -1,10 +1,10 @@
 package eagrn.fitnessfunction.impl.topology;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleDirectedGraph;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 import org.jgrapht.graph.SimpleGraph;
@@ -14,34 +14,38 @@ import eagrn.fitnessfunction.FitnessFunction;
 
 public abstract class Topology implements FitnessFunction {
 
-    protected Graph<String, DefaultEdge> getGraphFromNetwork(boolean[][] network, ArrayList<String> geneNames, boolean directed) {
-        Graph<String, DefaultEdge> graph = directed ? new SimpleDirectedGraph<>(DefaultEdge.class) : new SimpleGraph<>(DefaultEdge.class);
+    protected Graph<Integer, DefaultEdge> getGraphFromNetwork(boolean[][] adjacencyMatrix, boolean directed) {
+        Graph<Integer, DefaultEdge> graph = directed ? new SimpleDirectedGraph<>(DefaultEdge.class) : new SimpleGraph<>(DefaultEdge.class);
 
-        for (String gene : geneNames) {
-            graph.addVertex(gene);
+        // Add vertices to the graph
+        for (int i = 0; i < adjacencyMatrix.length; i++) {
+            graph.addVertex(i);
         }
 
-        for (int i = 0; i < network.length; i++) {
-            for (int j = 0; j < network.length; j++){
-                if (i != j && network[i][j]) graph.addEdge(geneNames.get(i), geneNames.get(j));
+        // Add edges to the graph with their respective weights
+        for (int i = 0; i < adjacencyMatrix.length; i++) {
+            for (int j = 0; j < adjacencyMatrix.length; j++) {
+                if (i != j && adjacencyMatrix[i][j]) graph.addEdge(i, j);
             }
         }
 
         return graph;
     }
 
-    protected Graph<String, DefaultEdge> getGraphFromWeightedNetwork(float[][] network, ArrayList<String> geneNames, boolean directed) {
-        Graph<String, DefaultEdge> graph = directed ? new SimpleDirectedWeightedGraph<>(DefaultEdge.class) : new SimpleWeightedGraph<>(DefaultEdge.class);
+    protected Graph<Integer, DefaultWeightedEdge> getGraphFromWeightedNetwork(float[][] adjacencyMatrix, boolean directed) {
+        Graph<Integer, DefaultWeightedEdge> graph = directed ? new SimpleDirectedWeightedGraph<>(DefaultWeightedEdge.class) : new SimpleWeightedGraph<>(DefaultWeightedEdge.class);
 
-        for (String gene : geneNames) {
-            graph.addVertex(gene);
+        // Add vertices to the graph
+        for (int i = 0; i < adjacencyMatrix.length; i++) {
+            graph.addVertex(i);
         }
 
-        for (int i = 0; i < network.length; i++) {
-            for (int j = 0; j < network.length; j++){
-                if (i != j && network[i][j] != 0){
-                    graph.addEdge(geneNames.get(i), geneNames.get(j));
-                    graph.setEdgeWeight(geneNames.get(i), geneNames.get(j), network[i][j]);
+        // Add edges to the graph with their respective weights
+        for (int i = 0; i < adjacencyMatrix.length; i++) {
+            for (int j = 0; j < adjacencyMatrix.length; j++) {
+                if (i != j && adjacencyMatrix[i][j] != 0) {
+                    DefaultWeightedEdge edge = graph.addEdge(i, j);
+                    graph.setEdgeWeight(edge, adjacencyMatrix[i][j]);
                 }
             }
         }

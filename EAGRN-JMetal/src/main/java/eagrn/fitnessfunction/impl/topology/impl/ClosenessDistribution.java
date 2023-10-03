@@ -8,7 +8,7 @@ import java.util.Map;
 import org.apache.commons.lang.ArrayUtils;
 import org.jgrapht.Graph;
 import org.jgrapht.alg.scoring.HarmonicCentrality;
-import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.DefaultWeightedEdge;
 
 import eagrn.StaticUtils;
 import eagrn.fitnessfunction.impl.topology.Topology;
@@ -33,9 +33,9 @@ public class ClosenessDistribution extends Topology {
         if (this.cache.containsKey(key)){
             score = this.cache.get(key);
         } else {
-            Graph<String, DefaultEdge> graph = super.getGraphFromWeightedNetwork(adjacencyMatrix, geneNames, true);
+            Graph<Integer, DefaultWeightedEdge> graph = super.getGraphFromWeightedNetwork(adjacencyMatrix, true);
             adjacencyMatrix = null;
-            HarmonicCentrality<String, DefaultEdge> evaluator = new HarmonicCentrality<>(graph);
+            HarmonicCentrality<Integer, DefaultWeightedEdge> evaluator = new HarmonicCentrality<>(graph);
             Double[] scores = evaluator.getScores().values().toArray(new Double[0]);
             for (int i = 0; i < scores.length; i++) {
                 scores[i] += 1;

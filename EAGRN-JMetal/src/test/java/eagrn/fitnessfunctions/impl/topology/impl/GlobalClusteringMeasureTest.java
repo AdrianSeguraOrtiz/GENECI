@@ -77,7 +77,7 @@ public class GlobalClusteringMeasureTest {
 
         Double[] x = new Double[]{};
 
-        GlobalClusteringMeasure topology = new GlobalClusteringMeasure(geneNames, new MinConfCriteria(0.0f, geneNames));
+        GlobalClusteringMeasure topology = new GlobalClusteringMeasure(new MinConfCriteria(0.0f, geneNames));
         double fitnessGoodTopologyConsensus = topology.run(goodTopologyConsensus, x);
         double fitnessBadTopologyConsensus = topology.run(badTopologyConsensus, x);
 

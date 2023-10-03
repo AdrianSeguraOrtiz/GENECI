@@ -324,10 +324,10 @@ public final class StaticUtils {
             // Clustering
             case "clustering":
             case "averagelocalclusteringmeasure":
-                res = new AverageLocalClusteringMeasure(geneNames, cutOffCriteria);
+                res = new AverageLocalClusteringMeasure(cutOffCriteria);
                 break;
             case "globalclusteringmeasure":
-                res = new GlobalClusteringMeasure(geneNames, cutOffCriteria);
+                res = new GlobalClusteringMeasure(cutOffCriteria);
                 break;
 
             // Degree distribution
