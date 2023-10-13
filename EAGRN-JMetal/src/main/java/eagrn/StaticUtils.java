@@ -21,6 +21,10 @@ import eagrn.cutoffcriteria.impl.NumLinksWithBestConfCriteria;
 import eagrn.cutoffcriteria.impl.PercLinksWithBestConfCriteria;
 import eagrn.fitnessfunction.FitnessFunction;
 import eagrn.fitnessfunction.impl.dynamic.impl.DynamicsMeasureAutovectorsStability;
+import eagrn.fitnessfunction.impl.dynamic.impl.DynamicsMeasureODE;
+import eagrn.fitnessfunction.impl.dynamic.impl.DynamicsMeasureODENonLinear;
+import eagrn.fitnessfunction.impl.dynamic.impl.DynamicsMeasureAutovectorsStabilityWithNormalizationWithThresold;
+import eagrn.fitnessfunction.impl.dynamic.impl.DynamicsMeasureAutovectorsStabilityWithNormalization;
 import eagrn.fitnessfunction.impl.dynamic.impl.DynamicsMeasureTimeStability;
 import eagrn.fitnessfunction.impl.loyalty.impl.LoyaltyFinal;
 import eagrn.fitnessfunction.impl.loyalty.impl.LoyaltyProgressiveCurrentImpact;
@@ -296,6 +300,9 @@ public final class StaticUtils {
 
             // Quality
             case "quality":
+            case "qualitymedianaboveaveragewithcontrast":
+                res = new QualityMedianAboveAverageWithContrast(geneNames.size(), inferredNetworks);
+                break;
             case "qualitymedianaboveaverage":
                 res = new QualityMedianAboveAverage(inferredNetworks);
                 break;
@@ -316,9 +323,6 @@ public final class StaticUtils {
                 break;
             case "qualitymeanaboveaveragewithcontrast":
                 res = new QualityMeanAboveAverageWithContrast(geneNames.size(), inferredNetworks);
-                break;
-            case "qualitymedianaboveaveragewithcontrast":
-                res = new QualityMedianAboveAverageWithContrast(geneNames.size(), inferredNetworks);
                 break;
 
             // Clustering
@@ -368,11 +372,23 @@ public final class StaticUtils {
 
             // Dynamicity
             case "dynamicity":
+            case "dynamicsmeasureodenonlinear":
+                res = new DynamicsMeasureODENonLinear(geneNames);
+                break;
             case "dynamicsmeasureautovectorsstability":
                 res = new DynamicsMeasureAutovectorsStability(geneNames);
                 break;
             case "dynamicsmeasuretimestability":
                 res = new DynamicsMeasureTimeStability(geneNames);
+                break;
+            case "dynamicsmeasureode":
+                res = new DynamicsMeasureODE(geneNames);
+                break;
+            case "dynamicsmeasureautovectorsstabilitywithnormalizationwiththresold":
+                res = new DynamicsMeasureAutovectorsStabilityWithNormalizationWithThresold(geneNames);
+                break;
+            case "dynamicsmeasureautovectorsstabilitywithnormalization":
+                res = new DynamicsMeasureAutovectorsStabilityWithNormalization(geneNames);
                 break;
             
             // Motifs
@@ -526,7 +542,7 @@ public final class StaticUtils {
         }
     }
 
-    public static float[][] getMatrixFromEdgeList(Map<String, Float> links, ArrayList<String> geneNames, int decimals) {
+    public static float[][] getFloatMatrixFromEdgeList(Map<String, Float> links, ArrayList<String> geneNames, int decimals) {
         /**
          * this function takes care of obtaining the decimal 
          * adjacency matrix from the list of interactions
@@ -542,6 +558,28 @@ public final class StaticUtils {
             int g2 = geneNames.indexOf(parts[1]);
             if (g1 != -1 && g2 != -1) {
                 network[g1][g2] = (float) Math.round(pair.getValue() * factor) / factor;
+            }
+        }
+        
+        return network;
+    }
+
+    public static double[][] getDoubleMatrixFromEdgeList(Map<String, Float> links, ArrayList<String> geneNames, int decimals) {
+        /**
+         * this function takes care of obtaining the decimal 
+         * adjacency matrix from the list of interactions
+         */
+
+        int numberOfNodes = geneNames.size();
+        double[][] network = new double[numberOfNodes][numberOfNodes];
+
+        double factor = Math.pow(10, decimals);
+        for (Map.Entry<String, Float> pair : links.entrySet()) {
+            String [] parts = pair.getKey().split(";");
+            int g1 = geneNames.indexOf(parts[0]);
+            int g2 = geneNames.indexOf(parts[1]);
+            if (g1 != -1 && g2 != -1) {
+                network[g1][g2] = (double) Math.round(pair.getValue() * factor) / factor;
             }
         }
         

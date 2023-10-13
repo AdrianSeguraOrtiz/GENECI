@@ -17,7 +17,7 @@ public class DynamicsMeasureTimeStability implements FitnessFunction {
 
     @Override
     public double run(Map<String, Float> consensus, Double[] x) {
-        float[][] adjacencyMatrix = StaticUtils.getMatrixFromEdgeList(consensus, geneNames, 4);
+        float[][] adjacencyMatrix = StaticUtils.getFloatMatrixFromEdgeList(consensus, geneNames, 4);
         return dynamicsMeasureTimeStability(adjacencyMatrix, this.threshold);
     }
 

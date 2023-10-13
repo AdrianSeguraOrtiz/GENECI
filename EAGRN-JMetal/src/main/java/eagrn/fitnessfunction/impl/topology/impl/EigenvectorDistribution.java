@@ -27,7 +27,7 @@ public class EigenvectorDistribution extends Topology {
     @Override
     public double run(Map<String, Float> consensus, Double[] x) {
         double score = 0.0;
-        float[][] adjacencyMatrix = StaticUtils.getMatrixFromEdgeList(consensus, geneNames, decimals);
+        float[][] adjacencyMatrix = StaticUtils.getFloatMatrixFromEdgeList(consensus, geneNames, decimals);
         int key = Arrays.deepHashCode(adjacencyMatrix);
 
         if (this.cache.containsKey(key)){

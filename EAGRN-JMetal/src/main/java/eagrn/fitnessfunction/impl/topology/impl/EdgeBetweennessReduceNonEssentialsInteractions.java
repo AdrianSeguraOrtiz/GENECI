@@ -36,7 +36,7 @@ public class EdgeBetweennessReduceNonEssentialsInteractions extends Topology {
         double score = 0.0;
 
         // Generate adjacency matrix from edge list
-        float[][] adjacencyMatrix = StaticUtils.getMatrixFromEdgeList(consensus, geneNames, decimals);
+        float[][] adjacencyMatrix = StaticUtils.getFloatMatrixFromEdgeList(consensus, geneNames, decimals);
 
         // Generate hash code for the adjacency matrix
         int key = Arrays.deepHashCode(adjacencyMatrix);
