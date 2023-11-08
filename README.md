@@ -25,6 +25,16 @@ To implement all the functionalities mentioned above, it has been necessary to p
 pip install geneci
 ```
 
+# Output
+
+To execute GENECI, the `run` command is provided with the file containing the expression levels of the genes that make up the network, the list of techniques to be agreed upon and the values of the different algorithm parameters in the event of not wishing to use those established by default. If the three proposed objectives are used, the following files are obtained after execution:
+
+- `FUN.csv`: List with fitness values for each individual in the final population for each of the objective functions.
+- `VAR.csv`: List of winning weight vectors, i.e., individuals from the last generation.
+- `fitness_evolution.txt` and `fitness_evolution.html`: In each generation, the most optimal value found for each objective function is recorded. These values are stored in the text file and subsequently represented in graphs in HTML format.
+- `parallel_coordinates.html`: File containing a graphical representation of parallel coordinates. Each column refers to a specific objective function, and each horizontal line represents an individual from the final population. This graph is very useful to observe conflicts between different fitness functions in a multi-objective evolutionary algorithm.
+- `pareto_front.html`: Pareto front represented in a three-dimensional graph, where each axis refers to a different fitness function.
+
 # Integrated techniques
 
 * **ARACNE**: [Algorithm for the Reconstruction of Accurate Cellular NEtworks (ARACNE)](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-7-S1-S7) bases the identification of interactions on a pairwise correlation coefficient called mutual information. This coefficient measures the information or uncertainty reduction (entropy) of a random variable as a consequence of knowing the value of another. After obtaining a series of candidate interactions, this tool carries out a filtering process by applying a statistical threshold whose calculation is based on the Relevance Networks method. Finally, in order to eliminate false positives caused by indirect relationships in the network, ARACNE reviews all the triplets passed by the filter and uses the [data processing inequality property (DPI)](https://arxiv.org/abs/1107.0740v2) to eliminate the interaction with the least mutual information.
