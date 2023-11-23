@@ -36,7 +36,7 @@ procesar_datos <- function(df, tag) {
   df_proc <- df_proc[, names(df_proc) != "Mean"]
   df_proc <- tidyr::pivot_longer(df_proc, cols = c(AUROC, AUPR), names_to = "Metric", values_to = "Value")
   df_proc["Group"] <- "Tecs"
-  df_proc[df_proc$Technique %in% c("BEST_GENECI", "MEDIAN_GENECI"), "Group"] <- "GENECI"  
+  df_proc[df_proc$Technique %in% c("BEST_MO-GENECI", "MEDIAN_MO-GENECI"), "Group"] <- "MO-GENECI"  
   df_proc["File"] <- tag
   df_proc <- df_proc[order(-df_proc$Value), ]
   return(df_proc)
@@ -47,8 +47,8 @@ generar_grafica <- function(df, output_file) {
     # Establecer paleta de colores
     colores <- c("#FF96A5", "#85D5D5", "#FFD275", "#FF847F", "#FF92A2", "#C7E8B7", "#95DFA6", "#6FAF9C", "#FFBE91", "#5C7373", "#FFA56B", "#8CD9AB", "#B1E9FF", "#FFD58C", "#70BDBD", "#FF8A9F", "#D57AB3", "#FCA2B7", "#59789A", "#6BB7A1", "#87BFE8", "#FFA563", "#E7A9C8", "#D1EABE", "#BCC9DB", "#B89FB5", "#42576B", "#FF96A5")
 
-    # Convertir la columna Technique en factor para que aparezca las técnicas del grupo GENECI al final
-    geneci_techniques <- c("BEST_GENECI", "MEDIAN_GENECI")
+    # Convertir la columna Technique en factor para que aparezca las técnicas del grupo MO-GENECI al final
+    geneci_techniques <- c("BEST_MO-GENECI", "MEDIAN_MO-GENECI")
     other_techniques <- unique(df$Technique[!df$Technique %in% geneci_techniques])
     df$Technique <- factor(df$Technique, levels = c(geneci_techniques, other_techniques))
 
@@ -65,6 +65,7 @@ generar_grafica <- function(df, output_file) {
         scale_fill_manual(values = colores) +
         labs(title = "Accuracy comparison: AUROC") +
         theme(plot.title = element_text(color = "#333333", size = 12, face = "bold")) +
+        theme(axis.text.x = element_text(size = 6)) +
         guides(fill = "none")  # Eliminar la leyenda de p1
     ## AUPR
     df2 <- subset(df, Metric == "AUPR")
@@ -78,27 +79,28 @@ generar_grafica <- function(df, output_file) {
         scale_fill_manual(values = colores) +
         labs(title = "Accuracy comparison: AUPR") +
         theme(plot.title = element_text(color = "#333333", size = 12, face = "bold")) +
+        theme(axis.text.x = element_text(size = 6)) +
         guides(fill = "none")  # Eliminar la leyenda de p2
 
     # Agregar línea discontinua horizontal para técnica y grupo específicos
     ## AUROC
     p1 <- p1 +
-    geom_hline(data = subset(df1, Group == "GENECI" & Technique == "BEST_GENECI"),
+    geom_hline(data = subset(df1, Group == "MO-GENECI" & Technique == "BEST_MO-GENECI"),
                aes(yintercept = Value),
                linetype = "dashed",
                color = "black")
     ## AUPR
     p2 <- p2 +
-    geom_hline(data = subset(df2, Group == "GENECI" & Technique == "BEST_GENECI"),
+    geom_hline(data = subset(df2, Group == "MO-GENECI" & Technique == "BEST_MO-GENECI"),
                aes(yintercept = Value),
                linetype = "dashed",
                color = "black")
     
     # Agregar cantidad de técnicas superadas
     ## AUROC
-    anotacion1 <- unlist(lapply(split(df1, df1$File), function(cp) sum(cp[cp$Group == "Tecs", "Value"] < as.numeric(cp[cp$Technique == "BEST_GENECI", "Value"]))))
+    anotacion1 <- unlist(lapply(split(df1, df1$File), function(cp) sum(cp[cp$Group == "Tecs", "Value"] < as.numeric(cp[cp$Technique == "BEST_MO-GENECI", "Value"]))))
     ## AUPR
-    anotacion2 <- unlist(lapply(split(df2, df2$File), function(cp) sum(cp[cp$Group == "Tecs", "Value"] < as.numeric(cp[cp$Technique == "BEST_GENECI", "Value"]))))
+    anotacion2 <- unlist(lapply(split(df2, df2$File), function(cp) sum(cp[cp$Group == "Tecs", "Value"] < as.numeric(cp[cp$Technique == "BEST_MO-GENECI", "Value"]))))
 
     # Calcular las posiciones de las anotaciones
     ## AUROC
@@ -108,15 +110,15 @@ generar_grafica <- function(df, output_file) {
     anotacion2_df <- data.frame(File = names(anotacion2), Anotacion = as.numeric(anotacion2))
     anotacion2_df <- merge(anotacion2_df, df2, by = "File")
 
-    # Añadir anotaciones encima de las barras del grupo GENECI
+    # Añadir anotaciones encima de las barras del grupo MO-GENECI
     ## AUROC
     p1 <- p1 +
-        geom_text(data = subset(anotacion1_df, Technique == "BEST_GENECI"),
+        geom_text(data = subset(anotacion1_df, Technique == "BEST_MO-GENECI"),
                   aes(x = Group, y = Value, label = Anotacion),
                   vjust = -0.5, color = "black", inherit.aes = FALSE, size = 2)
     ## AUPR
     p2 <- p2 +
-        geom_text(data = subset(anotacion2_df, Technique == "BEST_GENECI"),
+        geom_text(data = subset(anotacion2_df, Technique == "BEST_MO-GENECI"),
                   aes(x = Group, y = Value, label = Anotacion),
                   vjust = -0.5, color = "black", inherit.aes = FALSE, size = 2)
 
@@ -142,7 +144,7 @@ generar_grafica <- function(df, output_file) {
                 aes(x = Group, y = Value, label = Technique),
                 vjust = -0.5, color = "black", inherit.aes = FALSE, size = 2)
 
-    # Añadir espacio al eje x para que las etiquetas no se corten
+    # Añadir espacio al eje y para que las etiquetas no se corten
     ## AUROC
     p1 <- p1 + coord_cartesian(ylim = range(df1$Value) + c(0, 0.05 * diff(range(df1$Value))))
     ## AUPR
@@ -154,7 +156,7 @@ generar_grafica <- function(df, output_file) {
     # Ajustar la leyenda
     combined_plot <- combined_plot + 
       theme(legend.key.size = unit(0.4, "cm")) +
-      guides(fill = guide_legend(ncol = 1, title = paste(length(other_techniques), "Indv Tecs +", length(geneci_techniques), "GENECI")))
+      guides(fill = guide_legend(ncol = 1, title = paste(length(other_techniques), "Indv Tecs +", length(geneci_techniques), "MO-GENECI")))
       
     # Guardar la gráfica en formato PDF
     ggsave(output_file, combined_plot, width = 12, height = 6, dpi = 500, device = "pdf")

@@ -43,8 +43,8 @@ procesar_datos <- function(df, tag) {
 generar_grafica <- function(df, output_file, tecnica_resaltada) {
     colores <- c("#FF96A5", "#85D5D5", "#FFD275", "#FF847F", "#FF92A2", "#C7E8B7", "#95DFA6", "#6FAF9C", "#FFBE91", "#5C7373", "#FFA56B", "#8CD9AB", "#B1E9FF", "#FFD58C", "#70BDBD", "#FF8A9F", "#D57AB3", "#FCA2B7", "#59789A", "#6BB7A1", "#87BFE8", "#FFA563", "#E7A9C8", "#D1EABE", "#BCC9DB", "#B89FB5", "#42576B", "#FF96A5")
     
-    # Convertir la columna Technique en factor para que aparezca las técnicas del grupo GENECI al final
-    geneci_techniques <- c("BEST_GENECI", "MEDIAN_GENECI")
+    # Convertir la columna Technique en factor para que aparezca las técnicas del grupo MO-GENECI al final
+    geneci_techniques <- c("BEST_MO-GENECI", "MEDIAN_MO-GENECI")
     other_techniques <- unique(df$Technique[!df$Technique %in% geneci_techniques])
     df$Technique <- factor(df$Technique, levels = c(geneci_techniques, other_techniques))
 
@@ -55,7 +55,7 @@ generar_grafica <- function(df, output_file, tecnica_resaltada) {
                          linetype = 5) +
             geom_point(stat = "identity",
                          position = "identity") +
-            geom_density(data = subset(df1, Technique == "BEST_GENECI"), 
+            geom_density(data = subset(df1, Technique == "BEST_MO-GENECI"), 
                          aes(fill = Technique), 
                          alpha = 0.3,
                          stat = "identity",
@@ -79,7 +79,7 @@ generar_grafica <- function(df, output_file, tecnica_resaltada) {
             geom_point(stat = "identity",
                          position = "identity",
                          show.legend = FALSE) +
-            geom_density(data = subset(df2, Technique == "BEST_GENECI"), 
+            geom_density(data = subset(df2, Technique == "BEST_MO-GENECI"), 
                          aes(fill = Technique), 
                          alpha = 0.3,
                          stat = "identity",
