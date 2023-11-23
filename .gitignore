@@ -155,6 +155,9 @@ utils/controlTest/*.csv
 utils/controlTest/*.pdf
 utils/techniques_comparison*
 utils/functions_comparison*
+utils/*.sh
+utils/*comparison*/
+utils/*graphics*/
 !EAGRN-JMetal/src/main/java/eagrn/utils/
 logs.txt
 .vscode

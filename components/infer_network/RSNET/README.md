@@ -15,7 +15,7 @@ Given a CSV file with time series of gene expression data, this component infers
 ## Build
 
 ```
-cd components/infer_network/RSNET/ && matlab -nodisplay -nodesktop -r "run build.m" && cd adriansegura99/geneci_infer-network_rsnetdocker && sed -i '4,8d' Dockerfile && docker build -t adriansegura99/geneci_infer-network_rsnet:2.0.0 . && cd ../../../../..
+cd components/infer_network/RSNET/ && matlab -nodisplay -nodesktop -r "run build.m" && cd adriansegura99/geneci_infer-network_rsnetdocker && sed -i '4,8d' Dockerfile && docker build -t adriansegura99/geneci_infer-network_rsnet:3.0.0 . && cd ../../../../..
 ```
 
 ## Run

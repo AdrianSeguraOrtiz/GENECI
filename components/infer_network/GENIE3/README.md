@@ -18,7 +18,7 @@ Given a CSV file with time series of gene expression data, this component infers
 <<<<<<< HEAD
 docker build -t adriansegura99/geneci_infer-network_genie3:1.0.0 -f components/infer_network/GENIE3/Dockerfile .
 =======
-docker build -t adriansegura99/geneci_infer-network_genie3:2.0.0 -f components/infer_network/GENIE3/Dockerfile .
+docker build -t adriansegura99/geneci_infer-network_genie3:3.0.0 -f components/infer_network/GENIE3/Dockerfile .
 >>>>>>> dev
 ```
 

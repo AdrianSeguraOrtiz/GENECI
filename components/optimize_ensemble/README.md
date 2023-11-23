@@ -18,7 +18,7 @@ This component is responsible for reading different trust lists and creating an 
 <<<<<<< HEAD
 docker build -t adriansegura99/geneci_optimize-ensemble:1.0.0 -f components/optimize_ensemble/Dockerfile .
 =======
-docker build -t adriansegura99/geneci_optimize-ensemble:2.0.0 -f components/optimize_ensemble/Dockerfile .
+docker build -t adriansegura99/geneci_optimize-ensemble:3.0.0 -f components/optimize_ensemble/Dockerfile .
 >>>>>>> dev
 ```
 

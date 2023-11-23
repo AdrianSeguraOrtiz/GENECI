@@ -15,7 +15,7 @@ This component is responsible for calculating the weighted sum of the confidence
 ## Build
 
 ```
-docker build -t adriansegura99/geneci_weighted-confidence:2.0.0 -f components/weighted_confidence/Dockerfile .
+docker build -t adriansegura99/geneci_weighted-confidence:3.0.0 -f components/weighted_confidence/Dockerfile .
 ```
 
 ## Run
