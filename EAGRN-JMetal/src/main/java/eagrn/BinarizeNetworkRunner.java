@@ -42,7 +42,7 @@ public class BinarizeNetworkRunner {
         Map<String, Float> map = StaticUtils.getMapWithLinks(new File(listOfLinksStrFile));
 
         /** Calculate the binary matrix according to the selected criteria */
-        boolean[][] binaryNetwork = cutOffCriteriaOnlyConf.getNetwork(map);
+        boolean[][] binaryNetwork = cutOffCriteriaOnlyConf.getBooleanMatrix(map);
 
         /** Write the resulting binary matrix to an output csv file */
         StaticUtils.writeBinaryNetwork(outputStrFile, binaryNetwork, geneNames);

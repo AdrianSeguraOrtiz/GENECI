@@ -140,24 +140,6 @@ public class ComputingReferenceParetoFronts {
                 }
             }
 
-            // SMPSO: has no crossing
-            /**
-            for (ExperimentProblem<DoubleSolution> experimentProblem : problemList) {
-                BoundedArchive<DoubleSolution> archive = new CrowdingDistanceArchive<>(populationSize);
-                Algorithm<List<DoubleSolution>> algorithm 
-                    = new SMPSOBuilder((DoubleProblem) experimentProblem.getProblem(), archive)
-                        .setMutation(new SimplexMutation(0.1, 0.1))
-                        .setMaxIterations(numEvaluations / populationSize)
-                        .setSwarmSize(populationSize)
-                        .setSolutionListEvaluator(new SequentialSolutionListEvaluator<DoubleSolution>())
-                        .build();
-                algorithms.add(new ExperimentAlgorithm<>(algorithm, "SMPSO", experimentProblem, run));
-            }
-            */
-
-            // MOEAD: Solo se puede usar importando jMetal-component y su versión no es compatible con la utilizada en el proyecto
-            // OMOPSO: It has its own mutation operators
-            // GDE3: It only allows a differential evolution type crossing
         }
         return algorithms;
     }

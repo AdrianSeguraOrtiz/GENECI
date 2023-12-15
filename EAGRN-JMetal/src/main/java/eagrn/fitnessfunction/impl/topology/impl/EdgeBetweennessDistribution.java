@@ -1,7 +1,6 @@
 package eagrn.fitnessfunction.impl.topology.impl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,27 +13,28 @@ import eagrn.StaticUtils;
 import eagrn.fitnessfunction.impl.topology.Topology;
 
 public class EdgeBetweennessDistribution extends Topology {
-    private ArrayList<String> geneNames;
     private Map<Integer, Double> cache;
     private int decimals;
+    private Map<String, Integer> geneIndexMap;
 
     public EdgeBetweennessDistribution(ArrayList<String> geneNames){
-        this.geneNames = geneNames;
         this.cache = new HashMap<>();
         this.decimals = Math.max(1, 4 - (int) Math.log10(geneNames.size()));
+        this.geneIndexMap = new HashMap<>();
+        for (int i = 0; i < geneNames.size(); i++) {
+            this.geneIndexMap.put(geneNames.get(i), i);
+        }
     }
 
     @Override
     public double run(Map<String, Float> consensus, Double[] x) {
         double score = 0.0;
-        float[][] adjacencyMatrix = StaticUtils.getFloatMatrixFromEdgeList(consensus, geneNames, decimals);
-        int key = Arrays.deepHashCode(adjacencyMatrix);
+        Graph<Integer, DefaultWeightedEdge> graph = StaticUtils.getWeightedGraph(consensus, geneIndexMap, decimals, true);
+        int key = graph.hashCode();
 
         if (this.cache.containsKey(key)){
             score = this.cache.get(key);
         } else {
-            Graph<Integer, DefaultWeightedEdge> graph = super.getGraphFromWeightedNetwork(adjacencyMatrix, true);
-            adjacencyMatrix = null;
             EdgeBetweennessCentrality<Integer, DefaultWeightedEdge> evaluator = new EdgeBetweennessCentrality<>(graph);
             Double[] scores = evaluator.getScores().values().toArray(new Double[0]);
             for (int i = 0; i < scores.length; i++) {

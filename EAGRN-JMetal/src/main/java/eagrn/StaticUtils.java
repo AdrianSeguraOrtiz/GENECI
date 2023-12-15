@@ -14,6 +14,10 @@ import java.util.Scanner;
 import java.io.FileWriter;
 
 import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.jgrapht.Graph;
+import org.jgrapht.graph.DefaultWeightedEdge;
+import org.jgrapht.graph.SimpleDirectedWeightedGraph;
+import org.jgrapht.graph.SimpleWeightedGraph;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 
 import eagrn.cutoffcriteria.CutOffCriteria;
@@ -542,20 +546,20 @@ public final class StaticUtils {
         }
     }
 
-    public static float[][] getFloatMatrixFromEdgeList(Map<String, Float> links, ArrayList<String> geneNames, int decimals) {
+    public static float[][] getFloatMatrix(Map<String, Float> links, Map<String, Integer> geneIndexMap, int decimals) {
         /**
          * this function takes care of obtaining the decimal 
          * adjacency matrix from the list of interactions
          */
         
-        int numberOfNodes = geneNames.size();
+        int numberOfNodes = geneIndexMap.size();
         float[][] network = new float[numberOfNodes][numberOfNodes];
 
         float factor = (float) Math.pow(10, decimals);
         for (Map.Entry<String, Float> pair : links.entrySet()) {
             String [] parts = pair.getKey().split(";");
-            int g1 = geneNames.indexOf(parts[0]);
-            int g2 = geneNames.indexOf(parts[1]);
+            int g1 = geneIndexMap.get(parts[0]);
+            int g2 = geneIndexMap.get(parts[1]);
             if (g1 != -1 && g2 != -1) {
                 network[g1][g2] = (float) Math.round(pair.getValue() * factor) / factor;
             }
@@ -564,20 +568,20 @@ public final class StaticUtils {
         return network;
     }
 
-    public static double[][] getDoubleMatrixFromEdgeList(Map<String, Float> links, ArrayList<String> geneNames, int decimals) {
+    public static double[][] getDoubleMatrix(Map<String, Float> links, Map<String, Integer> geneIndexMap, int decimals) {
         /**
          * this function takes care of obtaining the decimal 
          * adjacency matrix from the list of interactions
          */
 
-        int numberOfNodes = geneNames.size();
+        int numberOfNodes = geneIndexMap.size();
         double[][] network = new double[numberOfNodes][numberOfNodes];
 
         double factor = Math.pow(10, decimals);
         for (Map.Entry<String, Float> pair : links.entrySet()) {
             String [] parts = pair.getKey().split(";");
-            int g1 = geneNames.indexOf(parts[0]);
-            int g2 = geneNames.indexOf(parts[1]);
+            int g1 = geneIndexMap.get(parts[0]);
+            int g2 = geneIndexMap.get(parts[1]);
             if (g1 != -1 && g2 != -1) {
                 network[g1][g2] = (double) Math.round(pair.getValue() * factor) / factor;
             }
@@ -585,4 +589,32 @@ public final class StaticUtils {
         
         return network;
     }
+
+    public static Graph<Integer, DefaultWeightedEdge> getWeightedGraph(Map<String, Float> links, Map<String, Integer> geneIndexMap, int decimals, boolean directed) {
+        Graph<Integer, DefaultWeightedEdge> graph = directed ? new SimpleDirectedWeightedGraph<>(DefaultWeightedEdge.class) : new SimpleWeightedGraph<>(DefaultWeightedEdge.class);
+
+        // Add vertices to the graph
+        for (int i = 0; i < geneIndexMap.size(); i++) {
+            graph.addVertex(i);
+        }
+
+        int g1, g2;
+        double factor = Math.pow(10, decimals);
+        for (Map.Entry<String, Float> entry : links.entrySet()) {
+            String pair = entry.getKey();
+            double conf = entry.getValue();
+            String[] parts = pair.split(";");
+            if (parts.length > 1) {
+                g1 = geneIndexMap.get(parts[0]);
+                g2 = geneIndexMap.get(parts[1]);
+                if (g1 != g2) {
+                    DefaultWeightedEdge edge = graph.addEdge(g1, g2);
+                    graph.setEdgeWeight(edge, (float) Math.round(conf * factor) / factor);
+                }
+            }
+        }
+
+        return graph;
+    }
+
 }

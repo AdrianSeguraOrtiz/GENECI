@@ -16,7 +16,7 @@ public class BinarizedDegreeDistribution extends Topology {
 
     public double run(Map<String, Float> consensus, Double[] x) {
         
-        boolean[][] binaryNetwork = cutOffCriteria.getNetwork(consensus);
+        boolean[][] binaryNetwork = cutOffCriteria.getBooleanMatrix(consensus);
         double[] undirectedDegreesPlusOne = new double[this.numberOfNodes];
 
         for (int i = 0; i < this.numberOfNodes; i++) {

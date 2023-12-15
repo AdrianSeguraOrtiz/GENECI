@@ -242,6 +242,7 @@ class Mode(str, Enum):
 class Algorithm(str, Enum):
     GA = "GA"
     NSGAII = "NSGAII"
+    NSGAIIExternalFile = "NSGAIIExternalFile"
     SMPSO = "SMPSO"
     
 class ClusteringAlgorithm(str, Enum):
