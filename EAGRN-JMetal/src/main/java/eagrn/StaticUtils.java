@@ -618,4 +618,15 @@ public final class StaticUtils {
         return graph;
     }
 
+    public static int getRoundedHashCode(Map<String, Float> map, int decimals) {
+        int hashCode = 0;
+        float factor = (float) Math.pow(10, decimals);
+
+        for (Map.Entry<String, Float> entry : map.entrySet()) {
+            hashCode += entry.getKey().hashCode() ^ Float.hashCode(Math.round(entry.getValue() * factor) / factor);
+        }
+
+        return hashCode;
+    }
+
 }

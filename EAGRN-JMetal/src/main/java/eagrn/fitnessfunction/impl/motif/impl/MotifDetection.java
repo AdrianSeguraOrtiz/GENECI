@@ -356,12 +356,12 @@ public class MotifDetection implements FitnessFunction {
     @Override
     public double run(Map<String, Float> consensus, Double[] x) {
         double score = 0.0;
-        Graph<Integer, DefaultEdge> graph = cutOffCriteria.getBooleanGraph(consensus, true);
-        int key = graph.hashCode();
+        int key = StaticUtils.getRoundedHashCode(consensus, decimals);
 
         if (this.cache.containsKey(key)){
             score = this.cache.get(key);
         } else {
+            Graph<Integer, DefaultEdge> graph = cutOffCriteria.getBooleanGraph(consensus, true);
             for (int i = 0; i < this.motifFunctions.length; i++) {
                 score -= motifFunctions[i].count(graph);
             }

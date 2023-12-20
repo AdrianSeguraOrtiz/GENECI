@@ -29,12 +29,12 @@ public class ClosenessDistribution extends Topology {
     @Override
     public double run(Map<String, Float> consensus, Double[] x) {
         double score = 0.0;
-        Graph<Integer, DefaultWeightedEdge> graph = StaticUtils.getWeightedGraph(consensus, geneIndexMap, decimals, true);
-        int key = graph.hashCode();
+        int key = StaticUtils.getRoundedHashCode(consensus, decimals);
 
         if (this.cache.containsKey(key)){
             score = this.cache.get(key);
         } else {
+            Graph<Integer, DefaultWeightedEdge> graph = StaticUtils.getWeightedGraph(consensus, geneIndexMap, decimals, true);
             HarmonicCentrality<Integer, DefaultWeightedEdge> evaluator = new HarmonicCentrality<>(graph);
             Double[] scores = evaluator.getScores().values().toArray(new Double[0]);
             for (int i = 0; i < scores.length; i++) {

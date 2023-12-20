@@ -36,16 +36,14 @@ public class EdgeBetweennessReduceNonEssentialsInteractions extends Topology {
     @Override
     public double run(Map<String, Float> consensus, Double[] x) {
         double score = 0.0;
-
-        // Generate adjacency matrix from edge list
-        Graph<Integer, DefaultWeightedEdge> graph = StaticUtils.getWeightedGraph(consensus, geneIndexMap, decimals, true);
-        int key = graph.hashCode();
+        int key = StaticUtils.getRoundedHashCode(consensus, decimals);
 
         // Check if the score is already cached
         if (this.cache.containsKey(key)) {
             score = this.cache.get(key);
         } else {
             // Calculate the edge betweenness centrality
+            Graph<Integer, DefaultWeightedEdge> graph = StaticUtils.getWeightedGraph(consensus, geneIndexMap, decimals, true);
             EdgeBetweennessCalculatorDijkstra edgeBetweennessCalculator = new EdgeBetweennessCalculatorDijkstra(graph);
             double[] scores = edgeBetweennessCalculator.getScores();
 
