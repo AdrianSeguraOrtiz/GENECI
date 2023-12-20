@@ -356,7 +356,7 @@ public class MotifDetection implements FitnessFunction {
     @Override
     public double run(Map<String, Float> consensus, Double[] x) {
         double score = 0.0;
-        int key = StaticUtils.getRoundedHashCode(consensus, decimals);
+        int key = cutOffCriteria.getCutMap(consensus).hashCode();
 
         if (this.cache.containsKey(key)){
             score = this.cache.get(key);
