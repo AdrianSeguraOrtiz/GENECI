@@ -607,9 +607,10 @@ public final class StaticUtils {
             if (parts.length > 1) {
                 g1 = geneIndexMap.get(parts[0]);
                 g2 = geneIndexMap.get(parts[1]);
-                if (g1 != g2) {
+                conf = (float) Math.round(conf * factor) / factor;
+                if (g1 != g2 && conf != 0.0) {
                     DefaultWeightedEdge edge = graph.addEdge(g1, g2);
-                    graph.setEdgeWeight(edge, (float) Math.round(conf * factor) / factor);
+                    graph.setEdgeWeight(edge, conf);
                 }
             }
         }

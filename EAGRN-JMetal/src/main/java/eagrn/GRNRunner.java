@@ -101,11 +101,11 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 mutationProbability = 0.1;
                 mutationStrength = 0.1;
                 populationSize = 300;
-                numEvaluations = 2000000;
-                strCutOffCriteria = "MinConf";
-                cutOffValue = 0.5f;
-                strFitnessFormulas = "reducenonessentialsinteractions";
-                strAlgorithm = "GA";
+                numEvaluations = 200000;
+                strCutOffCriteria = "PercLinksWithBestConf";
+                cutOffValue = 0.4f;
+                strFitnessFormulas = "quality;degreedistribution;motifs;eigenvectordistribution;reducenonessentialsinteractions;dynamicity";
+                strAlgorithm = "NSGAIIExternalFile";
                 numOfThreads = Runtime.getRuntime().availableProcessors();
                 printEvolution = true;
             }
