@@ -351,16 +351,20 @@ def get_weights(filename):
 def write_evaluation_csv(
     output_dir, sorted_idx, confidence_list, objective_labels, weights, df
 ):
+    df['aupr_scaled'] = (df['aupr'] - min(df['aupr'])) / (max(df['aupr']) - min(df['aupr']))
+    df['auroc_scaled'] = (df['auroc'] - min(df['auroc'])) / (max(df['auroc']) - min(df['auroc']))
+    df['mean_scaled'] = (df['aupr_scaled'] + df['auroc_scaled']) / 2
+    
     with open(f"{output_dir}/evaluated_front.csv", "w") as f:
         f.write(
-            f"Weights{',' * len(confidence_list)}Fitness Values{',' * len(objective_labels)}Evaluation Values,,\n"
+            f"Weights{',' * len(confidence_list)}Fitness Values{',' * len(objective_labels)}Evaluation Values,,,,,\n"
         )
         f.write(
-            f"{','.join([Path(f).name for f in confidence_list])},{','.join(objective_labels)},Accuracy Mean,AUROC,AUPR\n"
+            f"{','.join([Path(f).name for f in confidence_list])},{','.join(objective_labels)},Accuracy Mean,AUROC,AUPR,AUPR Scaled,AUROC Scaled,Mean Scaled\n"
         )
         for i in sorted_idx:
             f.write(
-                f"{','.join([str(w) for w in weights[i]])},{','.join([str(df[lab][i]) for lab in objective_labels])},{str(df['acc_mean'][i])},{str(df['auroc'][i])},{str(df['aupr'][i])}\n"
+                f"{','.join([str(w) for w in weights[i]])},{','.join([str(df[lab][i]) for lab in objective_labels])},{str(df['acc_mean'][i])},{str(df['auroc'][i])},{str(df['aupr'][i])},{str(df['aupr_scaled'][i])},{str(df['auroc_scaled'][i])},{str(df['mean_scaled'][i])}\n"
             )
         f.close()
 
@@ -1951,8 +1955,8 @@ def dream_pareto_front(
     acc_means = [(aupr + auroc) / 2 for aupr, auroc in zip(auprs, aurocs)]
 
     ## Get order
-    auprs_scaled = (auprs - min(auprs)) / (max(auprs) - min(auprs))
-    aurocs_scaled = (aurocs - min(aurocs)) / (max(aurocs) - min(aurocs))
+    auprs_scaled = (np.array(auprs) - min(auprs)) / (max(auprs) - min(auprs))
+    aurocs_scaled = (np.array(aurocs) - min(aurocs)) / (max(aurocs) - min(aurocs))
     score = [(aupr + auroc) / 2 for aupr, auroc in zip(auprs_scaled, aurocs_scaled)]
 
     # 3. Fitness Values
@@ -2171,8 +2175,8 @@ def generic_pareto_front(
     acc_means = [(aupr + auroc) / 2 for aupr, auroc in zip(auprs, aurocs)]
 
     ## Get order
-    auprs_scaled = (auprs - min(auprs)) / (max(auprs) - min(auprs))
-    aurocs_scaled = (aurocs - min(aurocs)) / (max(aurocs) - min(aurocs))
+    auprs_scaled = (np.array(auprs) - min(auprs)) / (max(auprs) - min(auprs))
+    aurocs_scaled = (np.array(aurocs) - min(aurocs)) / (max(aurocs) - min(aurocs))
     score = [(aupr + auroc) / 2 for aupr, auroc in zip(auprs_scaled, aurocs_scaled)]
 
     # 3. Fitness Values

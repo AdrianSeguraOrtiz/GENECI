@@ -25,14 +25,15 @@ def search_metrics(file):
 def join_scores(
         tecs_file: str = typer.Option(..., help="Path to CSV tecs file"),
         geneci_file: str = typer.Option(..., help="Path to CSV geneci file"),
-        mean_file: str = typer.Option(..., help="Path to mean file"),
-        median_file: str = typer.Option(..., help="Path to median file"),
+        mean_file: str = typer.Option(None, help="Path to mean file"),
+        median_file: str = typer.Option(None, help="Path to median file"),
         output_file: str = typer.Option(..., help="Path to output file"),
     ):
     
     # Read tecs file
     df_tecs = pd.read_csv(tecs_file, header=1, sep=";")
-    del df_tecs["Time"]
+    if 'Time' in df_tecs.columns:
+        del df_tecs["Time"]
     
     # Read geneci file
     df_geneci = pd.read_csv(geneci_file, header=1, sep= ",")
@@ -51,12 +52,14 @@ def join_scores(
     df_tecs = pd.concat([df_tecs, median_row], ignore_index=True)
     
     # Mean file
-    mean = search_metrics(mean_file)
-    df_tecs = pd.concat([df_tecs, pd.DataFrame([["MEAN"] + mean], columns=df_tecs.columns.tolist())], ignore_index=True)
+    if mean_file:
+        mean = search_metrics(mean_file)
+        df_tecs = pd.concat([df_tecs, pd.DataFrame([["MEAN"] + mean], columns=df_tecs.columns.tolist())], ignore_index=True)
     
     # Median file
-    median = search_metrics(median_file)
-    df_tecs = pd.concat([df_tecs, pd.DataFrame([["MEDIAN"] + median], columns=df_tecs.columns.tolist())], ignore_index=True)
+    if median_file:
+        median = search_metrics(median_file)
+        df_tecs = pd.concat([df_tecs, pd.DataFrame([["MEDIAN"] + median], columns=df_tecs.columns.tolist())], ignore_index=True)
 
     # Save in csv output file
     df_tecs.to_csv(output_file, index=False, sep=";")
