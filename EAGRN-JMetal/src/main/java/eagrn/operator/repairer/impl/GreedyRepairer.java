@@ -8,8 +8,8 @@ import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 
 public class GreedyRepairer extends WeightRepairer {
 
-    public GreedyRepairer(String strKnownInteractionsFile, Map<String, Double[]> inferredNetworks, String distanceType) {
-        super(strKnownInteractionsFile, inferredNetworks, distanceType);
+    public GreedyRepairer(String strKnownInteractionsFile, Map<String, Double[]> inferredNetworks, String distanceType, double memeticPropability) {
+        super(strKnownInteractionsFile, inferredNetworks, distanceType, memeticPropability);
     }
 
     /** RepairSolution() method */

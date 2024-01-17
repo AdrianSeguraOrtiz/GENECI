@@ -15,15 +15,12 @@ public class PolynomialMutationWithRepair extends PolynomialMutation {
 
     @Override
     public DoubleSolution execute(DoubleSolution solution) throws JMetalException {
-        DoubleSolution initialSolution = (DoubleSolution) solution.copy();
-        super.execute(solution);
-        if (solution.variables().equals(initialSolution.variables())) {
-            repairer.repairSolutionOnly(solution);
-            System.out.println("No Memetico");
+        DoubleSolution mutated_sol = super.execute(solution);
+        if (Math.random() <= repairer.memeticPropability) {
+            repairer.repairSolutionWithKnownInteractions(mutated_sol);
         } else {
-            repairer.repairSolutionWithKnownInteractions(solution);
-            System.out.println("Memetico");
+            repairer.repairSolutionOnly(mutated_sol);
         }
-        return solution;
+        return mutated_sol;
     }
 }

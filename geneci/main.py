@@ -758,6 +758,7 @@ def optimize_ensemble(
     memetic_distance_type: MemeticDistanceType = typer.Option(
         MemeticDistanceType.some, help="Memetic distance type"
     ),
+    memetic_probability: float = typer.Option(0.1, help="Memetic probability"),
     population_size: int = typer.Option(100, help="Population size"),
     num_evaluations: int = typer.Option(25000, help="Number of evaluations"),
     cut_off_criteria: CutOffCriteria = typer.Option(
@@ -851,7 +852,7 @@ def optimize_ensemble(
         volumes={
             Path(f"./tmp/").absolute(): {"bind": f"/usr/local/src/tmp", "mode": "rw"}
         },
-        command=f"tmp/ {crossover} {crossover_probability} {mutation} {mutation_probability} {repairer} {memetic_distance_type} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {quality_weight} {topology_weight} {algorithm} {threads}",
+        command=f"tmp/ {crossover} {crossover_probability} {mutation} {mutation_probability} {repairer} {memetic_distance_type} {memetic_probability} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {quality_weight} {topology_weight} {algorithm} {threads}",
         detach=True,
         tty=True,
     )
@@ -1049,6 +1050,7 @@ def run(
     memetic_distance_type: MemeticDistanceType = typer.Option(
         MemeticDistanceType.some, help="Memetic distance type"
     ),
+    memetic_probability: float = typer.Option(0.1, help="Memetic probability"),
     population_size: int = typer.Option(100, help="Population size"),
     num_evaluations: int = typer.Option(25000, help="Number of evaluations"),
     cut_off_criteria: CutOffCriteria = typer.Option(
@@ -1106,6 +1108,7 @@ def run(
         mutation_probability,
         repairer,
         memetic_distance_type,
+        memetic_probability,
         population_size,
         num_evaluations,
         cut_off_criteria,

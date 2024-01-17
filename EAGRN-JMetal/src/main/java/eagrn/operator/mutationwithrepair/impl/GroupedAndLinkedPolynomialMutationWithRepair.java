@@ -19,10 +19,10 @@ public class GroupedAndLinkedPolynomialMutationWithRepair extends GroupedAndLink
     @Override
     public DoubleSolution execute(DoubleSolution solution) throws JMetalException {
         DoubleSolution mutated_sol = super.execute(solution);
-        if (mutated_sol.variables().equals(solution.variables())) {
-            repairer.repairSolutionOnly(mutated_sol);
-        } else {
+        if (Math.random() <= repairer.memeticPropability) {
             repairer.repairSolutionWithKnownInteractions(mutated_sol);
+        } else {
+            repairer.repairSolutionOnly(mutated_sol);
         }
         return mutated_sol;
     }

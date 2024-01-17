@@ -25,7 +25,7 @@ public class StandardizationRepairerTest {
         solution.variables().set(1, 1.0);
         solution.variables().set(2, 0.5);
 
-        StandardizationRepairer repairer = new StandardizationRepairer(null, null, null);
+        StandardizationRepairer repairer = new StandardizationRepairer(null, null, null, 0);
         repairer.repairSolutionOnly(solution);
 
         assertArrayEquals(new Double[]{0.25, 0.5, 0.25}, solution.variables().toArray());
@@ -44,7 +44,7 @@ public class StandardizationRepairerTest {
         solution.variables().set(3, 1.2);
         solution.variables().set(4, 0.6);
 
-        StandardizationRepairer repairer = new StandardizationRepairer(null, null, null);
+        StandardizationRepairer repairer = new StandardizationRepairer(null, null, null, 0);
         repairer.repairSolutionOnly(solution);
 
         assertArrayEquals(new Double[]{0.1, 0.2, 0.1, 0.4, 0.2}, solution.variables().toArray());
@@ -63,7 +63,7 @@ public class StandardizationRepairerTest {
         solution.variables().set(3, 0.0);
         solution.variables().set(4, 0.15);
 
-        StandardizationRepairer repairer = new StandardizationRepairer(null, null, null);
+        StandardizationRepairer repairer = new StandardizationRepairer(null, null, null, 0);
         repairer.repairSolutionOnly(solution);
 
         assertArrayEquals(new Double[]{0.2, 0.1, 0.4, 0.0, 0.3}, solution.variables().toArray());
@@ -94,7 +94,7 @@ public class StandardizationRepairerTest {
             inferredNetworks.put("G1;G2", new Double[]{0.9, 0.5, 0.0, 0.2, 0.6});
             inferredNetworks.put("G1;G3", new Double[]{0.8, 0.5, 0.2, 0.1, 0.4});
 
-            StandardizationRepairer repairer = new StandardizationRepairer(tempFile.getAbsolutePath(), inferredNetworks, "all");
+            StandardizationRepairer repairer = new StandardizationRepairer(tempFile.getAbsolutePath(), inferredNetworks, "all", 1.0);
             repairer.repairSolutionWithKnownInteractions(solution);
 
         } catch (IOException e) {
@@ -129,7 +129,7 @@ public class StandardizationRepairerTest {
             inferredNetworks.put("G1;G2", new Double[]{0.9, 0.5, 0.0, 0.2, 0.6});
             inferredNetworks.put("G1;G3", new Double[]{0.8, 0.5, 0.2, 0.1, 0.4});
 
-            StandardizationRepairer repairer = new StandardizationRepairer(tempFile.getAbsolutePath(), inferredNetworks, "all");
+            StandardizationRepairer repairer = new StandardizationRepairer(tempFile.getAbsolutePath(), inferredNetworks, "all", 1.0);
             repairer.repairSolutionWithKnownInteractions(solution);
 
         } catch (IOException e) {

@@ -65,6 +65,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         double mutationProbability;
         String strRepairer;
         String strMemeticDistanceType;
+        double memeticPropability;
         int populationSize;
         int numEvaluations;
         String strCutOffCriteria;
@@ -77,21 +78,22 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         if (args.length > 0) {
             networkFolder = args[0];
 
-            if (args.length == 15) {
+            if (args.length == 16) {
                 strCrossover = args[1];
                 crossoverProbability = Double.parseDouble(args[2]);
                 strMutation = args[3];
                 mutationProbability = Double.parseDouble(args[4]);
                 strRepairer = args[5];
                 strMemeticDistanceType = args[6];
-                populationSize = Integer.parseInt(args[7]);
-                numEvaluations = Integer.parseInt(args[8]);
-                strCutOffCriteria = args[9];
-                cutOffValue = Double.parseDouble(args[10]);
-                qualityWeight = Double.parseDouble(args[11]);
-                topologyWeight = Double.parseDouble(args[12]);
-                strAlgorithm = args[13];
-                numOfThreads = Integer.parseInt(args[14]);
+                memeticPropability = Double.parseDouble(args[7]);
+                populationSize = Integer.parseInt(args[8]);
+                numEvaluations = Integer.parseInt(args[9]);
+                strCutOffCriteria = args[10];
+                cutOffValue = Double.parseDouble(args[11]);
+                qualityWeight = Double.parseDouble(args[12]);
+                topologyWeight = Double.parseDouble(args[13]);
+                strAlgorithm = args[14];
+                numOfThreads = Integer.parseInt(args[15]);
                 
             } else {
                 strCrossover = "SBXCrossover";
@@ -100,6 +102,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 mutationProbability = 0.1;
                 strRepairer = "StandardizationRepairer";
                 strMemeticDistanceType = "some";
+                memeticPropability = 0.1;
                 populationSize = 100;
                 numEvaluations = 10000;
                 strCutOffCriteria = "MinConfDist";
@@ -127,10 +130,10 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         /** Establish the chromosome repairer. */
         switch (strRepairer) {
             case "StandardizationRepairer":
-                repairer = new StandardizationRepairer(strKnownInteractionsFile, GRNProblem.readAll(files), strMemeticDistanceType);
+                repairer = new StandardizationRepairer(strKnownInteractionsFile, GRNProblem.readAll(files), strMemeticDistanceType, memeticPropability);
                 break;
             case "GreedyRepair":
-                repairer = new GreedyRepairer(strKnownInteractionsFile, GRNProblem.readAll(files), strMemeticDistanceType);
+                repairer = new GreedyRepairer(strKnownInteractionsFile, GRNProblem.readAll(files), strMemeticDistanceType, memeticPropability);
                 break;
             default:
                 throw new RuntimeException("The repairer operator entered is not available");

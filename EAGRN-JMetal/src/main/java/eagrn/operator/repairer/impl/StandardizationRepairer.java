@@ -8,8 +8,8 @@ import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 
 public class StandardizationRepairer extends WeightRepairer {
 
-    public StandardizationRepairer(String strKnownInteractionsFile, Map<String, Double[]> inferredNetworks, String distanceType) {
-        super(strKnownInteractionsFile, inferredNetworks, distanceType);
+    public StandardizationRepairer(String strKnownInteractionsFile, Map<String, Double[]> inferredNetworks, String distanceType, double memeticPropability) {
+        super(strKnownInteractionsFile, inferredNetworks, distanceType, memeticPropability);
     }
 
     /** RepairSolution() method */

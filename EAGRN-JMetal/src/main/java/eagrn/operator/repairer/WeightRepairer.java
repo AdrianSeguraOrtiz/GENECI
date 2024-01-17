@@ -17,9 +17,11 @@ public abstract class WeightRepairer {
     protected Map<String, Double> knownInteractionsMap;
     protected DistanceFunction distanceFunction;
     protected Map<String, Double[]> inferredNetworks;
+    public double memeticPropability;
 
-    public WeightRepairer(String strKnownInteractionsFile, Map<String, Double[]> inferredNetworks, String distanceType) {
+    public WeightRepairer(String strKnownInteractionsFile, Map<String, Double[]> inferredNetworks, String distanceType, double memeticPropability) {
         this.inferredNetworks = inferredNetworks;
+        this.memeticPropability = memeticPropability;
         this.knownInteractionsMap = strKnownInteractionsFile == null ? null : new ListOfLinks(new File(strKnownInteractionsFile)).getMapWithLinks();
         if (distanceType == null) {
             this.distanceFunction = null;

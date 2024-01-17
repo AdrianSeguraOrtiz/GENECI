@@ -22,7 +22,7 @@ public class GreedyRepairerTest {
         solution.variables().set(1, 1.0);
         solution.variables().set(2, 0.5);
 
-        GreedyRepairer repairer = Mockito.spy(new GreedyRepairer(null, null, null));
+        GreedyRepairer repairer = Mockito.spy(new GreedyRepairer(null, null, null, 0));
         Mockito.when(repairer.getRandomPos(3)).thenReturn(0);
         repairer.repairSolutionOnly(solution);
 
@@ -42,7 +42,7 @@ public class GreedyRepairerTest {
         solution.variables().set(3, 1.2);
         solution.variables().set(4, 0.6);
 
-        GreedyRepairer repairer = Mockito.spy(new GreedyRepairer(null, null, null));
+        GreedyRepairer repairer = Mockito.spy(new GreedyRepairer(null, null, null, 0));
         Mockito.when(repairer.getRandomPos(5)).thenReturn(2);
         repairer.repairSolutionOnly(solution);
 
@@ -62,7 +62,7 @@ public class GreedyRepairerTest {
         solution.variables().set(3, 0.0);
         solution.variables().set(4, 0.15);
 
-        GreedyRepairer repairer = Mockito.spy(new GreedyRepairer(null, null, null));
+        GreedyRepairer repairer = Mockito.spy(new GreedyRepairer(null, null, null, 0));
         Mockito.when(repairer.getRandomPos(5)).thenReturn(2);
         repairer.repairSolutionOnly(solution);
 
