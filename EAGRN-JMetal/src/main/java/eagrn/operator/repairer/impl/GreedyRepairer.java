@@ -1,13 +1,20 @@
 package eagrn.operator.repairer.impl;
 
 import eagrn.operator.repairer.WeightRepairer;
+
+import java.util.Map;
+
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 
-public class GreedyRepairer implements WeightRepairer {
+public class GreedyRepairer extends WeightRepairer {
+
+    public GreedyRepairer(String strKnownInteractionsFile, Map<String, Double[]> inferredNetworks, String distanceType) {
+        super(strKnownInteractionsFile, inferredNetworks, distanceType);
+    }
 
     /** RepairSolution() method */
     @Override
-    public void repairSolution(DoubleSolution solution) {
+    public void repairSolutionOnly(DoubleSolution solution) {
         double v = 0, sum = 0;
         int pos = -1;
         int numVariables = solution.variables().size();
@@ -50,5 +57,11 @@ public class GreedyRepairer implements WeightRepairer {
 
     public int getRandomPos(int numVariables) {
         return (int) (Math.random() * (numVariables - 1));
+    }
+
+    @Override
+    public void repairSolutionWithKnownInteractions(DoubleSolution solution) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'repairSolutionWithKnownInteractions'");
     }
 }

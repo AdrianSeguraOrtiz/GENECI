@@ -16,7 +16,11 @@ public class LinkedPolynomialMutationWithRepair extends LinkedPolynomialMutation
     @Override
     public DoubleSolution execute(DoubleSolution solution) throws JMetalException {
         DoubleSolution mutated_sol = super.execute(solution);
-        repairer.repairSolution(mutated_sol);
+        if (mutated_sol.variables().equals(solution.variables())) {
+            repairer.repairSolutionOnly(mutated_sol);
+        } else {
+            repairer.repairSolutionWithKnownInteractions(mutated_sol);
+        }
         return mutated_sol;
     }
 }

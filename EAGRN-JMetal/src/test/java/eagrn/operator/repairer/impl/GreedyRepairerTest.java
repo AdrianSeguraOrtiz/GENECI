@@ -22,9 +22,9 @@ public class GreedyRepairerTest {
         solution.variables().set(1, 1.0);
         solution.variables().set(2, 0.5);
 
-        GreedyRepairer repairer = Mockito.spy(new GreedyRepairer());
+        GreedyRepairer repairer = Mockito.spy(new GreedyRepairer(null, null, null));
         Mockito.when(repairer.getRandomPos(3)).thenReturn(0);
-        repairer.repairSolution(solution);
+        repairer.repairSolutionOnly(solution);
 
         assertArrayEquals(new Double[]{0.5, 0.5, 0.0}, solution.variables().toArray());
     }
@@ -42,9 +42,9 @@ public class GreedyRepairerTest {
         solution.variables().set(3, 1.2);
         solution.variables().set(4, 0.6);
 
-        GreedyRepairer repairer = Mockito.spy(new GreedyRepairer());
+        GreedyRepairer repairer = Mockito.spy(new GreedyRepairer(null, null, null));
         Mockito.when(repairer.getRandomPos(5)).thenReturn(2);
-        repairer.repairSolution(solution);
+        repairer.repairSolutionOnly(solution);
 
         assertArrayEquals(new Double[]{0.0, 0.0, 0.3, 0.7, 0.0}, solution.variables().toArray());
     }
@@ -62,9 +62,9 @@ public class GreedyRepairerTest {
         solution.variables().set(3, 0.0);
         solution.variables().set(4, 0.15);
 
-        GreedyRepairer repairer = Mockito.spy(new GreedyRepairer());
+        GreedyRepairer repairer = Mockito.spy(new GreedyRepairer(null, null, null));
         Mockito.when(repairer.getRandomPos(5)).thenReturn(2);
-        repairer.repairSolution(solution);
+        repairer.repairSolutionOnly(solution);
 
         assertArrayEquals(new Double[]{0.1, 0.55, 0.2, 0.0, 0.15}, solution.variables().toArray());
     }

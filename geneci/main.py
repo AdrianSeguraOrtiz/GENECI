@@ -30,7 +30,7 @@ available_images = [
    img for tags in [i.tags if len(i.tags) > 0 else None for i in client.images.list()] for img in tags
 ]
 # Set docker tag
-tag = "1.0.0"
+tag = "1.5.1"
 
 # Definition of enumerated classes.
 class Database(str, Enum):
@@ -117,7 +117,11 @@ class Mode(str, Enum):
     Static2D = "Static2D"
     Interactive3D = "Interactive3D"
     Both = "Both"
-
+    
+class MemeticDistanceType(str, Enum):
+    all = "all"
+    some = "some"
+    one = "one"
 
 # Function for obtaining the list of genes from lists of confidence levels.
 def get_gene_names(conf_list):
@@ -735,6 +739,12 @@ def optimize_ensemble(
         file_okay=True,
         help="Path to the TXT file with the name of the contemplated genes separated by comma and without space. If not specified, only the genes specified in the lists of trusts will be considered.",
     ),
+    known_interactions: Path = typer.Option(
+        None,
+        exists=True,
+        file_okay=True,
+        help="Path to the CSV file with the known interactions between genes. If specified, a local search process will be performed during the repair.",
+    ),
     crossover: Crossover = typer.Option("SBXCrossover", help="Crossover operator"),
     crossover_probability: float = typer.Option(0.9, help="Crossover probability"),
     mutation: Mutation = typer.Option("PolynomialMutation", help="Mutation operator"),
@@ -744,6 +754,9 @@ def optimize_ensemble(
     repairer: Repairer = typer.Option(
         "StandardizationRepairer",
         help="Solution repairer to keep the sum of weights equal to 1",
+    ),
+    memetic_distance_type: MemeticDistanceType = typer.Option(
+        MemeticDistanceType.some, help="Memetic distance type"
     ),
     population_size: int = typer.Option(100, help="Population size"),
     num_evaluations: int = typer.Option(25000, help="Number of evaluations"),
@@ -821,6 +834,10 @@ def optimize_ensemble(
             gene_list.update(get_gene_names(file))
         with open(tmp_gene_names_dir, "w") as f:
             f.write(",".join(sorted(gene_list)))
+    
+    # If known links are provided, they are copied to the temporary directory
+    if known_interactions:
+        shutil.copyfile(known_interactions, "tmp/known_interactions.csv")
 
     # Define docker image
     image = f"adriansegura99/geneci_optimize-ensemble:{tag}"
@@ -834,7 +851,7 @@ def optimize_ensemble(
         volumes={
             Path(f"./tmp/").absolute(): {"bind": f"/usr/local/src/tmp", "mode": "rw"}
         },
-        command=f"tmp/ {crossover} {crossover_probability} {mutation} {mutation_probability} {repairer} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {quality_weight} {topology_weight} {algorithm} {threads}",
+        command=f"tmp/ {crossover} {crossover_probability} {mutation} {mutation_probability} {repairer} {memetic_distance_type} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {quality_weight} {topology_weight} {algorithm} {threads}",
         detach=True,
         tty=True,
     )
@@ -1010,6 +1027,12 @@ def run(
         file_okay=True,
         help="Path to the CSV file with the expression data. Genes are distributed in rows and experimental conditions (time series) in columns.",
     ),
+    known_interactions: Path = typer.Option(
+        None,
+        exists=True,
+        file_okay=True,
+        help="Path to the CSV file with the known interactions between genes. If specified, a local search process will be performed during the repair.",
+    ),
     technique: Optional[List[Technique]] = typer.Option(
         ..., case_sensitive=False, help="Inference techniques to be performed."
     ),
@@ -1022,6 +1045,9 @@ def run(
     repairer: Repairer = typer.Option(
         "StandardizationRepairer",
         help="Solution repairer to keep the sum of weights equal to 1",
+    ),
+    memetic_distance_type: MemeticDistanceType = typer.Option(
+        MemeticDistanceType.some, help="Memetic distance type"
     ),
     population_size: int = typer.Option(100, help="Population size"),
     num_evaluations: int = typer.Option(25000, help="Number of evaluations"),
@@ -1073,11 +1099,13 @@ def run(
     optimize_ensemble(
         confidence_list,
         gene_names,
+        known_interactions,
         crossover,
         crossover_probability,
         mutation,
         mutation_probability,
         repairer,
+        memetic_distance_type,
         population_size,
         num_evaluations,
         cut_off_criteria,

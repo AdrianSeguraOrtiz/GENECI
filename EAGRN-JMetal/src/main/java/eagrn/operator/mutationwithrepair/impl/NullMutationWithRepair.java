@@ -14,7 +14,7 @@ public class NullMutationWithRepair extends NullMutation<DoubleSolution> {
 
     @Override
     public DoubleSolution execute(DoubleSolution solution) throws JMetalException {
-        repairer.repairSolution(solution);
+        repairer.repairSolutionOnly(solution);
         return solution;
     }
 }

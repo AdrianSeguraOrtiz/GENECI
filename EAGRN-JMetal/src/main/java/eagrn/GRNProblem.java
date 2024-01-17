@@ -71,7 +71,7 @@ public class GRNProblem extends AbstractDoubleProblem {
     @Override
     public DoubleSolution createSolution() {
         DefaultDoubleSolution solution = new DefaultDoubleSolution(this.getNumberOfObjectives(), this.getNumberOfConstraints(), this.getBoundsForVariables());
-        initialPopulationRepairer.repairSolution(solution);
+        initialPopulationRepairer.repairSolutionOnly(solution);
         this.populationSize += 1;
         return solution;
     }
@@ -109,7 +109,7 @@ public class GRNProblem extends AbstractDoubleProblem {
     }
 
     /** ReadAll() method */
-    private Map<String, Double[]> readAll(File[] inferredNetworkFiles) {
+    public static Map<String, Double[]> readAll(File[] inferredNetworkFiles) {
         /**
          * It scans the lists of links offered by the different techniques and stores them in a map 
          * with vector values for later query during the construction of the consensus network.

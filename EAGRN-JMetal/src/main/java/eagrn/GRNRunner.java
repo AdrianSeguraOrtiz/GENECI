@@ -64,6 +64,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         String strMutation;
         double mutationProbability;
         String strRepairer;
+        String strMemeticDistanceType;
         int populationSize;
         int numEvaluations;
         String strCutOffCriteria;
@@ -76,31 +77,33 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         if (args.length > 0) {
             networkFolder = args[0];
 
-            if (args.length == 14) {
+            if (args.length == 15) {
                 strCrossover = args[1];
                 crossoverProbability = Double.parseDouble(args[2]);
                 strMutation = args[3];
                 mutationProbability = Double.parseDouble(args[4]);
                 strRepairer = args[5];
-                populationSize = Integer.parseInt(args[6]);
-                numEvaluations = Integer.parseInt(args[7]);
-                strCutOffCriteria = args[8];
-                cutOffValue = Double.parseDouble(args[9]);
-                qualityWeight = Double.parseDouble(args[10]);
-                topologyWeight = Double.parseDouble(args[11]);
-                strAlgorithm = args[12];
-                numOfThreads = Integer.parseInt(args[13]);
+                strMemeticDistanceType = args[6];
+                populationSize = Integer.parseInt(args[7]);
+                numEvaluations = Integer.parseInt(args[8]);
+                strCutOffCriteria = args[9];
+                cutOffValue = Double.parseDouble(args[10]);
+                qualityWeight = Double.parseDouble(args[11]);
+                topologyWeight = Double.parseDouble(args[12]);
+                strAlgorithm = args[13];
+                numOfThreads = Integer.parseInt(args[14]);
                 
             } else {
                 strCrossover = "SBXCrossover";
                 crossoverProbability = 0.9;
                 strMutation = "PolynomialMutation";
-                mutationProbability = 0.05;
-                strRepairer = "GreedyRepair";
+                mutationProbability = 0.1;
+                strRepairer = "StandardizationRepairer";
+                strMemeticDistanceType = "some";
                 populationSize = 100;
                 numEvaluations = 10000;
                 strCutOffCriteria = "MinConfDist";
-                cutOffValue = 0.2;
+                cutOffValue = 0.5;
                 qualityWeight = 0.75;
                 topologyWeight = 0.25;
                 strAlgorithm = "AsyncParallel";
@@ -110,22 +113,28 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             throw new RuntimeException("At least the folder with the input trust lists must be provided.");
         }
 
-        /** Establish the chromosome repairer. */
-        switch (strRepairer) {
-            case "StandardizationRepairer":
-                repairer = new StandardizationRepairer();
-                break;
-            case "GreedyRepair":
-                repairer = new GreedyRepairer();
-                break;
-            default:
-                throw new RuntimeException("The repairer operator entered is not available");
-        }
-
         /** List CSV files stored in the input folder with inferred lists of links. */
         File dir = new File(networkFolder + "/lists/");
         FileFilter fileFilter = new WildcardFileFilter("*.csv");
         File[] files = dir.listFiles(fileFilter);
+
+        /** Extract the path to the file with the known interactions if provided */
+        String strKnownInteractionsFile = networkFolder + "/known_interactions.csv";
+        if (!Files.exists(Paths.get(strKnownInteractionsFile))) {
+            strKnownInteractionsFile = null;
+        }
+
+        /** Establish the chromosome repairer. */
+        switch (strRepairer) {
+            case "StandardizationRepairer":
+                repairer = new StandardizationRepairer(strKnownInteractionsFile, GRNProblem.readAll(files), strMemeticDistanceType);
+                break;
+            case "GreedyRepair":
+                repairer = new GreedyRepairer(strKnownInteractionsFile, GRNProblem.readAll(files), strMemeticDistanceType);
+                break;
+            default:
+                throw new RuntimeException("The repairer operator entered is not available");
+        }
 
         /** Extracting gene names. */
         File geneNamesFile = new File(networkFolder + "/gene_names.txt");
