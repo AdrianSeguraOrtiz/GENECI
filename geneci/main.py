@@ -7,6 +7,11 @@ from typing import List, Optional
 import docker
 import matplotlib.pyplot as plt
 import typer
+import random
+import string
+
+# Generate temp folder name
+temp_folder_str = "tmp-" + "".join(random.choices(string.ascii_lowercase, k=10))
 
 # Applications for the definition of Typer commands and subcommands.
 app = typer.Typer()
@@ -820,13 +825,13 @@ def optimize_ensemble(
         mutation_probability = 1 / len(confidence_list)
 
     # The temporary folder is created
-    Path("tmp/lists").mkdir(exist_ok=True, parents=True)
+    Path(f"{temp_folder_str}/lists").mkdir(exist_ok=True, parents=True)
     # Input trust lists are copied
     for file in confidence_list:
-        shutil.copyfile(file, f"tmp/lists/{Path(file).name}")
+        shutil.copyfile(file, f"{temp_folder_str}/lists/{Path(file).name}")
 
     # If a gene list is provided it is copied to the temporary directory or else it is created from the trusted list.
-    tmp_gene_names_dir = "tmp/gene_names.txt"
+    tmp_gene_names_dir = f"{temp_folder_str}/gene_names.txt"
     if gene_names:
         shutil.copyfile(gene_names, tmp_gene_names_dir)
     else:
@@ -838,7 +843,7 @@ def optimize_ensemble(
     
     # If known links are provided, they are copied to the temporary directory
     if known_interactions:
-        shutil.copyfile(known_interactions, "tmp/known_interactions.csv")
+        shutil.copyfile(known_interactions, f"{temp_folder_str}/known_interactions.csv")
 
     # Define docker image
     image = f"adriansegura99/geneci_optimize-ensemble:{tag}"
@@ -850,9 +855,9 @@ def optimize_ensemble(
     container = client.containers.run(
         image=image,
         volumes={
-            Path(f"./tmp/").absolute(): {"bind": f"/usr/local/src/tmp", "mode": "rw"}
+            Path(f"./{temp_folder_str}/").absolute(): {"bind": f"/usr/local/src/{temp_folder_str}", "mode": "rw"}
         },
-        command=f"tmp/ {crossover} {crossover_probability} {mutation} {mutation_probability} {repairer} {memetic_distance_type} {memetic_probability} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {quality_weight} {topology_weight} {algorithm} {threads}",
+        command=f"./{temp_folder_str} {crossover} {crossover_probability} {mutation} {mutation_probability} {repairer} {memetic_distance_type} {memetic_probability} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {quality_weight} {topology_weight} {algorithm} {threads}",
         detach=True,
         tty=True,
     )
@@ -869,7 +874,7 @@ def optimize_ensemble(
 
     # If specified, the evolution of the fitness values ​​is graphed
     if graphics:
-        f = open("tmp/ea_consensus/fitness_evolution.txt", "r")
+        f = open(f"{temp_folder_str}/ea_consensus/fitness_evolution.txt", "r")
         str_lines = f.readlines()
         str_fitness = str_lines[0].split(", ")
         fitness = [float(i) for i in str_fitness]
@@ -885,7 +890,7 @@ def optimize_ensemble(
         plt.ylabel("Fitness")
         plt.xlabel("Generation")
         plt.legend()
-        plt.savefig("tmp/ea_consensus/fitness_evolution.pdf")
+        plt.savefig(f"{temp_folder_str}/ea_consensus/fitness_evolution.pdf")
 
     # Define and create the output folder
     if str(output_dir) == "<<conf_list_path>>/../ea_consensus":
@@ -893,9 +898,9 @@ def optimize_ensemble(
     output_dir.mkdir(exist_ok=True, parents=True)
 
     # All output files are moved and the temporary directory is deleted
-    for f in Path("tmp/ea_consensus").glob("*"):
+    for f in Path(f"{temp_folder_str}/ea_consensus").glob("*"):
         shutil.move(f, f"{output_dir}/{f.name}")
-    shutil.rmtree("tmp")
+    shutil.rmtree(temp_folder_str)
 
 
 # Command to evaluate the accuracy of DREAM inferred networks
