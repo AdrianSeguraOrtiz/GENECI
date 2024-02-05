@@ -1,0 +1,25 @@
+name: Sincronizar a repositorio Single-GENECI
+
+on:
+  push:
+    branches:
+      - v-1.0.1 
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.REPO_TOKEN }}
+      
+      - name: Configurar Git
+        run: |
+          git config --global user.email "adrianseor.99@uma.es"
+          git config --global user.name "AdrianSeguraOrtiz"
+
+      - name: Empujar cambios al repositorio Single-GENECI
+        run: |
+          git remote add Single-GENECI https://github.com/AdrianSeguraOrtiz/Single-GENECI.git
+          git push -u Single-GENECI v-1.0.1:main --force
