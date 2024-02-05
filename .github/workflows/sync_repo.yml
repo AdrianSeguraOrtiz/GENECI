@@ -1,0 +1,25 @@
+name: Sincronizar a repositorio Memetic-GENECI
+
+on:
+  push:
+    branches:
+      - v-1.5.1 
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.REPO_TOKEN }}
+      
+      - name: Configurar Git
+        run: |
+          git config --global user.email "adrianseor.99@uma.es"
+          git config --global user.name "AdrianSeguraOrtiz"
+
+      - name: Empujar cambios al repositorio Memetic-GENECI
+        run: |
+          git remote add Memetic-GENECI https://github.com/AdrianSeguraOrtiz/Memetic-GENECI.git
+          git push -u Memetic-GENECI v-1.5.1:main --force
