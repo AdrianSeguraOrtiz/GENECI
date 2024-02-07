@@ -2,11 +2,11 @@
 
 ![CI](https://github.com/AdrianSeguraOrtiz/GENECI/actions/workflows/ci.yml/badge.svg)
 ![Release](https://github.com/AdrianSeguraOrtiz/GENECI/actions/workflows/release.yml/badge.svg)
-![Pypi](https://img.shields.io/pypi/v/GENECI)
+![Pypi](https://img.shields.io/pypi/v/GENECI/1.5.1)
 ![License](https://img.shields.io/apm/l/GENECI)
 <img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 
-GENECI (GEne NEtwork Consensus Inference) is a software package whose main functionality consists of an evolutionary algorithm to determine the optimal ensemble of machine learning techniques for genetic network inference based on the confidence levels and topological characteristics of its results.
+Memetic-GENECI is a software package derived from [GENECI (GEne NEtwork Consensus Inference)](https://github.com/AdrianSeguraOrtiz/Single-GENECI) that incorporates an additional **local search** phase to guide the evolution of individuals based on **known interactions**. Injection of domain expert knowledge has been shown to improve the accuracy with which GENECI optimises consensus between different gene regulatory network inference techniques.
 
 ![Alt text](https://github.com/AdrianSeguraOrtiz/GENECI/raw/main/docs/diagram.svg)
 
@@ -18,7 +18,7 @@ GENECI (GEne NEtwork Consensus Inference) is a software package whose main funct
 # Instalation
 
 ```sh
-pip install geneci
+pip install geneci==1.5.1
 ```
 
 # Integrated techniques
@@ -64,7 +64,8 @@ geneci run --expression-data input_data/DREAM4/EXP/dream4_010_01_exp.csv \
            --technique aracne --technique bc3net --technique c3net \
            --technique clr --technique genie3_rf --technique genie3_gbm \
            --technique genie3_et --technique mrnet --technique mrnetb \
-           --technique pcit --technique tigress --technique kboost
+           --technique pcit --technique tigress --technique kboost \
+           --known-interactions known_interactions.txt --memetic-distance-type all
 ```
 
 - **Form 2**: Division of the procedure into several commands
@@ -89,7 +90,8 @@ geneci optimize-ensemble --confidence-list inferred_networks/dream4_010_01_exp/l
                          --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_PCIT.csv \
                          --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_TIGRESS.csv \
                          --confidence-list inferred_networks/dream4_010_01_exp/lists/GRN_KBOOST.csv \
-                         --gene-names inferred_networks/dream4_010_01_exp/gene_names.txt
+                         --gene-names inferred_networks/dream4_010_01_exp/gene_names.txt \
+                         --known-interactions known_interactions.txt --memetic-distance-type all
 ```
 
 3. **Representation** of inferred networks using the **draw-network** command:
@@ -347,12 +349,15 @@ $ optimize-ensemble [OPTIONS]
 **Options**:
 
 * `--confidence-list TEXT`: Paths of the CSV files with the confidence lists to be agreed upon.  [required]
+* `--known-interactions PATH`: Path to the CSV file with the known interactions between genes. If specified, a local search process will be performed during the repair [default: None].
 * `--gene-names PATH`: Path to the TXT file with the name of the contemplated genes separated by comma and without space. If not specified, only the genes specified in the lists of trusts will be considered.
 * `--crossover [SBXCrossover|BLXAlphaCrossover|DifferentialEvolutionCrossover|NPointCrossover|NullCrossover|WholeArithmeticCrossover]`: Crossover operator  [default: SBXCrossover]
 * `--crossover-probability FLOAT`: Crossover probability  [default: 0.9]
 * `--mutation [PolynomialMutation|CDGMutation|GroupedAndLinkedPolynomialMutation|GroupedPolynomialMutation|LinkedPolynomialMutation|NonUniformMutation|NullMutation|SimpleRandomMutation|UniformMutation]`: Mutation operator  [default: PolynomialMutation]
 * `--mutation-probability FLOAT`: Mutation probability. [default: 1/len(files)]
 * `--repairer [StandardizationRepairer|GreedyRepair]`: Solution repairer to keep the sum of weights equal to 1  [default: StandardizationRepairer]
+* `--memetic-distance-type [all|some|one]`: Memetic distance type [default: MemeticDistanceType.all]
+* `--memetic-probability FLOAT`: Memetic probability [default: 0.55]
 * `--population-size INTEGER`: Population size  [default: 100]
 * `--num-evaluations INTEGER`: Number of evaluations  [default: 25000]
 * `--cut-off-criteria [MinConfidence|MaxNumLinksBestConf|MinConfDist]`: Criteria for determining which links will be part of the final binary matrix.  [default: MinConfDist]
@@ -377,12 +382,15 @@ $ run [OPTIONS]
 **Options**:
 
 * `--expression-data PATH`: Path to the CSV file with the expression data. Genes are distributed in rows and experimental conditions (time series) in columns.  [required]
+* `--known-interactions PATH`: Path to the CSV file with the known interactions between genes. If specified, a local search process will be performed during the repair [default: None].
 * `--technique [ARACNE|BC3NET|C3NET|CLR|GENIE3_RF|GENIE3_GBM|GENIE3_ET|MRNET|MRNETB|PCIT|TIGRESS|KBOOST]`: Inference techniques to be performed.  [required]
 * `--crossover [SBXCrossover|BLXAlphaCrossover|DifferentialEvolutionCrossover|NPointCrossover|NullCrossover|WholeArithmeticCrossover]`: Crossover operator  [default: SBXCrossover]
 * `--crossover-probability FLOAT`: Crossover probability  [default: 0.9]
 * `--mutation [PolynomialMutation|CDGMutation|GroupedAndLinkedPolynomialMutation|GroupedPolynomialMutation|LinkedPolynomialMutation|NonUniformMutation|NullMutation|SimpleRandomMutation|UniformMutation]`: Mutation operator  [default: PolynomialMutation]
 * `--mutation-probability FLOAT`: Mutation probability. [default: 1/len(files)]
 * `--repairer [StandardizationRepairer|GreedyRepair]`: Solution repairer to keep the sum of weights equal to 1  [default: StandardizationRepairer]
+* `--memetic-distance-type [all|some|one]`: Memetic distance type [default: MemeticDistanceType.all]
+* `--memetic-probability FLOAT`: Memetic probability [default: 0.55]
 * `--population-size INTEGER`: Population size  [default: 100]
 * `--num-evaluations INTEGER`: Number of evaluations  [default: 25000]
 * `--cut-off-criteria [MinConfidence|MaxNumLinksBestConf|MinConfDist]`: Criteria for determining which links will be part of the final binary matrix.  [default: MinConfDist]

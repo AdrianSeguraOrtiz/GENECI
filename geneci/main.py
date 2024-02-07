@@ -761,9 +761,9 @@ def optimize_ensemble(
         help="Solution repairer to keep the sum of weights equal to 1",
     ),
     memetic_distance_type: MemeticDistanceType = typer.Option(
-        MemeticDistanceType.some, help="Memetic distance type"
+        MemeticDistanceType.all, help="Memetic distance type"
     ),
-    memetic_probability: float = typer.Option(0.1, help="Memetic probability"),
+    memetic_probability: float = typer.Option(0.55, help="Memetic probability"),
     population_size: int = typer.Option(100, help="Population size"),
     num_evaluations: int = typer.Option(25000, help="Number of evaluations"),
     cut_off_criteria: CutOffCriteria = typer.Option(
@@ -1053,9 +1053,9 @@ def run(
         help="Solution repairer to keep the sum of weights equal to 1",
     ),
     memetic_distance_type: MemeticDistanceType = typer.Option(
-        MemeticDistanceType.some, help="Memetic distance type"
+        MemeticDistanceType.all, help="Memetic distance type"
     ),
-    memetic_probability: float = typer.Option(0.1, help="Memetic probability"),
+    memetic_probability: float = typer.Option(0.55, help="Memetic probability"),
     population_size: int = typer.Option(100, help="Population size"),
     num_evaluations: int = typer.Option(25000, help="Number of evaluations"),
     cut_off_criteria: CutOffCriteria = typer.Option(
