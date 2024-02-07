@@ -6,7 +6,7 @@
 ![License](https://img.shields.io/apm/l/GENECI)
 <img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 
-Memetic-GENECI is a software package derived from [GENECI (GEne NEtwork Consensus Inference)](https://github.com/AdrianSeguraOrtiz/Single-GENECI) that incorporates an additional **local search** phase to guide the evolution of individuals based on **known interactions**. Injection of domain expert knowledge has been shown to improve the accuracy with which GENECI optimises consensus between different gene regulatory network inference techniques.
+[Memetic-GENECI](https://github.com/AdrianSeguraOrtiz/Memetic-GENECI) is a software package derived from [GENECI (GEne NEtwork Consensus Inference)](https://github.com/AdrianSeguraOrtiz/Single-GENECI) that incorporates an additional **local search** phase to guide the evolution of individuals based on **known interactions**. Injection of domain expert knowledge has been shown to improve the accuracy with which GENECI optimises consensus between different gene regulatory network inference techniques.
 
 <div align="center"><img src="https://github.com/AdrianSeguraOrtiz/GENECI/raw/v-1.5.1/docs/diagram.svg"></div>
 
