@@ -18,7 +18,7 @@
 # Instalation
 
 ```sh
-pip install geneci
+pip install geneci=1.0.1
 ```
 
 # Integrated techniques
