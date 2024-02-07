@@ -4,13 +4,12 @@
 ![Release](https://github.com/AdrianSeguraOrtiz/GENECI/actions/workflows/release.yml/badge.svg)
 ![Pypi](https://img.shields.io/pypi/v/GENECI)
 ![License](https://img.shields.io/apm/l/GENECI)
-<img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 
-**MO-GENECI (Multi-Objective GEne NEtwork Consensus Inference)** is a software package designed for intelligent consensus of multiple techniques for inferring gene regulation networks. Given the expression levels of different genes subjected to various perturbations, GENECI allows for the inference of the underlying network by applying in parallel a wide variety of known inference techniques and subsequently merging their results. To this end, a **multi-objective evolutionary algorithm** is applied to optimize the weights assigned to the different techniques based on observed **confidence levels**, **topological characteristics** of the network, **network dynamics**, **detection of highly recurrent motifs** in real biological networks and, in case of a time series as input, **maintenance of the loyalty** to it.
+[MO-GENECI (Multi-Objective GEne NEtwork Consensus Inference](https://github.com/AdrianSeguraOrtiz/MO-GENECI) is a software package derived from [GENECI](https://github.com/AdrianSeguraOrtiz/GENECI) designed for intelligent consensus of multiple techniques for inferring gene regulation networks. Given the expression levels of different genes subjected to various perturbations, MO-GENECI allows for the inference of the underlying network by applying in parallel a wide variety of known inference techniques and subsequently merging their results. To this end, a **multi-objective evolutionary algorithm** is applied to optimize the weights assigned to the different techniques based on observed **confidence levels**, **topological characteristics** of the network and **detection of highly recurrent motifs** in real biological networks.
 
-![Alt text](https://github.com/AdrianSeguraOrtiz/GENECI/raw/dev/docs/diagram.svg)
+![Alt text](https://github.com/AdrianSeguraOrtiz/GENECI/raw/v-2.0.1/docs/diagram.svg)
 
-GENECI offers the following **functionalities**: network inference using individual techniques, optimization of consensus across multiple solutions, construction of benchmark networks (from scratch or based on real networks), evaluation of accuracy concerning gold standards, network binarization algorithms, and graphical representation.
+MO-GENECI offers the following **functionalities**: network inference using individual techniques, optimization of consensus across multiple solutions, construction of benchmark networks (from scratch or based on real networks), evaluation of accuracy concerning gold standards, network binarization algorithms, and graphical representation.
 
 To implement all the functionalities mentioned above, it has been necessary to program in multiple languages such as Java, Python, R, Matlab, Julia, etc. To integrate all the utilities into a single tool, it has been decided to **dockerize components** and use Python as the main means of orchestration. This, in addition to facilitating **task parallelization**, reduces the complexity of installation and requirements for our software package.
 
@@ -22,7 +21,7 @@ To implement all the functionalities mentioned above, it has been necessary to p
 # Instalation
 
 ```sh
-pip install geneci
+pip install geneci==2.0.1
 ```
 
 # Output
