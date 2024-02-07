@@ -6,9 +6,9 @@
 ![License](https://img.shields.io/apm/l/GENECI)
 <img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 
-GENECI (GEne NEtwork Consensus Inference) is a software package whose main functionality consists of an evolutionary algorithm to determine the optimal ensemble of machine learning techniques for genetic network inference based on the confidence levels and topological characteristics of its results.
+Single-GENECI (GEne NEtwork Consensus Inference) is a software package whose main functionality consists of an evolutionary algorithm to determine the optimal ensemble of machine learning techniques for genetic network inference based on the confidence levels and topological characteristics of its results.
 
-![Alt text](https://github.com/AdrianSeguraOrtiz/GENECI/raw/main/docs/diagram.svg)
+![Alt text](https://github.com/AdrianSeguraOrtiz/GENECI/raw/v-1.0.1/docs/diagram.svg)
 
 # Prerequisites
 

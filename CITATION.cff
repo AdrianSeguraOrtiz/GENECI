@@ -1,0 +1,48 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Single-GENECI (GEne NEtwork Consensus Inference)
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Adrián
+    family-names: Segura Ortiz
+    email: adrianseor.99@uma.es
+    affiliation: University of Malaga
+    orcid: 'https://orcid.org/0000-0003-2149-5754'
+repository-code: 'https://github.com/AdrianSeguraOrtiz/Single-GENECI'
+url: 'https://pypi.org/project/GENECI/1.0.1/'
+abstract: >-
+  Single-GENECI (GEne NEtwork Consensus Inference) is a
+  software package whose main functionality consists of an
+  evolutionary algorithm to determine the optimal ensemble
+  of machine learning techniques for genetic network
+  inference based on the confidence levels and topological
+  characteristics of its results.
+keywords:
+  - Gene regulatory networks
+  - Differential expression
+  - Machine learning
+  - Evolutionary algorithms
+license: MIT
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Adrián"
+    given-names: "Segura Ortiz"
+    orcid: "https://orcid.org/0000-0003-2149-5754"
+  - family-names: "José Manuel"
+    given-names: "García Nieto"
+  - family-names: "Ismael"
+    given-names: "Navas Delgado"
+  - family-names: "José Francisco"
+    given-names: "Aldana Montes"
+  doi: "10.1016/j.compbiomed.2023.106653"
+  journal: "Computers in Biology and Medicine"
+  month: 2
+  title: "GENECI: A novel evolutionary machine learning consensus-based approach for the inference of gene regulatory networks"
+  volume: 155
+  year: 2023
