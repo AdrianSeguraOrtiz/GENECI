@@ -1,5 +1,3 @@
-<div align="center"><img src="https://github.com/AdrianSeguraOrtiz/GENECI/raw/dev/docs/logo.svg" width="30%"></div>
-
 ![CI](https://github.com/AdrianSeguraOrtiz/GENECI/actions/workflows/ci.yml/badge.svg)
 ![Release](https://github.com/AdrianSeguraOrtiz/GENECI/actions/workflows/release.yml/badge.svg)
 ![Pypi](https://img.shields.io/pypi/v/GENECI)
