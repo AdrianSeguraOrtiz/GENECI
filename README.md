@@ -1,4 +1,4 @@
-<div align="center"><img src="https://github.com/AdrianSeguraOrtiz/GENECI/raw/dev/docs/logo.png" width="30%"></div>
+<div align="center"><img src="https://github.com/AdrianSeguraOrtiz/GENECI/raw/dev/docs/logo.png" width="50%"></div>
 
 ![CI](https://github.com/AdrianSeguraOrtiz/GENECI/actions/workflows/ci.yml/badge.svg)
 ![Release](https://github.com/AdrianSeguraOrtiz/GENECI/actions/workflows/release.yml/badge.svg)
