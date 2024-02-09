@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "GENECI"
-version = "2.0.1"
+version = "3.0.1"
 description = "Software package whose main functionality consists of an evolutionary algorithm to determine the optimal ensemble of machine learning techniques for genetic network inference based on the confidence levels and topological characteristics of its results."
 authors = ["adrian_segura <adrianseor.99@uma.es>"]
 license = "MIT"
@@ -17,6 +17,8 @@ pandas = "^1.5.1"
 plotly = "^5.11.0"
 iteround = "^1.0.4"
 scipy = "^1.10.2"
+matplotlib = "^3.8.2"
+tqdm = "^4.66.1"
 
 [tool.poetry.dev-dependencies]
 

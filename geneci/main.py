@@ -1,28 +1,28 @@
+import csv
 import itertools
 import math
 import multiprocessing
 import random
 import re
-import requests
-import zipfile
 import shutil
 import string
-import csv
+import zipfile
 from enum import Enum
+from io import BytesIO
 from pathlib import Path
 from typing import List, Optional
-from io import BytesIO
-from scipy import stats
 
 import docker
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import requests
 import typer
 from iteround import saferound
 from plotly.subplots import make_subplots
 from rich import print
+from scipy import stats
 
 # Header
 __version__ = "3.0.1"
@@ -1461,6 +1461,194 @@ def apply_cut(
     shutil.copyfile(f"{temp_folder_str}/{Path(output_file).name}", output_file)
     shutil.rmtree(temp_folder_str)
 
+@app.command(rich_help_panel="Additional commands")
+def plot_optimization(
+    fun_file: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help="Path to the FUN CSV file.",
+    ),
+    fitness_evolution_file: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help="Path to the fitness evolution TXT file.",
+    ),
+    plot_fitness_evolution: bool = typer.Option(
+        True,
+        help="Indicate if you want to represent the evolution of the fitness values.",
+    ),
+    plot_pareto_front: bool = typer.Option(
+        True,
+        help="Indicate if you want to represent the Pareto front (only available for multi-objective mode of 2 or 3 functions).",
+    ),
+    plot_parallel_coordinates: bool = typer.Option(
+        True,
+        help="Indicate if you want to represent the parallel coordinate graph (only available for multi-objective mode).",
+    ),
+    plot_chord_diagram: bool = typer.Option(
+        True,
+        help="Indicate if you want to represent the chordplot (only available for multi-objective mode).",
+    ),
+    output_dir: Path = typer.Option(
+        "<<fun_file>>/..",
+        help="Path to the output folder.",
+    ),
+):
+    
+    # Define and create the output folder
+    if str(output_dir) == "<<fun_file>>/..":
+        output_dir = Path(fun_file).parent
+    output_dir.mkdir(exist_ok=True, parents=True)
+    
+    # Get function names
+    functions = pd.read_csv(fun_file, nrows=0).columns.tolist()
+    
+    # If specified, the evolution of the fitness values ​​is graphed
+    if plot_fitness_evolution:
+
+        # Create grid for graphs
+        if len(functions) == 1:
+            r = 1
+            c = 1
+        elif len(functions) == 2:
+            r = 1
+            c = 2
+        else:
+            r = math.ceil(len(functions) / 2)
+            c = 2
+        fig = make_subplots(rows=r, cols=c, subplot_titles=functions)
+
+        # Read file with the fitness values
+        df = pd.read_csv(fitness_evolution_file, header=None)
+
+        # For each objective ...
+        for i, fitness in df.iterrows():
+
+            # Get row and column index
+            curr_row = math.ceil((i + 1) / c)
+            curr_col = (i + 1) - (c * (curr_row - 1))
+
+            # Plot it under the label of its function
+            fig.add_trace(
+                go.Scatter(x=list(range(len(fitness))), y=fitness),
+                row=curr_row,
+                col=curr_col,
+            )
+            fig.update_xaxes(title_text="Generation", row=curr_row, col=curr_col)
+            fig.update_yaxes(title_text="Fitness", row=curr_row, col=curr_col)
+
+        # Customize and save the figure
+        fig.update_layout(title_text="Fitness evolution", showlegend=False)
+        fig.write_html(f"{output_dir}/fitness_evolution.html")
+
+    # If specified, the Pareto front is represented
+    if plot_pareto_front:
+
+        # Verify that the number of fitness functions is 2 or 3
+        if len(functions) != 2 and len(functions) != 3:
+            print("[bold yellow]Warning:[/bold yellow] The Pareto front cannot be represented if the number of objectives is other than 2 or 3. Your intention will be ignored.")
+        else:
+
+            # Read file with the fitness values associated with the non-dominated solutions.
+            df = pd.read_csv(fun_file)
+
+            # If there are two objectives ...
+            if len(functions) == 2:
+                ## Get columns as lists
+                fitness_o1 = df[functions[0]].tolist()
+                fitness_o2 = df[functions[1]].tolist()
+
+                ## Obtain the order corresponding to the first objective in order to plot the front in an appropriate way.
+                sorted_idx = np.argsort(fitness_o1)
+
+                ## Sort all vectors according to the indices obtained above.
+                fitness_o1 = [fitness_o1[i] for i in sorted_idx]
+                fitness_o2 = [fitness_o2[i] for i in sorted_idx]
+
+                # Plot, customize, save the figure
+                fig = px.line(
+                    x=fitness_o1, y=fitness_o2, markers=True, title="Pareto front"
+                )
+                fig.update_xaxes(title_text=functions[0])
+                fig.update_yaxes(title_text=functions[1])
+                fig.write_html(f"{output_dir}/pareto_front.html")
+
+            elif len(functions) == 3:
+                # Crear el gráfico tridimensional
+                fig = go.Figure(data=[go.Scatter3d(
+                    x=df[functions[0]],
+                    y=df[functions[1]],
+                    z=df[functions[2]],
+                    mode='markers',
+                )])
+
+                # Establecer los nombres de los ejes y el título del gráfico
+                fig.update_layout(
+                    scene=dict(
+                        xaxis_title=functions[0],
+                        yaxis_title=functions[1],
+                        zaxis_title=functions[2],
+                        xaxis_title_font=dict(size=20),
+                        yaxis_title_font=dict(size=20), 
+                        zaxis_title_font=dict(size=20),
+                        xaxis=dict(
+                            tickfont=dict(
+                                size=14  # Tamaño de la fuente del eje X
+                            )
+                        ),
+                        yaxis=dict(
+                            tickfont=dict(
+                                size=14  # Tamaño de la fuente del eje Y
+                            )
+                        ),
+                        zaxis=dict(
+                            tickfont=dict(
+                                size=14  # Tamaño de la fuente del eje Z
+                            )
+                        ),
+                    ),
+                    title='Pareto front'
+                )
+
+                # Mostrar el gráfico en HTML
+                fig.write_html(f"{output_dir}/pareto_front.html")
+
+    # If specified, the parallel coordinates graph is plotted
+    if plot_parallel_coordinates:
+
+        # Verify that the number of fitness functions is greater than 1
+        if len(functions) == 1:
+            print("[bold yellow]Warning:[/bold yellow] Cannot graph parallel coordinates for a single fitness function. Your intention will be ignored.")
+        else:
+            # Read file with the fitness values associated with the non-dominated solutions.
+            df = pd.read_csv(fun_file)
+
+            # Plot parallel coordinates graph
+            fig = px.parallel_coordinates(
+                df, dimensions=functions, title="Graph of parallel coordinates"
+            )
+            fig.write_html(
+                f"{output_dir}/parallel_coordinates.html"
+            )
+    
+    # If specified, the chord diagram is plotted
+    if plot_chord_diagram:
+        
+        # Verify that the number of fitness functions is greater than 1
+        if len(functions) == 1:
+            print("[bold yellow]Warning:[/bold yellow] Cannot graph chord plot for a single fitness function. Your intention will be ignored.")
+        else:
+            # Read file with the fitness values associated with the non-dominated solutions.
+            df = pd.read_csv(fun_file)
+            
+            # TODO: Implement chord diagram
+            
+
+            
+            
+    
 
 # Command to optimize the ensemble of techniques
 @app.command(rich_help_panel="Commands for two-step main execution")
@@ -1531,19 +1719,9 @@ def optimize_ensemble(
         help="Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.",
         rich_help_panel="Orchestration",
     ),
-    plot_fitness_evolution: bool = typer.Option(
-        False,
-        help="Indicate if you want to represent the evolution of the fitness values.",
-        rich_help_panel="Graphics",
-    ),
-    plot_pareto_front: bool = typer.Option(
-        False,
-        help="Indicate if you want to represent the Pareto front (only available for multi-objective mode of 2 or 3 functions).",
-        rich_help_panel="Graphics",
-    ),
-    plot_parallel_coordinates: bool = typer.Option(
-        False,
-        help="Indicate if you want to represent the parallel coordinate graph (only available for multi-objective mode).",
+    plot_results: bool = typer.Option(
+        True,
+        help="Indicate if you want to represent results graphically.",
         rich_help_panel="Graphics",
     ),
     output_dir: Path = typer.Option(
@@ -1618,7 +1796,7 @@ def optimize_ensemble(
     container = client.containers.run(
         image=image,
         volumes=get_volume(temp_folder_str),
-        command=f"{temp_folder_str} {crossover_probability} {num_parents} {mutation_probability} {mutation_strength} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {str_functions} {algorithm} {threads} {plot_fitness_evolution}",
+        command=f"{temp_folder_str} {crossover_probability} {num_parents} {mutation_probability} {mutation_strength} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {str_functions} {algorithm} {threads} {plot_results}",
         detach=True,
         tty=True,
     )
@@ -1626,134 +1804,17 @@ def optimize_ensemble(
     # Wait, stop and remove the container. Then print reported logs
     logs, _ = wait_and_close_container(container)
     print(logs)
-
-    # If specified, the evolution of the fitness values ​​is graphed
-    if plot_fitness_evolution:
-
-        # Create grid for graphs
-        if len(function) == 1:
-            r = 1
-            c = 1
-        elif len(function) == 2:
-            r = 1
-            c = 2
-        else:
-            r = math.ceil(len(function) / 2)
-            c = 2
-        fig = make_subplots(rows=r, cols=c, subplot_titles=function)
-
-        # Read file with the fitness values
-        df = pd.read_csv(f"{temp_folder_str}/ea_consensus/fitness_evolution.txt", header=None)
-
-        # For each objective ...
-        for i, fitness in df.iterrows():
-
-            # Get row and column index
-            curr_row = math.ceil((i + 1) / c)
-            curr_col = (i + 1) - (c * (curr_row - 1))
-
-            # Plot it under the label of its function
-            fig.add_trace(
-                go.Scatter(x=list(range(len(fitness))), y=fitness),
-                row=curr_row,
-                col=curr_col,
-            )
-            fig.update_xaxes(title_text="Generation", row=curr_row, col=curr_col)
-            fig.update_yaxes(title_text="Fitness", row=curr_row, col=curr_col)
-
-        # Customize and save the figure
-        fig.update_layout(title_text="Fitness evolution", showlegend=False)
-        fig.write_html(f"{temp_folder_str}/ea_consensus/fitness_evolution.html")
-
-    # If specified, the Pareto front is represented
-    if plot_pareto_front:
-
-        # Verify that the number of fitness functions is 2 or 3
-        if len(function) != 2 and len(function) != 3:
-            print("[bold yellow]Warning:[/bold yellow] The Pareto front cannot be represented if the number of objectives is other than 2 or 3. Your intention will be ignored.")
-        else:
-
-            # Read file with the fitness values associated with the non-dominated solutions.
-            df = pd.read_csv(f"{temp_folder_str}/ea_consensus/FUN.csv")
-
-            # If there are two objectives ...
-            if len(function) == 2:
-                ## Get columns as lists
-                fitness_o1 = df[function[0]].tolist()
-                fitness_o2 = df[function[1]].tolist()
-
-                ## Obtain the order corresponding to the first objective in order to plot the front in an appropriate way.
-                sorted_idx = np.argsort(fitness_o1)
-
-                ## Sort all vectors according to the indices obtained above.
-                fitness_o1 = [fitness_o1[i] for i in sorted_idx]
-                fitness_o2 = [fitness_o2[i] for i in sorted_idx]
-
-                # Plot, customize, save the figure
-                fig = px.line(
-                    x=fitness_o1, y=fitness_o2, markers=True, title="Pareto front"
-                )
-                fig.update_xaxes(title_text=function[0])
-                fig.update_yaxes(title_text=function[1])
-                fig.write_html(f"{temp_folder_str}/ea_consensus/pareto_front.html")
-
-            elif len(function) == 3:
-                # Crear el gráfico tridimensional
-                fig = go.Figure(data=[go.Scatter3d(
-                    x=df[function[0]],
-                    y=df[function[1]],
-                    z=df[function[2]],
-                    mode='markers',
-                )])
-
-                # Establecer los nombres de los ejes y el título del gráfico
-                fig.update_layout(
-                    scene=dict(
-                        xaxis_title=function[0],
-                        yaxis_title=function[1],
-                        zaxis_title=function[2],
-                        xaxis_title_font=dict(size=20),
-                        yaxis_title_font=dict(size=20), 
-                        zaxis_title_font=dict(size=20),
-                        xaxis=dict(
-                            tickfont=dict(
-                                size=14  # Tamaño de la fuente del eje X
-                            )
-                        ),
-                        yaxis=dict(
-                            tickfont=dict(
-                                size=14  # Tamaño de la fuente del eje Y
-                            )
-                        ),
-                        zaxis=dict(
-                            tickfont=dict(
-                                size=14  # Tamaño de la fuente del eje Z
-                            )
-                        ),
-                    ),
-                    title='Pareto front'
-                )
-
-                # Mostrar el gráfico en HTML
-                fig.write_html(f"{temp_folder_str}/ea_consensus/pareto_front.html")
-
-    # If specified, the parallel coordinates graph is plotted
-    if plot_parallel_coordinates:
-
-        # Verify that the number of fitness functions is greater than 1
-        if len(function) == 1:
-            print("[bold yellow]Warning:[/bold yellow] Cannot graph parallel coordinates for a single fitness function. Your intention will be ignored.")
-        else:
-            # Read file with the fitness values associated with the non-dominated solutions.
-            df = pd.read_csv(f"{temp_folder_str}/ea_consensus/FUN.csv")
-
-            # Plot parallel coordinates graph
-            fig = px.parallel_coordinates(
-                df, dimensions=function, title="Graph of parallel coordinates"
-            )
-            fig.write_html(
-                f"{temp_folder_str}/ea_consensus/parallel_coordinates.html"
-            )
+    
+    if plot_results:
+        plot_optimization(
+            fun_file=f"{temp_folder_str}/ea_consensus/FUN.csv",
+            fitness_evolution_file=f"{temp_folder_str}/ea_consensus/fitness_evolution.txt",
+            plot_fitness_evolution=True,
+            plot_pareto_front=True,
+            plot_parallel_coordinates=True,
+            plot_chord_diagram=True,
+            output_dir="<<fun_file>>/../",
+        )
 
     # Define and create the output folder
     if str(output_dir) == "<<conf_list_path>>/../ea_consensus":
@@ -2290,19 +2351,9 @@ def run(
         help="Comma-separated list with the identifying numbers of the threads to be used. If specified, the threads variable will automatically be set to the length of the list.",
         rich_help_panel="Orchestration",
     ),
-    plot_fitness_evolution: bool = typer.Option(
-        False,
-        help="Indicate if you want to represent the evolution of the fitness values.",
-        rich_help_panel="Graphics",
-    ),
-    plot_pareto_front: bool = typer.Option(
-        False,
-        help="Indicate if you want to represent the Pareto front (only available for multi-objective mode of 2 or 3 functions).",
-        rich_help_panel="Graphics",
-    ),
-    plot_parallel_coordinates: bool = typer.Option(
-        False,
-        help="Indicate if you want to represent the parallel coordinate graph (only available for multi-objective mode).",
+    plot_results: bool = typer.Option(
+        True,
+        help="Indicate if you want to represent results graphically.",
         rich_help_panel="Graphics",
     ),
     output_dir: Path = typer.Option(
@@ -2343,9 +2394,7 @@ def run(
         function,
         algorithm,
         threads,
-        plot_fitness_evolution,
-        plot_pareto_front,
-        plot_parallel_coordinates,
+        plot_results,
         output_dir="<<conf_list_path>>/../ea_consensus",
     )
 
