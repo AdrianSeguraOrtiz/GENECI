@@ -4,10 +4,10 @@
 ![License](https://img.shields.io/apm/l/GENECI)
 <img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 
-<div style="display: flex; align-items: center;">
-    <img src="https://github.com/AdrianSeguraOrtiz/GENECI/raw/dev/docs/logo.png" style="width: 40%; margin-right: 20px;">
-    <p><b>BIO-INSIGHT (Biologically Informed Optimizator - INtegrating Software to Infer Grns by Holistic Thinking)</b> is a software package designed for intelligent consensus of multiple techniques for inferring gene regulation networks. Given the expression levels of different genes subjected to various perturbations, BIO-INSIGHT allows for the inference of the underlying network by applying in parallel a wide variety of known inference techniques and subsequently merging their results. To this end, a <b>many-objective evolutionary algorithm</b> is applied to optimize the weights assigned to the different techniques based on observed <b>confidence levels</b>, <b>topological characteristics</b> of the network, <b>network dynamics</b>, <b>detection of highly recurrent motifs</b> in real biological networks, <b>importance of interactions</b>, <b>contextualized analysis of graph metrics</b> and, in case of a time series as input, <b>maintenance of the loyalty</b> to it.</p>
-</div>
+
+<div align="center"><img src="https://github.com/AdrianSeguraOrtiz/GENECI/raw/dev/docs/logo.png" width="40%" style="float: right; margin: 1em"></div>
+
+**BIO-INSIGHT (Biologically Informed Optimizator - INtegrating Software to Infer Grns by Holistic Thinking)** is a software package designed for intelligent consensus of multiple techniques for inferring gene regulation networks. Given the expression levels of different genes subjected to various perturbations, BIO-INSIGHT allows for the inference of the underlying network by applying in parallel a wide variety of known inference techniques and subsequently merging their results. To this end, a **many-objective evolutionary algorithm** is applied to optimize the weights assigned to the different techniques based on observed **confidence levels**, **topological characteristics** of the network, **network dynamics**, **detection of highly recurrent motifs** in real biological networks, **importance of interactions**, **contextualized analysis of graph metrics** and, in case of a time series as input, **maintenance of the loyalty** to it.
 
 ![Alt text](https://github.com/AdrianSeguraOrtiz/GENECI/raw/dev/docs/diagram.svg)
 
