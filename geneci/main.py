@@ -11,6 +11,7 @@ from enum import Enum
 from io import BytesIO
 from pathlib import Path
 from typing import List, Optional
+from chord_diagram import chord_diagram
 
 import docker
 import numpy as np
@@ -23,6 +24,7 @@ from iteround import saferound
 from plotly.subplots import make_subplots
 from rich import print
 from scipy import stats
+import matplotlib as mpl
 
 # Header
 __version__ = "3.0.1"
@@ -1491,11 +1493,22 @@ def plot_optimization(
         True,
         help="Indicate if you want to represent the chordplot (only available for multi-objective mode).",
     ),
+    only_files: bool = typer.Option(
+        False,
+        help="Indicate if you just want to generate the display files without showing them on the screen. Note: The chord diagram cannot be generated in files, your request will be ignored.",
+    ),
     output_dir: Path = typer.Option(
         "<<fun_file>>/..",
         help="Path to the output folder.",
     ),
 ):
+    '''
+    Graph execution results. The evolution of Fitness functions, the Pareto front, the parallel coordinate graph and the chord diagram 
+    can be represented. In addition, all of them will be stored in files except the chord diagram, whose interactivity is too complex to be stored.
+    '''
+    
+    # Show figures in localhost
+    mpl.use('WebAgg')
     
     # Define and create the output folder
     if str(output_dir) == "<<fun_file>>/..":
@@ -1542,6 +1555,7 @@ def plot_optimization(
         # Customize and save the figure
         fig.update_layout(title_text="Fitness evolution", showlegend=False)
         fig.write_html(f"{output_dir}/fitness_evolution.html")
+        if not only_files: fig.show()
 
     # If specified, the Pareto front is represented
     if plot_pareto_front:
@@ -1574,6 +1588,7 @@ def plot_optimization(
                 fig.update_xaxes(title_text=functions[0])
                 fig.update_yaxes(title_text=functions[1])
                 fig.write_html(f"{output_dir}/pareto_front.html")
+                if not only_files: fig.show()
 
             elif len(functions) == 3:
                 # Crear el gráfico tridimensional
@@ -1614,6 +1629,7 @@ def plot_optimization(
 
                 # Mostrar el gráfico en HTML
                 fig.write_html(f"{output_dir}/pareto_front.html")
+                if not only_files: fig.show()
 
     # If specified, the parallel coordinates graph is plotted
     if plot_parallel_coordinates:
@@ -1632,9 +1648,10 @@ def plot_optimization(
             fig.write_html(
                 f"{output_dir}/parallel_coordinates.html"
             )
+            if not only_files: fig.show()
     
     # If specified, the chord diagram is plotted
-    if plot_chord_diagram:
+    if plot_chord_diagram and not only_files:
         
         # Verify that the number of fitness functions is greater than 1
         if len(functions) == 1:
@@ -1643,12 +1660,15 @@ def plot_optimization(
             # Read file with the fitness values associated with the non-dominated solutions.
             df = pd.read_csv(fun_file)
             
-            # TODO: Implement chord diagram
+            # Normalize each column of the dataframe
+            for feature_name in df.columns:
+                max_value = df[feature_name].max()
+                min_value = df[feature_name].min()
+                df[feature_name] = (df[feature_name] - min_value) / (max_value - min_value)
             
+            # Show chord diagram
+            chord_diagram(df, nbins=24)
 
-            
-            
-    
 
 # Command to optimize the ensemble of techniques
 @app.command(rich_help_panel="Commands for two-step main execution")
