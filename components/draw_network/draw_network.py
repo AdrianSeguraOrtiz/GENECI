@@ -3,12 +3,14 @@ import itertools
 from enum import Enum
 from pathlib import Path
 from typing import List, Optional
+from my_d3graph import d3graph, vec2adjmat
 
 import matplotlib.pyplot as plt
+import pandas as pd
 import networkx as nx
 import plotly.graph_objects as go
 import typer
-
+from pyvis.network import Network
 
 def my_draw_networkx_edge_labels(
     G,
@@ -189,22 +191,26 @@ class NodesDistribution(str, Enum):
 
 class Mode(str, Enum):
     Static2D = "Static2D"
+    Interactive2D = "Interactive2D"
+    Compare2D = "Compare2D"
     Interactive3D = "Interactive3D"
-    Both = "Both"
 
 
 def draw_network(
     confidence_list: Optional[List[str]] = typer.Option(
         ..., help="Paths of the CSV files with the confidence lists to be represented"
     ),
-    mode: Mode = typer.Option("Both", help="Mode of representation"),
+    mode: Mode = typer.Option("Interactive2D", help="Mode of representation"),
     nodes_distribution: NodesDistribution = typer.Option(
-        "Spring", help="Node distribution in graph"
+        "Spring", help="Node distribution in graph. Note: Interactive2D mode has its own distribution of nodes, so in case of be selected this parameter will be ignored"
+    ),
+    confidence_cut_off: float = typer.Option(
+        0.5, help="Cut off value for confidence"
     ),
     output_folder: str = typer.Option(..., help="Path to output folder"),
 ):
 
-    if mode == Mode.Interactive3D or mode == Mode.Both:
+    if mode == Mode.Interactive3D:
         list_colors = [
             "#ffadad",
             "#ffd6a5",
@@ -223,7 +229,7 @@ def draw_network(
         for conf_list in confidence_list:
             with open(conf_list, "r") as f:
                 reader = csv.reader(f)
-                tuples += [(row[0], row[1], float(row[2])) for row in reader]
+                tuples += [(row[0], row[1], float(row[2])) for row in reader if float(row[2]) >= confidence_cut_off]
 
         DG = nx.DiGraph()
         DG.add_weighted_edges_from(tuples)
@@ -261,7 +267,7 @@ def draw_network(
         for conf_list in confidence_list:
             with open(conf_list, "r") as f:
                 reader = csv.reader(f)
-                tuples = [(row[0], row[1], float(row[2])) for row in reader]
+                tuples = [(row[0], row[1], float(row[2])) for row in reader if float(row[2]) >= confidence_cut_off]
 
             DG = nx.DiGraph()
             DG.add_weighted_edges_from(tuples)
@@ -322,11 +328,11 @@ def draw_network(
         fig = go.Figure(data=data, layout=layout)
         fig.write_html(f"{output_folder}/interactive_3D_network.html")
 
-    if mode == Mode.Static2D or mode == Mode.Both:
+    elif mode == Mode.Static2D:
         for conf_list in confidence_list:
             with open(conf_list, "r") as f:
                 reader = csv.reader(f)
-                tuples = [(row[0], row[1], float(row[2])) for row in reader]
+                tuples = [(row[0], row[1], float(row[2])) for row in reader if float(row[2]) >= confidence_cut_off]
 
             DG = nx.DiGraph()
             DG.add_weighted_edges_from(tuples)
@@ -343,7 +349,7 @@ def draw_network(
                 4 * v for k, v in dict_edge_weights.items() if k in straight_edges
             ]
 
-            node_sizes = [v * 75 for k, v in DG.degree(weight="weight")]
+            node_sizes = [v * 75 for _, v in DG.degree(weight="weight")]
 
             match nodes_distribution:
                 case "Spring":
@@ -375,12 +381,12 @@ def draw_network(
                 curved_edge_labels = {
                     k: round(v, 2)
                     for k, v in dict_edge_weights.items()
-                    if k in curved_edges and v > 0.5
+                    if k in curved_edges and v > (1 - confidence_cut_off)/2 + confidence_cut_off
                 }
                 straight_edge_labels = {
                     k: round(v, 2)
                     for k, v in dict_edge_weights.items()
-                    if k in straight_edges and v > 0.5
+                    if k in straight_edges and v > (1 - confidence_cut_off)/2 + confidence_cut_off
                 }
                 my_draw_networkx_edge_labels(
                     DG,
@@ -396,9 +402,104 @@ def draw_network(
 
             plt.axis("off")
             plt.title(f"Static network for {Path(conf_list).name} file")
-            plt.savefig(f"{output_folder}/{Path(conf_list).stem}_network.pdf")
+            plt.savefig(f"{output_folder}/static_2D_{Path(conf_list).stem}_network.pdf")
             plt.close()
+    
+    elif mode == Mode.Interactive2D:
+        for conf_list in confidence_list:
+            data = pd.read_csv(conf_list, header=None)
+            data.columns = ['source', 'target', 'weight']
 
+            # Convert data to an adjacencia matrix
+            adjmat = vec2adjmat(data['source'], data['target'], data['weight']*100)
+
+            # Create and visualize the directed graph
+            d3 = d3graph()
+            d3.graph(adjmat)
+            d3.set_edge_properties(directed=True)
+            d3.set_node_properties(color='cluster', fontcolor='node_color', edge_color='cluster', size='degree', opacity='degree')
+
+            # Ssave the graph
+            d3.show(filepath= f"{output_folder}/interactive_2D_{Path(conf_list).stem}_network.html", set_slider=confidence_cut_off*100)
+
+    elif mode == Mode.Compare2D:
+        colors = [
+            "#FF9999",  # Rosa pastel oscurecido
+            "#80CCCC",  # Azul cielo oscurecido
+            "#CCCC99",  # Amarillo pálido oscurecido
+            "#99CC99",  # Verde menta oscurecido
+            "#CC99FF",  # Lila suave oscurecido
+            "#FFB366",  # Melocotón oscurecido
+            "#BFBFBF",  # Gris perla oscurecido
+            "#99FFFF",  # Turquesa claro oscurecido
+            "#9999FF",  # Lavanda oscurecido
+            "#FFE0CC"   # Beige claro oscurecido
+        ]
+        color_map = {}
+        iter_colors = itertools.cycle(colors)
+        
+        # Initialize the pyvis graph
+        net = Network(notebook=False, directed=True, height="1000px", width="100%")
+
+        # Fill graph
+        for conf_list in confidence_list:
+            data = pd.read_csv(conf_list)
+            color = next(iter_colors)
+            color_map[Path(conf_list).stem] = color
+            for _, row in data.iterrows():
+                source, target, weight = row
+                
+                # Discard interactions below the threshold
+                if weight < confidence_cut_off:
+                    continue
+                title = f"{weight:.2f}"
+                
+                # Make sure the nodes exist before adding the edges
+                if source not in net.nodes:
+                    net.add_node(source, title=source, shape="ellipse")
+                if target not in net.nodes:
+                    net.add_node(target, title=target, shape="ellipse")
+                    
+                # Add the edge with the corresponding color and title
+                net.add_edge(source, target, title=title, color=color, value=weight)
+
+        net.set_options("""
+        {
+            "edges": {
+                "scaling": {
+                    "min": 0,
+                    "max": 5
+                },
+                "smooth": true
+            },
+            "physics": {
+                "maxVelocity": 15
+            }
+        }
+        """)
+
+        # Save and show visualization
+        # Guarda y muestra la visualización
+        output_path = f"{output_folder}/compare_2D_network.html"
+        net.show(output_path, notebook=False)
+
+        # Crea la leyenda como HTML
+        legend_html = "<div id='legend' style='position:absolute; top:10px; right:10px; width:200px; background-color:#FFF; padding:10px; border:1px solid #000;'>"
+        legend_html += "<h4>Leyend</h4>"
+        for file_name, color in color_map.items():
+            legend_html += f"<p><span style='display:inline-block; width:12px; height:12px; margin-right:5px; background-color:{color};'></span>{file_name}</p>"
+        legend_html += "</div>"
+
+        # Lee el contenido HTML actual
+        with open(output_path, "r") as file:
+            html_content = file.read()
+
+        # Inserta la leyenda antes del final del body
+        html_content = html_content.replace("</body>", f"{legend_html}</body>")
+
+        # Sobrescribe el archivo con la leyenda añadida
+        with open(output_path, "w") as file:
+            file.write(html_content)
 
 if __name__ == "__main__":
     typer.run(draw_network)

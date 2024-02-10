@@ -237,8 +237,9 @@ class NodesDistribution(str, Enum):
 
 class Mode(str, Enum):
     Static2D = "Static2D"
+    Interactive2D = "Interactive2D"
+    Compare2D = "Compare2D"
     Interactive3D = "Interactive3D"
-    Both = "Both"
 
 
 class Algorithm(str, Enum):
@@ -2425,9 +2426,12 @@ def draw_network(
     confidence_list: Optional[List[str]] = typer.Option(
         ..., help="Paths of the CSV files with the confidence lists to be represented"
     ),
-    mode: Mode = typer.Option("Both", help="Mode of representation"),
+    mode: Mode = typer.Option("Interactive2D", help="Mode of representation"),
     nodes_distribution: NodesDistribution = typer.Option(
-        "Spring", help="Node distribution in graph"
+        "Spring", help="Node distribution in graph. Note: Interactive2D mode has its own distribution of nodes, so in case of be selected this parameter will be ignored"
+    ),
+    confidence_cut_off: float = typer.Option(
+        0.5, help="Cut off value for confidence"
     ),
     output_folder: Path = typer.Option(
         "<<conf_list_path>>/../network_graphics", help="Path to output folder"
@@ -2467,7 +2471,7 @@ def draw_network(
     container = client.containers.run(
         image=image,
         volumes=get_volume(temp_folder_str),
-        command=f"{command} --mode {mode} --nodes-distribution {nodes_distribution} --output-folder {tmp_output_folder}",
+        command=f"{command} --mode {mode} --nodes-distribution {nodes_distribution} --confidence-cut-off {confidence_cut_off} --output-folder {tmp_output_folder}",
         detach=True,
         tty=True,
     )
