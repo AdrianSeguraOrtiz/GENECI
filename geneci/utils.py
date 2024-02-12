@@ -5,7 +5,7 @@ from matplotlib import patches
 from matplotlib import pyplot as plt
 from matplotlib.path import Path
 from tqdm import tqdm
-import pickle
+from sklearn.preprocessing import MaxAbsScaler
 
 
 def polar_to_cartesian(r, theta):
@@ -363,3 +363,95 @@ def chord_diagram(
         "button_press_event", lambda event: hover_over_bin(event, handle_tickers, handle_plots, colors, fig)
     )
     plt.show()
+    
+    
+def plot_moving_medians(file_path: str, x: str, y: list[str], normalized: bool, output_path: str):
+    # Cargar los datos
+    data = pd.read_csv(file_path)
+
+    # Establecer la primera fila como encabezado
+    data.columns = data.iloc[0]
+    data = data[1:]
+
+    # Convertir los datos a tipos numéricos
+    data = data.apply(pd.to_numeric)
+
+    # Normalizar las columnas de objetivos
+    data_normalized = data.copy()
+    if normalized:
+        scaler = MaxAbsScaler()
+        data_normalized[y] = scaler.fit_transform(data[y])
+    
+    # Si el objetivo se optimizaba en negativo le sumamos 1
+    for column in y:
+        if all(v < 0 for v in data_normalized[column]):
+            data_normalized[column] += 1
+
+    # Ordenar los datos por la métrica elegida
+    data_normalized_sorted_by_metric = data_normalized.sort_values(by=x)
+
+    # Función para calcular la media móvil
+    def calculate_moving_median(row, dataframe, objective_columns, window_size):
+        lower_bound = row[x] - window_size
+        upper_bound = row[x] + window_size
+        window_data = dataframe[(dataframe[x] >= lower_bound) & (dataframe[x] <= upper_bound)]
+        mean_values = window_data[objective_columns].median()
+        return mean_values
+
+    # Función para calcular el primer cuartil dentro de la ventana
+    def calculate_q1_within_window(row, dataframe, objective_columns, window_size):
+        lower_bound = row[x] - window_size
+        upper_bound = row[x] + window_size
+        window_data = dataframe[(dataframe[x] >= lower_bound) & (dataframe[x] <= upper_bound)]
+        q1_values = window_data[objective_columns].quantile(0.25)
+        return q1_values
+
+    # Función para calcular el tercer cuartil dentro de la ventana
+    def calculate_q3_within_window(row, dataframe, objective_columns, window_size):
+        lower_bound = row[x] - window_size
+        upper_bound = row[x] + window_size
+        window_data = dataframe[(dataframe[x] >= lower_bound) & (dataframe[x] <= upper_bound)]
+        q3_values = window_data[objective_columns].quantile(0.75)
+        return q3_values
+
+    # Definir el tamaño de la ventana
+    window_size = (max(data_normalized[x]) - min(data_normalized[x])) / 10
+
+    # Calcular las medianas móviles y los cuartiles para los datos normalizados
+    moving_medians_normalized = data_normalized_sorted_by_metric.apply(
+        lambda row: calculate_moving_median(row, data_normalized_sorted_by_metric, y, window_size), axis=1
+    )
+    q1_normalized = data_normalized_sorted_by_metric.apply(
+        lambda row: calculate_q1_within_window(row, data_normalized_sorted_by_metric, y, window_size), axis=1
+    )
+    q3_normalized = data_normalized_sorted_by_metric.apply(
+        lambda row: calculate_q3_within_window(row, data_normalized_sorted_by_metric, y, window_size), axis=1
+    )
+
+    # Crear la figura y los ejes para la gráfica
+    fig, ax = plt.subplots(figsize=(12, 8))
+
+
+    # Graficar las medias móviles con el área sombreada para la desviación estándar en los datos normalizados
+    for column in y:
+        ax.plot(data_normalized_sorted_by_metric[x], moving_medians_normalized[column], label=column)
+        ax.fill_between(data_normalized_sorted_by_metric[x],
+                        q1_normalized[column],
+                        q3_normalized[column],
+                        alpha=0.2)
+
+    # Configurar el título de la gráfica y las etiquetas
+    ax.set_title(f'Moving Medians of Normalized Objectives \n by {x} with IQR Shading', fontsize=20)
+    ax.set_xlabel(x, fontsize=14)
+    ax.set_ylabel(f'Moving Medians of Normalized Objective \n Scores with window size of {round(window_size, 3)}', fontsize=14)
+
+    # Añadir la leyenda a la gráfica
+    # Shrink current axis by 20%
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.7, box.height])
+
+    # Put a legend to the right of the current axis
+    ax.legend(loc='upper left', bbox_to_anchor=(1.04, 1), fontsize=12)
+
+    # Mostrar la gráfica
+    plt.savefig(output_path)

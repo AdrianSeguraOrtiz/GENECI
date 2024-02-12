@@ -11,7 +11,7 @@ from enum import Enum
 from io import BytesIO
 from pathlib import Path
 from typing import List, Optional
-from chord_diagram import chord_diagram
+from geneci.utils import chord_diagram, plot_moving_medians
 
 import docker
 import numpy as np
@@ -352,13 +352,13 @@ def get_weights(filename):
 
 # Function to write evaluation CSV file
 def write_evaluation_csv(
-    output_dir, sorted_idx, confidence_list, objective_labels, weights, df
+    output_path, sorted_idx, confidence_list, objective_labels, weights, df
 ):
     df['aupr_scaled'] = (df['aupr'] - min(df['aupr'])) / (max(df['aupr']) - min(df['aupr']))
     df['auroc_scaled'] = (df['auroc'] - min(df['auroc'])) / (max(df['auroc']) - min(df['auroc']))
     df['mean_scaled'] = (df['aupr_scaled'] + df['auroc_scaled']) / 2
     
-    with open(f"{output_dir}/evaluated_front.csv", "w") as f:
+    with open(output_path, "w") as f:
         f.write(
             f"Weights{',' * len(confidence_list)}Fitness Values{',' * len(objective_labels)}Evaluation Values,,,,,\n"
         )
@@ -2056,8 +2056,19 @@ def dream_pareto_front(
     ## Concat both dataframes
     df = pd.concat([fitness_df, evaluation_df], axis=1)
 
-    # 4. Plot the information on a graph if specified
+    # 4. Writing the output CSV file
+    ## Get the order corresponding to the best mean between aupr and auroc
+    sorted_idx = np.argsort([-s for s in score])
+
+    ## Write CSV file
+    write_evaluation_csv(
+        f"{output_dir}/evaluated_front.csv", sorted_idx, [f"{confidence_folder}/{f}" for f in filenames], objective_labels, weights, df
+    )
+    
+    # 5. Plot the information on a graph if specified
     if plot_metrics:
+        
+        # Evaluated parallel coordinates
         fig = px.parallel_coordinates(
             df,
             color="acc_mean",
@@ -2066,15 +2077,34 @@ def dream_pareto_front(
             title="Evaluated graph of parallel coordinates",
         )
         fig.write_html(f"{output_dir}/evaluated_parallel_coordinates.html")
-
-    # 5. Writing the output CSV file
-    ## Get the order corresponding to the best mean between aupr and auroc
-    sorted_idx = np.argsort([-s for s in score])
-
-    ## Write CSV file
-    write_evaluation_csv(
-        output_dir, sorted_idx, [f"{confidence_folder}/{f}" for f in filenames], objective_labels, weights, df
-    )
+        
+        # Moving medians objectives vs metrics
+        ## AUROC
+        plot_moving_medians(
+            file_path=f"{output_dir}/evaluated_front.csv",
+            x="AUROC",
+            y=objective_labels,
+            normalized=True,
+            output_path=f"{output_dir}/moving_medians_objectives_vs_AUROC.pdf"
+        )
+        ## AUPR
+        plot_moving_medians(
+            file_path=f"{output_dir}/evaluated_front.csv",
+            x="AUPR",
+            y=objective_labels,
+            normalized=True,
+            output_path=f"{output_dir}/moving_medians_objectives_vs_AUPR.pdf"
+        )
+        
+        # Moving medians techniques vs objectives
+        for fitness_func in objective_labels:
+            plot_moving_medians(
+                file_path=f"{output_dir}/evaluated_front.csv",
+                x=fitness_func,
+                y=filenames,
+                normalized=False,
+                output_path=f"{output_dir}/moving_medians_techniches_vs_{fitness_func}.pdf"
+            )
 
 
 # Command to evaluate the accuracy of generic inferred networks
@@ -2275,9 +2305,20 @@ def generic_pareto_front(
 
     ## Concat both dataframes
     df = pd.concat([fitness_df, evaluation_df], axis=1)
+    
+    # 4. Writing the output CSV file
+    ## Get the order corresponding to the best mean between aupr and auroc
+    sorted_idx = np.argsort([-s for s in score])
 
-    # 4. Plot the information on a graph if specified
+    ## Write CSV file
+    write_evaluation_csv(
+        f"{output_dir}/evaluated_front.csv", sorted_idx, [f"{confidence_folder}/{f}" for f in filenames], objective_labels, weights, df
+    )
+    
+    # 5. Plot the information on a graph if specified
     if plot_metrics:
+        
+        # Evaluated parallel coordinates
         fig = px.parallel_coordinates(
             df,
             color="acc_mean",
@@ -2286,16 +2327,34 @@ def generic_pareto_front(
             title="Evaluated graph of parallel coordinates",
         )
         fig.write_html(f"{output_dir}/evaluated_parallel_coordinates.html")
-
-    # 5. Writing the output CSV file
-    ## Get the order corresponding to the best mean between aupr and auroc
-    sorted_idx = np.argsort([-s for s in score])
-
-    ## Write CSV file
-    write_evaluation_csv(
-        output_dir, sorted_idx, [f"{confidence_folder}/{f}" for f in filenames], objective_labels, weights, df
-    )
-
+        
+        # Moving medians objectives vs metrics
+        ## AUROC
+        plot_moving_medians(
+            file_path=f"{output_dir}/evaluated_front.csv",
+            x="AUROC",
+            y=objective_labels,
+            normalized=True,
+            output_path=f"{output_dir}/moving_medians_objectives_vs_AUROC.pdf"
+        )
+        ## AUPR
+        plot_moving_medians(
+            file_path=f"{output_dir}/evaluated_front.csv",
+            x="AUPR",
+            y=objective_labels,
+            normalized=True,
+            output_path=f"{output_dir}/moving_medians_objectives_vs_AUPR.pdf"
+        )
+        
+        # Moving medians techniques vs objectives
+        for fitness_func in objective_labels:
+            plot_moving_medians(
+                file_path=f"{output_dir}/evaluated_front.csv",
+                x=fitness_func,
+                y=filenames,
+                normalized=False,
+                output_path=f"{output_dir}/moving_medians_techniches_vs_{fitness_func}.pdf"
+            )
 
 # Command that unites individual inference with consensus optimization
 @app.command(rich_help_panel="Main Command")

@@ -20,6 +20,7 @@ scipy = "^1.10.2"
 matplotlib = "^3.8.2"
 tqdm = "^4.66.1"
 tornado = "^6.3.3"
+scikit-learn = "^1.4.0"
 
 [tool.poetry.dev-dependencies]
 
