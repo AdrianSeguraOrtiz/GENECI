@@ -11,7 +11,7 @@ from enum import Enum
 from io import BytesIO
 from pathlib import Path
 from typing import List, Optional
-from geneci.utils import chord_diagram, plot_moving_medians
+from geneci.utils import chord_diagram, plot_moving_medians, plot_polar
 
 import docker
 import numpy as np
@@ -2062,7 +2062,7 @@ def dream_pareto_front(
 
     ## Write CSV file
     write_evaluation_csv(
-        f"{output_dir}/evaluated_front.csv", sorted_idx, [f"{confidence_folder}/{f}" for f in filenames], objective_labels, weights, df
+        f"{output_dir}/evaluated_front.csv", sorted_idx, [f"{confidence_folder}/{f}" for f in filenames], objective_labels, weights, df.copy()
     )
     
     # 5. Plot the information on a graph if specified
@@ -2105,6 +2105,40 @@ def dream_pareto_front(
                 normalized=False,
                 output_path=f"{output_dir}/moving_medians_techniches_vs_{fitness_func}.pdf"
             )
+        
+        # Polar plot
+        auprs = dict()
+        aurocs = dict()
+        for f in filenames:
+            # Evaluate technique
+            values = dream_list_of_links(
+                challenge=challenge,
+                network_id=network_id,
+                synapse_file=synapse_file,
+                confidence_list=f"{confidence_folder}/{f}"
+            )
+
+            # The obtained accuracy values are read and stored in the list.
+            str_aupr = re.search("AUPR: (.*)\n", values)
+            auprs[f] = float(str_aupr.group(1))
+            str_auroc = re.search("AUROC: (.*)\n", values)
+            aurocs[f] = float(str_auroc.group(1))
+            
+        ## AUROC
+        plot_polar(
+            file_path=f"{output_dir}/evaluated_front.csv",
+            techniques_dict_scores=aurocs,
+            metric="AUROC",
+            output_path=f"{output_dir}/polar_plot_AUROC.pdf"
+        )
+        
+        ## AUPR
+        plot_polar(
+            file_path=f"{output_dir}/evaluated_front.csv",
+            techniques_dict_scores=auprs,
+            metric="AUPR",
+            output_path=f"{output_dir}/polar_plot_AUPR.pdf"
+        )
 
 
 # Command to evaluate the accuracy of generic inferred networks
@@ -2312,7 +2346,7 @@ def generic_pareto_front(
 
     ## Write CSV file
     write_evaluation_csv(
-        f"{output_dir}/evaluated_front.csv", sorted_idx, [f"{confidence_folder}/{f}" for f in filenames], objective_labels, weights, df
+        f"{output_dir}/evaluated_front.csv", sorted_idx, [f"{confidence_folder}/{f}" for f in filenames], objective_labels, weights, df.copy()
     )
     
     # 5. Plot the information on a graph if specified
@@ -2355,6 +2389,38 @@ def generic_pareto_front(
                 normalized=False,
                 output_path=f"{output_dir}/moving_medians_techniches_vs_{fitness_func}.pdf"
             )
+            
+        # Polar plot
+        auprs = dict()
+        aurocs = dict()
+        for f in filenames:
+            # Evaluate technique
+            values = generic_list_of_links(
+                confidence_list=f"{confidence_folder}/{f}",
+                gs_binary_matrix=gs_binary_matrix,
+            )
+
+            # The obtained accuracy values are read and stored in the list.
+            str_aupr = re.search('AUPR: (.*)"', values)
+            auprs[f] = float(str_aupr.group(1))
+            str_auroc = re.search('AUROC: (.*)"', values)
+            aurocs[f] = float(str_auroc.group(1))
+            
+        ## AUROC
+        plot_polar(
+            file_path=f"{output_dir}/evaluated_front.csv",
+            techniques_dict_scores=aurocs,
+            metric="AUROC",
+            output_path=f"{output_dir}/polar_plot_AUROC.pdf"
+        )
+        
+        ## AUPR
+        plot_polar(
+            file_path=f"{output_dir}/evaluated_front.csv",
+            techniques_dict_scores=auprs,
+            metric="AUPR",
+            output_path=f"{output_dir}/polar_plot_AUPR.pdf"
+        )
 
 # Command that unites individual inference with consensus optimization
 @app.command(rich_help_panel="Main Command")

@@ -1,12 +1,30 @@
 import colorsys
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from matplotlib import patches
 from matplotlib import pyplot as plt
+from matplotlib.cm import viridis
 from matplotlib.path import Path
-from tqdm import tqdm
 from sklearn.preprocessing import MaxAbsScaler
+from tqdm import tqdm
+import os
 
+def delete_common_prefix_and_sufix(lista):
+    # Encontrar el prefijo común
+    prefijo_comun = os.path.commonprefix(lista)
+    
+    # Eliminar prefijo común de cada elemento
+    lista_sin_prefijo = [s[len(prefijo_comun):] for s in lista]
+    
+    # Encontrar el sufijo común (invierte cada cadena, encuentra el prefijo común y luego lo invierte de nuevo)
+    sufijo_comun = os.path.commonprefix([s[::-1] for s in lista])[::-1]
+    
+    # Eliminar sufijo común de cada elemento
+    lista_final = [s[:-len(sufijo_comun)] if sufijo_comun else s for s in lista_sin_prefijo]
+    
+    return lista_final
 
 def polar_to_cartesian(r, theta):
     return np.array([r * np.cos(theta), r * np.sin(theta)])
@@ -455,3 +473,92 @@ def plot_moving_medians(file_path: str, x: str, y: list[str], normalized: bool, 
 
     # Mostrar la gráfica
     plt.savefig(output_path)
+    
+def plot_polar(file_path: str, techniques_dict_scores: dict, metric: str, output_path: str):
+    # Cargamos el archivo "evaluated_front.csv" nuevamente para obtener los pesos de los individuos.
+    evaluated_front = pd.read_csv(file_path, skiprows=[0])
+        
+    # Vamos a extraer solo las columnas de pesos que terminan en '.csv'
+    weight_columns = [col for col in evaluated_front.columns if col.endswith('.csv')]
+    techniques_names = delete_common_prefix_and_sufix(weight_columns)
+    individual_weights = evaluated_front[weight_columns]
+    individual_scores = evaluated_front[metric]
+
+    # Coger los valores de las técnicas en el mismo orden que el fichero evaluado del frente
+    techniques_scores = []
+    for tec in weight_columns:
+        techniques_scores.append(techniques_dict_scores[tec])
+
+    # Función para calcular las coordenadas polares de los individuos en función de sus pesos
+    def calculate_polar_coordinates(weights, num_techniques):
+        # Calculamos el ángulo de cada técnica
+        angles = np.linspace(0, 2 * np.pi, num_techniques, endpoint=False)
+        # Calculamos las coordenadas polares de los individuos
+        coordinates = weights.dot(np.exp(1j * angles))
+        return np.angle(coordinates), np.abs(coordinates)
+
+    # Calcular las coordenadas polares de los individuos
+    num_techniques = len(weight_columns)
+    individual_angles, individual_radii = calculate_polar_coordinates(individual_weights.values, num_techniques)
+
+    # Crear la gráfica polar
+    _, ax = plt.subplots(figsize=(10, 6), subplot_kw=dict(polar=True))
+
+    # Dibujar los puntos normales
+    technique_angles = np.linspace(0, 2 * np.pi, num_techniques, endpoint=False)
+    angles = individual_angles.tolist() + technique_angles.tolist()
+    radii = individual_radii.tolist() + [1] * num_techniques
+    scores = individual_scores.tolist() + techniques_scores
+    sc = ax.scatter(angles, radii, c=scores, cmap='viridis', alpha=0.7)
+
+    # Dibujar los puntos especiales para las técnicas individuales
+    techniques_scores_normalized = (techniques_scores - np.min(scores)) / (np.max(scores) - np.min(scores))
+    for i, angle in enumerate(technique_angles):
+        ax.scatter(angle, 1, color=viridis(techniques_scores_normalized[i]), edgecolors='black', linewidth=1, s=200)
+
+    # Añadir la barra de colores que indica los valores de AUROC
+    cbar = plt.colorbar(sc, orientation='vertical', pad=0.25)
+    cbar.set_label(metric)
+
+    # Añadir marcas y etiquetas para los valores AUROC de cada técnica en la barra de colores
+    scores = techniques_scores + [individual_scores.median(), individual_scores.max()]
+    labels = techniques_names + ['Median BIO-INSIGHT', 'Best BIO-INSIGHT']
+    sorted_indices = np.argsort(scores)
+    sorted_scores = np.array(scores)[sorted_indices]
+    sorted_labels = np.array(labels)[sorted_indices]
+
+    # Definir la distancia mínima entre las etiquetas (este valor puede ajustarse según la necesidad)
+    min_distance = (np.max(sorted_scores) - np.min(sorted_scores)) * 0.025
+
+    # Crear listas para almacenar las posiciones ajustadas de las etiquetas
+    adjusted_positions = []
+
+    # Inicializar la última posición añadida
+    last_position = -np.inf
+
+    # Iterar sobre los scores y etiquetas ordenados para ajustar la posición de las etiquetas
+    for score, label in zip(sorted_scores, sorted_labels):
+        # Si la posición actual está muy cerca de la última posición ajustada, mover la etiqueta un poco más arriba
+        if score - last_position < min_distance:
+            adjusted_position = last_position + min_distance
+        else:
+            adjusted_position = score
+        adjusted_positions.append(adjusted_position)
+        last_position = adjusted_position
+
+    # Ahora puedes usar 'adjusted_positions' para colocar tus etiquetas en el colorbar sin que se superpongan
+    for i, (label, adjusted_position) in enumerate(zip(sorted_labels, adjusted_positions)):
+        cbar.ax.axhline(y=sorted_scores[i], color='black' if "BIO-INSIGHT" not in label else 'white', linewidth=1)
+        cbar.ax.text(-0.2, adjusted_position, f'{label} ({sorted_scores[i]:.4f})', va='center', ha='right', fontsize=8, color='black')
+
+
+    # Añadir etiquetas para las técnicas
+    ax.set_xticks(technique_angles)
+    ax.set_xticklabels(techniques_names, fontsize=10)
+
+    # Título de la gráfica
+    ax.set_title(f'Polar Plot of Individuals by Weights and {metric}', size=16)
+
+    plt.savefig(output_path)
+
+    
