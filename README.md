@@ -23,7 +23,7 @@ To implement all the functionalities mentioned above, it has been necessary to p
 # Instalation
 
 ```sh
-pip install geneci
+pip install geneci==3.0.1
 ```
 
 # Output
