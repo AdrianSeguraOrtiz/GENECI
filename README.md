@@ -1,16 +1,17 @@
-<div align="center"><img src="https://github.com/AdrianSeguraOrtiz/GENECI/raw/dev/docs/logo.svg" width="30%"></div>
-
 ![CI](https://github.com/AdrianSeguraOrtiz/GENECI/actions/workflows/ci.yml/badge.svg)
 ![Release](https://github.com/AdrianSeguraOrtiz/GENECI/actions/workflows/release.yml/badge.svg)
 ![Pypi](https://img.shields.io/pypi/v/GENECI)
 ![License](https://img.shields.io/apm/l/GENECI)
 <img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 
-**GENECI (GEne NEtwork Consensus Inference)** is a software package designed for intelligent consensus of multiple techniques for inferring gene regulation networks. Given the expression levels of different genes subjected to various perturbations, GENECI allows for the inference of the underlying network by applying in parallel a wide variety of known inference techniques and subsequently merging their results. To this end, a **multi-objective evolutionary algorithm** is applied to optimize the weights assigned to the different techniques based on observed **confidence levels**, **topological characteristics** of the network, **network dynamics**, **detection of highly recurrent motifs** in real biological networks and, in case of a time series as input, **maintenance of the loyalty** to it.
+
+<img src="https://github.com/AdrianSeguraOrtiz/GENECI/raw/dev/docs/logo.png" width="40%" align="right" style="margin: 1em">
+
+**BIO-INSIGHT (Biologically Informed Optimizator - INtegrating Software to Infer Grns by Holistic Thinking)** is a software package designed for intelligent consensus of multiple techniques for inferring gene regulation networks. Given the expression levels of different genes subjected to various perturbations, BIO-INSIGHT allows for the inference of the underlying network by applying in parallel a wide variety of known inference techniques and subsequently merging their results. To this end, a **many-objective evolutionary algorithm** is applied to optimize the weights assigned to the different techniques based on observed **confidence levels**, **topological characteristics** of the network, **network dynamics**, **detection of highly recurrent motifs** in real biological networks, **importance of interactions**, **contextualized analysis of graph metrics** and, in case of a time series as input, **maintenance of the loyalty** to it.
 
 ![Alt text](https://github.com/AdrianSeguraOrtiz/GENECI/raw/dev/docs/diagram.svg)
 
-GENECI offers the following **functionalities**: network inference using individual techniques, optimization of consensus across multiple solutions, construction of benchmark networks (from scratch or based on real networks), evaluation of accuracy concerning gold standards, network binarization algorithms, and graphical representation.
+BIO-INSIGHT offers the following **functionalities**: network inference using individual techniques, optimization of consensus across multiple solutions, construction of benchmark networks (from scratch or based on real networks), evaluation of accuracy concerning gold standards, network binarization algorithms, graphical representation of networks and optimization results, and modularized network segmentation.
 
 To implement all the functionalities mentioned above, it has been necessary to program in multiple languages such as Java, Python, R, Matlab, Julia, etc. To integrate all the utilities into a single tool, it has been decided to **dockerize components** and use Python as the main means of orchestration. This, in addition to facilitating **task parallelization**, reduces the complexity of installation and requirements for our software package.
 
@@ -27,7 +28,7 @@ pip install geneci
 
 # Output
 
-To execute GENECI, the `run` command is provided with the file containing the expression levels of the genes that make up the network, the list of techniques to be agreed upon and the values of the different algorithm parameters in the event of not wishing to use those established by default. If the three proposed objectives are used, the following files are obtained after execution:
+To execute BIO-INSIGHT, the `run` command is provided with the file containing the expression levels of the genes that make up the network, the list of techniques to be agreed upon and the values of the different algorithm parameters in the event of not wishing to use those established by default. If more than one proposed objectives are used, the following files are obtained after execution:
 
 - `FUN.csv`: List with fitness values for each individual in the final population for each of the objective functions.
 - `VAR.csv`: List of winning weight vectors, i.e., individuals from the last generation.

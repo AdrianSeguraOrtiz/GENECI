@@ -1,6 +1,7 @@
 package eagrn.fitnessfunction.impl.dynamic.impl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 import eagrn.StaticUtils;
@@ -11,16 +12,18 @@ import org.apache.commons.math3.ode.nonstiff.EulerIntegrator;
 
 
 public class DynamicsMeasureODE implements FitnessFunction { 
-
-    private ArrayList<String> geneNames;
+    private Map<String, Integer> geneIndexMap;
 
     public DynamicsMeasureODE(ArrayList<String> geneNames) {
-        this.geneNames = geneNames;
+        this.geneIndexMap = new HashMap<>();
+        for (int i = 0; i < geneNames.size(); i++) {
+            this.geneIndexMap.put(geneNames.get(i), i);
+        }
     }
 
     @Override
     public double run(Map<String, Float> consensus, Double[] x) {
-        float[][] adjacencyMatrix = StaticUtils.getFloatMatrixFromEdgeList(consensus, geneNames, 4);
+        float[][] adjacencyMatrix = StaticUtils.getFloatMatrix(consensus, geneIndexMap, 4);
         return calcularPuntajeEstabilidad(adjacencyMatrix);
     }
     

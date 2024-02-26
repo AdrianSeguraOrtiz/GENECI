@@ -62,7 +62,7 @@ generar_grafica <- function(df1, df2, output_file) {
     # Establecer paleta de colores
     colores <- c("#FF96A5", "#85D5D5", "#FFD275", "#FF847F", "#FF92A2", "#C7E8B7", "#95DFA6", "#6FAF9C", "#FFBE91", "#5C7373", "#FFA56B", "#8CD9AB", "#B1E9FF", "#FFD58C", "#70BDBD", "#FF8A9F", "#D57AB3", "#FCA2B7", "#59789A", "#6BB7A1", "#87BFE8", "#FFA563", "#E7A9C8", "#D1EABE", "#BCC9DB", "#B89FB5", "#42576B", "#FF96A5")
     fill_colors <- scales::alpha(colores, 0.5)
-    fill_colors[-which(tail(rownames(df1), -2) == "BEST_MO-GENECI")] <- NA
+    fill_colors[-which(tail(rownames(df1), -2) == "BEST_Many-GENECI")] <- NA
 
     # Guardar las gráficas en un archivo PDF
     pdf(file = output_file, width = 10, height = 5)  # Aumenta la altura para acomodar la leyenda
@@ -76,7 +76,7 @@ generar_grafica <- function(df1, df2, output_file) {
         cglcol = "gray", # Color del grid
         cglwd = 1,       # Ancho líneas grid
         pcol = colores,  # Color de la línea
-        plwd = ifelse(tail(rownames(df1), -2) == "BEST_MO-GENECI", 3, 1),        # Ancho de la línea
+        plwd = ifelse(tail(rownames(df1), -2) == "BEST_Many-GENECI", 3, 1),        # Ancho de la línea
         plty = 1,        # Tipo de línea
         pfcol = fill_colors,         # Color del área
         title = "AUPR",        # Título del radar
@@ -88,7 +88,7 @@ generar_grafica <- function(df1, df2, output_file) {
         cglcol = "gray", # Color del grid
         cglwd = 1,       # Ancho líneas grid
         pcol = colores,  # Color de la línea
-        plwd = ifelse(tail(rownames(df1), -2) == "BEST_MO-GENECI", 3, 1),        # Ancho de la línea
+        plwd = ifelse(tail(rownames(df1), -2) == "BEST_Many-GENECI", 3, 1),        # Ancho de la línea
         plty = 1,        # Tipo de línea
         pfcol = fill_colors,         # Color del área
         title = "AUROC",        # Título del radar

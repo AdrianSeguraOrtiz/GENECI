@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
 RUN pip install --upgrade pip
 
 # Install packages
-RUN pip install typer networkx matplotlib plotly scipy
+RUN pip install typer networkx matplotlib plotly scipy d3graph pyvis seaborn scikit-learn
 
 COPY components /usr/local/src/components
 WORKDIR /usr/local/src/

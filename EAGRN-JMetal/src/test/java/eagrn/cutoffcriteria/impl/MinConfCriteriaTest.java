@@ -24,7 +24,7 @@ public class MinConfCriteriaTest {
         geneNames.add("C");
 
         MinConfCriteria minConfCriteria = new MinConfCriteria(1f, geneNames);
-        boolean[][] matrix = minConfCriteria.getNetwork(links);
+        boolean[][] matrix = minConfCriteria.getBooleanMatrix(links);
 
         assertArrayEquals(new boolean[]{false, false, false}, matrix[0]);
         assertArrayEquals(new boolean[]{false, false, false}, matrix[1]);
@@ -49,7 +49,7 @@ public class MinConfCriteriaTest {
         geneNames.add("C");
 
         MinConfCriteria minConfCriteria = new MinConfCriteria(0.5f, geneNames);
-        boolean[][] matrix = minConfCriteria.getNetwork(links);
+        boolean[][] matrix = minConfCriteria.getBooleanMatrix(links);
 
         assertArrayEquals(new boolean[]{false, true, false}, matrix[0]);
         assertArrayEquals(new boolean[]{false, false, false}, matrix[1]);
@@ -75,7 +75,7 @@ public class MinConfCriteriaTest {
         geneNames.add("C");
 
         MinConfCriteria minConfCriteria = new MinConfCriteria(0.5f, geneNames);
-        boolean[][] matrix = minConfCriteria.getNetwork(links);
+        boolean[][] matrix = minConfCriteria.getBooleanMatrix(links);
 
         assertArrayEquals(new boolean[]{false, true, false}, matrix[0]);
         assertArrayEquals(new boolean[]{false, false, true}, matrix[1]);
@@ -104,7 +104,7 @@ public class MinConfCriteriaTest {
         geneNames.add("D");
 
         MinConfCriteria minConfCriteria = new MinConfCriteria(0.2f, geneNames);
-        boolean[][] matrix = minConfCriteria.getNetwork(links);
+        boolean[][] matrix = minConfCriteria.getBooleanMatrix(links);
 
         assertArrayEquals(new boolean[]{false, true, false, true}, matrix[0]);
         assertArrayEquals(new boolean[]{false, false, false, false}, matrix[1]);

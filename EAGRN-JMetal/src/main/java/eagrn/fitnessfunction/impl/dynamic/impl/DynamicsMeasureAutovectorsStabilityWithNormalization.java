@@ -1,6 +1,7 @@
 package eagrn.fitnessfunction.impl.dynamic.impl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 import Jama.EigenvalueDecomposition;
@@ -9,16 +10,18 @@ import eagrn.StaticUtils;
 import eagrn.fitnessfunction.FitnessFunction;
 
 public class DynamicsMeasureAutovectorsStabilityWithNormalization implements FitnessFunction { 
-
-    private ArrayList<String> geneNames;
+    private Map<String, Integer> geneIndexMap;
 
     public DynamicsMeasureAutovectorsStabilityWithNormalization(ArrayList<String> geneNames) {
-        this.geneNames = geneNames;
+        this.geneIndexMap = new HashMap<>();
+        for (int i = 0; i < geneNames.size(); i++) {
+            this.geneIndexMap.put(geneNames.get(i), i);
+        }
     }
 
     @Override
     public double run(Map<String, Float> consensus, Double[] x) {
-        double[][] adjacencyMatrix = StaticUtils.getDoubleMatrixFromEdgeList(consensus, geneNames, 4);
+        double[][] adjacencyMatrix = StaticUtils.getDoubleMatrix(consensus, geneIndexMap, 4);
         return dynamicsMeasureAutovectorsStability(adjacencyMatrix);
     }
     

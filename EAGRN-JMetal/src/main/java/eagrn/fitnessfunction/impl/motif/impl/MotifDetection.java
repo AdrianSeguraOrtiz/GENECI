@@ -3,10 +3,8 @@ package eagrn.fitnessfunction.impl.motif.impl;
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.DefaultEdge;
-import org.jgrapht.graph.SimpleDirectedGraph;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -89,26 +87,6 @@ public class MotifDetection implements FitnessFunction {
             }
             this.motifFunctions[i] = function;
         }
-    }
-
-    public Graph<Integer, DefaultEdge> createGraphFromMatrix(boolean[][] adjMatrix) {
-
-        Graph<Integer, DefaultEdge> graph = new SimpleDirectedGraph<>(DefaultEdge.class);
-
-        // Agregamos los nodos al grafo
-        for (int i = 0; i < adjMatrix.length; i++) {
-            graph.addVertex(i);
-        }
-        // Agregamos las aristas al grafo
-        for (int i = 0; i < adjMatrix.length; i++) {
-            for (int j = 0; j < adjMatrix[i].length; j++) {
-                if (adjMatrix[i][j]) {
-                    graph.addEdge(i, j);
-                }
-            }
-        }
-
-        return graph;
     }
 
     public int detectFeedforwardLoop(Graph<Integer, DefaultEdge> graph) {
@@ -378,13 +356,12 @@ public class MotifDetection implements FitnessFunction {
     @Override
     public double run(Map<String, Float> consensus, Double[] x) {
         double score = 0.0;
-        boolean[][] adjacencyMatrix = cutOffCriteria.getNetwork(consensus);
-        int key = Arrays.deepHashCode(adjacencyMatrix);
+        int key = cutOffCriteria.getCutMap(consensus).hashCode();
 
         if (this.cache.containsKey(key)){
             score = this.cache.get(key);
         } else {
-            Graph<Integer, DefaultEdge> graph = createGraphFromMatrix(adjacencyMatrix);
+            Graph<Integer, DefaultEdge> graph = cutOffCriteria.getBooleanGraph(consensus, true);
             for (int i = 0; i < this.motifFunctions.length; i++) {
                 score -= motifFunctions[i].count(graph);
             }

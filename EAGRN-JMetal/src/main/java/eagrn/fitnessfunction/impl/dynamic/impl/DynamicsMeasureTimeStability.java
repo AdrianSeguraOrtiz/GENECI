@@ -1,23 +1,27 @@
 package eagrn.fitnessfunction.impl.dynamic.impl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 import eagrn.StaticUtils;
 import eagrn.fitnessfunction.FitnessFunction;
 
 public class DynamicsMeasureTimeStability implements FitnessFunction {
-    private ArrayList<String> geneNames;
+    private Map<String, Integer> geneIndexMap;
     private double threshold;
 
     public DynamicsMeasureTimeStability(ArrayList<String> geneNames) {
-        this.geneNames = geneNames;
+        this.geneIndexMap = new HashMap<>();
+        for (int i = 0; i < geneNames.size(); i++) {
+            this.geneIndexMap.put(geneNames.get(i), i);
+        }
         this.threshold = Math.pow(10, -Math.max(1, 4 - (int) Math.log10(geneNames.size()))) / 5.0;
     }
 
     @Override
     public double run(Map<String, Float> consensus, Double[] x) {
-        float[][] adjacencyMatrix = StaticUtils.getFloatMatrixFromEdgeList(consensus, geneNames, 4);
+        float[][] adjacencyMatrix = StaticUtils.getFloatMatrix(consensus, geneIndexMap, 4);
         return dynamicsMeasureTimeStability(adjacencyMatrix, this.threshold);
     }
 

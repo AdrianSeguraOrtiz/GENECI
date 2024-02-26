@@ -2,6 +2,7 @@ package eagrn;
 
 import eagrn.algorithm.AsynchronousMultiThreadedGeneticAlgorithmGoodParents;
 import eagrn.algorithm.AsynchronousMultiThreadedNSGAIIGoodParents;
+import eagrn.algorithm.AsynchronousMultiThreadedNSGAIIGoodParentsExternalFile;
 import eagrn.cutoffcriteria.CutOffCriteria;
 import eagrn.operator.crossover.SimplexCrossover;
 import eagrn.operator.mutation.SimplexMutation;
@@ -99,14 +100,14 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 numParents = 3;
                 mutationProbability = 0.1;
                 mutationStrength = 0.1;
-                populationSize = 100;
-                numEvaluations = 25000;
-                strCutOffCriteria = "MinConf";
-                cutOffValue = 0.5f;
-                strFitnessFormulas = "Quality;DegreeDistribution";
-                strAlgorithm = "NSGAII";
+                populationSize = 300;
+                numEvaluations = 200000;
+                strCutOffCriteria = "PercLinksWithBestConf";
+                cutOffValue = 0.4f;
+                strFitnessFormulas = "quality;degreedistribution;motifs;eigenvectordistribution;reducenonessentialsinteractions;dynamicity";
+                strAlgorithm = "NSGAIIExternalFile";
                 numOfThreads = Runtime.getRuntime().availableProcessors();
-                printEvolution = false;
+                printEvolution = true;
             }
         } else {
             throw new RuntimeException("At least the folder with the input trust lists must be provided.");
@@ -127,7 +128,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             strAlgorithm += "-SingleThread";
 
         } else if (numOfThreads > 1) {
-            if (strAlgorithm.equals("GA") || strAlgorithm.equals("NSGAII")) {
+            if (strAlgorithm.equals("GA") || strAlgorithm.equals("NSGAII") || strAlgorithm.equals("NSGAIIExternalFile")) {
                 strAlgorithm += "-AsyncParallel";
 
             } else {
@@ -275,6 +276,29 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 /** Extract the population of the last iteration. */
                 population = SolutionListUtils.getNonDominatedSolutions(algorithm.getResult());
 
+            } else if (strAlgorithm.equals("NSGAIIExternalFile-AsyncParallel")) {
+                /** Activate stopwatch. */
+                long initTime = System.currentTimeMillis();
+
+                /** Instantiate the evolutionary algorithm. */
+                AsynchronousMultiThreadedNSGAIIGoodParentsExternalFile<DoubleSolution> algorithm = new AsynchronousMultiThreadedNSGAIIGoodParentsExternalFile<DoubleSolution>(
+                        numOfThreads,
+                        problem,
+                        populationSize,
+                        crossover,
+                        mutation,
+                        termination);
+
+                /** Execute the designed evolutionary algorithm. */
+                algorithm.run();
+
+                /** Stop stopwatch and calculate the total execution time. */
+                long endTime = System.currentTimeMillis();
+                computingTime = endTime - initTime;
+
+                /** Extract the population of the last iteration. */
+                population = SolutionListUtils.getNonDominatedSolutions(algorithm.getResult());
+
             } else if (strAlgorithm.equals("SMPSO-SingleThread")) {
                 /** Create archive */
                 BoundedArchive<DoubleSolution> archive = new CrowdingDistanceArchive<>(populationSize);
@@ -375,7 +399,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             StaticUtils.writeConsensus(outputFolder + "/final_list.csv", consensusSorted);
 
             /** Calculate the binary matrix from the list above. */
-            boolean[][] binaryNetwork = cutOffCriteria.getNetwork(consensusSorted);
+            boolean[][] binaryNetwork = cutOffCriteria.getBooleanMatrix(consensusSorted);
 
             /** Write the resulting binary matrix to an output csv file. */
             StaticUtils.writeBinaryNetwork(outputFolder + "/final_network.csv", binaryNetwork, geneNames);

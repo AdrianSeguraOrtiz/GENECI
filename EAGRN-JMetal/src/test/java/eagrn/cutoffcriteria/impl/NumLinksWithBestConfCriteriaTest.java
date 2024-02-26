@@ -24,7 +24,7 @@ public class NumLinksWithBestConfCriteriaTest {
         geneNames.add("C");
 
         NumLinksWithBestConfCriteria numLinksWithBestConfCriteria = new NumLinksWithBestConfCriteria(2, geneNames);
-        boolean[][] matrix = numLinksWithBestConfCriteria.getNetwork(links);
+        boolean[][] matrix = numLinksWithBestConfCriteria.getBooleanMatrix(links);
 
         assertArrayEquals(new boolean[]{false, false, true}, matrix[0]);
         assertArrayEquals(new boolean[]{false, false, true}, matrix[1]);
@@ -51,7 +51,7 @@ public class NumLinksWithBestConfCriteriaTest {
         geneNames.add("C");
 
         NumLinksWithBestConfCriteria numLinksWithBestConfCriteria = new NumLinksWithBestConfCriteria(1, geneNames);
-        boolean[][] matrix = numLinksWithBestConfCriteria.getNetwork(links);
+        boolean[][] matrix = numLinksWithBestConfCriteria.getBooleanMatrix(links);
 
         assertArrayEquals(new boolean[]{false, true, false}, matrix[0]);
         assertArrayEquals(new boolean[]{false, false, false}, matrix[1]);
@@ -77,7 +77,7 @@ public class NumLinksWithBestConfCriteriaTest {
         geneNames.add("C");
 
         NumLinksWithBestConfCriteria numLinksWithBestConfCriteria = new NumLinksWithBestConfCriteria(2, geneNames);
-        boolean[][] matrix = numLinksWithBestConfCriteria.getNetwork(links);
+        boolean[][] matrix = numLinksWithBestConfCriteria.getBooleanMatrix(links);
 
         assertArrayEquals(new boolean[]{false, true, false}, matrix[0]);
         assertArrayEquals(new boolean[]{false, false, true}, matrix[1]);
@@ -106,7 +106,7 @@ public class NumLinksWithBestConfCriteriaTest {
         geneNames.add("D");
 
         NumLinksWithBestConfCriteria numLinksWithBestConfCriteria = new NumLinksWithBestConfCriteria(3, geneNames);
-        boolean[][] matrix = numLinksWithBestConfCriteria.getNetwork(links);
+        boolean[][] matrix = numLinksWithBestConfCriteria.getBooleanMatrix(links);
 
         assertArrayEquals(new boolean[]{false, true, false, true}, matrix[0]);
         assertArrayEquals(new boolean[]{false, false, false, false}, matrix[1]);

@@ -1,6 +1,5 @@
 package eagrn.fitnessfunction.impl.topology.impl;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,14 +22,12 @@ public class AverageLocalClusteringMeasure extends Topology {
     @Override
     public double run(Map<String, Float> consensus, Double[] x) {
         double score = 0.0;
-        boolean[][] adjacencyMatrix = cutOffCriteria.getNetwork(consensus);
-        int key = Arrays.deepHashCode(adjacencyMatrix);
+        int key = cutOffCriteria.getCutMap(consensus).hashCode();
 
         if (this.cache.containsKey(key)){
             score = this.cache.get(key);
         } else {
-            Graph<Integer, DefaultEdge> graph = super.getGraphFromNetwork(adjacencyMatrix, true);
-            adjacencyMatrix = null;
+            Graph<Integer, DefaultEdge> graph = cutOffCriteria.getBooleanGraph(consensus, true);
             ClusteringCoefficient<Integer, DefaultEdge> evaluator = new ClusteringCoefficient<>(graph);
             score = -evaluator.getAverageClusteringCoefficient();
             this.cache.put(key, score);

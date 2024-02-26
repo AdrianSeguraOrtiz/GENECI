@@ -202,10 +202,11 @@ do
     times=($(sort temp | awk '{print $2}'))
     rm temp
 
+    functions_file_order=($(for f in ${functions[@]}; do echo $f/final_list.csv; done | sort | sed 's/\/final_list.csv$//'))
     for (( i=0; i<${#functions[@]}; i++ ))
     do
         mean=$(echo "scale=10; x=(${aupr[$i]}+${auroc[$i]})/2; if(x<1) print 0; x" | bc)
-        echo "${functions[$i]};${aupr[$i]};${auroc[$i]};$mean;${times[$i]}" >> $file
+        echo "${functions_file_order[$i]};${aupr[$i]};${auroc[$i]};$mean;${times[$i]}" >> $file
     done
 done
 

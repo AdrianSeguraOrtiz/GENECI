@@ -2,56 +2,9 @@ package eagrn.fitnessfunction.impl.topology;
 
 import java.util.Arrays;
 
-import org.jgrapht.Graph;
-import org.jgrapht.graph.DefaultEdge;
-import org.jgrapht.graph.DefaultWeightedEdge;
-import org.jgrapht.graph.SimpleDirectedGraph;
-import org.jgrapht.graph.SimpleDirectedWeightedGraph;
-import org.jgrapht.graph.SimpleGraph;
-import org.jgrapht.graph.SimpleWeightedGraph;
-
 import eagrn.fitnessfunction.FitnessFunction;
 
 public abstract class Topology implements FitnessFunction {
-
-    protected Graph<Integer, DefaultEdge> getGraphFromNetwork(boolean[][] adjacencyMatrix, boolean directed) {
-        Graph<Integer, DefaultEdge> graph = directed ? new SimpleDirectedGraph<>(DefaultEdge.class) : new SimpleGraph<>(DefaultEdge.class);
-
-        // Add vertices to the graph
-        for (int i = 0; i < adjacencyMatrix.length; i++) {
-            graph.addVertex(i);
-        }
-
-        // Add edges to the graph with their respective weights
-        for (int i = 0; i < adjacencyMatrix.length; i++) {
-            for (int j = 0; j < adjacencyMatrix.length; j++) {
-                if (i != j && adjacencyMatrix[i][j]) graph.addEdge(i, j);
-            }
-        }
-
-        return graph;
-    }
-
-    protected Graph<Integer, DefaultWeightedEdge> getGraphFromWeightedNetwork(float[][] adjacencyMatrix, boolean directed) {
-        Graph<Integer, DefaultWeightedEdge> graph = directed ? new SimpleDirectedWeightedGraph<>(DefaultWeightedEdge.class) : new SimpleWeightedGraph<>(DefaultWeightedEdge.class);
-
-        // Add vertices to the graph
-        for (int i = 0; i < adjacencyMatrix.length; i++) {
-            graph.addVertex(i);
-        }
-
-        // Add edges to the graph with their respective weights
-        for (int i = 0; i < adjacencyMatrix.length; i++) {
-            for (int j = 0; j < adjacencyMatrix.length; j++) {
-                if (i != j && adjacencyMatrix[i][j] != 0) {
-                    DefaultWeightedEdge edge = graph.addEdge(i, j);
-                    graph.setEdgeWeight(edge, adjacencyMatrix[i][j]);
-                }
-            }
-        }
-
-        return graph;
-    }
 
     protected double paretoTest(double[] dat) {
         Arrays.sort(dat);
