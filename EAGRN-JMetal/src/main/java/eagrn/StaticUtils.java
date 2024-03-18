@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -618,15 +619,31 @@ public final class StaticUtils {
         return graph;
     }
 
-    public static int getRoundedHashCode(Map<String, Float> map, int decimals) {
-        int hashCode = 0;
-        float factor = (float) Math.pow(10, decimals);
+    public static String getConsensusString(Map<String, Float> consensus) {
+        float[] res = new float[consensus.size()];
 
-        for (Map.Entry<String, Float> entry : map.entrySet()) {
-            hashCode += entry.getKey().hashCode() ^ Float.hashCode(Math.round(entry.getValue() * factor) / factor);
+        ArrayList<String> keys = new ArrayList<>(consensus.keySet());
+        Collections.sort(keys);
+
+        for (int i = 0; i < keys.size(); i++) {
+            res[i] = consensus.get(keys.get(i));
         }
 
-        return hashCode;
+        return Arrays.toString(res);
+    }
+
+    public static String getConsensusRoundedString(Map<String, Float> consensus, int decimals) {
+        float[] res = new float[consensus.size()];
+        float factor = (float) Math.pow(10, decimals);
+
+        ArrayList<String> keys = new ArrayList<>(consensus.keySet());
+        Collections.sort(keys);
+
+        for (int i = 0; i < keys.size(); i++) {
+            res[i] = Math.round(consensus.get(keys.get(i)) * factor) / factor;
+        }
+
+        return Arrays.toString(res);
     }
 
 }
