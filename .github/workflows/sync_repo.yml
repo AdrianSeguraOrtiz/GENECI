@@ -22,4 +22,4 @@ jobs:
       - name: Empujar cambios al repositorio RP-MO-GENECI
         run: |
           git remote add RP-MO-GENECI https://github.com/AdrianSeguraOrtiz/RP-MO-GENECI.git
-          git push -u RP-MO-GENECI v-2.0.1:main --force
+          git push -u RP-MO-GENECI v-2.5.1:main --force
