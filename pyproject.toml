@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "GENECI"
-version = "2.0.1"
+version = "2.5.1"
 description = "Software package whose main functionality consists of an evolutionary algorithm to determine the optimal ensemble of machine learning techniques for genetic network inference based on the confidence levels and topological characteristics of its results."
 authors = ["adrian_segura <adrianseor.99@uma.es>"]
 license = "MIT"

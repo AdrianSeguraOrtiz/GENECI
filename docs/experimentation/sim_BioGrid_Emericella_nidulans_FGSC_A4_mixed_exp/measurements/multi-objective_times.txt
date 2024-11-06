@@ -1,5 +1,0 @@
-
-real	1m16,399s
-user	0m3,888s
-sys	0m7,051s
-^ q-dd-m

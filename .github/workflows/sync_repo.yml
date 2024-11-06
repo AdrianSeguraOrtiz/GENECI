@@ -1,9 +1,9 @@
-name: Sincronizar a repositorio MO-GENECI
+name: Sincronizar a repositorio RP-MO-GENECI
 
 on:
   push:
     branches:
-      - v-2.0.1 
+      - v-2.5.1 
 
 jobs:
   sync:
@@ -19,7 +19,7 @@ jobs:
           git config --global user.email "adrianseor.99@uma.es"
           git config --global user.name "AdrianSeguraOrtiz"
 
-      - name: Empujar cambios al repositorio MO-GENECI
+      - name: Empujar cambios al repositorio RP-MO-GENECI
         run: |
-          git remote add MO-GENECI https://github.com/AdrianSeguraOrtiz/MO-GENECI.git
-          git push -u MO-GENECI v-2.0.1:main --force
+          git remote add RP-MO-GENECI https://github.com/AdrianSeguraOrtiz/RP-MO-GENECI.git
+          git push -u RP-MO-GENECI v-2.0.1:main --force

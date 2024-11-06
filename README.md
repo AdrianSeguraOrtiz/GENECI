@@ -3,13 +3,7 @@
 ![Pypi](https://img.shields.io/pypi/v/GENECI)
 ![License](https://img.shields.io/apm/l/GENECI)
 
-[MO-GENECI (Multi-Objective GEne NEtwork Consensus Inference)](https://github.com/AdrianSeguraOrtiz/MO-GENECI) is a software package derived from [GENECI](https://github.com/AdrianSeguraOrtiz/Single-GENECI) designed for intelligent consensus of multiple techniques for inferring gene regulation networks. Given the expression levels of different genes subjected to various perturbations, MO-GENECI allows for the inference of the underlying network by applying in parallel a wide variety of known inference techniques and subsequently merging their results. To this end, a **multi-objective evolutionary algorithm** is applied to optimize the weights assigned to the different techniques based on observed **confidence levels**, **topological characteristics** of the network and **detection of highly recurrent motifs** in real biological networks.
-
-![Alt text](https://github.com/AdrianSeguraOrtiz/GENECI/raw/v-2.0.1/docs/diagram.svg)
-
-MO-GENECI offers the following **functionalities**: network inference using individual techniques, optimization of consensus across multiple solutions, construction of benchmark networks (from scratch or based on real networks), evaluation of accuracy concerning gold standards, network binarization algorithms, and graphical representation.
-
-To implement all the functionalities mentioned above, it has been necessary to program in multiple languages such as Java, Python, R, Matlab, Julia, etc. To integrate all the utilities into a single tool, it has been decided to **dockerize components** and use Python as the main means of orchestration. This, in addition to facilitating **task parallelization**, reduces the complexity of installation and requirements for our software package.
+[RP-MO-GENECI (Reference Point Multi-Objective GEne NEtwork Consensus Inference)](https://github.com/AdrianSeguraOrtiz/RP-MO-GENECI) is a software package derived from [MO-GENECI](https://github.com/AdrianSeguraOrtiz/MO-GENECI) that incorporates a landmark selection mechanism that allows the user to guide the exploration of the evolutionary algorithm based on prior knowledge of the search space.
 
 # Prerequisites
 
@@ -19,7 +13,7 @@ To implement all the functionalities mentioned above, it has been necessary to p
 # Instalation
 
 ```sh
-pip install geneci==2.0.1
+pip install geneci==2.5.1
 ```
 
 # Output
