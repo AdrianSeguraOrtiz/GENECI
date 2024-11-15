@@ -18,7 +18,7 @@ This component is responsible for assessing the accuracy with which any generic 
 <<<<<<< HEAD
 docker build -t adriansegura99/geneci_evaluate_generic-prediction:1.0.0 -f components/evaluate/generic_prediction/Dockerfile .
 =======
-docker build -t adriansegura99/geneci_evaluate_generic-prediction:2.0.0 -f components/evaluate/generic_prediction/Dockerfile .
+docker build -t adriansegura99/geneci_evaluate_generic-prediction:2.5.1 -f components/evaluate/generic_prediction/Dockerfile .
 >>>>>>> dev
 ```
 

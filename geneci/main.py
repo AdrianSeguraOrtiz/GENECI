@@ -258,7 +258,7 @@ available_images = [
 ]
 
 # Set docker tag
-tag = "2.0.0"
+tag = "2.5.1"
 
 # Function for obtaining the list of genes from lists of confidence levels.
 def get_gene_names_from_conf_list(conf_list):
@@ -1516,6 +1516,11 @@ def optimize_ensemble(
         help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, DegreeDistribution and Motifs",
         rich_help_panel="Fitness",
     ),
+    reference_point: str = typer.Option(
+        "",
+        help="Reference point for the Pareto front. If specified, the search will be oriented towards this point. The format is 'f1;f2;f3'.",
+        rich_help_panel="Fitness",
+    ),
     algorithm: Algorithm = typer.Option(
         ...,
         help="Evolutionary algorithm to be used during the optimization process. All are intended for a multi-objective approach with the exception of the genetic algorithm (GA).",
@@ -1613,7 +1618,7 @@ def optimize_ensemble(
     container = client.containers.run(
         image=image,
         volumes=get_volume(temp_folder_str),
-        command=f"{temp_folder_str} {crossover_probability} {num_parents} {mutation_probability} {mutation_strength} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {str_functions} {algorithm} {threads} {plot_fitness_evolution}",
+        command=f"{temp_folder_str} {crossover_probability} {num_parents} {mutation_probability} {mutation_strength} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {str_functions} {algorithm} {threads} {plot_fitness_evolution} {reference_point}",
         detach=True,
         tty=True,
     )
@@ -2270,6 +2275,11 @@ def run(
         help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, DegreeDistribution and Motifs.",
         rich_help_panel="Fitness",
     ),
+    reference_point: str = typer.Option(
+        "",
+        help="Reference point for the Pareto front. If specified, the search will be oriented towards this point. The format is 'f1;f2;f3'.",
+        rich_help_panel="Fitness",
+    ),
     algorithm: Algorithm = typer.Option(
         ...,
         help="Evolutionary algorithm to be used during the optimization process. All are intended for a multi-objective approach with the exception of the genetic algorithm (GA).",
@@ -2336,6 +2346,7 @@ def run(
         cut_off_criteria,
         cut_off_value,
         function,
+        reference_point,
         algorithm,
         threads,
         plot_fitness_evolution,

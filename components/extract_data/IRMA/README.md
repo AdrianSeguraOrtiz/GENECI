@@ -18,7 +18,7 @@ This component is responsible for downloading time series of gene expression dat
 <<<<<<< HEAD
 docker build -t adriansegura99/geneci_extract-data_irma:1.0.0 -f components/extract_data/IRMA/Dockerfile .
 =======
-docker build -t adriansegura99/geneci_extract-data_irma:2.0.0 -f components/extract_data/IRMA/Dockerfile .
+docker build -t adriansegura99/geneci_extract-data_irma:2.5.1 -f components/extract_data/IRMA/Dockerfile .
 >>>>>>> dev
 ```
 

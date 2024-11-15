@@ -18,7 +18,7 @@ Given a CSV file with time series of gene expression data, this component infers
 <<<<<<< HEAD
 docker build -t adriansegura99/geneci_infer-network_pcit:1.0.0 -f components/infer_network/PCIT/Dockerfile .
 =======
-docker build -t adriansegura99/geneci_infer-network_pcit:2.0.0 -f components/infer_network/PCIT/Dockerfile .
+docker build -t adriansegura99/geneci_infer-network_pcit:2.5.1 -f components/infer_network/PCIT/Dockerfile .
 >>>>>>> dev
 ```
 

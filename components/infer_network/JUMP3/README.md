@@ -18,7 +18,7 @@ Given a CSV file with time series of gene expression data, this component infers
 <<<<<<< HEAD
 docker build -t adriansegura99/geneci_infer-network_jump3:1.0.0 -f components/infer_network/JUMP3/Dockerfile .
 =======
-cd components/infer_network/JUMP3/ && matlab -nodisplay -nodesktop -r "run build.m" && cd adriansegura99/geneci_infer-network_jump3docker && sed -i '4,8d' Dockerfile && docker build -t adriansegura99/geneci_infer-network_jump3:2.0.0 . && cd ../../../../..
+cd components/infer_network/JUMP3/ && matlab -nodisplay -nodesktop -r "run build.m" && cd adriansegura99/geneci_infer-network_jump3docker && sed -i '4,8d' Dockerfile && docker build -t adriansegura99/geneci_infer-network_jump3:2.5.1 . && cd ../../../../..
 >>>>>>> dev
 ```
 
