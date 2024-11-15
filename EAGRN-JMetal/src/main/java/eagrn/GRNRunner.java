@@ -2,6 +2,7 @@ package eagrn;
 
 import eagrn.algorithm.AsynchronousMultiThreadedGeneticAlgorithmGoodParents;
 import eagrn.algorithm.AsynchronousMultiThreadedNSGAIIGoodParents;
+import eagrn.algorithm.GNSGAIIBuilder;
 import eagrn.cutoffcriteria.CutOffCriteria;
 import eagrn.operator.crossover.SimplexCrossover;
 import eagrn.operator.mutation.SimplexMutation;
@@ -12,6 +13,8 @@ import eagrn.utils.solutionlistoutputwithheader.SolutionListOutputWithHeader;
 import org.uma.jmetal.algorithm.Algorithm;
 import org.uma.jmetal.algorithm.multiobjective.nsgaii.NSGAIIBuilder;
 import org.uma.jmetal.algorithm.multiobjective.smpso.SMPSOBuilder;
+import org.uma.jmetal.component.algorithm.EvolutionaryAlgorithm;
+import org.uma.jmetal.component.catalogue.common.evaluation.impl.MultiThreadedEvaluation;
 import org.uma.jmetal.example.AlgorithmRunner;
 import org.uma.jmetal.experimental.componentbasedalgorithm.algorithm.singleobjective.geneticalgorithm.GeneticAlgorithm;
 import org.uma.jmetal.experimental.componentbasedalgorithm.catalogue.replacement.Replacement;
@@ -20,16 +23,20 @@ import org.uma.jmetal.operator.crossover.CrossoverOperator;
 import org.uma.jmetal.operator.mutation.MutationOperator;
 import org.uma.jmetal.operator.selection.impl.BinaryTournamentSelection;
 import org.uma.jmetal.operator.selection.impl.NaryTournamentSelection;
+import org.uma.jmetal.problem.Problem;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 import org.uma.jmetal.util.AbstractAlgorithmRunner;
 import org.uma.jmetal.util.archive.BoundedArchive;
 import org.uma.jmetal.util.archive.impl.CrowdingDistanceArchive;
+import org.uma.jmetal.util.comparator.GDominanceComparator;
 import org.uma.jmetal.util.comparator.ObjectiveComparator;
 import org.uma.jmetal.util.comparator.RankingAndCrowdingDistanceComparator;
 import org.uma.jmetal.util.evaluator.SolutionListEvaluator;
 import org.uma.jmetal.util.evaluator.impl.MultiThreadedSolutionListEvaluator;
 import org.uma.jmetal.util.evaluator.impl.SequentialSolutionListEvaluator;
 import org.uma.jmetal.util.fileoutput.impl.DefaultFileOutputContext;
+import org.uma.jmetal.util.ranking.Ranking;
+import org.uma.jmetal.util.ranking.impl.FastNonDominatedSortRanking;
 import org.uma.jmetal.util.termination.Termination;
 import org.uma.jmetal.util.termination.impl.TerminationByEvaluations;
 import org.uma.jmetal.util.SolutionListUtils;
@@ -76,11 +83,12 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         String strAlgorithm;
         int numOfThreads;
         boolean printEvolution;
+        String referencePoint;
 
         if (args.length > 0) {
             networkFolder = args[0];
 
-            if (args.length == 13) {
+            if (args.length == 14) {
                 crossoverProbability = Double.parseDouble(args[1]);
                 numParents = Integer.parseInt(args[2]);
                 mutationProbability = Double.parseDouble(args[3]);
@@ -93,6 +101,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 strAlgorithm = args[10];
                 numOfThreads = Integer.parseInt(args[11]);
                 printEvolution = Boolean.parseBoolean(args[12]);
+                referencePoint = args[13];
 
             } else {
                 crossoverProbability = 0.9;
@@ -107,6 +116,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 strAlgorithm = "NSGAII";
                 numOfThreads = Runtime.getRuntime().availableProcessors();
                 printEvolution = false;
+                referencePoint = "";
             }
         } else {
             throw new RuntimeException("At least the folder with the input trust lists must be provided.");
@@ -132,6 +142,21 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
             } else {
                 strAlgorithm += "-SyncParallel";
+            }
+        }
+
+        List<Double> refPointValues = null;
+        if (!referencePoint.equals("")) {
+            strAlgorithm += "-ReferencePoint";
+
+            String [] strPoints  = referencePoint.split(";");
+            if (strPoints.length != strFitnessFormulas.split(";").length) {
+                throw new RuntimeException("The number of values in the reference point must match the number of objectives.");
+            }
+
+            refPointValues = new ArrayList<>();
+            for (int i = 0; i < strPoints.length; i++) {
+                refPointValues.add(Double.parseDouble(strPoints[i]));
             }
         }
 
@@ -274,6 +299,36 @@ public class GRNRunner extends AbstractAlgorithmRunner {
 
                 /** Extract the population of the last iteration. */
                 population = SolutionListUtils.getNonDominatedSolutions(algorithm.getResult());
+
+            } else if (strAlgorithm.equals("NSGAII-AsyncParallel-ReferencePoint")) {
+                /** Activate stopwatch. */
+                long initTime = System.currentTimeMillis();
+
+                /** Set the reference point. */
+                GDominanceComparator<DoubleSolution> dominanceComparator = new GDominanceComparator<>(refPointValues);
+                Ranking<DoubleSolution> ranking = new FastNonDominatedSortRanking<>(dominanceComparator);
+
+                /** Instantiate the evolutionary algorithm. */
+                EvolutionaryAlgorithm<DoubleSolution> algorithm = new GNSGAIIBuilder<DoubleSolution>(
+                    (Problem<DoubleSolution>) problem,
+                    populationSize,
+                    populationSize,
+                    crossover,
+                    mutation)
+                    .setTermination(new org.uma.jmetal.component.catalogue.common.termination.impl.TerminationByEvaluations(numEvaluations))
+                    .setEvaluation(new MultiThreadedEvaluation<>(numOfThreads, problem))
+                    .setRanking(ranking)
+                    .build();
+
+                /** Execute the designed evolutionary algorithm. */
+                algorithm.run();
+
+                /** Stop stopwatch and calculate the total execution time. */
+                long endTime = System.currentTimeMillis();
+                computingTime = endTime - initTime;
+
+                /** Extract the population of the last iteration. */
+                population = SolutionListUtils.getNonDominatedSolutions(algorithm.result());
 
             } else if (strAlgorithm.equals("SMPSO-SingleThread")) {
                 /** Create archive */

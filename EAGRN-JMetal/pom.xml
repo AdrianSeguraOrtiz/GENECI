@@ -88,6 +88,14 @@
             <version>1.5.1</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.uma.jmetal/jmetal-component -->
+        <dependency>
+            <groupId>org.uma.jmetal</groupId>
+            <artifactId>jmetal-component</artifactId>
+            <version>6.6</version>
+        </dependency>
+
+
     </dependencies>
 
     <build>
