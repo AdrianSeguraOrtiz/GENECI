@@ -1,5 +1,4 @@
 # Sort problems
-: '
 sizes=()
 for network_folder in inferred_networks_final_mogeneci/*/
 do
@@ -24,8 +23,6 @@ do
         fi
     done
 done
-'
-sorted_networks=(inferred_networks_final_mogeneci/dream4_010_01_exp/)
 
 opt_ensemble_multi_obj() {
     problem_folder=$1

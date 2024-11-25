@@ -23,6 +23,7 @@ def add_3d_poblation (fig, ef: pd.DataFrame, color_column: str, color: str, bar_
                 x = bar_position[0],
                 y = bar_position[1],
                 len = bar_position[2],
+                tickangle=-90,
             ),
         ),
         name=trace_label
@@ -49,7 +50,8 @@ def add_half_violin(fig, ef: pd.DataFrame, column: str, color: str, side: str, t
         side=side,
         line_color=color,
         meanline_visible=True,
-        points=False,
+        points="all",
+        span=[min(ef[column]), max(ef[column])],
         showlegend=False,
     ), row=trace_position[0], col=trace_position[1])
     
