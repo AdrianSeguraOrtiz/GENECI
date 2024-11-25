@@ -107,8 +107,8 @@ def main(
     add_3d_poblation(fig_combined, orig_ef, "Accuracy Mean", 'Blues', [bar_len/2, -0.1, bar_len], [1, 1], "Initial Front")
     
     # Trazar los puntos de los otros archivos con otras paletas
-    palettes = ["Reds", "Greens", "Purples", "Greys"]
-    colors = ["red", "green", "purple", "grey"]
+    palettes = ["Greens", "Oranges", "Purples", "Greys"]
+    colors = ["green", "orange", "purple", "grey"]
     for i in range(len(ref_efs)):
         add_3d_poblation(fig_combined, ref_efs[i], "Accuracy Mean", palettes[i], [bar_len/2 + (i+1)*bar_len, -0.1, bar_len], [1, 1], f"Reference Point Front {i+1} ({ref_points[i][0]})")
         add_3d_ref_point(fig_combined, ref_points[i], colors[i], f"Reference Point {i+1} ({ref_points[i][0]})", [1, 1])
