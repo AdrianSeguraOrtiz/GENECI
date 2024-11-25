@@ -1955,8 +1955,8 @@ def dream_pareto_front(
     acc_means = [(aupr + auroc) / 2 for aupr, auroc in zip(auprs, aurocs)]
 
     ## Get order
-    auprs_scaled = (auprs - min(auprs)) / (max(auprs) - min(auprs))
-    aurocs_scaled = (aurocs - min(aurocs)) / (max(aurocs) - min(aurocs))
+    auprs_scaled = (np.array(auprs) - min(auprs)) / (max(auprs) - min(auprs))
+    aurocs_scaled = (np.array(aurocs) - min(aurocs)) / (max(aurocs) - min(aurocs))
     score = [(aupr + auroc) / 2 for aupr, auroc in zip(auprs_scaled, aurocs_scaled)]
 
     # 3. Fitness Values
@@ -2175,8 +2175,8 @@ def generic_pareto_front(
     acc_means = [(aupr + auroc) / 2 for aupr, auroc in zip(auprs, aurocs)]
 
     ## Get order
-    auprs_scaled = (auprs - min(auprs)) / (max(auprs) - min(auprs))
-    aurocs_scaled = (aurocs - min(aurocs)) / (max(aurocs) - min(aurocs))
+    auprs_scaled = (np.array(auprs) - min(auprs)) / (max(auprs) - min(auprs))
+    aurocs_scaled = (np.array(aurocs) - min(aurocs)) / (max(aurocs) - min(aurocs))
     score = [(aupr + auroc) / 2 for aupr, auroc in zip(auprs_scaled, aurocs_scaled)]
 
     # 3. Fitness Values
