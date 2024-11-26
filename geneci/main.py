@@ -1517,7 +1517,7 @@ def optimize_ensemble(
         rich_help_panel="Fitness",
     ),
     reference_point: str = typer.Option(
-        "",
+        "-",
         help="Reference point for the Pareto front. If specified, the search will be oriented towards this point. The format is 'f1;f2;f3'.",
         rich_help_panel="Fitness",
     ),
@@ -2276,7 +2276,7 @@ def run(
         rich_help_panel="Fitness",
     ),
     reference_point: str = typer.Option(
-        "",
+        "-",
         help="Reference point for the Pareto front. If specified, the search will be oriented towards this point. The format is 'f1;f2;f3'.",
         rich_help_panel="Fitness",
     ),

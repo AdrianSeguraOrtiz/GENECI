@@ -146,7 +146,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         }
 
         List<Double> refPointValues = null;
-        if (!referencePoint.equals("")) {
+        if (!(referencePoint.equals("") || referencePoint.equals("-"))) {
             strAlgorithm += "-ReferencePoint";
 
             String [] strPoints  = referencePoint.split(";");
