@@ -117,13 +117,15 @@ def main(
     add_half_violin(fig_combined, orig_ef, "AUPR", "blue", "negative", [1, 2])
     for i in range(len(ref_efs)):
         add_half_violin(fig_combined, ref_efs[i], "AUPR", colors[i], "positive", [1, 2])
-        add_violin_point(fig_combined, ref_points_rows[i].iloc[0]['AUPR'], colors[i], [1, 2])
+        if not ref_points_rows[i].empty:
+            add_violin_point(fig_combined, ref_points_rows[i].iloc[0]['AUPR'], colors[i], [1, 2])
     
     # Crear gráficos de violín para AUROC
     add_half_violin(fig_combined, orig_ef, "AUROC", "blue", "negative", [1, 3])
     for i in range(len(ref_efs)):
         add_half_violin(fig_combined, ref_efs[i], "AUROC", colors[i], "positive", [1, 3])
-        add_violin_point(fig_combined, ref_points_rows[i].iloc[0]['AUROC'], colors[i], [1, 3])
+        if not ref_points_rows[i].empty:
+            add_violin_point(fig_combined, ref_points_rows[i].iloc[0]['AUROC'], colors[i], [1, 3])
     
 
     # Configurar la figura 3d
