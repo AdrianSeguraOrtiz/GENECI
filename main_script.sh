@@ -31,15 +31,15 @@ opt_ensemble_multi_obj() {
     ref_points_labels=("acc_mean" "aupr" "auroc")
     initial_evaluated_front=$problem_folder/measurements/evaluated_front.csv
 
-    rf=$(python3 get_reference_point.py $initial_evaluated_front "Mean Scaled")
+    rf=$(python3 get_reference_point.py $initial_evaluated_front "Mean Scaled" 1)
     ref_points+=($rf)
     echo "${ref_points_labels[0]};$rf" > $problem_folder/reference_point_${ref_points_labels[0]}.csv
 
-    rf=$(python3 get_reference_point.py $initial_evaluated_front "AUPR")
+    rf=$(python3 get_reference_point.py $initial_evaluated_front "AUPR" 1)
     ref_points+=($rf)
     echo "${ref_points_labels[1]};$rf" > $problem_folder/reference_point_${ref_points_labels[1]}.csv
 
-    rf=$(python3 get_reference_point.py $initial_evaluated_front "AUROC")
+    rf=$(python3 get_reference_point.py $initial_evaluated_front "AUROC" 1)
     ref_points+=($rf)
     echo "${ref_points_labels[2]};$rf" > $problem_folder/reference_point_${ref_points_labels[2]}.csv
 
