@@ -24,6 +24,7 @@ def add_3d_poblation (fig, ef: pd.DataFrame, color_column: str, color: str, bar_
                 y = bar_position[1],
                 len = bar_position[2],
                 tickangle=-90,
+                tickformat=".2f",
             ),
         ),
         name=trace_label
@@ -53,6 +54,7 @@ def add_half_violin(fig, ef: pd.DataFrame, column: str, color: str, side: str, t
         points="all",
         span=[min(ef[column]), max(ef[column])],
         showlegend=False,
+        box=dict(width=0.5),
     ), row=trace_position[0], col=trace_position[1])
     
 def add_violin_point(fig, value: float, color:str, trace_position: list):
@@ -110,22 +112,25 @@ def main(
     palettes = ["Greens", "Oranges", "Purples", "Greys"]
     colors = ["green", "orange", "purple", "grey"]
     for i in range(len(ref_efs)):
-        add_3d_poblation(fig_combined, ref_efs[i], "Accuracy Mean", palettes[i], [bar_len/2 + (i+1)*bar_len, -0.1, bar_len], [1, 1], f"Reference Point Front {i+1} ({ref_points[i][0]})")
+        col = next((metric for metric in ["AUPR", "AUROC"] if metric.lower() in ref_points[i][0].lower()), "Accuracy Mean")
+        add_3d_poblation(fig_combined, ref_efs[i], col, palettes[i], [bar_len/2 + (i+1)*bar_len, -0.1, bar_len], [1, 1], f"Reference Point Front {i+1} ({ref_points[i][0]})")
         add_3d_ref_point(fig_combined, ref_points[i], colors[i], f"Reference Point {i+1} ({ref_points[i][0]})", [1, 1])
     
     # Crear gráficos de violín para AUPR
     add_half_violin(fig_combined, orig_ef, "AUPR", "blue", "negative", [1, 2])
     for i in range(len(ref_efs)):
-        add_half_violin(fig_combined, ref_efs[i], "AUPR", colors[i], "positive", [1, 2])
-        if not ref_points_rows[i].empty:
-            add_violin_point(fig_combined, ref_points_rows[i].iloc[0]['AUPR'], colors[i], [1, 2])
+        if "aupr" in ref_points[i][0]:
+            add_half_violin(fig_combined, ref_efs[i], "AUPR", colors[i], "positive", [1, 2])
+            if not ref_points_rows[i].empty:
+                add_violin_point(fig_combined, ref_points_rows[i].iloc[0]['AUPR'], colors[i], [1, 2])
     
     # Crear gráficos de violín para AUROC
     add_half_violin(fig_combined, orig_ef, "AUROC", "blue", "negative", [1, 3])
     for i in range(len(ref_efs)):
-        add_half_violin(fig_combined, ref_efs[i], "AUROC", colors[i], "positive", [1, 3])
-        if not ref_points_rows[i].empty:
-            add_violin_point(fig_combined, ref_points_rows[i].iloc[0]['AUROC'], colors[i], [1, 3])
+        if "auroc" in ref_points[i][0]:
+            add_half_violin(fig_combined, ref_efs[i], "AUROC", colors[i], "positive", [1, 3])
+            if not ref_points_rows[i].empty:
+                add_violin_point(fig_combined, ref_points_rows[i].iloc[0]['AUROC'], colors[i], [1, 3])
     
 
     # Configurar la figura 3d
@@ -163,6 +168,19 @@ def main(
     output_file = f"{output_folder}/3d_scatter_plot_violin.html"
     fig_combined.write_html(output_file)
     print(f"Gráfico guardado en: {output_file}")
+    
+    # Extraer las métricas de validación
+    columns = ["Original"] + [f"Ref Point {ref_points[i][0]}" for i in range(len(ref_points))]
+    df_aupr = pd.DataFrame(columns=columns)
+    df_aupr.loc[0] = [orig_ef["AUPR"].median()] + [ref_efs[i]["AUPR"].median() for i in range(len(ref_efs))]
+    df_auroc = pd.DataFrame(columns=columns)
+    df_auroc.loc[0] = [orig_ef["AUROC"].median()] + [ref_efs[i]["AUROC"].median() for i in range(len(ref_efs))]
+    
+    # Guardar métricas de validación en un archivo CSV
+    output_aupr = f"{output_folder}/medians_aupr.csv"
+    df_aupr.to_csv(output_aupr, index=False)
+    output_auroc = f"{output_folder}/medians_auroc.csv"
+    df_auroc.to_csv(output_auroc, index=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
