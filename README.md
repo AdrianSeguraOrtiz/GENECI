@@ -7,6 +7,7 @@
 
 ![Alt text](https://github.com/AdrianSeguraOrtiz/GENECI/raw/v-2.5.1/docs/diagram.svg)
 
+
 # Prerequisites
 
 - Python => 3.9
