@@ -6,8 +6,11 @@ import eagrn.algorithm.GNSGAIIBuilder;
 import eagrn.cutoffcriteria.CutOffCriteria;
 import eagrn.operator.crossover.SimplexCrossover;
 import eagrn.operator.mutation.SimplexMutation;
-import eagrn.utils.fitnessevolution.GRNProblemFitnessEvolution;
-import eagrn.utils.fitnessevolution.impl.GRNProblemBestFitnessEvolution;
+import eagrn.utils.observer.ProblemObserver;
+import eagrn.utils.observer.ProblemObserver.ObserverInterface;
+import eagrn.utils.observer.impl.ComparePerformanceObserver;
+import eagrn.utils.observer.impl.FitnessEvolutionMinObserver;
+import eagrn.utils.observer.impl.NumEvaluationsObserver;
 import eagrn.utils.solutionlistoutputwithheader.SolutionListOutputWithHeader;
 
 import org.uma.jmetal.algorithm.Algorithm;
@@ -178,14 +181,19 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         /** Establish the cut-off criteria. */
         cutOffCriteria = StaticUtils.getCutOffCriteriaFromString(strCutOffCriteria, cutOffValue, geneNames);
 
-        /** Initialize our problem with the extracted data. */
+        /** Establish the observers. */
+        List<ObserverInterface> observers = new ArrayList<>();
+        observers.add(new NumEvaluationsObserver(populationSize));
         if (printEvolution) {
-            problem = new GRNProblemBestFitnessEvolution(inferredNetworks, geneNames, cutOffCriteria,
-                    strFitnessFormulas, strTimeSeriesFile);
-        } else {
-            problem = new GRNProblem(inferredNetworks, geneNames, cutOffCriteria, strFitnessFormulas,
-                    strTimeSeriesFile);
+            observers.add(new FitnessEvolutionMinObserver(populationSize, strFitnessFormulas.split(";").length));
         }
+        File refFront = new File(networkFolder + "/reference_front.csv");
+        if (refFront.exists()) {
+            observers.add(new ComparePerformanceObserver(populationSize, refFront, referencePoint));
+        }
+
+        /** Initialize our problem with the extracted data. */
+        problem = new ProblemObserver(inferredNetworks, geneNames, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile, observers.toArray(new ObserverInterface[observers.size()]));
 
         /** Set the crossover operator. */
         crossover = new SimplexCrossover(numParents, 1, crossoverProbability);
@@ -393,10 +401,13 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             throw new RuntimeException(ioe);
         }
 
-        /** Write the evolution of fitness values to an output txt file. */
-        if (printEvolution) {
-            Map<String, Double[]> fitnessEvolution = ((GRNProblemFitnessEvolution) problem).getFitnessEvolution();
-            StaticUtils.writeFitnessEvolution(outputFolder + "/fitness_evolution.txt", fitnessEvolution);
+        // Write the evolution of fitness values to an output txt file
+        for (ObserverInterface observer : observers) {
+            if (observer instanceof FitnessEvolutionMinObserver) {
+                observer.writeToFile(outputFolder + "/fitness_evolution.txt");
+            } else if (observer instanceof ComparePerformanceObserver) {
+                observer.writeToFile(outputFolder + "/compare_performance.txt");
+            }
         }
 
         /** Get files (techniques) tags */

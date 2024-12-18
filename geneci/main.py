@@ -1479,6 +1479,13 @@ def optimize_ensemble(
         help="Path to the CSV file with the time series from which the individual gene networks have been inferred. This parameter is only necessary in case of specifying the fitness function Loyalty.",
         rich_help_panel="Input data",
     ),
+    compare_performance: Path = typer.Option(
+        None,
+        exists=True,
+        file_okay=True,
+        help="Reference front with which to compare performance. Specifically, a graph will be returned to show for each generation the percentage of reference front solutions that have already been dominated by the current population.",
+        rich_help_panel="Input data",
+    ),
     crossover_probability: float = typer.Option(
         0.9, help="Crossover probability", rich_help_panel="Crossover"
     ),
@@ -1605,6 +1612,11 @@ def optimize_ensemble(
     tmp_time_series_dir = f"{temp_folder_str}/time_series.csv"
     if time_series:
         shutil.copyfile(time_series, tmp_time_series_dir)
+        
+    # Copy the file with the reference front if specified
+    tmp_reference_front_dir = f"{temp_folder_str}/reference_front.csv"
+    if compare_performance:
+        shutil.copyfile(compare_performance, tmp_reference_front_dir)
 
     # Define docker image
     image = f"adriansegura99/geneci_optimize-ensemble:{tag}"
@@ -1754,6 +1766,25 @@ def optimize_ensemble(
             fig.write_html(
                 f"{temp_folder_str}/ea_consensus/parallel_coordinates.html"
             )
+    if compare_performance:
+        # Leer el archivo con los datos de comparación
+        with open(f"{temp_folder_str}/ea_consensus/compare_performance.txt", 'r') as file:
+            line = file.readline().strip()
+
+        # Convertir la línea en una lista de números
+        data = list(map(int, line.split(',')))
+
+        # Crear un gráfico
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=list(range(len(data))), y=data, mode='lines+markers'))
+
+        # Configurar el diseño
+        fig.update_layout(
+            title="Gráfico de datos",
+            xaxis_title="Generation",
+            yaxis_title="Percentage of reference front solutions dominated"
+        )
+        fig.write_html(f"{temp_folder_str}/ea_consensus/compare_performance.html")
 
     # Define and create the output folder
     if str(output_dir) == "<<conf_list_path>>/../ea_consensus":
@@ -2232,6 +2263,13 @@ def run(
         help="Path to the CSV file with the time series from which the individual gene networks have been inferred. This parameter is only necessary in case of specifying the fitness function Loyalty.",
         rich_help_panel="Input data",
     ),
+    compare_performance: Path = typer.Option(
+        None,
+        exists=True,
+        file_okay=True,
+        help="Reference front with which to compare performance. Specifically, a graph will be returned to show for each generation the percentage of reference front solutions that have already been dominated by the current population.",
+        rich_help_panel="Input data",
+    ),
     technique: Optional[List[Technique]] = typer.Option(
         ...,
         case_sensitive=False,
@@ -2337,6 +2375,7 @@ def run(
         confidence_list,
         gene_names,
         time_series,
+        compare_performance,
         crossover_probability,
         num_parents,
         mutation_probability,
