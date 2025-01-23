@@ -1772,7 +1772,7 @@ def optimize_ensemble(
             line = file.readline().strip()
 
         # Convertir la línea en una lista de números
-        data = list(map(int, line.split(',')))
+        data = list(map(float, line.split(',')))
 
         # Crear un gráfico
         fig = go.Figure()

@@ -17,7 +17,7 @@ do
         filename=$(basename $network_folder)
         exp_file="$network_folder/$filename.csv"
         lines=$(wc -l < $exp_file)
-        if [ $lines == $size ] && [ ! -d $network_folder/compared_fronts_5 ]
+        if [ $lines == $size ]
         then
             sorted_networks+=($network_folder)
         fi
@@ -184,6 +184,8 @@ opt_ensemble_multi_obj_ref() {
                 --plot-fitness-evolution --plot-pareto-front --plot-parallel-coordinates \
                 --reference-point $ref_point \
                 --threads 10 --output-dir $problem_folder/ea_consensus_mo_q-dd-m_refpoint-${ref_points_labels[$i]}_0$iteration
+            
+            # --compare-performance $problem_folder/ea_consensus_mo_q-dd-m/FUN.csv
         fi
         let i=$i+1
     done
