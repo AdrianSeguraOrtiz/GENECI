@@ -1,4 +1,4 @@
-name: Sincronizar a repositorio RP-MO-GENECI
+name: Sincronizar a repositorio PBEvoGen
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
           git config --global user.email "adrianseor.99@uma.es"
           git config --global user.name "AdrianSeguraOrtiz"
 
-      - name: Empujar cambios al repositorio RP-MO-GENECI
+      - name: Empujar cambios al repositorio PBEvoGen
         run: |
-          git remote add RP-MO-GENECI https://github.com/AdrianSeguraOrtiz/RP-MO-GENECI.git
-          git push -u RP-MO-GENECI v-2.5.1:main --force
+          git remote add PBEvoGen https://github.com/AdrianSeguraOrtiz/PBEvoGen.git
+          git push -u PBEvoGen v-2.5.1:main --force

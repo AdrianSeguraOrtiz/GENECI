@@ -3,7 +3,7 @@
 ![Pypi](https://img.shields.io/pypi/v/GENECI)
 ![License](https://img.shields.io/apm/l/GENECI)
 
-[RP-MO-GENECI (Reference Point Multi-Objective GEne NEtwork Consensus Inference)](https://github.com/AdrianSeguraOrtiz/RP-MO-GENECI) is a software package derived from [MO-GENECI](https://github.com/AdrianSeguraOrtiz/MO-GENECI) that incorporates a preference selection mechanism that allows the user to guide the exploration of the evolutionary algorithm based on prior knowledge of the search space.
+[PBEvoGen (Preference Based Evolutionary Gene network consensus inference)](https://github.com/AdrianSeguraOrtiz/PBEvoGen) is a software package derived from [MO-GENECI](https://github.com/AdrianSeguraOrtiz/MO-GENECI) that incorporates a preference selection mechanism that allows the user to guide the exploration of the evolutionary algorithm based on prior knowledge of the search space.
 
 ![Alt text](https://github.com/AdrianSeguraOrtiz/GENECI/raw/v-2.5.1/docs/diagram.svg)
 
