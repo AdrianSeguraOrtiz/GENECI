@@ -2085,6 +2085,7 @@ def dream_pareto_front(
             x="AUROC",
             y=objective_labels,
             normalized=True,
+            label="Normalized Objectives Scores",
             output_path=f"{output_dir}/moving_medians_objectives_vs_AUROC.pdf"
         )
         ## AUPR
@@ -2093,6 +2094,7 @@ def dream_pareto_front(
             x="AUPR",
             y=objective_labels,
             normalized=True,
+            label="Normalized Objectives Scores",
             output_path=f"{output_dir}/moving_medians_objectives_vs_AUPR.pdf"
         )
         
@@ -2103,6 +2105,7 @@ def dream_pareto_front(
                 x=fitness_func,
                 y=filenames,
                 normalized=False,
+                label="Techniques Weights",
                 output_path=f"{output_dir}/moving_medians_techniches_vs_{fitness_func}.pdf"
             )
         
@@ -2369,6 +2372,7 @@ def generic_pareto_front(
             x="AUROC",
             y=objective_labels,
             normalized=True,
+            label="Normalized Objectives Scores",
             output_path=f"{output_dir}/moving_medians_objectives_vs_AUROC.pdf"
         )
         ## AUPR
@@ -2377,6 +2381,7 @@ def generic_pareto_front(
             x="AUPR",
             y=objective_labels,
             normalized=True,
+            label="Normalized Objectives Scores",
             output_path=f"{output_dir}/moving_medians_objectives_vs_AUPR.pdf"
         )
         
@@ -2387,6 +2392,7 @@ def generic_pareto_front(
                 x=fitness_func,
                 y=filenames,
                 normalized=False,
+                label="Techniques Weights",
                 output_path=f"{output_dir}/moving_medians_techniches_vs_{fitness_func}.pdf"
             )
             
