@@ -1817,7 +1817,7 @@ def optimize_ensemble(
     container = client.containers.run(
         image=image,
         volumes=get_volume(temp_folder_str),
-        command=f"{temp_folder_str} {crossover_probability} {num_parents} {mutation_probability} {mutation_strength} {population_size} {num_evaluations} {cut_off_criteria} {cut_off_value} {str_functions} {algorithm} {threads} {plot_results}",
+        command=f"{temp_folder_str} {crossover_probability} {num_parents} {mutation_probability} {mutation_strength} {population_size} {num_evaluations} {cut_off_criteria.name} {cut_off_value} {str_functions} {algorithm.name} {threads} {plot_results}",
         detach=True,
         tty=True,
     )
@@ -1839,8 +1839,8 @@ def optimize_ensemble(
 
     # Define and create the output folder
     if str(output_dir) == "<<conf_list_path>>/../ea_consensus":
-        output_dir = Path(f"{Path(confidence_list[0]).parent.parent}/ea_consensus")
-    output_dir.mkdir(exist_ok=True, parents=True)
+        output_dir = f"{Path(confidence_list[0]).parent.parent}/ea_consensus"
+    Path(output_dir).mkdir(exist_ok=True, parents=True)
 
     # All output files are moved and the temporary directory is deleted
     for f in Path(f"{temp_folder_str}/ea_consensus").glob("*"):
