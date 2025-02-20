@@ -2,8 +2,7 @@
 
 ![CI](https://github.com/AdrianSeguraOrtiz/GENECI/actions/workflows/ci.yml/badge.svg)
 ![Release](https://github.com/AdrianSeguraOrtiz/GENECI/actions/workflows/release.yml/badge.svg)
-![Pypi](https://img.shields.io/pypi/v/GENECI/1.0.1)
-![License](https://img.shields.io/apm/l/GENECI)
+![Pypi](https://img.shields.io/pypi/v/GENECI/1.0.2)
 <img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 
 [Single-GENECI (GEne NEtwork Consensus Inference)](https://github.com/AdrianSeguraOrtiz/Single-GENECI) is a software package whose main functionality consists of an evolutionary algorithm to determine the optimal ensemble of machine learning techniques for genetic network inference based on the confidence levels and topological characteristics of its results.
@@ -18,7 +17,7 @@
 # Instalation
 
 ```sh
-pip install geneci==1.0.1
+pip install geneci==1.0.2
 ```
 
 # Integrated techniques
