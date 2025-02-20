@@ -16,9 +16,9 @@ This component is responsible for evaluating the accuracy with which networks be
 
 ```
 <<<<<<< HEAD
-docker build -t adriansegura99/geneci_evaluate_dream-prediction:1.0.0 -f components/evaluate/dream_prediction/Dockerfile .
+docker build -t adriansegura99/geneci_evaluate_dream-prediction:4.0.0 -f components/evaluate/dream_prediction/Dockerfile .
 =======
-docker build -t adriansegura99/geneci_evaluate_dream-prediction:3.0.0 -f components/evaluate/dream_prediction/Dockerfile .
+docker build -t adriansegura99/geneci_evaluate_dream-prediction:4.0.0 -f components/evaluate/dream_prediction/Dockerfile .
 >>>>>>> dev
 ```
 

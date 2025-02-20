@@ -27,7 +27,7 @@ from scipy import stats
 import matplotlib as mpl
 
 # Header
-__version__ = "3.0.1"
+__version__ = "4.0.1"
 __author__ = "Adrian Segura Ortiz <adrianseor.99@uma.es>"
 
 HEADER = "\n".join(
@@ -262,7 +262,7 @@ available_images = [
 ]
 
 # Set docker tag
-tag = "3.0.0"
+tag = "4.0.0"
 
 # Function for obtaining the list of genes from lists of confidence levels.
 def get_gene_names_from_conf_list(conf_list):

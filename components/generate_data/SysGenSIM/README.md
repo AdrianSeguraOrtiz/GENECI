@@ -15,7 +15,7 @@ Simulate time series with gene expression levels using the SysGenSIM simulator. 
 ## Build
 
 ```
-cd components/generate_data/SysGenSIM && matlab -nodisplay -nodesktop -r "run build.m" && cd adriansegura99/geneci_generate-data_sysgensimdocker && sed -i '4,8d' Dockerfile && docker build -t adriansegura99/geneci_generate-data_sysgensim:3.0.0 . && cd ../../../../..
+cd components/generate_data/SysGenSIM && matlab -nodisplay -nodesktop -r "run build.m" && cd adriansegura99/geneci_generate-data_sysgensimdocker && sed -i '4,8d' Dockerfile && docker build -t adriansegura99/geneci_generate-data_sysgensim:4.0.0 . && cd ../../../../..
 ```
 
 ## Run
