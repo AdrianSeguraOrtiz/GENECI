@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "GENECI"
-version = "2.0.1"
-description = "Software package whose main functionality consists of an evolutionary algorithm to determine the optimal ensemble of machine learning techniques for genetic network inference based on the confidence levels and topological characteristics of its results."
+version = "2.0.2"
+description = "MO-GENECI (Multi-Objective GEne NEtwork Consensus Inference) is a software package derived from Single-GENECI designed for intelligent consensus of multiple techniques for inferring gene regulation networks. To this end, a multi-objective evolutionary algorithm is applied to optimize the weights assigned to the different techniques based on observed confidence levels, topological characteristics of the network and detection of highly recurrent motifs in real biological networks."
 authors = ["adrian_segura <adrianseor.99@uma.es>"]
 license = "MIT"
 readme = "README.md"

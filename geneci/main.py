@@ -25,7 +25,7 @@ from plotly.subplots import make_subplots
 from rich import print
 
 # Header
-__version__ = "2.0.1"
+__version__ = "2.0.2"
 __author__ = "Adrian Segura Ortiz <adrianseor.99@uma.es>"
 
 HEADER = "\n".join(

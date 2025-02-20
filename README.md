@@ -1,9 +1,8 @@
 ![CI](https://github.com/AdrianSeguraOrtiz/GENECI/actions/workflows/ci.yml/badge.svg)
 ![Release](https://github.com/AdrianSeguraOrtiz/GENECI/actions/workflows/release.yml/badge.svg)
 ![Pypi](https://img.shields.io/pypi/v/GENECI)
-![License](https://img.shields.io/apm/l/GENECI)
 
-[MO-GENECI (Multi-Objective GEne NEtwork Consensus Inference)](https://github.com/AdrianSeguraOrtiz/MO-GENECI) is a software package derived from [GENECI](https://github.com/AdrianSeguraOrtiz/Single-GENECI) designed for intelligent consensus of multiple techniques for inferring gene regulation networks. Given the expression levels of different genes subjected to various perturbations, MO-GENECI allows for the inference of the underlying network by applying in parallel a wide variety of known inference techniques and subsequently merging their results. To this end, a **multi-objective evolutionary algorithm** is applied to optimize the weights assigned to the different techniques based on observed **confidence levels**, **topological characteristics** of the network and **detection of highly recurrent motifs** in real biological networks.
+[MO-GENECI (Multi-Objective GEne NEtwork Consensus Inference)](https://github.com/AdrianSeguraOrtiz/MO-GENECI) is a software package derived from [Single-GENECI](https://github.com/AdrianSeguraOrtiz/Single-GENECI) designed for intelligent consensus of multiple techniques for inferring gene regulation networks. Given the expression levels of different genes subjected to various perturbations, MO-GENECI allows for the inference of the underlying network by applying in parallel a wide variety of known inference techniques and subsequently merging their results. To this end, a **multi-objective evolutionary algorithm** is applied to optimize the weights assigned to the different techniques based on observed **confidence levels**, **topological characteristics** of the network and **detection of highly recurrent motifs** in real biological networks.
 
 ![Alt text](https://github.com/AdrianSeguraOrtiz/GENECI/raw/v-2.0.1/docs/diagram.svg)
 
@@ -19,12 +18,12 @@ To implement all the functionalities mentioned above, it has been necessary to p
 # Instalation
 
 ```sh
-pip install geneci==2.0.1
+pip install geneci==2.0.2
 ```
 
 # Output
 
-To execute GENECI, the `run` command is provided with the file containing the expression levels of the genes that make up the network, the list of techniques to be agreed upon and the values of the different algorithm parameters in the event of not wishing to use those established by default. If the three proposed objectives are used, the following files are obtained after execution:
+To execute MO-GENECI, the `run` command is provided with the file containing the expression levels of the genes that make up the network, the list of techniques to be agreed upon and the values of the different algorithm parameters in the event of not wishing to use those established by default. If the three proposed objectives are used, the following files are obtained after execution:
 
 - `FUN.csv`: List with fitness values for each individual in the final population for each of the objective functions.
 - `VAR.csv`: List of winning weight vectors, i.e., individuals from the last generation.
