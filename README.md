@@ -20,7 +20,7 @@ pip install geneci==2.5.1
 
 # Integrated techniques
 
-PBEvoGen integra las 26 técnicas de inferencia ya contempladas en [MO-GENECI](https://github.com/AdrianSeguraOrtiz/MO-GENECI): ARACNE, BC3NET, C3NET, CLR, GENIE3_RF, GRNBOOST2, GENIE3_ET, MRNET, MRNETB, PCIT, TIGRESS, KBOOST, MEOMI, JUMP3, NARROMI, CMI2NI, RSNET, PCACMI, LOCPCACMI, PLSNET, PIDC, PUC, GRNVBEM, LEAP, NONLINEARODES, INFERELATOR.
+PBEvoGen integrates the 26 inference techniques already contemplated in [MO-GENECI](https://github.com/AdrianSeguraOrtiz/MO-GENECI): ARACNE, BC3NET, C3NET, CLR, GENIE3_RF, GRNBOOST2, GENIE3_ET, MRNET, MRNETB, PCIT, TIGRESS, KBOOST, MEOMI, JUMP3, NARROMI, CMI2NI, RSNET, PCACMI, LOCPCACMI, PLSNET, PIDC, PUC, GRNVBEM, LEAP, NONLINEARODES, INFERELATOR.
 
 # Example procedure
 
