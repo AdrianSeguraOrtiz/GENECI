@@ -1,6 +1,6 @@
 ![CI](https://github.com/AdrianSeguraOrtiz/GENECI/actions/workflows/ci.yml/badge.svg)
 ![Release](https://github.com/AdrianSeguraOrtiz/GENECI/actions/workflows/release.yml/badge.svg)
-![Pypi](https://img.shields.io/pypi/v/GENECI)
+![Pypi](https://img.shields.io/pypi/v/GENECI/2.0.2)
 
 [MO-GENECI (Multi-Objective GEne NEtwork Consensus Inference)](https://github.com/AdrianSeguraOrtiz/MO-GENECI) is a software package derived from [Single-GENECI](https://github.com/AdrianSeguraOrtiz/Single-GENECI) designed for intelligent consensus of multiple techniques for inferring gene regulation networks. Given the expression levels of different genes subjected to various perturbations, MO-GENECI allows for the inference of the underlying network by applying in parallel a wide variety of known inference techniques and subsequently merging their results. To this end, a **multi-objective evolutionary algorithm** is applied to optimize the weights assigned to the different techniques based on observed **confidence levels**, **topological characteristics** of the network and **detection of highly recurrent motifs** in real biological networks.
 
