@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "GENECI"
 version = "2.5.1"
-description = "Software package whose main functionality consists of an evolutionary algorithm to determine the optimal ensemble of machine learning techniques for genetic network inference based on the confidence levels and topological characteristics of its results."
+description = "PBEvoGen is a software package derived from MO-GENECI that incorporates a preference selection mechanism that allows the user to guide the exploration of the evolutionary algorithm based on prior knowledge of the search space."
 authors = ["adrian_segura <adrianseor.99@uma.es>"]
 license = "MIT"
 readme = "README.md"
@@ -17,6 +17,7 @@ pandas = "^1.5.1"
 plotly = "^5.11.0"
 iteround = "^1.0.4"
 scipy = "^1.10.2"
+numpy = "^1.26.4"
 
 [tool.poetry.dev-dependencies]
 
