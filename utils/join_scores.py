@@ -27,6 +27,8 @@ def join_scores(
         geneci_file: str = typer.Option(..., help="Path to CSV geneci file"),
         mean_file: str = typer.Option(None, help="Path to mean file"),
         median_file: str = typer.Option(None, help="Path to median file"),
+        rank_file: str = typer.Option(None, help="Path to rank file"),
+        bayesian_file: str = typer.Option(None, help="Path to bayesian file"),
         output_file: str = typer.Option(..., help="Path to output file"),
     ):
     
@@ -60,6 +62,16 @@ def join_scores(
     if median_file:
         median = search_metrics(median_file)
         df_tecs = pd.concat([df_tecs, pd.DataFrame([["MEDIAN"] + median], columns=df_tecs.columns.tolist())], ignore_index=True)
+        
+    # Rank file
+    if rank_file:
+        rank = search_metrics(rank_file)
+        df_tecs = pd.concat([df_tecs, pd.DataFrame([["RANK_AVERAGE"] + rank], columns=df_tecs.columns.tolist())], ignore_index=True)
+    
+    # Bayesian file
+    if bayesian_file:
+        bayesian = search_metrics(bayesian_file)
+        df_tecs = pd.concat([df_tecs, pd.DataFrame([["BAYESIAN_FUSION"] + bayesian], columns=df_tecs.columns.tolist())], ignore_index=True)
 
     # Save in csv output file
     df_tecs.to_csv(output_file, index=False, sep=";")

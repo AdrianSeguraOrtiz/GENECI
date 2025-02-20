@@ -383,7 +383,7 @@ def chord_diagram(
     plt.show()
     
     
-def plot_moving_medians(file_path: str, x: str, y: list[str], normalized: bool, output_path: str):
+def plot_moving_medians(file_path: str, x: str, y: list[str], normalized: bool, label: str, output_path: str):
     # Cargar los datos
     data = pd.read_csv(file_path)
 
@@ -459,9 +459,9 @@ def plot_moving_medians(file_path: str, x: str, y: list[str], normalized: bool, 
                         alpha=0.2)
 
     # Configurar el título de la gráfica y las etiquetas
-    ax.set_title(f'Moving Medians of Normalized Objectives \n by {x} with IQR Shading', fontsize=20)
+    ax.set_title(f'Moving Medians of {label} \n by {x} with IQR Shading', fontsize=20)
     ax.set_xlabel(x, fontsize=14)
-    ax.set_ylabel(f'Moving Medians of Normalized Objective \n Scores with window size of {round(window_size, 3)}', fontsize=14)
+    ax.set_ylabel(f'Moving Medians of {label} \n with window size of {round(window_size, 3)}', fontsize=14)
 
     # Añadir la leyenda a la gráfica
     # Shrink current axis by 20%

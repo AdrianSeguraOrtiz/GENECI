@@ -1,10 +1,16 @@
 package eagrn.fitnessfunction.impl.motif.impl;
 
+import org.ehcache.Cache;
+import org.ehcache.CacheManager;
+import org.ehcache.config.builders.CacheConfigurationBuilder;
+import org.ehcache.config.builders.CacheManagerBuilder;
+import org.ehcache.config.builders.ResourcePoolsBuilder;
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.DefaultEdge;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -17,7 +23,7 @@ import eagrn.fitnessfunction.FitnessFunction;
 public class MotifDetection implements FitnessFunction {
     private CutOffCriteria cutOffCriteria;
     private MotifFitnessInterface[] motifFunctions;
-    private Map<Integer, Double> cache;
+    private Cache<String, Double> cache;
 
     public interface MotifFitnessInterface {
         int count(Graph<Integer, DefaultEdge> graph);
@@ -26,7 +32,9 @@ public class MotifDetection implements FitnessFunction {
     public MotifDetection(CutOffCriteria cutOffCriteria, String[] motifs) {
         this.cutOffCriteria = cutOffCriteria;
         this.motifFunctions = new MotifFitnessInterface[motifs.length];
-        this.cache = new HashMap<>();
+        CacheManager hybridCacheManager = CacheManagerBuilder.newCacheManagerBuilder().build();
+        hybridCacheManager.init();
+        this.cache = hybridCacheManager.createCache("FitnessFunctionCache", CacheConfigurationBuilder.newCacheConfigurationBuilder(String.class, Double.class, ResourcePoolsBuilder.heap(1000)).build());
 
         for (int i = 0; i < motifs.length; i++) {
             MotifFitnessInterface function;
@@ -356,7 +364,7 @@ public class MotifDetection implements FitnessFunction {
     @Override
     public double run(Map<String, Float> consensus, Double[] x) {
         double score = 0.0;
-        int key = cutOffCriteria.getCutMap(consensus).hashCode();
+        String key = Arrays.deepToString(cutOffCriteria.getBooleanMatrix(consensus));
 
         if (this.cache.containsKey(key)){
             score = this.cache.get(key);
