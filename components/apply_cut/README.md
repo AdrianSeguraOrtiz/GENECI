@@ -16,9 +16,9 @@ This component is in charge of converting confidence lists into binary matrices 
 
 ```
 <<<<<<< HEAD
-docker build -t adriansegura99/geneci_apply-cut:1.0.0 -f components/apply_cut/Dockerfile .
+docker build -t adriansegura99/geneci_apply-cut:4.0.0 -f components/apply_cut/Dockerfile .
 =======
-docker build -t adriansegura99/geneci_apply-cut:3.0.0 -f components/apply_cut/Dockerfile .
+docker build -t adriansegura99/geneci_apply-cut:4.0.0 -f components/apply_cut/Dockerfile .
 >>>>>>> dev
 ```
 
