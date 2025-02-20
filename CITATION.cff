@@ -14,12 +14,12 @@ authors:
     affiliation: University of Malaga
     orcid: 'https://orcid.org/0000-0003-2149-5754'
 repository-code: 'https://github.com/AdrianSeguraOrtiz/Memetic-GENECI'
-url: 'https://pypi.org/project/GENECI/1.5.1/'
+url: 'https://pypi.org/project/GENECI/1.5.2/'
 abstract: >-
-  Memetic-GENECI is a software package derived from GENECI (GEne NEtwork Consensus Inference) 
+  Memetic-GENECI is a software package derived from Single-GENECI (GEne NEtwork Consensus Inference) 
   that incorporates an additional local search phase to guide the evolution of individuals 
   based on known interactions. Injection of domain expert knowledge has been shown to improve 
-  the accuracy with which GENECI optimises consensus between different gene regulatory 
+  the accuracy with which Single-GENECI optimises consensus between different gene regulatory 
   network inference techniques.
 keywords:
   - Memetic Algorithm
@@ -41,5 +41,5 @@ preferred-citation:
   book: "International Conference on Computational Science"
   publisher: "Springer Nature Switzerland"
   month: 6
-  title: "Multi-objective context-guided consensus of a massive array of techniques for the inference of Gene Regulatory Networks"
+  title: "Exploiting medical-expert knowledge via a novel memetic algorithm for the inference of gene regulatory networks"
   year: 2024

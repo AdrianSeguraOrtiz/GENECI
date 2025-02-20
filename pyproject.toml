@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "GENECI"
-version = "1.5.1"
-description = "Software package whose main functionality consists of an evolutionary algorithm to determine the optimal ensemble of machine learning techniques for genetic network inference based on the confidence levels and topological characteristics of its results."
+version = "1.5.2"
+description = "Memetic-GENECI is a software package derived from Single-GENECI (GEne NEtwork Consensus Inference) that incorporates an additional local search phase to guide the evolution of individuals based on known interactions"
 authors = ["adrian_segura <adrianseor.99@uma.es>"]
 license = "MIT"
 readme = "README.md"
