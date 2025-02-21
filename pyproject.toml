@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "GENECI"
 version = "3.0.1"
-description = "BIO-INSIGHT is a software package designed for intelligent consensus of multiple techniques for inferring gene regulation networks. To this end, a **many-objective evolutionary algorithm** is applied to optimize the weights assigned to the different techniques based on observed **confidence levels**, **topological characteristics** of the network, **network dynamics**, **detection of highly recurrent motifs** in real biological networks, **importance of interactions**, **contextualized analysis of graph metrics** and, in case of a time series as input, **maintenance of the loyalty** to it."
+description = "BIO-INSIGHT is a software package designed for intelligent consensus of multiple techniques for inferring gene regulation networks. To this end, a **parallel asynchronous many-objective evolutionary algorithm** is applied to optimize the weights assigned to the different techniques based on 6 biological objectives"
 authors = ["adrian_segura <adrianseor.99@uma.es>"]
 license = "MIT"
 readme = "README.md"
