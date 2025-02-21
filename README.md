@@ -151,6 +151,8 @@ $ geneci [OPTIONS] COMMAND [ARGS]...
 * `plot-optimization`: Graph execution results. The evolution of Fitness functions, the Pareto front, the parallel coordinate graph and the chord diagram can be represented. In addition, all of them will be stored in files except the chord diagram, whose interactivity is too complex to be stored.
 * `weighted-confidence`: Calculate the weighted sum of the confidence levels reported in several files based on a given distribution of weights.
 
+Only the specifications of the main commands are shown below.
+
 ## `geneci optimize-ensemble`
 
 Analyzes several trust lists and builds a consensus network by applying an evolutionary algorithm
