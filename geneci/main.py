@@ -531,7 +531,7 @@ def generate_from_scratch(
 
     # Report information to the user.
     print(
-        f"\n Simulate network of {network_size} genes with {topology.name} topology applying {perturbation.name} perturbation."
+        f"\n Simulate network of {network_size} genes with {topology.value} topology applying {perturbation.value} perturbation."
     )
 
     # Create temporary folder.
@@ -550,7 +550,7 @@ def generate_from_scratch(
     container = client.containers.run(
         image=image,
         volumes=get_volume(temp_folder_str, True),
-        command=f"'' {topology} {network_size} {perturbation} /tmp/.X11-unix/{temp_folder_str}",
+        command=f"'' {topology.value} {network_size} {perturbation.value} /tmp/.X11-unix/{temp_folder_str}",
         detach=True,
         tty=True,
     )
@@ -585,7 +585,7 @@ def generate_from_scratch(
     output_folder_gs.mkdir(exist_ok=True, parents=True)
 
     # Save tables to their final destinations
-    name = f"sim_{topology}_size-{network_size}_{perturbation}"
+    name = f"sim_{topology.value}_size-{network_size}_{perturbation.value}"
     completed_exp_df.to_csv(
         f"{output_folder_exp}/{name}_exp.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
     )
@@ -615,12 +615,12 @@ def download_real_network(
     """
 
     # Report information to the user.
-    print(f"Downloading real network {id} from {database} database")
+    print(f"Downloading real network {id} from {database.value} database")
 
     # Check that the identifier represents a gene network in the selected database.
-    if id not in real_networks_dict[database]:
+    if id not in real_networks_dict[database.value]:
         print("The entered id is not available in the selected database.")
-        print(f"Please choose one of the following: {real_networks_dict[database]}")
+        print(f"Please choose one of the following: {real_networks_dict[database.value]}")
         raise typer.Exit()
 
     # Define link
@@ -714,7 +714,7 @@ def download_real_network(
     # Save in output file
     output_folder = f"{output_dir}/simulated_based_on_real/RAW/"
     Path(output_folder).mkdir(exist_ok=True, parents=True)
-    df.to_csv(f"{output_folder}/{database}_{id}.tsv", header=False, index=False)
+    df.to_csv(f"{output_folder}/{database.value}_{id}.tsv", header=False, index=False)
 
     # Remove temp folder.
     shutil.rmtree(temp_folder_str)
@@ -742,7 +742,7 @@ def generate_from_real_network(
 
     # Report information to the user.
     print(
-        f"\n Simulate expression data from {real_list_of_links.name} real-world network applying {perturbation.name} perturbation."
+        f"\n Simulate expression data from {real_list_of_links.name} real-world network applying {perturbation.value} perturbation."
     )
 
     # Create temporary folder.
@@ -774,7 +774,7 @@ def generate_from_real_network(
     container = client.containers.run(
         image=image,
         volumes=get_volume(temp_folder_str, True),
-        command=f"/tmp/.X11-unix/{tmp_network_dir} '' '' {perturbation} /tmp/.X11-unix/{temp_folder_str}",
+        command=f"/tmp/.X11-unix/{tmp_network_dir} '' '' {perturbation.value} /tmp/.X11-unix/{temp_folder_str}",
         detach=True,
         tty=True,
     )
@@ -824,7 +824,7 @@ def generate_from_real_network(
     output_folder_gs.mkdir(exist_ok=True, parents=True)
 
     # Save tables to their final destinations
-    name = f"sim_{real_list_of_links.stem}_{perturbation}"
+    name = f"sim_{real_list_of_links.stem}_{perturbation.value}"
     completed_exp_df.to_csv(
         f"{output_folder_exp}/{name}_exp.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
     )
@@ -869,11 +869,11 @@ def expression_data(
     for db in database:
 
         # Create the output folder
-        output_folder = Path(f"./{output_dir}/{db}/EXP/")
+        output_folder = Path(f"./{output_dir}/{db.value}/EXP/")
         output_folder.mkdir(exist_ok=True, parents=True)
 
         # Report information to the user
-        print(f"\n Extracting expression data from {db}")
+        print(f"\n Extracting expression data from {db.value}")
 
         # Execute the corresponding image according to the database.
         if db == Database.DREAM3:
@@ -939,7 +939,7 @@ def expression_data(
                 client.images.pull(repository=image)
 
             # Construct the command based on the parameters entered by the user
-            command = f"{db} ExpressionData ./EXP/ "
+            command = f"{db.value} ExpressionData ./EXP/ "
 
         # Run container
         container = client.containers.run(
@@ -990,11 +990,11 @@ def gold_standard(
     for db in database:
 
         # Create the output folder
-        output_folder = Path(f"./{output_dir}/{db}/GS/")
+        output_folder = Path(f"./{output_dir}/{db.value}/GS/")
         output_folder.mkdir(exist_ok=True, parents=True)
 
         # Report information to the user
-        print(f"\n Extracting gold standards from {db}")
+        print(f"\n Extracting gold standards from {db.value}")
 
         # Execute the corresponding image according to the database.
         if db == Database.DREAM3:
@@ -1060,7 +1060,7 @@ def gold_standard(
                 client.images.pull(repository=image)
 
             # Construct the command based on the parameters entered by the user
-            command = f"{db} GoldStandard ./GS/ "
+            command = f"{db.value} GoldStandard ./GS/ "
 
         # Run container
         container = client.containers.run(
@@ -1096,14 +1096,14 @@ def evaluation_data(
     for db in database:
 
         # Create the output folder
-        output_folder = Path(f"./{output_dir}/{db}/EVAL/")
+        output_folder = Path(f"./{output_dir}/{db.value}/EVAL/")
         output_folder.mkdir(exist_ok=True, parents=True)
 
         # Report information to the user
-        print(f"\n Extracting evaluation data from {db}")
+        print(f"\n Extracting evaluation data from {db.value}")
 
         # Execute the corresponding image according to the database.
-        if db == Database.DREAM3:
+        if db == EvalDatabase.DREAM3:
 
             # Define docker image
             image = f"adriansegura99/geneci_extract-data_dream3:{tag}"
@@ -1116,7 +1116,7 @@ def evaluation_data(
             # Construct the command based on the parameters entered by the user
             command = f"--category EvaluationData --output-folder ./EVAL/  --username {username} --password {password}"
 
-        elif db == Database.DREAM4:
+        elif db == EvalDatabase.DREAM4:
 
             # Define docker image
             image = f"adriansegura99/geneci_extract-data_dream4-eval:{tag}"
@@ -1131,7 +1131,7 @@ def evaluation_data(
                 f"--output-folder ./EVAL/  --username {username} --password {password}"
             )
 
-        elif db == Database.DREAM5:
+        elif db == EvalDatabase.DREAM5:
 
             # Define docker image
             image = f"adriansegura99/geneci_extract-data_dream5:{tag}"
@@ -1217,7 +1217,7 @@ def infer_network(
     for tec in technique:
 
         # Report information to the user.
-        print(f"\n Infer network from {expression_data} with {tec}")
+        print(f"\n Infer network from {expression_data} with {tec.value}")
 
         # The image is selected according to the chosen technique.
         if tec == Technique.GENIE3_RF:
@@ -1230,7 +1230,7 @@ def infer_network(
             image = f"adriansegura99/geneci_infer-network_genie3:{tag}"
             variant = "ET"
         else:
-            image = f"adriansegura99/geneci_infer-network_{tec.lower()}:{tag}"
+            image = f"adriansegura99/geneci_infer-network_{tec.value.lower()}:{tag}"
             variant = None
 
         # In case the image comes from a matlab tool, we assign the corresponding prefix.
@@ -1278,7 +1278,7 @@ def infer_network(
         logs, execution_time = wait_and_close_container(container)
 
         # Register execution time
-        str_times += "\t- " + technique[i] + ":\t" + str(execution_time) + "\n"
+        str_times += "\t- " + technique[i].value + ":\t" + str(execution_time) + "\n"
 
         # Print reported logs
         print(logs)
@@ -1336,7 +1336,7 @@ def cluster_network(
     
     # Report information to the user.
     print(
-        f"Dividing the gene network {confidence_list} in communities applying the {algorithm} grouping algorithm"
+        f"Dividing the gene network {confidence_list} in communities applying the {algorithm.value} grouping algorithm"
     )
     
     # A temporary folder is created and the list of input confidences is copied.
@@ -1359,7 +1359,7 @@ def cluster_network(
     container = client.containers.run(
         image=image,
         volumes=get_volume(temp_folder_str),
-        command=f"--confidence-list {tmp_confidence_list_dir} --algorithm {algorithm.lower()} --output-folder {temp_folder_str}",
+        command=f"--confidence-list {tmp_confidence_list_dir} --algorithm {algorithm.value.lower()} --output-folder {temp_folder_str}",
         detach=True,
         tty=True,
     )
@@ -1408,7 +1408,7 @@ def apply_cut(
 
     # Report information to the user.
     print(
-        f"Apply cut to {confidence_list} with {cut_off_criteria} and value {cut_off_value}"
+        f"Apply cut to {confidence_list} with {cut_off_criteria.value} and value {cut_off_value}"
     )
 
     # A temporary folder is created and the list of input confidences is copied.
@@ -1451,7 +1451,7 @@ def apply_cut(
     container = client.containers.run(
         image=image,
         volumes=get_volume(temp_folder_str),
-        command=f"{tmp_confidence_list_dir} {tmp_gene_names_dir} {temp_folder_str}/{Path(output_file).name} {cut_off_criteria} {cut_off_value}",
+        command=f"{tmp_confidence_list_dir} {tmp_gene_names_dir} {temp_folder_str}/{Path(output_file).name} {cut_off_criteria.value} {cut_off_value}",
         detach=True,
         tty=True,
     )
@@ -1514,7 +1514,7 @@ def plot_optimization(
     # Define and create the output folder
     if str(output_dir) == "<<fun_file>>/..":
         output_dir = Path(fun_file).parent
-    output_dir.mkdir(exist_ok=True, parents=True)
+    Path(output_dir).mkdir(exist_ok=True, parents=True)
     
     # Get function names
     functions = pd.read_csv(fun_file, nrows=0).columns.tolist()
@@ -1817,7 +1817,7 @@ def optimize_ensemble(
     container = client.containers.run(
         image=image,
         volumes=get_volume(temp_folder_str),
-        command=f"{temp_folder_str} {crossover_probability} {num_parents} {mutation_probability} {mutation_strength} {population_size} {num_evaluations} {cut_off_criteria.name} {cut_off_value} {str_functions} {algorithm.name} {threads} {plot_results}",
+        command=f"{temp_folder_str} {crossover_probability} {num_parents} {mutation_probability} {mutation_strength} {population_size} {num_evaluations} {cut_off_criteria.value} {cut_off_value} {str_functions} {algorithm.value} {threads} {plot_results}",
         detach=True,
         tty=True,
     )
@@ -1834,7 +1834,7 @@ def optimize_ensemble(
             plot_pareto_front=True,
             plot_parallel_coordinates=True,
             plot_chord_diagram=True,
-            output_dir="<<fun_file>>/../",
+            output_dir="<<fun_file>>/..",
         )
 
     # Define and create the output folder
@@ -1873,7 +1873,7 @@ def dream_list_of_links(
 
     # Report information to the user.
     print(
-        f"Evaluate {confidence_list} prediction for {network_id} network in {challenge.name} challenge"
+        f"Evaluate {confidence_list} prediction for {network_id} network in {challenge.value} challenge"
     )
 
     # Create temporary folder
@@ -1900,7 +1900,7 @@ def dream_list_of_links(
     container = client.containers.run(
         image=image,
         volumes=get_volume(temp_folder_str),
-        command=f"--challenge {challenge.name} --network-id {network_id} --synapse-folder {tmp_synapse_files_dir} --confidence-list {tmp_confidence_list_dir}",
+        command=f"--challenge {challenge.value} --network-id {network_id} --synapse-folder {tmp_synapse_files_dir} --confidence-list {tmp_confidence_list_dir}",
         detach=True,
         tty=True,
     )
@@ -2001,7 +2001,7 @@ def dream_pareto_front(
     # Define and create the output folder
     if str(output_dir) == "<<weights_file_dir>>":
         output_dir = Path(weights_file).parent
-    output_dir.mkdir(exist_ok=True, parents=True)
+    Path(output_dir).mkdir(exist_ok=True, parents=True)
 
     # 1. Distribution of weights
     filenames, weights = get_weights(weights_file)
@@ -2290,7 +2290,7 @@ def generic_pareto_front(
     # Define and create the output folder
     if str(output_dir) == "<<weights_file_dir>>":
         output_dir = Path(weights_file).parent
-    output_dir.mkdir(exist_ok=True, parents=True)
+    Path(output_dir).mkdir(exist_ok=True, parents=True)
 
     # 1. Distribution of weights
     filenames, weights = get_weights(weights_file)
@@ -2602,7 +2602,7 @@ def draw_network(
     container = client.containers.run(
         image=image,
         volumes=get_volume(temp_folder_str),
-        command=f"{command} --mode {mode} --nodes-distribution {nodes_distribution} --confidence-cut-off {confidence_cut_off} --output-folder {tmp_output_folder}",
+        command=f"{command} --mode {mode.value} --nodes-distribution {nodes_distribution.value} --confidence-cut-off {confidence_cut_off} --output-folder {tmp_output_folder}",
         detach=True,
         tty=True,
     )
@@ -2616,7 +2616,7 @@ def draw_network(
         output_folder = Path(
             f"{Path(confidence_list[0]).parent.parent}/network_graphics/"
         )
-    output_folder.mkdir(exist_ok=True, parents=True)
+    Path(output_folder).mkdir(exist_ok=True, parents=True)
 
     # Move all output files
     for f in Path(tmp_output_folder).glob("*"):
