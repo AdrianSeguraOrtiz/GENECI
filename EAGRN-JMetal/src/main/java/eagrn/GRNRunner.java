@@ -6,6 +6,7 @@ import eagrn.algorithm.AsynchronousMultiThreadedNSGAIIGoodParentsExternalFile;
 import eagrn.cutoffcriteria.CutOffCriteria;
 import eagrn.operator.crossover.SimplexCrossover;
 import eagrn.operator.mutation.SimplexMutation;
+import eagrn.operator.mutation.SimplexMutationWithLocalSearch;
 import eagrn.utils.fitnessevolution.GRNProblemFitnessEvolution;
 import eagrn.utils.fitnessevolution.impl.GRNProblemBestFitnessEvolution;
 import eagrn.utils.solutionlistoutputwithheader.SolutionListOutputWithHeader;
@@ -77,11 +78,13 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         String strAlgorithm;
         int numOfThreads;
         boolean printEvolution;
+        String strMemeticDistanceType;
+        double memeticPropability;
 
         if (args.length > 0) {
             networkFolder = args[0];
 
-            if (args.length == 13) {
+            if (args.length == 15) {
                 crossoverProbability = Double.parseDouble(args[1]);
                 numParents = Integer.parseInt(args[2]);
                 mutationProbability = Double.parseDouble(args[3]);
@@ -94,6 +97,8 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 strAlgorithm = args[10];
                 numOfThreads = Integer.parseInt(args[11]);
                 printEvolution = Boolean.parseBoolean(args[12]);
+                strMemeticDistanceType = args[13];
+                memeticPropability = Double.parseDouble(args[14]);
 
             } else {
                 crossoverProbability = 0.9;
@@ -108,6 +113,8 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 strAlgorithm = "NSGAIIExternalFile";
                 numOfThreads = Runtime.getRuntime().availableProcessors();
                 printEvolution = true;
+                strMemeticDistanceType = "some";
+                memeticPropability = 0.1;
             }
         } else {
             throw new RuntimeException("At least the folder with the input trust lists must be provided.");
@@ -151,6 +158,12 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             strTimeSeriesFile = null;
         }
 
+        /** Extract the path to the file with the known interactions if provided */
+        String strKnownInteractionsFile = networkFolder + "/known_interactions.csv";
+        if (!Files.exists(Paths.get(strKnownInteractionsFile))) {
+            strKnownInteractionsFile = null;
+        }
+
         /** Establish the cut-off criteria. */
         cutOffCriteria = StaticUtils.getCutOffCriteriaFromString(strCutOffCriteria, cutOffValue, geneNames);
 
@@ -167,7 +180,12 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         crossover = new SimplexCrossover(numParents, 1, crossoverProbability);
 
         /** Set the mutation operator. */
-        mutation = new SimplexMutation(mutationProbability, mutationStrength);
+        if (strKnownInteractionsFile != null) {
+            mutation = new SimplexMutationWithLocalSearch(mutationProbability, mutationStrength,
+                    inferredNetworks, strKnownInteractionsFile, strMemeticDistanceType, memeticPropability);
+        } else {
+            mutation = new SimplexMutation(mutationProbability, mutationStrength);
+        }
 
         /** Start selection operator. */
         selection = new BinaryTournamentSelection<>(new RankingAndCrowdingDistanceComparator<>());

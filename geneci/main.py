@@ -251,7 +251,11 @@ class Algorithm(str, Enum):
 class ClusteringAlgorithm(str, Enum):
     Louvain = "Louvain"
     Infomap = "Infomap"
-
+    
+class MemeticDistanceType(str, Enum):
+    all = "all"
+    some = "some"
+    one = "one"
 
 # Activate docker client.
 client = docker.from_env()
@@ -1691,7 +1695,14 @@ def optimize_ensemble(
         exists=True,
         file_okay=True,
         help="Path to the CSV file with the time series from which the individual gene networks have been inferred. This parameter is only necessary in case of specifying the fitness function Loyalty.",
-        rich_help_panel="Input data",
+        rich_help_panel="Times series - Loyalty",
+    ),
+    known_interactions: Path = typer.Option(
+        None,
+        exists=True,
+        file_okay=True,
+        help="Path to the CSV file with the known interactions between genes. If specified, a local search process will be performed before mutation.",
+        rich_help_panel="Local search",
     ),
     crossover_probability: float = typer.Option(
         0.9, help="Crossover probability", rich_help_panel="Crossover"
@@ -1708,6 +1719,10 @@ def optimize_ensemble(
     mutation_strength: float = typer.Option(
         0.1, help="Mutation strength", rich_help_panel="Mutation"
     ),
+    memetic_distance_type: MemeticDistanceType = typer.Option(
+        MemeticDistanceType.all, help="Memetic distance type", rich_help_panel="Local search"
+    ),
+    memetic_probability: float = typer.Option(0.55, help="Memetic probability", rich_help_panel="Local search"),
     population_size: int = typer.Option(
         100, help="Population size", rich_help_panel="Diversity and depth"
     ),
@@ -1727,7 +1742,19 @@ def optimize_ensemble(
     ),
     function: Optional[List[str]] = typer.Option(
         ...,
-        help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, DegreeDistribution and Motifs",
+        help='''A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. \n
+                Available terms: \n
+                    \t - Quality \n
+                    \t - DegreeDistribution \n
+                    \t - Motifs \n
+                    \t - Dynamicity \n
+                    \t - ReduceNonEssentialsInteractions \n
+                    \t - EigenVectorDistribution \n
+                    \t - Loyalty \n
+                    \t - Clustering \n
+                Examples: \n
+                    \t - Objective of one term: "Quality" \n
+                    \t - Objective of two terms: "0.5*Quality+0.5*DegreeDistribution" \n''',
         rich_help_panel="Fitness",
     ),
     algorithm: Algorithm = typer.Option(
@@ -1804,6 +1831,11 @@ def optimize_ensemble(
     tmp_time_series_dir = f"{temp_folder_str}/time_series.csv"
     if time_series:
         shutil.copyfile(time_series, tmp_time_series_dir)
+        
+    # If known links are provided, they are copied to the temporary directory
+    tmp_known_interactions_dir = f"{temp_folder_str}/known_interactions.csv"
+    if known_interactions:
+        shutil.copyfile(known_interactions, tmp_known_interactions_dir)
 
     # Define docker image
     image = f"adriansegura99/geneci_optimize-ensemble:{tag}"
@@ -1817,7 +1849,7 @@ def optimize_ensemble(
     container = client.containers.run(
         image=image,
         volumes=get_volume(temp_folder_str),
-        command=f"{temp_folder_str} {crossover_probability} {num_parents} {mutation_probability} {mutation_strength} {population_size} {num_evaluations} {cut_off_criteria.value} {cut_off_value} {str_functions} {algorithm.value} {threads} {plot_results}",
+        command=f"{temp_folder_str} {crossover_probability} {num_parents} {mutation_probability} {mutation_strength} {population_size} {num_evaluations} {cut_off_criteria.value} {cut_off_value} {str_functions} {algorithm.value} {threads} {plot_results} {memetic_distance_type.value} {memetic_probability}",
         detach=True,
         tty=True,
     )
@@ -2443,7 +2475,14 @@ def run(
         exists=True,
         file_okay=True,
         help="Path to the CSV file with the time series from which the individual gene networks have been inferred. This parameter is only necessary in case of specifying the fitness function Loyalty.",
-        rich_help_panel="Input data",
+        rich_help_panel="Times series - Loyalty",
+    ),
+    known_interactions: Path = typer.Option(
+        None,
+        exists=True,
+        file_okay=True,
+        help="Path to the CSV file with the known interactions between genes. If specified, a local search process will be performed before mutation.",
+        rich_help_panel="Local search",
     ),
     technique: Optional[List[Technique]] = typer.Option(
         ...,
@@ -2466,6 +2505,10 @@ def run(
     mutation_strength: float = typer.Option(
         0.1, help="Mutation strength", rich_help_panel="Mutation"
     ),
+    memetic_distance_type: MemeticDistanceType = typer.Option(
+        MemeticDistanceType.all, help="Memetic distance type", rich_help_panel="Local search",
+    ),
+    memetic_probability: float = typer.Option(0.55, help="Memetic probability", rich_help_panel="Local search",),
     population_size: int = typer.Option(
         100, help="Population size", rich_help_panel="Diversity and depth"
     ),
@@ -2485,7 +2528,19 @@ def run(
     ),
     function: Optional[List[str]] = typer.Option(
         ...,
-        help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, DegreeDistribution and Motifs.",
+        help='''A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. \n
+                Available terms: \n
+                    \t - Quality \n
+                    \t - DegreeDistribution \n
+                    \t - Motifs \n
+                    \t - Dynamicity \n
+                    \t - ReduceNonEssentialsInteractions \n
+                    \t - EigenVectorDistribution \n
+                    \t - Loyalty \n
+                    \t - Clustering \n
+                Examples: \n
+                    \t - Objective of one term: "Quality" \n
+                    \t - Objective of two terms: "0.5*Quality+0.5*DegreeDistribution" \n''',
         rich_help_panel="Fitness",
     ),
     algorithm: Algorithm = typer.Option(
@@ -2535,10 +2590,13 @@ def run(
         confidence_list,
         gene_names,
         time_series,
+        known_interactions,
         crossover_probability,
         num_parents,
         mutation_probability,
         mutation_strength,
+        memetic_distance_type,
+        memetic_probability,
         population_size,
         num_evaluations,
         cut_off_criteria,
