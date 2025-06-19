@@ -3,17 +3,23 @@ package eagrn;
 import eagrn.algorithm.AsynchronousMultiThreadedGeneticAlgorithmGoodParents;
 import eagrn.algorithm.AsynchronousMultiThreadedNSGAIIGoodParents;
 import eagrn.algorithm.AsynchronousMultiThreadedNSGAIIGoodParentsExternalFile;
+import eagrn.algorithm.GNSGAIIBuilder;
 import eagrn.cutoffcriteria.CutOffCriteria;
 import eagrn.operator.crossover.SimplexCrossover;
 import eagrn.operator.mutation.SimplexMutation;
 import eagrn.operator.mutation.SimplexMutationWithLocalSearch;
-import eagrn.utils.fitnessevolution.GRNProblemFitnessEvolution;
-import eagrn.utils.fitnessevolution.impl.GRNProblemBestFitnessEvolution;
+import eagrn.utils.observer.ProblemObserver;
+import eagrn.utils.observer.ProblemObserver.ObserverInterface;
+import eagrn.utils.observer.impl.ComparePerformanceObserver;
+import eagrn.utils.observer.impl.FitnessEvolutionMinObserver;
+import eagrn.utils.observer.impl.NumEvaluationsObserver;
 import eagrn.utils.solutionlistoutputwithheader.SolutionListOutputWithHeader;
 
 import org.uma.jmetal.algorithm.Algorithm;
 import org.uma.jmetal.algorithm.multiobjective.nsgaii.NSGAIIBuilder;
 import org.uma.jmetal.algorithm.multiobjective.smpso.SMPSOBuilder;
+import org.uma.jmetal.component.algorithm.EvolutionaryAlgorithm;
+import org.uma.jmetal.component.catalogue.common.evaluation.impl.MultiThreadedEvaluation;
 import org.uma.jmetal.example.AlgorithmRunner;
 import org.uma.jmetal.experimental.componentbasedalgorithm.algorithm.singleobjective.geneticalgorithm.GeneticAlgorithm;
 import org.uma.jmetal.experimental.componentbasedalgorithm.catalogue.replacement.Replacement;
@@ -22,16 +28,20 @@ import org.uma.jmetal.operator.crossover.CrossoverOperator;
 import org.uma.jmetal.operator.mutation.MutationOperator;
 import org.uma.jmetal.operator.selection.impl.BinaryTournamentSelection;
 import org.uma.jmetal.operator.selection.impl.NaryTournamentSelection;
+import org.uma.jmetal.problem.Problem;
 import org.uma.jmetal.solution.doublesolution.DoubleSolution;
 import org.uma.jmetal.util.AbstractAlgorithmRunner;
 import org.uma.jmetal.util.archive.BoundedArchive;
 import org.uma.jmetal.util.archive.impl.CrowdingDistanceArchive;
+import org.uma.jmetal.util.comparator.GDominanceComparator;
 import org.uma.jmetal.util.comparator.ObjectiveComparator;
 import org.uma.jmetal.util.comparator.RankingAndCrowdingDistanceComparator;
 import org.uma.jmetal.util.evaluator.SolutionListEvaluator;
 import org.uma.jmetal.util.evaluator.impl.MultiThreadedSolutionListEvaluator;
 import org.uma.jmetal.util.evaluator.impl.SequentialSolutionListEvaluator;
 import org.uma.jmetal.util.fileoutput.impl.DefaultFileOutputContext;
+import org.uma.jmetal.util.ranking.Ranking;
+import org.uma.jmetal.util.ranking.impl.FastNonDominatedSortRanking;
 import org.uma.jmetal.util.termination.Termination;
 import org.uma.jmetal.util.termination.impl.TerminationByEvaluations;
 import org.uma.jmetal.util.SolutionListUtils;
@@ -80,11 +90,12 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         boolean printEvolution;
         String strMemeticDistanceType;
         double memeticPropability;
+        String referencePoint;
 
         if (args.length > 0) {
             networkFolder = args[0];
 
-            if (args.length == 15) {
+            if (args.length == 16) {
                 crossoverProbability = Double.parseDouble(args[1]);
                 numParents = Integer.parseInt(args[2]);
                 mutationProbability = Double.parseDouble(args[3]);
@@ -99,6 +110,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 printEvolution = Boolean.parseBoolean(args[12]);
                 strMemeticDistanceType = args[13];
                 memeticPropability = Double.parseDouble(args[14]);
+                referencePoint = args[15];
 
             } else {
                 crossoverProbability = 0.9;
@@ -115,6 +127,7 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 printEvolution = true;
                 strMemeticDistanceType = "some";
                 memeticPropability = 0.1;
+                referencePoint = "";
             }
         } else {
             throw new RuntimeException("At least the folder with the input trust lists must be provided.");
@@ -143,6 +156,25 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             }
         }
 
+        /**
+         * If the reference point is specified, we will use it to
+         * configure the algorithm to be executed.
+         */
+        List<Double> refPointValues = null;
+        if (!(referencePoint.equals("") || referencePoint.equals("-"))) {
+            strAlgorithm += "-ReferencePoint";
+
+            String [] strPoints  = referencePoint.split(";");
+            if (strPoints.length != strFitnessFormulas.split(";").length) {
+                throw new RuntimeException("The number of values in the reference point must match the number of objectives.");
+            }
+
+            refPointValues = new ArrayList<>();
+            for (int i = 0; i < strPoints.length; i++) {
+                refPointValues.add(Double.parseDouble(strPoints[i]));
+            }
+        }
+
         /** List CSV files stored in the input folder with inferred lists of links. */
         File[] files = StaticUtils.getCSVFilesFromDirectory(networkFolder + "/lists/");
 
@@ -167,14 +199,19 @@ public class GRNRunner extends AbstractAlgorithmRunner {
         /** Establish the cut-off criteria. */
         cutOffCriteria = StaticUtils.getCutOffCriteriaFromString(strCutOffCriteria, cutOffValue, geneNames);
 
-        /** Initialize our problem with the extracted data. */
+        /** Establish the observers. */
+        List<ObserverInterface> observers = new ArrayList<>();
+        observers.add(new NumEvaluationsObserver(populationSize));
         if (printEvolution) {
-            problem = new GRNProblemBestFitnessEvolution(inferredNetworks, geneNames, cutOffCriteria,
-                    strFitnessFormulas, strTimeSeriesFile);
-        } else {
-            problem = new GRNProblem(inferredNetworks, geneNames, cutOffCriteria, strFitnessFormulas,
-                    strTimeSeriesFile);
+            observers.add(new FitnessEvolutionMinObserver(populationSize, strFitnessFormulas.split(";").length));
         }
+        File refFront = new File(networkFolder + "/reference_front.csv");
+        if (refFront.exists()) {
+            observers.add(new ComparePerformanceObserver(populationSize, refFront, referencePoint));
+        }
+
+        /** Initialize our problem with the extracted data. */
+        problem = new ProblemObserver(inferredNetworks, geneNames, cutOffCriteria, strFitnessFormulas, strTimeSeriesFile, observers.toArray(new ObserverInterface[observers.size()]));
 
         /** Set the crossover operator. */
         crossover = new SimplexCrossover(numParents, 1, crossoverProbability);
@@ -317,6 +354,36 @@ public class GRNRunner extends AbstractAlgorithmRunner {
                 /** Extract the population of the last iteration. */
                 population = SolutionListUtils.getNonDominatedSolutions(algorithm.getResult());
 
+            } else if (strAlgorithm.equals("NSGAII-AsyncParallel-ReferencePoint")) {
+                /** Activate stopwatch. */
+                long initTime = System.currentTimeMillis();
+
+                /** Set the reference point. */
+                GDominanceComparator<DoubleSolution> dominanceComparator = new GDominanceComparator<>(refPointValues);
+                Ranking<DoubleSolution> ranking = new FastNonDominatedSortRanking<>(dominanceComparator);
+
+                /** Instantiate the evolutionary algorithm. */
+                EvolutionaryAlgorithm<DoubleSolution> algorithm = new GNSGAIIBuilder<DoubleSolution>(
+                    (Problem<DoubleSolution>) problem,
+                    populationSize,
+                    populationSize,
+                    crossover,
+                    mutation)
+                    .setTermination(new org.uma.jmetal.component.catalogue.common.termination.impl.TerminationByEvaluations(numEvaluations))
+                    .setEvaluation(new MultiThreadedEvaluation<>(numOfThreads, problem))
+                    .setRanking(ranking)
+                    .build();
+
+                /** Execute the designed evolutionary algorithm. */
+                algorithm.run();
+
+                /** Stop stopwatch and calculate the total execution time. */
+                long endTime = System.currentTimeMillis();
+                computingTime = endTime - initTime;
+
+                /** Extract the population of the last iteration. */
+                population = SolutionListUtils.getNonDominatedSolutions(algorithm.result());
+
             } else if (strAlgorithm.equals("SMPSO-SingleThread")) {
                 /** Create archive */
                 BoundedArchive<DoubleSolution> archive = new CrowdingDistanceArchive<>(populationSize);
@@ -380,10 +447,13 @@ public class GRNRunner extends AbstractAlgorithmRunner {
             throw new RuntimeException(ioe);
         }
 
-        /** Write the evolution of fitness values to an output txt file. */
-        if (printEvolution) {
-            Map<String, Double[]> fitnessEvolution = ((GRNProblemFitnessEvolution) problem).getFitnessEvolution();
-            StaticUtils.writeFitnessEvolution(outputFolder + "/fitness_evolution.txt", fitnessEvolution);
+        // Write the evolution of fitness values to an output txt file
+        for (ObserverInterface observer : observers) {
+            if (observer instanceof FitnessEvolutionMinObserver) {
+                observer.writeToFile(outputFolder + "/fitness_evolution.txt");
+            } else if (observer instanceof ComparePerformanceObserver) {
+                observer.writeToFile(outputFolder + "/compare_performance.txt");
+            }
         }
 
         /** Get files (techniques) tags */

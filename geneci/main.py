@@ -1757,6 +1757,11 @@ def optimize_ensemble(
                     \t - Objective of two terms: "0.5*Quality+0.5*DegreeDistribution" \n''',
         rich_help_panel="Fitness",
     ),
+    reference_point: str = typer.Option(
+        "-",
+        help="Reference point for the Pareto front. If specified, the search will be oriented towards this point. The format is 'f1;f2;f3'.",
+        rich_help_panel="Fitness",
+    ),
     algorithm: Algorithm = typer.Option(
         ...,
         help="Evolutionary algorithm to be used during the optimization process. All are intended for a multi-objective approach with the exception of the genetic algorithm (GA).",
@@ -1770,6 +1775,13 @@ def optimize_ensemble(
     plot_results: bool = typer.Option(
         True,
         help="Indicate if you want to represent results graphically.",
+        rich_help_panel="Graphics",
+    ),
+    compare_performance: Path = typer.Option(
+        None,
+        exists=True,
+        file_okay=True,
+        help="Reference front with which to compare performance. Specifically, a graph will be returned to show for each generation the percentage of reference front solutions that have already been dominated by the current population. If a reference point is specified to carry out an articulated selection, the part of the reference front covered by that reference point will only be taken into account.",
         rich_help_panel="Graphics",
     ),
     output_dir: Path = typer.Option(
@@ -1836,6 +1848,11 @@ def optimize_ensemble(
     tmp_known_interactions_dir = f"{temp_folder_str}/known_interactions.csv"
     if known_interactions:
         shutil.copyfile(known_interactions, tmp_known_interactions_dir)
+        
+     # Copy the file with the reference front if specified
+    tmp_reference_front_dir = f"{temp_folder_str}/reference_front.csv"
+    if compare_performance:
+        shutil.copyfile(compare_performance, tmp_reference_front_dir)
 
     # Define docker image
     image = f"adriansegura99/geneci_optimize-ensemble:{tag}"
@@ -1849,7 +1866,7 @@ def optimize_ensemble(
     container = client.containers.run(
         image=image,
         volumes=get_volume(temp_folder_str),
-        command=f"{temp_folder_str} {crossover_probability} {num_parents} {mutation_probability} {mutation_strength} {population_size} {num_evaluations} {cut_off_criteria.value} {cut_off_value} {str_functions} {algorithm.value} {threads} {plot_results} {memetic_distance_type.value} {memetic_probability}",
+        command=f"{temp_folder_str} {crossover_probability} {num_parents} {mutation_probability} {mutation_strength} {population_size} {num_evaluations} {cut_off_criteria.value} {cut_off_value} {str_functions} {algorithm.value} {threads} {plot_results} {memetic_distance_type.value} {memetic_probability} {reference_point}",
         detach=True,
         tty=True,
     )
@@ -1868,6 +1885,26 @@ def optimize_ensemble(
             plot_chord_diagram=True,
             output_dir="<<fun_file>>/..",
         )
+    
+    if compare_performance:
+        # Leer el archivo con los datos de comparación
+        with open(f"{temp_folder_str}/ea_consensus/compare_performance.txt", 'r') as file:
+            line = file.readline().strip()
+
+        # Convertir la línea en una lista de números
+        data = list(map(float, line.split(',')))
+
+        # Crear un gráfico
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=list(range(len(data))), y=data, mode='lines+markers'))
+
+        # Configurar el diseño
+        fig.update_layout(
+            title="Gráfico de datos",
+            xaxis_title="Generation",
+            yaxis_title="Percentage of reference front solutions dominated"
+        )
+        fig.write_html(f"{temp_folder_str}/ea_consensus/compare_performance.html")
 
     # Define and create the output folder
     if str(output_dir) == "<<conf_list_path>>/../ea_consensus":
@@ -2543,6 +2580,11 @@ def run(
                     \t - Objective of two terms: "0.5*Quality+0.5*DegreeDistribution" \n''',
         rich_help_panel="Fitness",
     ),
+    reference_point: str = typer.Option(
+        "-",
+        help="Reference point for the Pareto front. If specified, the search will be oriented towards this point. The format is 'f1;f2;f3'.",
+        rich_help_panel="Fitness",
+    ),
     algorithm: Algorithm = typer.Option(
         ...,
         help="Evolutionary algorithm to be used during the optimization process. All are intended for a multi-objective approach with the exception of the genetic algorithm (GA).",
@@ -2561,6 +2603,13 @@ def run(
     plot_results: bool = typer.Option(
         True,
         help="Indicate if you want to represent results graphically.",
+        rich_help_panel="Graphics",
+    ),
+    compare_performance: Path = typer.Option(
+        None,
+        exists=True,
+        file_okay=True,
+        help="Reference front with which to compare performance. Specifically, a graph will be returned to show for each generation the percentage of reference front solutions that have already been dominated by the current population. If a reference point is specified to carry out an articulated selection, the part of the reference front covered by that reference point will only be taken into account.",
         rich_help_panel="Graphics",
     ),
     output_dir: Path = typer.Option(
@@ -2587,24 +2636,26 @@ def run(
 
     # Run ensemble optimization command
     optimize_ensemble(
-        confidence_list,
-        gene_names,
-        time_series,
-        known_interactions,
-        crossover_probability,
-        num_parents,
-        mutation_probability,
-        mutation_strength,
-        memetic_distance_type,
-        memetic_probability,
-        population_size,
-        num_evaluations,
-        cut_off_criteria,
-        cut_off_value,
-        function,
-        algorithm,
-        threads,
-        plot_results,
+        confidence_list=confidence_list,
+        gene_names=gene_names,
+        time_series=time_series,
+        known_interactions=known_interactions,
+        crossover_probability=crossover_probability,
+        num_parents=num_parents,
+        mutation_probability=mutation_probability,
+        mutation_strength=mutation_strength,
+        memetic_distance_type=memetic_distance_type,
+        memetic_probability=memetic_probability,
+        population_size=population_size,
+        num_evaluations=num_evaluations,
+        cut_off_criteria=cut_off_criteria,
+        cut_off_value=cut_off_value,
+        function=function,
+        reference_point=reference_point,
+        algorithm=algorithm,
+        threads=threads,
+        plot_results=plot_results,
+        compare_performance=compare_performance,
         output_dir="<<conf_list_path>>/../ea_consensus",
     )
 
