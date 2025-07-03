@@ -11,7 +11,7 @@ from enum import Enum
 from io import BytesIO
 from pathlib import Path
 from typing import List, Optional
-from geneci.utils import chord_diagram, plot_moving_medians, plot_polar
+from geneci.utils import chord_diagram, plot_moving_medians, plot_polar, simple_consensus, get_expression_data_from_module
 
 import docker
 import numpy as np
@@ -251,11 +251,19 @@ class Algorithm(str, Enum):
 class ClusteringAlgorithm(str, Enum):
     Louvain = "Louvain"
     Infomap = "Infomap"
+    Leiden = "Leiden"
+    MCL = "MCL"
     
 class MemeticDistanceType(str, Enum):
     all = "all"
     some = "some"
     one = "one"
+    
+class SimpleConsensusCriteria(str, Enum):
+    MeanWeights = "MeanWeights"
+    MedianWeights = "MedianWeights"
+    RankAverage = "RankAverage"
+    BayesianFusion = "BayesianFusion"
 
 # Activate docker client.
 client = docker.from_env()
@@ -1330,6 +1338,7 @@ def cluster_network(
         help="Path to the CSV file with the list of trusted values.",
     ),
     algorithm: ClusteringAlgorithm = typer.Option(ClusteringAlgorithm.Infomap, help="Clustering algorithm"),
+    preferred_size: int = typer.Option(100, help="Preferred size of the communities"),
     output_dir: Path = typer.Option(
         Path("./communities"), help="Path to the output folder."
     ),
@@ -1340,7 +1349,7 @@ def cluster_network(
     
     # Report information to the user.
     print(
-        f"Dividing the gene network {confidence_list} in communities applying the {algorithm.value} grouping algorithm"
+        f"Dividing the gene network {confidence_list} in communities of preferred size {preferred_size} applying the {algorithm.value} grouping algorithm"
     )
     
     # A temporary folder is created and the list of input confidences is copied.
@@ -1363,7 +1372,7 @@ def cluster_network(
     container = client.containers.run(
         image=image,
         volumes=get_volume(temp_folder_str),
-        command=f"--confidence-list {tmp_confidence_list_dir} --algorithm {algorithm.value.lower()} --output-folder {temp_folder_str}",
+        command=f"--confidence-list {tmp_confidence_list_dir} --algorithm {algorithm.value} --preferred-size {preferred_size} --output-folder {temp_folder_str}",
         detach=True,
         tty=True,
     )
@@ -1376,6 +1385,114 @@ def cluster_network(
     Path(tmp_confidence_list_dir).unlink()
     for src_file in Path(temp_folder_str).glob('*.*'):
         shutil.move(src_file, output_dir)
+        
+        
+# Command for modular inference
+@app.command(rich_help_panel="Additional commands")
+def modular_inference(
+    expression_data: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help="Path to the CSV file with the expression data. Genes are distributed in rows and experimental conditions in columns.",
+    ),
+    global_techniques: Optional[List[Technique]] = typer.Option(
+        ..., case_sensitive=False, help="Light and less precise techniques to carry out a direct inference of the global network."
+    ),
+    modular_techniques: Optional[List[Technique]] = typer.Option(
+        ..., case_sensitive=False, help="Higher cost and accuracy techniques for inferring small subdivisions of the global network."
+    ),
+    consensus_criteria: SimpleConsensusCriteria = typer.Option(
+        SimpleConsensusCriteria.MeanWeights, case_sensitive=False, help="Simple criterion for agreeing networks from different techniques."
+    ),
+    algorithm: ClusteringAlgorithm = typer.Option(ClusteringAlgorithm.Infomap, help="Clustering algorithm to be used for extracting modules from the global network"),
+    preferred_size: int = typer.Option(100, help="Preferred size of the modules"),
+    threads: int = typer.Option(
+        multiprocessing.cpu_count(),
+        help="Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.",
+    ),
+    output_dir: Path = typer.Option(
+        Path("./modular_inference"), help="Path to the output folder."
+    )
+):
+    """
+    Apply modular inference to a gene network
+    """
+    
+    # Report information to the user.
+    print(
+        f"Applying modular inference to the gene network {expression_data} with the following global techniques: {global_techniques} and the following modular techniques: {modular_techniques}"
+    )
+    
+    # Global inference
+    ## Create global inference folder
+    global_inference_folder = Path(f"{output_dir}/global_inference/")
+    global_inference_folder.mkdir(exist_ok=True, parents=True)
+    ## Carry out the global inference of the network using the specified light techniques.
+    infer_network(expression_data, global_techniques, threads, None, global_inference_folder)
+    ## Extract results
+    global_confidence_list = list(
+        Path(f"./{global_inference_folder}/{expression_data.stem}/lists/").glob("GRN_*.csv")
+    )
+    
+    # Simple consensus of global network
+    global_network_file = f"{global_inference_folder}/consensus_global_network.csv"
+    simple_consensus(global_confidence_list, consensus_criteria, global_network_file)
+    
+    # Extract modules from global consensus network
+    ## Creates modules folder
+    modules_folder = Path(f"{output_dir}/modules/")
+    modules_network_folder = Path(f"{modules_folder}/networks/")
+    modules_network_folder.mkdir(exist_ok=True, parents=True)
+    ## Extract modules
+    cluster_network(global_network_file, algorithm, preferred_size, modules_network_folder)
+    
+    # Obtain subdivisions of expression data based on modules
+    modules_files = list(modules_network_folder.glob("community_*.csv"))
+    modules_expression_folder = Path(f"{modules_folder}/expression/")
+    modules_expression_folder.mkdir(exist_ok=True, parents=True)
+    for module_file in modules_files:
+        get_expression_data_from_module(
+            expression_data,
+            module_file,
+            f"{modules_expression_folder}/{module_file.stem}_expression.csv",
+        )
+    
+    # Modular inference
+    ## Create modular inference folder
+    modular_inference_folder = Path(f"{output_dir}/modular_inference/")
+    modular_inference_folder.mkdir(exist_ok=True, parents=True)
+    ## Carry out the modular inference of the network using the specified techniques.
+    expression_files = list(modules_expression_folder.glob("*.csv"))
+    for expression_file in expression_files:
+        infer_network(
+            expression_file,
+            modular_techniques,
+            threads,
+            None,
+            modular_inference_folder,
+        )
+    
+    # Simple consensus of each subnetwork
+    inferred_modules_folder = list(modular_inference_folder.glob("*"))
+    for inferred_module_folder in inferred_modules_folder:
+        modular_confidence_list = list(inferred_module_folder.glob("lists/GRN_*.csv"))
+        modular_network_file = f"{inferred_module_folder}/consensus_modular_network.csv"
+        simple_consensus(
+            modular_confidence_list,
+            consensus_criteria,
+            modular_network_file,
+        )
+        
+    # Merge all subnetworks and intermediate_relations into a single file
+    inferred_consensus_modules = list(modular_inference_folder.glob("*/consensus_modular_network.csv"))
+    intermediate_relations = f"{modules_network_folder}/intermediate_relations.csv"
+    files_to_merge = inferred_consensus_modules + [intermediate_relations]
+    merged_network_file = f"{output_dir}/merged_network.csv"
+    dfs = [pd.read_csv(fp, header=None) for fp in files_to_merge]
+    merged_df = pd.concat(dfs, ignore_index=True)
+    merged_df.to_csv(merged_network_file, index=False, header=False)
+    
 
 # Command for network binarization
 @app.command(rich_help_panel="Additional commands")

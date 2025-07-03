@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
 RUN pip install --upgrade pip
 
 # Install packages
-RUN pip install typer networkx python-louvain infomap
+RUN pip install typer networkx python-louvain infomap leidenalg igraph markov-clustering
 
 COPY components /usr/local/src/components
 WORKDIR /usr/local/src/

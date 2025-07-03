@@ -561,4 +561,63 @@ def plot_polar(file_path: str, techniques_dict_scores: dict, metric: str, output
 
     plt.savefig(output_path)
 
-    
+
+def simple_consensus(
+    files: list[str],
+    method: str,
+    output_file: str,
+):
+    # Cargar archivos
+    dfs = [pd.read_csv(f, header=None, names=["source", "target", f"confidence{i}"]) for i, f in enumerate(files)]
+
+    # Fusionar por source y target
+    res = dfs.pop(0)
+    for df in dfs:
+        res = pd.merge(res, df, on=["source", "target"], how="outer")
+    res = res.fillna(0)
+
+    confidence_cols = [col for col in res.columns if col.startswith("confidence")]
+
+    # Aplicar método de consenso
+    if method == "MeanWeights":
+        res["score"] = res[confidence_cols].mean(axis=1)
+
+    elif method == "MedianWeights":
+        res["score"] = res[confidence_cols].median(axis=1)
+
+    elif method == "RankAverage":
+        for col in confidence_cols:
+            res[col + "_rank"] = res[col].rank(method="average", ascending=False)
+        rank_cols = [col + "_rank" for col in confidence_cols]
+        res["avg_rank"] = res[rank_cols].mean(axis=1)
+        res["score"] = 1 - (res["avg_rank"] - res["avg_rank"].min()) / (res["avg_rank"].max() - res["avg_rank"].min())
+
+    elif method == "BayesianFusion":
+        alpha_prior = 1
+        beta_prior = 1
+        res["alpha"] = alpha_prior + res[confidence_cols].sum(axis=1)
+        res["beta"] = beta_prior + (1 - res[confidence_cols]).sum(axis=1)
+        res["score"] = res["alpha"] / (res["alpha"] + res["beta"])
+
+    else:
+        raise ValueError(f"Unsupported method: {method}")
+
+    # Guardar resultado
+    res[["source", "target", "score"]].to_csv(output_file, header=False, index=False)
+
+
+def get_expression_data_from_module(expression_data_file: str, module_file: str, output_file: str):
+    # Cargar la red del módulo y extraer genes únicos (source y target)
+    module_df = pd.read_csv(module_file)
+    genes = set(module_df.iloc[:, 0]) | set(module_df.iloc[:, 1])
+
+    # Cargar los datos de expresión
+    expression_df = pd.read_csv(expression_data_file, index_col=0)
+
+    # Filtrar las filas correspondientes a los genes de la subred
+    filtered_df = expression_df.loc[expression_df.index.intersection(genes)]
+
+    # Guardar el subconjunto en el archivo de salida
+    filtered_df.to_csv(output_file)
+
+    return filtered_df
