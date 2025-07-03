@@ -139,27 +139,6 @@ public final class StaticUtils {
         return cutOffCriteria;
     }
 
-    public static void writeFitnessEvolution(String strFile, Map<String, Double[]> fitnessEvolution) {
-        /**
-         * This function is responsible for writing the evolution of the 
-         * fitness values in an output txt file specified as parameter
-         */
-        try {
-            File outputFile = new File(strFile);
-            BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));
-
-            for (Map.Entry<String, Double[]> entry : fitnessEvolution.entrySet()) {
-                String strVector = Arrays.toString(entry.getValue());
-                bw.write(strVector.substring(1, strVector.length() - 1) + "\n");
-            }
-
-            bw.flush();
-            bw.close();
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe);
-        }
-    }
-
     public static void writeConsensus(String strFile, Map<String, Float> consensus) {
         /**
          * This function is responsible for writing the consensus list of 
