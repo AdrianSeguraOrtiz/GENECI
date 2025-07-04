@@ -6,12 +6,14 @@ import random
 import re
 import shutil
 import string
+import time
 import zipfile
 from enum import Enum
 from io import BytesIO
 from pathlib import Path
 from typing import List, Optional
-from geneci.utils import chord_diagram, plot_moving_medians, plot_polar, simple_consensus, get_expression_data_from_module
+from geneci.utils import chord_diagram, distribute_threads_for_modular_inference, plot_moving_medians, plot_polar, simple_consensus, get_expression_data_from_module
+from concurrent.futures import ProcessPoolExecutor
 
 import docker
 import numpy as np
@@ -1424,7 +1426,17 @@ def modular_inference(
         f"Applying modular inference to the gene network {expression_data} with the following global techniques: {global_techniques} and the following modular techniques: {modular_techniques}"
     )
     
-    # Global inference
+    # Set time file and global start time
+    time_file = Path(f"{output_dir}/times.txt")
+    time_file.parent.mkdir(exist_ok=True, parents=True)
+    open(time_file, "w").write(f"Times of modular inference for {expression_data}:\n")
+    global_start_time = time.time()
+    
+    
+    # 1. Global inference
+    ## Start time
+    step1_start_time = time.time()
+    
     ## Create global inference folder
     global_inference_folder = Path(f"{output_dir}/global_inference/")
     global_inference_folder.mkdir(exist_ok=True, parents=True)
@@ -1435,11 +1447,32 @@ def modular_inference(
         Path(f"./{global_inference_folder}/{expression_data.stem}/lists/").glob("GRN_*.csv")
     )
     
-    # Simple consensus of global network
+    ## Report completion and register time
+    print("Step 1/7: Global inference completed.")
+    step1_end_time = time.time()
+    step1_elapsed = step1_end_time - step1_start_time
+    open(time_file, "a").write(f"\t - Step 1 -> Global inference: {step1_elapsed:.2f} seconds.\n")
+    
+    
+    # 2. Simple consensus of global network
+    ## Start time
+    step2_start_time = time.time()
+    
+    ## Simple consensus
     global_network_file = f"{global_inference_folder}/consensus_global_network.csv"
     simple_consensus(global_confidence_list, consensus_criteria, global_network_file)
     
-    # Extract modules from global consensus network
+    ## Report completion and register time
+    print("Step 2/7: Simple consensus of global network completed.")
+    step2_end_time = time.time()
+    step2_elapsed = step2_end_time - step2_start_time
+    open(time_file, "a").write(f"\t - Step 2 -> Simple consensus of global network: {step2_elapsed:.2f} seconds.\n")
+    
+    
+    # 3. Extract modules from global consensus network
+    ## Start time
+    step3_start_time = time.time()
+    
     ## Creates modules folder
     modules_folder = Path(f"{output_dir}/modules/")
     modules_network_folder = Path(f"{modules_folder}/networks/")
@@ -1447,7 +1480,18 @@ def modular_inference(
     ## Extract modules
     cluster_network(global_network_file, algorithm, preferred_size, modules_network_folder)
     
-    # Obtain subdivisions of expression data based on modules
+    ## Report completion and register time
+    print("Step 3/7: Extraction of modules completed.")
+    step3_end_time = time.time()
+    step3_elapsed = step3_end_time - step3_start_time
+    open(time_file, "a").write(f"\t - Step 3 -> Extraction of modules: {step3_elapsed:.2f} seconds.\n")
+    
+    
+    # 4. Obtain subdivisions of expression data based on modules
+    ## Start time
+    step4_start_time = time.time()
+    
+    ## Obtain subdivisions
     modules_files = list(modules_network_folder.glob("community_*.csv"))
     modules_expression_folder = Path(f"{modules_folder}/expression/")
     modules_expression_folder.mkdir(exist_ok=True, parents=True)
@@ -1457,23 +1501,57 @@ def modular_inference(
             module_file,
             f"{modules_expression_folder}/{module_file.stem}_expression.csv",
         )
+        
+    ## Report completion and register time
+    print("Step 4/7: Expression data from modules extracted.")
+    step4_end_time = time.time()
+    step4_elapsed = step4_end_time - step4_start_time
+    open(time_file, "a").write(f"\t - Step 4 -> Expression data from modules extracted: {step4_elapsed:.2f} seconds.\n")
     
-    # Modular inference
+    
+    # 5. Modular inference
+    ## Start time
+    step5_start_time = time.time()
+    open(time_file, "a").write(f"\t - Step 5 -> Inference of partial networks:\n")
+    
     ## Create modular inference folder
     modular_inference_folder = Path(f"{output_dir}/modular_inference/")
     modular_inference_folder.mkdir(exist_ok=True, parents=True)
     ## Carry out the modular inference of the network using the specified techniques.
     expression_files = list(modules_expression_folder.glob("*.csv"))
-    for expression_file in expression_files:
-        infer_network(
-            expression_file,
-            modular_techniques,
-            threads,
-            None,
-            modular_inference_folder,
-        )
+    min_threads_per_task = min(threads, int(1.5 * len(modular_techniques)))
+    batches = distribute_threads_for_modular_inference(expression_files, threads, min_threads_per_task)
+    for i, batch in enumerate(batches):
+        batch_start_time = time.time()
+        with ProcessPoolExecutor(max_workers=len(batch)) as executor:
+            futures = [
+                executor.submit(
+                    infer_network,
+                    expression_file,
+                    modular_techniques,
+                    threads_for_task,
+                    None,
+                    modular_inference_folder,
+                )
+                for expression_file, threads_for_task in batch
+            ]
+            [f.result() for f in futures]
+        batch_end_time = time.time()
+        batch_elapsed = batch_end_time - batch_start_time
+        open(time_file, "a").write(f"\t\t - Batch {i+1}/{len(batches)} of {len(batch)} communities: {batch_elapsed:.2f} seconds.\n")
+            
+    ## Report completion and register time
+    print("Step 5/7: Modular inference completed.")
+    step5_end_time = time.time()
+    step5_elapsed = step5_end_time - step5_start_time
+    open(time_file, "a").write(f"\t\t - Total: {step5_elapsed:.2f} seconds.\n")
     
-    # Simple consensus of each subnetwork
+    
+    # 6. Simple consensus of each subnetwork
+    ## Start time
+    step6_start_time = time.time()
+    
+    ## Simple consensus
     inferred_modules_folder = list(modular_inference_folder.glob("*"))
     for inferred_module_folder in inferred_modules_folder:
         modular_confidence_list = list(inferred_module_folder.glob("lists/GRN_*.csv"))
@@ -1484,7 +1562,18 @@ def modular_inference(
             modular_network_file,
         )
         
-    # Merge all subnetworks and intermediate_relations into a single file
+    ## Report completion and register time
+    print("Step 6/7: Simple consensus of each subnetwork completed.")
+    step6_end_time = time.time()
+    step6_elapsed = step6_end_time - step6_start_time
+    open(time_file, "a").write(f"\t - Step 6 -> Simple consensus of each subnetwork: {step6_elapsed:.2f} seconds.\n")
+        
+        
+    # 7. Merge all subnetworks and intermediate_relations into a single file
+    ## Start time
+    step7_start_time = time.time()
+    
+    ## Merge subnetworks and intermediate relations
     inferred_consensus_modules = list(modular_inference_folder.glob("*/consensus_modular_network.csv"))
     intermediate_relations = f"{modules_network_folder}/intermediate_relations.csv"
     files_to_merge = inferred_consensus_modules + [intermediate_relations]
@@ -1492,6 +1581,18 @@ def modular_inference(
     dfs = [pd.read_csv(fp, header=None) for fp in files_to_merge]
     merged_df = pd.concat(dfs, ignore_index=True)
     merged_df.to_csv(merged_network_file, index=False, header=False)
+    
+    ## Report completion and register time
+    print("Step 7/7: Merging of subnetworks and intermediate relations completed.")
+    step7_end_time = time.time()
+    step7_elapsed = step7_end_time - step7_start_time
+    open(time_file, "a").write(f"\t - Step 7 -> Merging of subnetworks and intermediate relations: {step7_elapsed:.2f} seconds.\n")
+    
+    
+    # Register total time
+    global_end_time = time.time()
+    global_elapsed = global_end_time - global_start_time
+    open(time_file, "a").write(f"Total time: {global_elapsed:.2f} seconds.\n")
     
 
 # Command for network binarization

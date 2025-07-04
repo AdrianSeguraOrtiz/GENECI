@@ -1,4 +1,5 @@
 import colorsys
+import math
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -621,3 +622,32 @@ def get_expression_data_from_module(expression_data_file: str, module_file: str,
     filtered_df.to_csv(output_file)
 
     return filtered_df
+
+def distribute_threads_for_modular_inference(expression_files, total_threads, min_threads):
+    num_files = len(expression_files)
+    
+    # Número máximo de tareas simultáneas posible
+    max_parallel = total_threads // min_threads
+
+    # Número óptimo de tandas (ceil para cubrir todo)
+    num_batches = math.ceil(num_files / max_parallel)
+
+    # Número de tareas por tanda (lo más equilibrado posible)
+    base_tasks_per_batch = num_files // num_batches
+    extra_tasks = num_files % num_batches
+
+    batches = []
+    index = 0
+    for b in range(num_batches):
+        num_tasks = base_tasks_per_batch + (1 if b < extra_tasks else 0)
+        base_threads = total_threads // num_tasks
+        extra_threads = total_threads % num_tasks
+
+        batch = []
+        for t in range(num_tasks):
+            threads_for_this = base_threads + (1 if t < extra_threads else 0)
+            batch.append((expression_files[index], threads_for_this))
+            index += 1
+        batches.append(batch)
+    
+    return batches
