@@ -1441,7 +1441,13 @@ def modular_inference(
     global_inference_folder = Path(f"{output_dir}/global_inference/")
     global_inference_folder.mkdir(exist_ok=True, parents=True)
     ## Carry out the global inference of the network using the specified light techniques.
-    infer_network(expression_data, global_techniques, threads, None, global_inference_folder)
+    infer_network(
+        expression_data=expression_data, 
+        technique=global_techniques, 
+        threads=threads,
+        str_threads=None,
+        output_dir=global_inference_folder
+    )
     ## Extract results
     global_confidence_list = list(
         Path(f"./{global_inference_folder}/{expression_data.stem}/lists/").glob("GRN_*.csv")
@@ -1478,7 +1484,12 @@ def modular_inference(
     modules_network_folder = Path(f"{modules_folder}/networks/")
     modules_network_folder.mkdir(exist_ok=True, parents=True)
     ## Extract modules
-    cluster_network(global_network_file, algorithm, preferred_size, modules_network_folder)
+    cluster_network(
+        confidence_list=global_network_file, 
+        algorithm=algorithm, 
+        preferred_size=preferred_size, 
+        output_dir=modules_network_folder
+    )
     
     ## Report completion and register time
     print("Step 3/7: Extraction of modules completed.")

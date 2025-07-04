@@ -15,7 +15,7 @@ modular_techniques_small=[Technique.CMI2NI, Technique.INFERELATOR, Technique.RSN
 # Establecer opciones de parámetros
 consensus_options = [SimpleConsensusCriteria.RankAverage, SimpleConsensusCriteria.MeanWeights]
 clustering_algorithms = [ca for ca in ClusteringAlgorithm]
-preferred_size = [200, 150, 100, 50]
+preferred_size = [50, 100, 150, 200]
 
 # 1. Inferencia modular de todas las redes con todas las opciones de parametros
 for expression_file in expression_data:
@@ -32,7 +32,7 @@ for expression_file in expression_data:
                     consensus_criteria=consensus,
                     algorithm=clustering_algorithm,
                     preferred_size=size,
-                    threads=8,
+                    threads=120,
                     output_dir=Path(output_dir)
                 )
 
