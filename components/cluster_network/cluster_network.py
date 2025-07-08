@@ -101,7 +101,7 @@ def apply_infomap(H, preferred_size=None, trials=5):
     return best_partition
 
 
-def apply_mcl(H, preferred_size=None, trials=[1.2, 1.4, 1.6, 1.8, 2.0]):
+def apply_mcl(H, preferred_size=None, trials=[1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3]):
     """Applies the Markov Clustering algorithm.
     If preferred_size is given, selects the inflation value that minimizes max cluster size."""
     
@@ -167,7 +167,7 @@ def apply_clustering_algorithm(H, algorithm, preferred_size):
     elif algorithm == 'Leiden':
         return split_oversized_communities(H, apply_leiden, preferred_size)
     elif algorithm == 'MCL':
-        return split_oversized_communities(H, apply_mcl, preferred_size, internal_force=False)
+        return split_oversized_communities(H, apply_mcl, preferred_size, internal_force=True)
     else:
         raise Exception("Algorithm not implemented")
 

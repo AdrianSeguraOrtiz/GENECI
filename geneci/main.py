@@ -1,5 +1,5 @@
+from collections import deque
 import csv
-import itertools
 import math
 import multiprocessing
 import random
@@ -12,7 +12,7 @@ from enum import Enum
 from io import BytesIO
 from pathlib import Path
 from typing import List, Optional
-from geneci.utils import chord_diagram, distribute_threads_for_modular_inference, plot_moving_medians, plot_polar, simple_consensus, get_expression_data_from_module
+from geneci.utils import chord_diagram, plot_moving_medians, plot_polar, simple_consensus, get_expression_data_from_module, get_optimal_cpu_distribution, cpus_dict
 from concurrent.futures import ProcessPoolExecutor
 
 import docker
@@ -22,7 +22,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 import requests
 import typer
-from iteround import saferound
 from plotly.subplots import make_subplots
 from rich import print
 from scipy import stats
@@ -48,46 +47,6 @@ print(HEADER)
 
 # Generate temp folder name
 temp_folder_str = "tmp-" + "".join(random.choices(string.ascii_lowercase, k=10))
-
-# Create dict of techniques cpus
-cpus_dict = dict()
-cpus_dict.update(
-    dict.fromkeys(["JUMP3", "LOCPCACMI", "NONLINEARODES", "GRNVBEM", "CMI2NI"], 4)
-)
-cpus_dict.update(
-    dict.fromkeys(
-        [
-            "TIGRESS",
-            "PCACMI",
-            "PLSNET",
-            "INFERELATOR",
-            "GENIE3_RF",
-            "GRNBOOST2",
-            "GENIE3_ET",
-        ],
-        3,
-    )
-)
-cpus_dict.update(dict.fromkeys(["KBOOST", "LEAP"], 2))
-cpus_dict.update(
-    dict.fromkeys(
-        [
-            "ARACNE",
-            "BC3NET",
-            "C3NET",
-            "CLR",
-            "MRNET",
-            "MRNETB",
-            "PCIT",
-            "MEOMI",
-            "NARROMI",
-            "RSNET",
-            "PIDC",
-            "PUC",
-        ],
-        1,
-    )
-)
 
 # Definition of enumerated classes.
 class Topology(str, Enum):
@@ -384,91 +343,6 @@ def write_evaluation_csv(
                 f"{','.join([str(w) for w in weights[i]])},{','.join([str(df[lab][i]) for lab in objective_labels])},{str(df['acc_mean'][i])},{str(df['auroc'][i])},{str(df['aupr'][i])},{str(df['aupr_scaled'][i])},{str(df['auroc_scaled'][i])},{str(df['mean_scaled'][i])}\n"
             )
         f.close()
-
-
-# Function to obtain the optimal distribution of cores given a set of techniques
-def get_optimal_cpu_distribution(tecs, cores_ids):
-
-    # Calculate cpus vector for our input
-    cpus_list = list()
-    for tec in tecs:
-        cpus_list.append(cpus_dict.get(tec))
-
-    # We group the techniques of equal amount of cpus required.
-    # For each group we store its members and the sum of the total number of cpus they need.
-    groups = list()
-    group_sums = list()
-    for cpu in set(cpus_list):
-        members = [i for i in range(len(cpus_list)) if cpus_list[i] == cpu]
-        groups.append(members)
-        group_sums.append(len(members) * cpu)
-
-    # For each group we store the number of cpus that the system can offer them (in decimals).
-    scaled_groups_sums = [
-        (gsum / sum(group_sums)) * len(cores_ids) for gsum in group_sums
-    ]
-
-    # If the number of cpus required is less than the number of cpus available, we set the sum
-    # of the non-parallelisable group of techniques to the consistent maximum (1 for each). In
-    # case the number of required cpus is greater than those offered by the system, we set the
-    # sum of the non-parallelisable group of techniques to the minimum between (available/required)/2
-    # and 0.5 fo each. The amount of cpus left over or missing after this imposition is distributed
-    # in order of preference to the rest of the groups.
-    if 1 in set(cpus_list):
-        cpus_set_list = list(set(cpus_list))
-        idx_group_of_ones = cpus_set_list.index(1)
-
-        factor = (
-            1
-            if len(cores_ids) > sum(cpus_list)
-            else min(
-                0.5,
-                (scaled_groups_sums[idx_group_of_ones] / group_sums[idx_group_of_ones])
-                / 2,
-            )
-        )
-        ones_sum = group_sums[idx_group_of_ones] * factor
-        surplus = scaled_groups_sums[idx_group_of_ones] - ones_sum
-        scaled_groups_sums[idx_group_of_ones] = ones_sum
-
-        cpus_set_list[idx_group_of_ones] = 0
-        surplus_distributed = [
-            (cpu / max(1, sum(cpus_set_list))) * surplus for cpu in cpus_set_list
-        ]
-        scaled_groups_sums = [
-            sum(x) for x in zip(scaled_groups_sums, surplus_distributed)
-        ]
-
-    # After redistribution we round up the number of cpus safely for each group
-    safe_groups_sums = saferound(scaled_groups_sums, places=0)
-
-    # We assign to each technique the number of cpus that corresponds to it within its group,
-    # specifying the id of each assigned cpu.
-    cpus_cnt = 0
-    res = dict.fromkeys(tecs, list())
-    for idx_group in range(len(groups)):
-        cpus_group = int(safe_groups_sums[idx_group])
-        cpus_ids = (
-            cores_ids[cpus_cnt : (cpus_group + cpus_cnt)]
-            if cpus_group != 0
-            else [cores_ids[max(0, cpus_group - 1)]]
-        )
-        cpus_cnt += cpus_group
-
-        members = groups[idx_group]
-
-        if len(members) < len(cpus_ids):
-            cycle_members = itertools.cycle(members)
-            for cpu_id in cpus_ids:
-                member = next(cycle_members)
-                res[tecs[member]] = res[tecs[member]] + [cpu_id]
-        else:
-            cpus_ids = itertools.cycle(cpus_ids)
-            for member in members:
-                res[tecs[member]] = res[tecs[member]] + [next(cpus_ids)]
-
-    # Return final dict
-    return res
 
 
 # Applications for the definition of Typer commands and subcommands.
@@ -1192,6 +1066,10 @@ def infer_network(
         None,
         help="Comma-separated list with the identifying numbers of the threads to be used. If specified, the threads variable will automatically be set to the length of the list.",
     ),
+    temp_folder_str: str = typer.Option(
+        temp_folder_str,
+        help="Path to the temporary folder that will make volume for Docker containers. By default, the central temporary folder of execution is used. Useful parameter for parallel executions from Python",
+    ),
     output_dir: Path = typer.Option(
         Path("./inferred_networks"), help="Path to the output folder."
     ),
@@ -1214,6 +1092,7 @@ def infer_network(
     cpus_dict = get_optimal_cpu_distribution(technique, cores_ids)
 
     # Report information to the user.
+    print(f"\n Infer network from {expression_data.name} with {len(technique)} techniques and saving results in {output_dir}")
     print(f"\n Total cores: {len(cores_ids)}")
     print("Distribution:")
     print(cpus_dict)
@@ -1272,6 +1151,7 @@ def infer_network(
             client.images.pull(repository=image)
 
         # The image is executed with the parameters set by the user.
+        client = docker.from_env()
         container = client.containers.run(
             image=image,
             volumes=get_volume(temp_folder_str, isMatlab),
@@ -1446,6 +1326,7 @@ def modular_inference(
         technique=global_techniques, 
         threads=threads,
         str_threads=None,
+        temp_folder_str=temp_folder_str,
         output_dir=global_inference_folder
     )
     ## Extract results
@@ -1524,32 +1405,81 @@ def modular_inference(
     ## Start time
     step5_start_time = time.time()
     open(time_file, "a").write(f"\t - Step 5 -> Inference of partial networks:\n")
-    
+
     ## Create modular inference folder
     modular_inference_folder = Path(f"{output_dir}/modular_inference/")
     modular_inference_folder.mkdir(exist_ok=True, parents=True)
+
     ## Carry out the modular inference of the network using the specified techniques.
+
+    ### Get all expression files generated per module
     expression_files = list(modules_expression_folder.glob("*.csv"))
-    min_threads_per_task = min(threads, int(1.5 * len(modular_techniques)))
-    batches = distribute_threads_for_modular_inference(expression_files, threads, min_threads_per_task)
-    for i, batch in enumerate(batches):
-        batch_start_time = time.time()
-        with ProcessPoolExecutor(max_workers=len(batch)) as executor:
-            futures = [
-                executor.submit(
-                    infer_network,
-                    expression_file,
-                    modular_techniques,
-                    threads_for_task,
-                    None,
-                    modular_inference_folder,
-                )
-                for expression_file, threads_for_task in batch
-            ]
-            [f.result() for f in futures]
-        batch_end_time = time.time()
-        batch_elapsed = batch_end_time - batch_start_time
-        open(time_file, "a").write(f"\t\t - Batch {i+1}/{len(batches)} of {len(batch)} communities: {batch_elapsed:.2f} seconds.\n")
+
+    ### Build list of tasks: one per (expression_file, technique) pair
+    tasks = [
+        (expr_file, technique)
+        for expr_file in expression_files
+        for technique in modular_techniques
+    ]
+
+    ### Sort tasks in descending order of required threads (to avoid fragmentation)
+    tasks.sort(key=lambda t: cpus_dict[t[1]], reverse=True)
+
+    ### Initialize pool of thread IDs and list of active futures
+    all_thread_ids = list(range(threads))
+    free_threads = deque(all_thread_ids)
+    active_futures = []
+
+    ### Submit tasks asynchronously while respecting thread ID availability
+    with ProcessPoolExecutor(max_workers=threads) as executor:
+        while tasks or active_futures:
+            # Try to launch any task for which enough thread IDs are available
+            for i, (expr_file, technique) in enumerate(tasks):
+                n_needed = cpus_dict[technique]
+                if len(free_threads) >= n_needed:
+                    # Reserve the required thread IDs for the task
+                    thread_ids = [free_threads.popleft() for _ in range(n_needed)]
+                    str_threads = ",".join(str(t) for t in thread_ids)
+
+                    # Generate a temporary folder name for Docker volume isolation
+                    tmp_folder = "tmp-" + "".join(random.choices(string.ascii_lowercase, k=10))
+
+                    # Launch the inference task as a separate process
+                    future = executor.submit(
+                        infer_network,
+                        expr_file,
+                        [technique],
+                        None,
+                        str_threads,
+                        tmp_folder,
+                        modular_inference_folder,
+                    )
+
+                    # Track the active task and its associated resources
+                    active_futures.append((future, thread_ids, expr_file.name, technique, time.time()))
+                    del tasks[i]
+                    break
+            else:
+                # No task could be launched due to thread limits → wait before retrying
+                time.sleep(1)
+
+            # Check for completed tasks
+            for fut, thread_ids, name, technique, start_time in active_futures.copy():
+                if fut.done():
+                    try:
+                        fut.result()
+                    except Exception as e:
+                        print(f"Error in {technique.value} on {name}: {e}")
+                    else:
+                        # Log elapsed time of completed task
+                        elapsed = time.time() - start_time
+                        open(time_file, "a").write(
+                            f"\t\t - {technique.value} on {name}: {elapsed:.2f} seconds.\n"
+                        )
+
+                    # Remove task from active list and release its thread IDs
+                    active_futures.remove((fut, thread_ids, name, technique, start_time))
+                    free_threads.extend(thread_ids)
             
     ## Report completion and register time
     print("Step 5/7: Modular inference completed.")
@@ -2855,7 +2785,7 @@ def run(
     print(f"\n Run algorithm for {expression_data}")
 
     # Run inference command
-    infer_network(expression_data, technique, threads, str_threads, output_dir)
+    infer_network(expression_data, technique, threads, str_threads, temp_folder_str, output_dir)
 
     # Extract results
     confidence_list = list(

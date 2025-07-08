@@ -10,7 +10,7 @@ print(f"Expression data files found: {expression_data}")
 # Establecer parámetros con valores fijos
 global_techniques=[Technique.ARACNE, Technique.CLR, Technique.MRNET, Technique.C3NET]
 modular_techniques_all=[Technique.GENIE3_ET, Technique.GENIE3_RF, Technique.GRNBOOST2, Technique.PCACMI, Technique.TIGRESS]
-modular_techniques_small=[Technique.CMI2NI, Technique.INFERELATOR, Technique.RSNET]
+modular_techniques_small=[Technique.CMI2NI, Technique.RSNET]
 
 # Establecer opciones de parámetros
 consensus_options = [SimpleConsensusCriteria.RankAverage, SimpleConsensusCriteria.MeanWeights]
@@ -32,7 +32,7 @@ for expression_file in expression_data:
                     consensus_criteria=consensus,
                     algorithm=clustering_algorithm,
                     preferred_size=size,
-                    threads=120,
+                    threads=60,
                     output_dir=Path(output_dir)
                 )
 

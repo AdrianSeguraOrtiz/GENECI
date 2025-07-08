@@ -1,5 +1,6 @@
 import colorsys
 import math
+import itertools
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,8 +10,49 @@ from matplotlib import pyplot as plt
 from matplotlib.cm import viridis
 from matplotlib.path import Path
 from sklearn.preprocessing import MaxAbsScaler
+from iteround import saferound
 from tqdm import tqdm
 import os
+
+# Create dict of techniques cpus
+cpus_dict = dict()
+cpus_dict.update(
+    dict.fromkeys(["JUMP3", "LOCPCACMI", "NONLINEARODES", "GRNVBEM", "CMI2NI"], 4)
+)
+cpus_dict.update(
+    dict.fromkeys(
+        [
+            "TIGRESS",
+            "PCACMI",
+            "PLSNET",
+            "INFERELATOR",
+            "GENIE3_RF",
+            "GRNBOOST2",
+            "GENIE3_ET",
+        ],
+        3,
+    )
+)
+cpus_dict.update(dict.fromkeys(["KBOOST", "LEAP"], 2))
+cpus_dict.update(
+    dict.fromkeys(
+        [
+            "ARACNE",
+            "BC3NET",
+            "C3NET",
+            "CLR",
+            "MRNET",
+            "MRNETB",
+            "PCIT",
+            "MEOMI",
+            "NARROMI",
+            "RSNET",
+            "PIDC",
+            "PUC",
+        ],
+        1,
+    )
+)
 
 def delete_common_prefix_and_sufix(lista):
     # Encontrar el prefijo común
@@ -623,31 +665,86 @@ def get_expression_data_from_module(expression_data_file: str, module_file: str,
 
     return filtered_df
 
-def distribute_threads_for_modular_inference(expression_files, total_threads, min_threads):
-    num_files = len(expression_files)
-    
-    # Número máximo de tareas simultáneas posible
-    max_parallel = total_threads // min_threads
+# Function to obtain the optimal distribution of cores given a set of techniques
+def get_optimal_cpu_distribution(tecs, cores_ids):
 
-    # Número óptimo de tandas (ceil para cubrir todo)
-    num_batches = math.ceil(num_files / max_parallel)
+    # Calculate cpus vector for our input
+    cpus_list = list()
+    for tec in tecs:
+        cpus_list.append(cpus_dict.get(tec))
 
-    # Número de tareas por tanda (lo más equilibrado posible)
-    base_tasks_per_batch = num_files // num_batches
-    extra_tasks = num_files % num_batches
+    # We group the techniques of equal amount of cpus required.
+    # For each group we store its members and the sum of the total number of cpus they need.
+    groups = list()
+    group_sums = list()
+    for cpu in set(cpus_list):
+        members = [i for i in range(len(cpus_list)) if cpus_list[i] == cpu]
+        groups.append(members)
+        group_sums.append(len(members) * cpu)
 
-    batches = []
-    index = 0
-    for b in range(num_batches):
-        num_tasks = base_tasks_per_batch + (1 if b < extra_tasks else 0)
-        base_threads = total_threads // num_tasks
-        extra_threads = total_threads % num_tasks
+    # For each group we store the number of cpus that the system can offer them (in decimals).
+    scaled_groups_sums = [
+        (gsum / sum(group_sums)) * len(cores_ids) for gsum in group_sums
+    ]
 
-        batch = []
-        for t in range(num_tasks):
-            threads_for_this = base_threads + (1 if t < extra_threads else 0)
-            batch.append((expression_files[index], threads_for_this))
-            index += 1
-        batches.append(batch)
-    
-    return batches
+    # If the number of cpus required is less than the number of cpus available, we set the sum
+    # of the non-parallelisable group of techniques to the consistent maximum (1 for each). In
+    # case the number of required cpus is greater than those offered by the system, we set the
+    # sum of the non-parallelisable group of techniques to the minimum between (available/required)/2
+    # and 0.5 fo each. The amount of cpus left over or missing after this imposition is distributed
+    # in order of preference to the rest of the groups.
+    if 1 in set(cpus_list):
+        cpus_set_list = list(set(cpus_list))
+        idx_group_of_ones = cpus_set_list.index(1)
+
+        factor = (
+            1
+            if len(cores_ids) > sum(cpus_list)
+            else min(
+                0.5,
+                (scaled_groups_sums[idx_group_of_ones] / group_sums[idx_group_of_ones])
+                / 2,
+            )
+        )
+        ones_sum = group_sums[idx_group_of_ones] * factor
+        surplus = scaled_groups_sums[idx_group_of_ones] - ones_sum
+        scaled_groups_sums[idx_group_of_ones] = ones_sum
+
+        cpus_set_list[idx_group_of_ones] = 0
+        surplus_distributed = [
+            (cpu / max(1, sum(cpus_set_list))) * surplus for cpu in cpus_set_list
+        ]
+        scaled_groups_sums = [
+            sum(x) for x in zip(scaled_groups_sums, surplus_distributed)
+        ]
+
+    # After redistribution we round up the number of cpus safely for each group
+    safe_groups_sums = saferound(scaled_groups_sums, places=0)
+
+    # We assign to each technique the number of cpus that corresponds to it within its group,
+    # specifying the id of each assigned cpu.
+    cpus_cnt = 0
+    res = dict.fromkeys(tecs, list())
+    for idx_group in range(len(groups)):
+        cpus_group = int(safe_groups_sums[idx_group])
+        cpus_ids = (
+            cores_ids[cpus_cnt : (cpus_group + cpus_cnt)]
+            if cpus_group != 0
+            else [cores_ids[max(0, cpus_group - 1)]]
+        )
+        cpus_cnt += cpus_group
+
+        members = groups[idx_group]
+
+        if len(members) < len(cpus_ids):
+            cycle_members = itertools.cycle(members)
+            for cpu_id in cpus_ids:
+                member = next(cycle_members)
+                res[tecs[member]] = res[tecs[member]] + [cpu_id]
+        else:
+            cpus_ids = itertools.cycle(cpus_ids)
+            for member in members:
+                res[tecs[member]] = res[tecs[member]] + [next(cpus_ids)]
+
+    # Return final dict
+    return res
