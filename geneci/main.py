@@ -1,4 +1,5 @@
 from collections import deque
+import os
 import csv
 import math
 import multiprocessing
@@ -44,6 +45,10 @@ HEADER = "\n".join(
 )
 
 print(HEADER)
+
+# Get the current user ID and group ID
+uid = os.getuid()
+gid = os.getgid()
 
 # Generate temp folder name
 temp_folder_str = "tmp-" + "".join(random.choices(string.ascii_lowercase, k=10))
@@ -441,6 +446,7 @@ def generate_from_scratch(
         command=f"'' {topology.value} {network_size} {perturbation.value} /tmp/.X11-unix/{temp_folder_str}",
         detach=True,
         tty=True,
+        user=f"{uid}:{gid}",
     )
 
     # Wait, stop and remove the container. Then print reported logs
@@ -665,6 +671,7 @@ def generate_from_real_network(
         command=f"/tmp/.X11-unix/{tmp_network_dir} '' '' {perturbation.value} /tmp/.X11-unix/{temp_folder_str}",
         detach=True,
         tty=True,
+        user=f"{uid}:{gid}",
     )
 
     # Wait, stop and remove the container. Then print reported logs
@@ -836,6 +843,7 @@ def expression_data(
             command=command,
             detach=True,
             tty=True,
+            user=f"{uid}:{gid}",
         )
 
         # Wait, stop and remove the container. Then print reported logs
@@ -957,6 +965,7 @@ def gold_standard(
             command=command,
             detach=True,
             tty=True,
+            user=f"{uid}:{gid}",
         )
 
         # Wait, stop and remove the container. Then print reported logs
@@ -1039,6 +1048,7 @@ def evaluation_data(
             command=command,
             detach=True,
             tty=True,
+            user=f"{uid}:{gid}",
         )
 
         # Wait, stop and remove the container. Then print reported logs
@@ -1152,13 +1162,16 @@ def infer_network(
 
         # The image is executed with the parameters set by the user.
         client = docker.from_env()
+        env = {"MCR_CACHE_ROOT": "/tmp/mcr_cache"}
         container = client.containers.run(
             image=image,
             volumes=get_volume(temp_folder_str, isMatlab),
             command=command,
             detach=True,
             tty=True,
+            user=f"{uid}:{gid}",
             cpuset_cpus=",".join([str(i) for i in cpus_dict[tec]]),
+            environment=env,
         )
 
         # The container is added to the list so that the following can be executed
@@ -1257,6 +1270,7 @@ def cluster_network(
         command=f"--confidence-list {tmp_confidence_list_dir} --algorithm {algorithm.value} --preferred-size {preferred_size} --output-folder {temp_folder_str}",
         detach=True,
         tty=True,
+        user=f"{uid}:{gid}",
     )
 
     # Wait, stop and remove the container. Then print reported logs
@@ -1471,12 +1485,40 @@ def modular_inference(
                     except Exception as e:
                         print(f"Error in {technique.value} on {name}: {e}")
                     else:
-                        # Log elapsed time of completed task
-                        elapsed = time.time() - start_time
-                        open(time_file, "a").write(
-                            f"\t\t - {technique.value} on {name}: {elapsed:.2f} seconds.\n"
-                        )
-
+                        expected_file = f"{modular_inference_folder}/{Path(name).stem}/lists/GRN_{technique.value}.csv"
+                        if not Path(expected_file).is_file():
+                            # If the file has not been generated, keep it in the task tail
+                            print(f"Expected file {expected_file} not found after {technique.value} on {name}. Retrying...")
+                            tasks.append((Path(name), technique))
+                        else:
+                            # Log elapsed time of completed task
+                            elapsed = time.time() - start_time
+                            open(time_file, "a").write(
+                                f"\t\t - {technique.value} on {name}: {elapsed:.2f} seconds.\n"
+                            )
+                            # Standardize the results between the minimum and the maximum of the community in the initial global consensus network
+                            ## Read initial community network to get min and max weights
+                            initial_community_network = f"{modules_network_folder}/{name.removesuffix('_expression.csv')}.csv"
+                            df_initial_community = pd.read_csv(initial_community_network, header=None, names=["source", "target", "weight"])
+                            initial_community_max = df_initial_community["weight"].max()
+                            initial_community_min = df_initial_community["weight"].min()
+                            ## Read refined community network and standardize weights
+                            df_refined_community = pd.read_csv(expected_file, header=None, names=["source", "target", "weight"])
+                            refined_max = df_refined_community["weight"].max()
+                            refined_min = df_refined_community["weight"].min()
+                            if refined_max != refined_min:
+                                df_refined_community["weight"] = (
+                                    initial_community_min + 
+                                    (df_refined_community["weight"] - refined_min) / (refined_max - refined_min) * 
+                                    (initial_community_max - initial_community_min)
+                                )
+                            else:
+                                # If all values ​​are the same, assign the average of the original range
+                                df_refined_community["weight"] = (initial_community_min + initial_community_max) / 2
+                        
+                        ## Save refined community network
+                        df_refined_community.to_csv(expected_file, index=False, header=False)
+                        
                     # Remove task from active list and release its thread IDs
                     active_futures.remove((fut, thread_ids, name, technique, start_time))
                     free_threads.extend(thread_ids)
@@ -1617,6 +1659,7 @@ def apply_cut(
         command=f"{tmp_confidence_list_dir} {tmp_gene_names_dir} {temp_folder_str}/{Path(output_file).name} {cut_off_criteria.value} {cut_off_value}",
         detach=True,
         tty=True,
+        user=f"{uid}:{gid}",
     )
 
     # Wait, stop and remove the container. Then print reported logs
@@ -2028,6 +2071,7 @@ def optimize_ensemble(
         command=f"{temp_folder_str} {crossover_probability} {num_parents} {mutation_probability} {mutation_strength} {population_size} {num_evaluations} {cut_off_criteria.value} {cut_off_value} {str_functions} {algorithm.value} {threads} {plot_results} {memetic_distance_type.value} {memetic_probability} {reference_point}",
         detach=True,
         tty=True,
+        user=f"{uid}:{gid}",
     )
 
     # Wait, stop and remove the container. Then print reported logs
@@ -2131,6 +2175,7 @@ def dream_list_of_links(
         command=f"--challenge {challenge.value} --network-id {network_id} --synapse-folder {tmp_synapse_files_dir} --confidence-list {tmp_confidence_list_dir}",
         detach=True,
         tty=True,
+        user=f"{uid}:{gid}",
     )
 
     # Wait, stop and remove the container. Then print reported logs
@@ -2402,12 +2447,12 @@ def generic_list_of_links(
         del gene_names[0]
 
     # Store inferred confidence values in matrix format
-    df = pd.DataFrame(0, index=gene_names, columns=gene_names)
+    df = pd.DataFrame(0.0, index=gene_names, columns=gene_names)
     f = open(confidence_list, "r")
     lines = f.readlines()
     for line in lines:
         vline = line.replace("\n", "").split(",")
-        df.at[vline[0], vline[1]] = vline[2]
+        df.at[vline[0], vline[1]] = float(vline[2])
 
     # Save dataframe in temporal folder
     tmp_inferred_matrix_dir = f"{temp_folder_str}/{Path(confidence_list).name}"
@@ -2432,6 +2477,7 @@ def generic_list_of_links(
         command=f"{tmp_inferred_matrix_dir} {tmp_gsbm_dir}",
         detach=True,
         tty=True,
+        user=f"{uid}:{gid}",
     )
 
     # Wait, stop and remove the container. Then print reported logs
@@ -2873,6 +2919,7 @@ def draw_network(
         command=f"{command} --mode {mode.value} --nodes-distribution {nodes_distribution.value} --confidence-cut-off {confidence_cut_off} --output-folder {tmp_output_folder}",
         detach=True,
         tty=True,
+        user=f"{uid}:{gid}",
     )
 
     # Wait, stop and remove the container. Then print reported logs
@@ -2981,6 +3028,7 @@ def weighted_confidence(
         command=f"{tmp_output_file} {command}",
         detach=True,
         tty=True,
+        user=f"{uid}:{gid}",
     )
 
     # Wait, stop and remove the container. Then print reported logs
