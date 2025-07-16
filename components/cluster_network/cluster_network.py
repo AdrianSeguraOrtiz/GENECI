@@ -12,9 +12,9 @@ import typer
 from infomap import Infomap
 
 
-def split_oversized_communities(H, algorithm_fn, preferred_size, max_recursion=10, current_level=0, internal_force=False):
+def split_oversized_communities(H, algorithm_fn, preferred_size, min_size, max_recursion=10, current_level=0, internal_force=False):
     partition = algorithm_fn(H) if not internal_force else algorithm_fn(H, preferred_size)
-    communities = map_communities_to_directed_multigraph(partition)
+    communities = map_communities_to_directed_multigraph(partition, min_size)
     print(f"Partition found at level {current_level} for the network of {H.number_of_nodes()} nodes: {len(communities)} communities")
 
     final_partition = {}
@@ -25,7 +25,7 @@ def split_oversized_communities(H, algorithm_fn, preferred_size, max_recursion=1
             # Crear subgrafo inducido
             subgraph = H.subgraph(nodes)
             # Recursión
-            sub_partition = split_oversized_communities(subgraph, algorithm_fn, preferred_size, max_recursion, current_level + 1, internal_force)
+            sub_partition = split_oversized_communities(subgraph, algorithm_fn, preferred_size, min_size, max_recursion, current_level + 1, internal_force)
             # Añadir al particionado global
             for node, label in sub_partition.items():
                 final_partition[node] = current_label + label
@@ -150,7 +150,7 @@ def create_weighted_undirected_graph(G):
     return H
 
 
-def map_communities_to_directed_multigraph(partition, min_size=2):
+def map_communities_to_directed_multigraph(partition, min_size=5):
     """Maps partition result into community groups."""
     communities = {}
     for node, community_id in partition.items():
@@ -158,16 +158,16 @@ def map_communities_to_directed_multigraph(partition, min_size=2):
     return {cid: nodes for cid, nodes in communities.items() if len(nodes) >= min_size}
 
 
-def apply_clustering_algorithm(H, algorithm, preferred_size):
+def apply_clustering_algorithm(H, algorithm, preferred_size, min_size):
     """Dispatches the clustering algorithm specified."""
     if algorithm == 'Louvain':
-        return split_oversized_communities(H, apply_louvain, preferred_size)
+        return split_oversized_communities(H, apply_louvain, preferred_size, min_size)
     elif algorithm == 'Infomap':
-        return split_oversized_communities(H, apply_infomap, preferred_size, internal_force=True)
+        return split_oversized_communities(H, apply_infomap, preferred_size, min_size, internal_force=True)
     elif algorithm == 'Leiden':
-        return split_oversized_communities(H, apply_leiden, preferred_size)
+        return split_oversized_communities(H, apply_leiden, preferred_size, min_size)
     elif algorithm == 'MCL':
-        return split_oversized_communities(H, apply_mcl, preferred_size, internal_force=True)
+        return split_oversized_communities(H, apply_mcl, preferred_size, min_size, internal_force=True)
     else:
         raise Exception("Algorithm not implemented")
 
@@ -214,13 +214,14 @@ def cluster_network(
     confidence_list: str = typer.Option(..., help="Path of the CSV file with the confidence list to be clustered"),
     algorithm: Algorithm = typer.Option("Infomap", help="Clustering algorithm to apply"),
     preferred_size: int = typer.Option(100, help="Preferred number of nodes per community"),
+    min_size: int = typer.Option(5, help="Minimum size of the communities"),
     output_folder: str = typer.Option(..., help="Output folder to write community files")
 ):
     """Main pipeline to read a network, apply community detection, and save results."""
     G = read_network_from_csv(confidence_list)
     H = create_weighted_undirected_graph(G)
-    partition = apply_clustering_algorithm(H, algorithm.value, preferred_size)
-    communities = map_communities_to_directed_multigraph(partition)
+    partition = apply_clustering_algorithm(H, algorithm.value, preferred_size, min_size)
+    communities = map_communities_to_directed_multigraph(partition, min_size)
     write_community_results(communities, G, output_folder)
     write_intercommunity_relations(G, communities, output_folder)
 
