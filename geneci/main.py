@@ -40,8 +40,6 @@ HEADER = "\n".join(
     ]
 )
 
-print(HEADER)
-
 # Generate temp folder name
 temp_folder_str = "tmp-" + "".join(random.choices(string.ascii_lowercase, k=10))
 
@@ -205,12 +203,6 @@ class Algorithm(str, Enum):
     NSGAII = "NSGAII"
     NSGAIIExternalFile = "NSGAIIExternalFile"
     SMPSO = "SMPSO"
-    
-class ClusteringAlgorithm(str, Enum):
-    Louvain = "Louvain"
-    Infomap = "Infomap"
-    Leiden = "Leiden"
-    MCL = "MCL"
     
 class MemeticDistanceType(str, Enum):
     all = "all"
@@ -1206,66 +1198,6 @@ def infer_network(
         # Write gene names to default file
         with open(gene_names, "w") as f:
             f.write(",".join(gene_list))
-
-# Command for network clustering
-@app.command(rich_help_panel="Additional commands")
-def cluster_network(
-    confidence_list: Path = typer.Option(
-        ...,
-        exists=True,
-        file_okay=True,
-        help="Path to the CSV file with the list of trusted values.",
-    ),
-    algorithm: ClusteringAlgorithm = typer.Option(ClusteringAlgorithm.Infomap, help="Clustering algorithm"),
-    preferred_size: int = typer.Option(100, help="Preferred size of the communities"),
-    min_size: int = typer.Option(5, help="Minimum size of the communities"),
-    output_dir: Path = typer.Option(
-        Path("./communities"), help="Path to the output folder."
-    ),
-):
-    """
-    Divide an initial gene network into several communities following the Infomap (recommended) or Louvain grouping algorithm
-    """
-    
-    # Report information to the user.
-    print(
-        f"Dividing the gene network {confidence_list} in communities of preferred size {preferred_size} applying the {algorithm.value} grouping algorithm"
-    )
-    
-    # A temporary folder is created and the list of input confidences is copied.
-    Path(temp_folder_str).mkdir(exist_ok=True, parents=True)
-    tmp_confidence_list_dir = f"{temp_folder_str}/{Path(confidence_list).name}"
-    shutil.copyfile(confidence_list, tmp_confidence_list_dir)
-
-    # The output folder is defined and the necessary folders of its path are created.
-    Path(output_dir).mkdir(exist_ok=True, parents=True)
-    
-    # Define docker image
-    image = f"adriansegura99/geneci_cluster-network:{tag}"
-
-    # In case it is not available on the device, it is downloaded from the repository.
-    if not image in available_images:
-        print("Downloading docker image ...")
-        client.images.pull(repository=image)
-
-    # The image is executed with the parameters set by the user.
-    container = client.containers.run(
-        image=image,
-        volumes=get_volume(temp_folder_str),
-        command=f"--confidence-list {tmp_confidence_list_dir} --algorithm {algorithm.value} --preferred-size {preferred_size} --min-size {min_size} --output-folder {temp_folder_str}",
-        detach=True,
-        tty=True,
-    )
-
-    # Wait, stop and remove the container. Then print reported logs
-    logs, _ = wait_and_close_container(container)
-    print(logs)
-
-    # Copy the output files from the temporary folder to the final one and delete the temporary one.
-    Path(tmp_confidence_list_dir).unlink()
-    for src_file in Path(temp_folder_str).glob('*.*'):
-        shutil.move(src_file, output_dir)
-        
 
 # Command for network binarization
 @app.command(rich_help_panel="Additional commands")
@@ -2729,4 +2661,5 @@ def weighted_confidence(
 
 
 if __name__ == "__main__":
+    print(HEADER)
     app()
