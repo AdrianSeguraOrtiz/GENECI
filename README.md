@@ -1,7 +1,7 @@
 ![CI](https://github.com/AdrianSeguraOrtiz/GENECI/actions/workflows/ci.yml/badge.svg)
 ![Release](https://github.com/AdrianSeguraOrtiz/GENECI/actions/workflows/release.yml/badge.svg)
 ![Pypi](https://img.shields.io/pypi/v/GENECI)
-![License](https://img.shields.io/apm/l/GENECI)
+![Downloads](https://assets.piptrends.com/get-last-month-downloads-badge/geneci.svg)
 <img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 
 
