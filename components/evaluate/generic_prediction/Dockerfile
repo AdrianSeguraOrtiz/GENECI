@@ -1,4 +1,4 @@
-FROM r-base:4.1.2
+FROM r-base:4.3.2
 
 LABEL Khaos Research Group <khaos.uma.es>
 

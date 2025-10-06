@@ -44,6 +44,12 @@
             <artifactId>jmetal-parallel</artifactId>
             <version>5.11</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.uma.jmetal/jmetal-component -->
+        <dependency>
+            <groupId>org.uma.jmetal</groupId>
+            <artifactId>jmetal-component</artifactId>
+            <version>6.6</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>

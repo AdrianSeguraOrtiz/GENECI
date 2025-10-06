@@ -1,5 +1,4 @@
 import csv
-import itertools
 import math
 import multiprocessing
 import random
@@ -11,7 +10,7 @@ from enum import Enum
 from io import BytesIO
 from pathlib import Path
 from typing import List, Optional
-from geneci.utils import chord_diagram, plot_moving_medians, plot_polar
+from geneci.utils import chord_diagram, plot_moving_medians, plot_polar, get_optimal_cpu_distribution
 
 import docker
 import numpy as np
@@ -20,7 +19,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 import requests
 import typer
-from iteround import saferound
 from plotly.subplots import make_subplots
 from rich import print
 from scipy import stats
@@ -42,50 +40,8 @@ HEADER = "\n".join(
     ]
 )
 
-print(HEADER)
-
 # Generate temp folder name
 temp_folder_str = "tmp-" + "".join(random.choices(string.ascii_lowercase, k=10))
-
-# Create dict of techniques cpus
-cpus_dict = dict()
-cpus_dict.update(
-    dict.fromkeys(["JUMP3", "LOCPCACMI", "NONLINEARODES", "GRNVBEM", "CMI2NI"], 4)
-)
-cpus_dict.update(
-    dict.fromkeys(
-        [
-            "TIGRESS",
-            "PCACMI",
-            "PLSNET",
-            "INFERELATOR",
-            "GENIE3_RF",
-            "GRNBOOST2",
-            "GENIE3_ET",
-        ],
-        3,
-    )
-)
-cpus_dict.update(dict.fromkeys(["KBOOST", "LEAP"], 2))
-cpus_dict.update(
-    dict.fromkeys(
-        [
-            "ARACNE",
-            "BC3NET",
-            "C3NET",
-            "CLR",
-            "MRNET",
-            "MRNETB",
-            "PCIT",
-            "MEOMI",
-            "NARROMI",
-            "RSNET",
-            "PIDC",
-            "PUC",
-        ],
-        1,
-    )
-)
 
 # Definition of enumerated classes.
 class Topology(str, Enum):
@@ -248,10 +204,16 @@ class Algorithm(str, Enum):
     NSGAIIExternalFile = "NSGAIIExternalFile"
     SMPSO = "SMPSO"
     
-class ClusteringAlgorithm(str, Enum):
-    Louvain = "Louvain"
-    Infomap = "Infomap"
-
+class MemeticDistanceType(str, Enum):
+    all = "all"
+    some = "some"
+    one = "one"
+    
+class SimpleConsensusCriteria(str, Enum):
+    MeanWeights = "MeanWeights"
+    MedianWeights = "MedianWeights"
+    RankAverage = "RankAverage"
+    BayesianFusion = "BayesianFusion"
 
 # Activate docker client.
 client = docker.from_env()
@@ -370,91 +332,6 @@ def write_evaluation_csv(
                 f"{','.join([str(w) for w in weights[i]])},{','.join([str(df[lab][i]) for lab in objective_labels])},{str(df['acc_mean'][i])},{str(df['auroc'][i])},{str(df['aupr'][i])},{str(df['aupr_scaled'][i])},{str(df['auroc_scaled'][i])},{str(df['mean_scaled'][i])}\n"
             )
         f.close()
-
-
-# Function to obtain the optimal distribution of cores given a set of techniques
-def get_optimal_cpu_distribution(tecs, cores_ids):
-
-    # Calculate cpus vector for our input
-    cpus_list = list()
-    for tec in tecs:
-        cpus_list.append(cpus_dict.get(tec))
-
-    # We group the techniques of equal amount of cpus required.
-    # For each group we store its members and the sum of the total number of cpus they need.
-    groups = list()
-    group_sums = list()
-    for cpu in set(cpus_list):
-        members = [i for i in range(len(cpus_list)) if cpus_list[i] == cpu]
-        groups.append(members)
-        group_sums.append(len(members) * cpu)
-
-    # For each group we store the number of cpus that the system can offer them (in decimals).
-    scaled_groups_sums = [
-        (gsum / sum(group_sums)) * len(cores_ids) for gsum in group_sums
-    ]
-
-    # If the number of cpus required is less than the number of cpus available, we set the sum
-    # of the non-parallelisable group of techniques to the consistent maximum (1 for each). In
-    # case the number of required cpus is greater than those offered by the system, we set the
-    # sum of the non-parallelisable group of techniques to the minimum between (available/required)/2
-    # and 0.5 fo each. The amount of cpus left over or missing after this imposition is distributed
-    # in order of preference to the rest of the groups.
-    if 1 in set(cpus_list):
-        cpus_set_list = list(set(cpus_list))
-        idx_group_of_ones = cpus_set_list.index(1)
-
-        factor = (
-            1
-            if len(cores_ids) > sum(cpus_list)
-            else min(
-                0.5,
-                (scaled_groups_sums[idx_group_of_ones] / group_sums[idx_group_of_ones])
-                / 2,
-            )
-        )
-        ones_sum = group_sums[idx_group_of_ones] * factor
-        surplus = scaled_groups_sums[idx_group_of_ones] - ones_sum
-        scaled_groups_sums[idx_group_of_ones] = ones_sum
-
-        cpus_set_list[idx_group_of_ones] = 0
-        surplus_distributed = [
-            (cpu / max(1, sum(cpus_set_list))) * surplus for cpu in cpus_set_list
-        ]
-        scaled_groups_sums = [
-            sum(x) for x in zip(scaled_groups_sums, surplus_distributed)
-        ]
-
-    # After redistribution we round up the number of cpus safely for each group
-    safe_groups_sums = saferound(scaled_groups_sums, places=0)
-
-    # We assign to each technique the number of cpus that corresponds to it within its group,
-    # specifying the id of each assigned cpu.
-    cpus_cnt = 0
-    res = dict.fromkeys(tecs, list())
-    for idx_group in range(len(groups)):
-        cpus_group = int(safe_groups_sums[idx_group])
-        cpus_ids = (
-            cores_ids[cpus_cnt : (cpus_group + cpus_cnt)]
-            if cpus_group != 0
-            else [cores_ids[max(0, cpus_group - 1)]]
-        )
-        cpus_cnt += cpus_group
-
-        members = groups[idx_group]
-
-        if len(members) < len(cpus_ids):
-            cycle_members = itertools.cycle(members)
-            for cpu_id in cpus_ids:
-                member = next(cycle_members)
-                res[tecs[member]] = res[tecs[member]] + [cpu_id]
-        else:
-            cpus_ids = itertools.cycle(cpus_ids)
-            for member in members:
-                res[tecs[member]] = res[tecs[member]] + [next(cpus_ids)]
-
-    # Return final dict
-    return res
 
 
 # Applications for the definition of Typer commands and subcommands.
@@ -1178,6 +1055,10 @@ def infer_network(
         None,
         help="Comma-separated list with the identifying numbers of the threads to be used. If specified, the threads variable will automatically be set to the length of the list.",
     ),
+    temp_folder_str: str = typer.Option(
+        temp_folder_str,
+        help="Path to the temporary folder that will make volume for Docker containers. By default, the central temporary folder of execution is used. Useful parameter for parallel executions from Python",
+    ),
     output_dir: Path = typer.Option(
         Path("./inferred_networks"), help="Path to the output folder."
     ),
@@ -1200,6 +1081,7 @@ def infer_network(
     cpus_dict = get_optimal_cpu_distribution(technique, cores_ids)
 
     # Report information to the user.
+    print(f"\n Infer network from {expression_data.name} with {len(technique)} techniques and saving results in {output_dir}")
     print(f"\n Total cores: {len(cores_ids)}")
     print("Distribution:")
     print(cpus_dict)
@@ -1258,6 +1140,7 @@ def infer_network(
             client.images.pull(repository=image)
 
         # The image is executed with the parameters set by the user.
+        client = docker.from_env()
         container = client.containers.run(
             image=image,
             volumes=get_volume(temp_folder_str, isMatlab),
@@ -1315,63 +1198,6 @@ def infer_network(
         # Write gene names to default file
         with open(gene_names, "w") as f:
             f.write(",".join(gene_list))
-
-# Command for network clustering
-@app.command(rich_help_panel="Additional commands")
-def cluster_network(
-    confidence_list: Path = typer.Option(
-        ...,
-        exists=True,
-        file_okay=True,
-        help="Path to the CSV file with the list of trusted values.",
-    ),
-    algorithm: ClusteringAlgorithm = typer.Option(ClusteringAlgorithm.Infomap, help="Clustering algorithm"),
-    output_dir: Path = typer.Option(
-        Path("./communities"), help="Path to the output folder."
-    ),
-):
-    """
-    Divide an initial gene network into several communities following the Infomap (recommended) or Louvain grouping algorithm
-    """
-    
-    # Report information to the user.
-    print(
-        f"Dividing the gene network {confidence_list} in communities applying the {algorithm.value} grouping algorithm"
-    )
-    
-    # A temporary folder is created and the list of input confidences is copied.
-    Path(temp_folder_str).mkdir(exist_ok=True, parents=True)
-    tmp_confidence_list_dir = f"{temp_folder_str}/{Path(confidence_list).name}"
-    shutil.copyfile(confidence_list, tmp_confidence_list_dir)
-
-    # The output folder is defined and the necessary folders of its path are created.
-    Path(output_dir).mkdir(exist_ok=True, parents=True)
-    
-    # Define docker image
-    image = f"adriansegura99/geneci_cluster-network:{tag}"
-
-    # In case it is not available on the device, it is downloaded from the repository.
-    if not image in available_images:
-        print("Downloading docker image ...")
-        client.images.pull(repository=image)
-
-    # The image is executed with the parameters set by the user.
-    container = client.containers.run(
-        image=image,
-        volumes=get_volume(temp_folder_str),
-        command=f"--confidence-list {tmp_confidence_list_dir} --algorithm {algorithm.value.lower()} --output-folder {temp_folder_str}",
-        detach=True,
-        tty=True,
-    )
-
-    # Wait, stop and remove the container. Then print reported logs
-    logs, _ = wait_and_close_container(container)
-    print(logs)
-
-    # Copy the output files from the temporary folder to the final one and delete the temporary one.
-    Path(tmp_confidence_list_dir).unlink()
-    for src_file in Path(temp_folder_str).glob('*.*'):
-        shutil.move(src_file, output_dir)
 
 # Command for network binarization
 @app.command(rich_help_panel="Additional commands")
@@ -1691,7 +1517,14 @@ def optimize_ensemble(
         exists=True,
         file_okay=True,
         help="Path to the CSV file with the time series from which the individual gene networks have been inferred. This parameter is only necessary in case of specifying the fitness function Loyalty.",
-        rich_help_panel="Input data",
+        rich_help_panel="Times series - Loyalty",
+    ),
+    known_interactions: Path = typer.Option(
+        None,
+        exists=True,
+        file_okay=True,
+        help="Path to the CSV file with the known interactions between genes. If specified, a local search process will be performed before mutation.",
+        rich_help_panel="Local search",
     ),
     crossover_probability: float = typer.Option(
         0.9, help="Crossover probability", rich_help_panel="Crossover"
@@ -1708,6 +1541,10 @@ def optimize_ensemble(
     mutation_strength: float = typer.Option(
         0.1, help="Mutation strength", rich_help_panel="Mutation"
     ),
+    memetic_distance_type: MemeticDistanceType = typer.Option(
+        MemeticDistanceType.all, help="Memetic distance type", rich_help_panel="Local search"
+    ),
+    memetic_probability: float = typer.Option(0.55, help="Memetic probability", rich_help_panel="Local search"),
     population_size: int = typer.Option(
         100, help="Population size", rich_help_panel="Diversity and depth"
     ),
@@ -1727,7 +1564,24 @@ def optimize_ensemble(
     ),
     function: Optional[List[str]] = typer.Option(
         ...,
-        help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, DegreeDistribution and Motifs",
+        help='''A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. \n
+                Available terms: \n
+                    \t - Quality \n
+                    \t - DegreeDistribution \n
+                    \t - Motifs \n
+                    \t - Dynamicity \n
+                    \t - ReduceNonEssentialsInteractions \n
+                    \t - EigenVectorDistribution \n
+                    \t - Loyalty \n
+                    \t - Clustering \n
+                Examples: \n
+                    \t - Objective of one term: "Quality" \n
+                    \t - Objective of two terms: "0.5*Quality+0.5*DegreeDistribution" \n''',
+        rich_help_panel="Fitness",
+    ),
+    reference_point: str = typer.Option(
+        "-",
+        help="Reference point for the Pareto front. If specified, the search will be oriented towards this point. The format is 'f1;f2;f3'.",
         rich_help_panel="Fitness",
     ),
     algorithm: Algorithm = typer.Option(
@@ -1743,6 +1597,13 @@ def optimize_ensemble(
     plot_results: bool = typer.Option(
         True,
         help="Indicate if you want to represent results graphically.",
+        rich_help_panel="Graphics",
+    ),
+    compare_performance: Path = typer.Option(
+        None,
+        exists=True,
+        file_okay=True,
+        help="Reference front with which to compare performance. Specifically, a graph will be returned to show for each generation the percentage of reference front solutions that have already been dominated by the current population. If a reference point is specified to carry out an articulated selection, the part of the reference front covered by that reference point will only be taken into account.",
         rich_help_panel="Graphics",
     ),
     output_dir: Path = typer.Option(
@@ -1804,6 +1665,16 @@ def optimize_ensemble(
     tmp_time_series_dir = f"{temp_folder_str}/time_series.csv"
     if time_series:
         shutil.copyfile(time_series, tmp_time_series_dir)
+        
+    # If known links are provided, they are copied to the temporary directory
+    tmp_known_interactions_dir = f"{temp_folder_str}/known_interactions.csv"
+    if known_interactions:
+        shutil.copyfile(known_interactions, tmp_known_interactions_dir)
+        
+     # Copy the file with the reference front if specified
+    tmp_reference_front_dir = f"{temp_folder_str}/reference_front.csv"
+    if compare_performance:
+        shutil.copyfile(compare_performance, tmp_reference_front_dir)
 
     # Define docker image
     image = f"adriansegura99/geneci_optimize-ensemble:{tag}"
@@ -1817,7 +1688,7 @@ def optimize_ensemble(
     container = client.containers.run(
         image=image,
         volumes=get_volume(temp_folder_str),
-        command=f"{temp_folder_str} {crossover_probability} {num_parents} {mutation_probability} {mutation_strength} {population_size} {num_evaluations} {cut_off_criteria.value} {cut_off_value} {str_functions} {algorithm.value} {threads} {plot_results}",
+        command=f"{temp_folder_str} {crossover_probability} {num_parents} {mutation_probability} {mutation_strength} {population_size} {num_evaluations} {cut_off_criteria.value} {cut_off_value} {str_functions} {algorithm.value} {threads} {plot_results} {memetic_distance_type.value} {memetic_probability} {reference_point}",
         detach=True,
         tty=True,
     )
@@ -1836,6 +1707,26 @@ def optimize_ensemble(
             plot_chord_diagram=True,
             output_dir="<<fun_file>>/..",
         )
+    
+    if compare_performance:
+        # Leer el archivo con los datos de comparación
+        with open(f"{temp_folder_str}/ea_consensus/compare_performance.txt", 'r') as file:
+            line = file.readline().strip()
+
+        # Convertir la línea en una lista de números
+        data = list(map(float, line.split(',')))
+
+        # Crear un gráfico
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=list(range(len(data))), y=data, mode='lines+markers'))
+
+        # Configurar el diseño
+        fig.update_layout(
+            title="Gráfico de datos",
+            xaxis_title="Generation",
+            yaxis_title="Percentage of reference front solutions dominated"
+        )
+        fig.write_html(f"{temp_folder_str}/ea_consensus/compare_performance.html")
 
     # Define and create the output folder
     if str(output_dir) == "<<conf_list_path>>/../ea_consensus":
@@ -2174,12 +2065,12 @@ def generic_list_of_links(
         del gene_names[0]
 
     # Store inferred confidence values in matrix format
-    df = pd.DataFrame(0, index=gene_names, columns=gene_names)
+    df = pd.DataFrame(0.0, index=gene_names, columns=gene_names)
     f = open(confidence_list, "r")
     lines = f.readlines()
     for line in lines:
         vline = line.replace("\n", "").split(",")
-        df.at[vline[0], vline[1]] = vline[2]
+        df.at[vline[0], vline[1]] = float(vline[2])
 
     # Save dataframe in temporal folder
     tmp_inferred_matrix_dir = f"{temp_folder_str}/{Path(confidence_list).name}"
@@ -2443,7 +2334,14 @@ def run(
         exists=True,
         file_okay=True,
         help="Path to the CSV file with the time series from which the individual gene networks have been inferred. This parameter is only necessary in case of specifying the fitness function Loyalty.",
-        rich_help_panel="Input data",
+        rich_help_panel="Times series - Loyalty",
+    ),
+    known_interactions: Path = typer.Option(
+        None,
+        exists=True,
+        file_okay=True,
+        help="Path to the CSV file with the known interactions between genes. If specified, a local search process will be performed before mutation.",
+        rich_help_panel="Local search",
     ),
     technique: Optional[List[Technique]] = typer.Option(
         ...,
@@ -2466,6 +2364,10 @@ def run(
     mutation_strength: float = typer.Option(
         0.1, help="Mutation strength", rich_help_panel="Mutation"
     ),
+    memetic_distance_type: MemeticDistanceType = typer.Option(
+        MemeticDistanceType.all, help="Memetic distance type", rich_help_panel="Local search",
+    ),
+    memetic_probability: float = typer.Option(0.55, help="Memetic probability", rich_help_panel="Local search",),
     population_size: int = typer.Option(
         100, help="Population size", rich_help_panel="Diversity and depth"
     ),
@@ -2485,7 +2387,24 @@ def run(
     ),
     function: Optional[List[str]] = typer.Option(
         ...,
-        help="A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, DegreeDistribution and Motifs.",
+        help='''A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. \n
+                Available terms: \n
+                    \t - Quality \n
+                    \t - DegreeDistribution \n
+                    \t - Motifs \n
+                    \t - Dynamicity \n
+                    \t - ReduceNonEssentialsInteractions \n
+                    \t - EigenVectorDistribution \n
+                    \t - Loyalty \n
+                    \t - Clustering \n
+                Examples: \n
+                    \t - Objective of one term: "Quality" \n
+                    \t - Objective of two terms: "0.5*Quality+0.5*DegreeDistribution" \n''',
+        rich_help_panel="Fitness",
+    ),
+    reference_point: str = typer.Option(
+        "-",
+        help="Reference point for the Pareto front. If specified, the search will be oriented towards this point. The format is 'f1;f2;f3'.",
         rich_help_panel="Fitness",
     ),
     algorithm: Algorithm = typer.Option(
@@ -2508,6 +2427,13 @@ def run(
         help="Indicate if you want to represent results graphically.",
         rich_help_panel="Graphics",
     ),
+    compare_performance: Path = typer.Option(
+        None,
+        exists=True,
+        file_okay=True,
+        help="Reference front with which to compare performance. Specifically, a graph will be returned to show for each generation the percentage of reference front solutions that have already been dominated by the current population. If a reference point is specified to carry out an articulated selection, the part of the reference front covered by that reference point will only be taken into account.",
+        rich_help_panel="Graphics",
+    ),
     output_dir: Path = typer.Option(
         Path("./inferred_networks"),
         help="Path to the output folder.",
@@ -2522,7 +2448,7 @@ def run(
     print(f"\n Run algorithm for {expression_data}")
 
     # Run inference command
-    infer_network(expression_data, technique, threads, str_threads, output_dir)
+    infer_network(expression_data, technique, threads, str_threads, temp_folder_str, output_dir)
 
     # Extract results
     confidence_list = list(
@@ -2532,21 +2458,26 @@ def run(
 
     # Run ensemble optimization command
     optimize_ensemble(
-        confidence_list,
-        gene_names,
-        time_series,
-        crossover_probability,
-        num_parents,
-        mutation_probability,
-        mutation_strength,
-        population_size,
-        num_evaluations,
-        cut_off_criteria,
-        cut_off_value,
-        function,
-        algorithm,
-        threads,
-        plot_results,
+        confidence_list=confidence_list,
+        gene_names=gene_names,
+        time_series=time_series,
+        known_interactions=known_interactions,
+        crossover_probability=crossover_probability,
+        num_parents=num_parents,
+        mutation_probability=mutation_probability,
+        mutation_strength=mutation_strength,
+        memetic_distance_type=memetic_distance_type,
+        memetic_probability=memetic_probability,
+        population_size=population_size,
+        num_evaluations=num_evaluations,
+        cut_off_criteria=cut_off_criteria,
+        cut_off_value=cut_off_value,
+        function=function,
+        reference_point=reference_point,
+        algorithm=algorithm,
+        threads=threads,
+        plot_results=plot_results,
+        compare_performance=compare_performance,
         output_dir="<<conf_list_path>>/../ea_consensus",
     )
 
@@ -2730,4 +2661,5 @@ def weighted_confidence(
 
 
 if __name__ == "__main__":
+    print(HEADER)
     app()
