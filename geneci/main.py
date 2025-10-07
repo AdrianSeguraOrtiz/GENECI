@@ -25,7 +25,7 @@ from scipy import stats
 import matplotlib as mpl
 
 # Header
-__version__ = "4.0.1"
+__version__ = "4.0.1.1"
 __author__ = "Adrian Segura Ortiz <adrianseor.99@uma.es>"
 
 HEADER = "\n".join(
@@ -1134,13 +1134,15 @@ def infer_network(
                 command += f" {variant}"
             isMatlab = False
 
+        # Set the docker client
+        client = docker.from_env()
+        
         # In case it is not available on the device, it is downloaded from the repository.
         if not image in available_images:
             print("Downloading docker image ...")
             client.images.pull(repository=image)
-
+            
         # The image is executed with the parameters set by the user.
-        client = docker.from_env()
         container = client.containers.run(
             image=image,
             volumes=get_volume(temp_folder_str, isMatlab),

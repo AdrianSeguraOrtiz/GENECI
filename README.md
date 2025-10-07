@@ -21,8 +21,22 @@ To implement all the functionalities mentioned above, it has been necessary to p
 # Instalation
 
 ```sh
-pip install geneci==4.0.1
+pip install geneci==4.0.1.1
 ```
+
+# Publications
+
+The current version of **GENECI** integrates all the software developments presented throughout the following scientific publications, which together represent the full evolution of the framework — from its original design to the current multi-objective and preference-based consensus model for Gene Regulatory Network (GRN) inference:
+
+* **Segura-Ortiz, A.**, García-Nieto, J., Aldana-Montes, J. F., & Navas-Delgado, I. (2023). *GENECI: a novel evolutionary machine learning consensus-based approach for the inference of gene regulatory networks.* **Computers in Biology and Medicine**, 155, 106653.
+* **Segura-Ortiz, A.**, García-Nieto, J., & Aldana-Montes, J. F. (2024, June). *Exploiting medical-expert knowledge via a novel memetic algorithm for the inference of gene regulatory networks.* In *International Conference on Computational Science* (pp. 3–17). Cham: Springer Nature Switzerland.
+* **Segura-Ortiz, A.**, García-Nieto, J., Aldana-Montes, J. F., & Navas-Delgado, I. (2024). *Multi-objective context-guided consensus of a massive array of techniques for the inference of Gene Regulatory Networks.* **Computers in Biology and Medicine**, 179, 108850.
+* **Segura-Ortiz, A.**, Giménez-Orenga, K., García-Nieto, J., Oltra, E., & Aldana-Montes, J. F. (2025). *Multifaceted evolution focused on maximal exploitation of domain knowledge for the consensus inference of Gene Regulatory Networks.* **Computers in Biology and Medicine**, 196, 110632.
+* **Segura-Ortiz, A.**, García-Nieto, J., & Aldana-Montes, J. F. (Under review, 2025). *Multi-objective consensus optimization for GRN inference: a preference-based approach.* **Computational Biology and Chemistry**.
+
+These works collectively describe the foundation, extensions, and ongoing developments that culminate in the unified implementation available in this repository, covering evolutionary, memetic, and multi-objective consensus optimization strategies for GRN inference.
+
+
 
 # Output
 
@@ -111,8 +125,7 @@ geneci run --expression-data input_data/DREAM4/EXP/dream4_100_01_exp.csv \
            --num-parents 3 --mutation-strength 0.1 \
            --num-evaluations 50000 --cut-off-criteria PercLinksWithBestConf --cut-off-value 0.4 \
            --function Quality --function DegreeDistribution --function Motifs \
-           --algorithm NSGAII --plot-fitness-evolution --plot-pareto-front \
-           --plot-parallel-coordinates --output-dir inferred_networks
+           --algorithm NSGAII --plot-results --output-dir inferred_networks
 ```
 
 - **Form 2**: Division of the procedure into several commands
@@ -159,8 +172,7 @@ geneci optimize-ensemble --confidence-list inferred_networks/dream4_100_01_exp/l
                          --num-parents 3 --mutation-strength 0.1 \
                          --num-evaluations 50000 --cut-off-criteria PercLinksWithBestConf --cut-off-value 0.4 \
                          --function Quality --function DegreeDistribution --function Motifs \
-                         --algorithm NSGAII --plot-fitness-evolution --plot-pareto-front \
-                         --plot-parallel-coordinates --output-dir inferred_networks/geneci_consensus
+                         --algorithm NSGAII --plot-results --output-dir inferred_networks/geneci_consensus
 ```
 
 - **Consensus under own criteria**: Assign specific weights to each of the files resulting from each technique. In case the researcher has some experience in this domain, he can determine for himself the weights he wants to assign to each inferred network to build his own consensus network.
@@ -674,9 +686,7 @@ $ geneci optimize-ensemble [OPTIONS]
 * `--function TEXT`: A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, DegreeDistribution and Motifs.  [required]
 * `--algorithm [GA|NSGAII|SMPSO]`: Evolutionary algorithm to be used during the optimization process. All are intended for a multi-objective approach with the exception of the genetic algorithm (GA).  [required]
 * `--threads INTEGER`: Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.  [default: 64]
-* `--plot-fitness-evolution / --no-plot-fitness-evolution`: Indicate if you want to represent the evolution of the fitness values.  [default: no-plot-fitness-evolution]
-* `--plot-pareto-front / --no-plot-pareto-front`: Indicate if you want to represent the Pareto front (only available for multi-objective mode of 2 or 3 functions). [default: no-plot-pareto-front]
-* `--plot-parallel-coordinates / --no-plot-parallel-coordinates`: Indicate if you want to represent the parallel coordinate graph (only available for multi-objective mode). [default: no-plot-parallel-coordinates]
+* `--plot-results`: Indicate if you want to represent results graphically. [default: plot-results]
 * `--output-dir PATH`: Path to the output folder.  [default: <<conf_list_path>>/../ea_consensus]
 * `--help`: Show this message and exit.
 
@@ -707,9 +717,7 @@ $ geneci run [OPTIONS]
 * `--algorithm [GA|NSGAII|SMPSO]`: Evolutionary algorithm to be used during the optimization process. All are intended for a multi-objective approach with the exception of the genetic algorithm (GA).  [required]
 * `--threads INTEGER`: Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.  [default: 64]
 * `--str-threads TEXT`: Comma-separated list with the identifying numbers of the threads to be used. If specified, the threads variable will automatically be set to the length of the list.
-* `--plot-fitness-evolution / --no-plot-fitness-evolution`: Indicate if you want to represent the evolution of the fitness values.  [default: no-plot-fitness-evolution]
-* `--plot-pareto-front / --no-plot-pareto-front`: Indicate if you want to represent the Pareto front (only available for multi-objective mode of 2 or 3 functions). [default: no-plot-pareto-front]
-* `--plot-parallel-coordinates / --no-plot-parallel-coordinates`: Indicate if you want to represent the parallel coordinate graph (only available for multi-objective mode). [default: no-plot-parallel-coordinates]
+* `--plot-results`: Indicate if you want to represent results graphically. [default: plot-results]
 * `--output-dir PATH`: Path to the output folder.  [default: inferred_networks]
 * `--help`: Show this message and exit.
 
