@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Install Python 3.9.18
+    - name: Install Python 3.10.18
       uses: actions/setup-python@v1
       with:
-        python-version: 3.9.18
+        python-version: 3.10.18
     - name: Get full Python version
       shell: bash
       run: echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
