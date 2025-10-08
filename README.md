@@ -212,7 +212,7 @@ geneci draw-network --confidence-list inferred_networks/dream4_100_01_exp/lists/
                     --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_LEAP.csv \
                     --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_PUC.csv \
                     --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_C3NET.csv \
-                    --mode Both --nodes-distribution Spring \
+                    --mode Interactive2D --nodes-distribution Spring \
                     --output-folder inferred_networks/dream4_100_01_exp/network_graphics
 ```
 
@@ -321,7 +321,7 @@ $ geneci draw-network [OPTIONS]
 **Options**:
 
 * `--confidence-list TEXT`: Paths of the CSV files with the confidence lists to be represented  [required]
-* `--mode [Static2D|Interactive3D|Both]`: Mode of representation  [default: Both]
+* `--mode [Static2D|Interactive2D|Compare2D|Interactive3D]`: Mode of representation  [default: Interactive2D]
 * `--nodes-distribution [Spring|Circular|Kamada_kawai]`: Node distribution in graph  [default: Spring]
 * `--output-folder PATH`: Path to output folder  [default: <<conf_list_path>>/../network_graphics]
 * `--help`: Show this message and exit.
