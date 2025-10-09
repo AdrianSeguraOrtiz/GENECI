@@ -25,7 +25,7 @@ from scipy import stats
 import matplotlib as mpl
 
 # Header
-__version__ = "4.0.1.1"
+__version__ = "4.0.1.2"
 __author__ = "Adrian Segura Ortiz <adrianseor.99@uma.es>"
 
 HEADER = "\n".join(
@@ -720,103 +720,61 @@ def expression_data(
     output_dir: Path = typer.Option(
         Path("./input_data"), help="Path to the output folder."
     ),
-    username: str = typer.Option(
+    auth_token: str = typer.Option(
         None,
-        help="Synapse account username. Only necessary when selecting DREAM3 or DREAM5.",
-    ),
-    password: str = typer.Option(
-        None,
-        help="Synapse account password. Only necessary when selecting DREAM3 or DREAM5.",
+        help="Synapse Personal Access Token (PAT). Required for DREAM3 and DREAM5.",
     ),
 ):
     """
     Download time series of gene expression data (already produced by simulators and published in challenges).
     """
 
-    # Demand the proportion of credentials if necessary.
-    if (Database.DREAM3 in database or Database.DREAM5 in database) and (
-        not username or not password
-    ):
+    # DREAM3/5 requieren autenticación en Synapse
+    if (Database.DREAM3 in database or Database.DREAM5 in database) and not auth_token:
         print(
-            "You must enter your Synapse credentials in order to download some of the selected data."
+            "You must provide a Synapse Personal Access Token (PAT) "
+            "to download data from DREAM3 or DREAM5 (use --auth-token)."
         )
         raise typer.Exit()
 
-    # Scroll through the list of databases specified by the user to extract data from each of them.
     for db in database:
-
         # Create the output folder
         output_folder = Path(f"./{output_dir}/{db.value}/EXP/")
         output_folder.mkdir(exist_ok=True, parents=True)
 
-        # Report information to the user
         print(f"\n Extracting expression data from {db.value}")
 
-        # Execute the corresponding image according to the database.
+        # Select image
         if db == Database.DREAM3:
-
-            # Define docker image
             image = f"adriansegura99/geneci_extract-data_dream3:{tag}"
-
-            # In case it is not available on the device, it is downloaded from the repository.
-            if not image in available_images:
-                print("Downloading docker image ...")
-                client.images.pull(repository=image)
-
-            # Construct the command based on the parameters entered by the user
-            command = f"--category ExpressionData --output-folder ./EXP/  --username {username} --password {password}"
-
         elif db == Database.DREAM4:
-
-            # Define docker image
             image = f"adriansegura99/geneci_extract-data_dream4-expgs:{tag}"
-
-            # In case it is not available on the device, it is downloaded from the repository.
-            if not image in available_images:
-                print("Downloading docker image ...")
-                client.images.pull(repository=image)
-
-            # Construct the command based on the parameters entered by the user
-            command = f"ExpressionData ./EXP/ "
-
         elif db == Database.DREAM5:
-
-            # Define docker image
             image = f"adriansegura99/geneci_extract-data_dream5:{tag}"
-
-            # In case it is not available on the device, it is downloaded from the repository.
-            if not image in available_images:
-                print("Downloading docker image ...")
-                client.images.pull(repository=image)
-
-            # Construct the command based on the parameters entered by the user
-            command = f"--category ExpressionData --output-folder ./EXP/  --username {username} --password {password}"
-
         elif db == Database.IRMA:
-
-            # Define docker image
             image = f"adriansegura99/geneci_extract-data_irma:{tag}"
-
-            # In case it is not available on the device, it is downloaded from the repository.
-            if not image in available_images:
-                print("Downloading docker image ...")
-                client.images.pull(repository=image)
-
-            # Construct the command based on the parameters entered by the user
-            command = f"ExpressionData ./EXP/ "
-
         else:
-
-            # Define docker image
             image = f"adriansegura99/geneci_extract-data_grndata:{tag}"
 
-            # In case it is not available on the device, it is downloaded from the repository.
-            if not image in available_images:
-                print("Downloading docker image ...")
-                client.images.pull(repository=image)
+        # Pull image if needed
+        if image not in available_images:
+            print("Downloading docker image ...")
+            client.images.pull(repository=image)
 
-            # Construct the command based on the parameters entered by the user
-            command = f"{db.value} ExpressionData ./EXP/ "
+        # Build command (sin credenciales en CLI)
+        if db == Database.DREAM3:
+            command = "--category ExpressionData --output-folder ./EXP/"
+        elif db == Database.DREAM4:
+            command = "ExpressionData ./EXP/"
+        elif db == Database.DREAM5:
+            command = "--category ExpressionData --output-folder ./EXP/"
+        elif db == Database.IRMA:
+            command = "ExpressionData ./EXP/"
+        else:
+            command = f"{db.value} ExpressionData ./EXP/"
+
+        # Env: inyectamos el token solo si está presente (DREAM3/5 lo necesitarán)
+        env = {"SYNAPSE_AUTH_TOKEN": auth_token} if auth_token else None
 
         # Run container
         container = client.containers.run(
@@ -825,6 +783,7 @@ def expression_data(
             command=command,
             detach=True,
             tty=True,
+            environment=env,
         )
 
         # Wait, stop and remove the container. Then print reported logs
@@ -841,103 +800,62 @@ def gold_standard(
     output_dir: Path = typer.Option(
         Path("./input_data"), help="Path to the output folder."
     ),
-    username: str = typer.Option(
+    auth_token: str = typer.Option(
         None,
-        help="Synapse account username. Only necessary when selecting DREAM3 or DREAM5.",
-    ),
-    password: str = typer.Option(
-        None,
-        help="Synapse account password. Only necessary when selecting DREAM3 or DREAM5.",
+        help="Synapse Personal Access Token (PAT). Required for DREAM3 and DREAM5.",
     ),
 ):
     """
     Download gold standards (of networks already produced by simulators and published in challenges).
     """
 
-    # Demand the proportion of credentials if necessary.
-    if (Database.DREAM3 in database or Database.DREAM5 in database) and (
-        not username or not password
-    ):
+    # DREAM3/5 requieren token
+    if (Database.DREAM3 in database or Database.DREAM5 in database) and not auth_token:
         print(
-            "You must enter your Synapse credentials in order to download some of the selected data."
+            "You must provide a Synapse Personal Access Token (PAT) "
+            "to download data from DREAM3 or DREAM5 (use --auth-token)."
         )
         raise typer.Exit()
 
-    # Scroll through the list of databases specified by the user to extract data from each of them.
     for db in database:
-
         # Create the output folder
         output_folder = Path(f"./{output_dir}/{db.value}/GS/")
         output_folder.mkdir(exist_ok=True, parents=True)
 
-        # Report information to the user
+        # Report
         print(f"\n Extracting gold standards from {db.value}")
 
-        # Execute the corresponding image according to the database.
+        # Select image
         if db == Database.DREAM3:
-
-            # Define docker image
             image = f"adriansegura99/geneci_extract-data_dream3:{tag}"
-
-            # In case it is not available on the device, it is downloaded from the repository.
-            if not image in available_images:
-                print("Downloading docker image ...")
-                client.images.pull(repository=image)
-
-            # Construct the command based on the parameters entered by the user
-            command = f"--category GoldStandard --output-folder ./GS/  --username {username} --password {password}"
-
         elif db == Database.DREAM4:
-
-            # Define docker image
             image = f"adriansegura99/geneci_extract-data_dream4-expgs:{tag}"
-
-            # In case it is not available on the device, it is downloaded from the repository.
-            if not image in available_images:
-                print("Downloading docker image ...")
-                client.images.pull(repository=image)
-
-            # Construct the command based on the parameters entered by the user
-            command = f"GoldStandard ./GS/ "
-
         elif db == Database.DREAM5:
-
-            # Define docker image
             image = f"adriansegura99/geneci_extract-data_dream5:{tag}"
-
-            # In case it is not available on the device, it is downloaded from the repository.
-            if not image in available_images:
-                print("Downloading docker image ...")
-                client.images.pull(repository=image)
-
-            # Construct the command based on the parameters entered by the user
-            command = f"--category GoldStandard --output-folder ./GS/  --username {username} --password {password}"
-
         elif db == Database.IRMA:
-
-            # Define docker image
             image = f"adriansegura99/geneci_extract-data_irma:{tag}"
-
-            # In case it is not available on the device, it is downloaded from the repository.
-            if not image in available_images:
-                print("Downloading docker image ...")
-                client.images.pull(repository=image)
-
-            # Construct the command based on the parameters entered by the user
-            command = f"GoldStandard ./GS/ "
-
         else:
-
-            # Define docker image
             image = f"adriansegura99/geneci_extract-data_grndata:{tag}"
 
-            # In case it is not available on the device, it is downloaded from the repository.
-            if not image in available_images:
-                print("Downloading docker image ...")
-                client.images.pull(repository=image)
+        # Pull if needed
+        if image not in available_images:
+            print("Downloading docker image ...")
+            client.images.pull(repository=image)
 
-            # Construct the command based on the parameters entered by the user
-            command = f"{db.value} GoldStandard ./GS/ "
+        # Build command (sin credenciales en CLI)
+        if db == Database.DREAM3:
+            command = "--category GoldStandard --output-folder ./GS/"
+        elif db == Database.DREAM4:
+            command = "GoldStandard ./GS/"
+        elif db == Database.DREAM5:
+            command = "--category GoldStandard --output-folder ./GS/"
+        elif db == Database.IRMA:
+            command = "GoldStandard ./GS/"
+        else:
+            command = f"{db.value} GoldStandard ./GS/"
+
+        # Env con el token (solo si existe)
+        env = {"SYNAPSE_AUTH_TOKEN": auth_token} if auth_token else None
 
         # Run container
         container = client.containers.run(
@@ -946,11 +864,13 @@ def gold_standard(
             command=command,
             detach=True,
             tty=True,
+            environment=env,
         )
 
         # Wait, stop and remove the container. Then print reported logs
         logs, _ = wait_and_close_container(container)
         print(logs)
+
 
 
 # Command to extract evaluation data
@@ -962,77 +882,62 @@ def evaluation_data(
     output_dir: Path = typer.Option(
         Path("./input_data"), help="Path to the output folder."
     ),
-    username: str = typer.Option(..., help="Synapse account username."),
-    password: str = typer.Option(..., help="Synapse account password."),
+    auth_token: str = typer.Option(
+        ...,
+        help="Synapse Personal Access Token (PAT). Required for DREAM3, DREAM4 and DREAM5.",
+    ),
 ):
     """
     Download evaluation data of DREAM challenges.
     """
 
-    # Scroll through the list of databases specified by the user to extract data from each of them.
     for db in database:
-
-        # Create the output folder
+        # Crear carpeta de salida
         output_folder = Path(f"./{output_dir}/{db.value}/EVAL/")
         output_folder.mkdir(exist_ok=True, parents=True)
 
-        # Report information to the user
         print(f"\n Extracting evaluation data from {db.value}")
 
-        # Execute the corresponding image according to the database.
+        # Seleccionar imagen según base de datos
         if db == EvalDatabase.DREAM3:
-
-            # Define docker image
             image = f"adriansegura99/geneci_extract-data_dream3:{tag}"
-
-            # In case it is not available on the device, it is downloaded from the repository.
-            if not image in available_images:
-                print("Downloading docker image ...")
-                client.images.pull(repository=image)
-
-            # Construct the command based on the parameters entered by the user
-            command = f"--category EvaluationData --output-folder ./EVAL/  --username {username} --password {password}"
-
         elif db == EvalDatabase.DREAM4:
-
-            # Define docker image
             image = f"adriansegura99/geneci_extract-data_dream4-eval:{tag}"
-
-            # In case it is not available on the device, it is downloaded from the repository.
-            if not image in available_images:
-                print("Downloading docker image ...")
-                client.images.pull(repository=image)
-
-            # Construct the command based on the parameters entered by the user
-            command = (
-                f"--output-folder ./EVAL/  --username {username} --password {password}"
-            )
-
         elif db == EvalDatabase.DREAM5:
-
-            # Define docker image
             image = f"adriansegura99/geneci_extract-data_dream5:{tag}"
+        else:
+            raise typer.Exit(f"Unknown database: {db}")
 
-            # In case it is not available on the device, it is downloaded from the repository.
-            if not image in available_images:
-                print("Downloading docker image ...")
-                client.images.pull(repository=image)
+        # Pull si no está disponible localmente
+        if image not in available_images:
+            print("Downloading docker image ...")
+            client.images.pull(repository=image)
 
-            # Construct the command based on the parameters entered by the user
-            command = f"--category EvaluationData --output-folder ./EVAL/  --username {username} --password {password}"
+        # Comando (sin credenciales en CLI, respetando tu firma original)
+        if db == EvalDatabase.DREAM3:
+            command = "--category EvaluationData --output-folder ./EVAL/"
+        elif db == EvalDatabase.DREAM4:
+            command = "--output-folder ./EVAL/" 
+        elif db == EvalDatabase.DREAM5:
+            command = "--category EvaluationData --output-folder ./EVAL/"
 
-        # Run container
+        # Inyectar PAT como variable de entorno
+        env = {"SYNAPSE_AUTH_TOKEN": auth_token} if auth_token else None
+
+        # Ejecutar contenedor
         container = client.containers.run(
             image=image,
             volumes=get_volume(output_folder),
             command=command,
             detach=True,
             tty=True,
+            environment=env,
         )
 
-        # Wait, stop and remove the container. Then print reported logs
+        # Esperar, cerrar y mostrar logs
         logs, _ = wait_and_close_container(container)
         print(logs)
+
 
 
 # Command for inferring networks by applying individual techniques.

@@ -21,7 +21,7 @@ To implement all the functionalities mentioned above, it has been necessary to p
 # Instalation
 
 ```sh
-pip install geneci==4.0.1.1
+pip install geneci==4.0.1.2
 ```
 
 # Publications
@@ -220,9 +220,15 @@ geneci draw-network --confidence-list inferred_networks/dream4_100_01_exp/lists/
 
 - **DREAM**: For the evaluation of networks from DREAM challenges, the evaluation data must be previously downloaded using the **extract-data** command and the **evaluation-data** subcommand, which requires providing the database and credentials of an account on the Synapse platform. After that, the **evaluate** command is used followed by the **dream-prediction** subcommand to access the three input options mentioned above. In any case, the challenge identifier, network identifier, evaluation files and input files need to be specified. The input files will depend on the chosen option: **dream-list-of-links**, **dream-weight-distribution** or **dream-pareto-front**.
 
+**Where to get the `auth-token` (Synapse PAT):**
+  1. Open [Synapse](synapse.org) in your browser, create an account and then go to **Account Settings**.
+  2. Scroll to the bottom and click **Manage Personal Access Tokens**.
+  3. Click **Create New Token**, give it a name, and grant **the view and download permissions**.
+  4. Copy the generated token and keep it safe (it will only be shown once).
+
 ```sh
 # 1. Download evaluation data
-geneci extract-data evaluation-data --database DREAM4 --username TFM-SynapseAccount --password TFM-SynapsePassword
+geneci extract-data evaluation-data --database DREAM4 --auth-token <auth_token>
 
 # 2. Evaluate the accuracy of the inferred consensus network.
 geneci evaluate dream-prediction dream-list-of-links --challenge D4C2 --network-id 100_1 \
@@ -529,8 +535,7 @@ $ geneci extract-data evaluation-data [OPTIONS]
 
 * `--database [DREAM3|DREAM4|DREAM5]`: Databases for downloading evaluation data.  [required]
 * `--output-dir PATH`: Path to the output folder.  [default: input_data]
-* `--username TEXT`: Synapse account username.  [required]
-* `--password TEXT`: Synapse account password.  [required]
+* `--auth-token TEXT`: Synapse Personal Access Token (PAT).  [required]
 * `--help`: Show this message and exit.
 
 ### `geneci extract-data expression-data`
@@ -547,8 +552,7 @@ $ geneci extract-data expression-data [OPTIONS]
 
 * `--database [DREAM3|DREAM4|DREAM5|SynTReN|Rogers|GeneNetWeaver|IRMA]`: Databases for downloading expression data.  [required]
 * `--output-dir PATH`: Path to the output folder.  [default: input_data]
-* `--username TEXT`: Synapse account username. Only necessary when selecting DREAM3 or DREAM5.
-* `--password TEXT`: Synapse account password. Only necessary when selecting DREAM3 or DREAM5.
+* `--auth-token TEXT`: Synapse Personal Access Token (PAT). Only necessary when selecting DREAM3 or DREAM5.
 * `--help`: Show this message and exit.
 
 ### `geneci extract-data gold-standard`
@@ -565,8 +569,7 @@ $ geneci extract-data gold-standard [OPTIONS]
 
 * `--database [DREAM3|DREAM4|DREAM5|SynTReN|Rogers|GeneNetWeaver|IRMA]`: Databases for downloading gold standards.  [required]
 * `--output-dir PATH`: Path to the output folder.  [default: input_data]
-* `--username TEXT`: Synapse account username. Only necessary when selecting DREAM3 or DREAM5.
-* `--password TEXT`: Synapse account password. Only necessary when selecting DREAM3 or DREAM5.
+* `--auth-token TEXT`: Synapse Personal Access Token (PAT). Only necessary when selecting DREAM3 or DREAM5.
 * `--help`: Show this message and exit.
 
 ## `geneci generate-data`
