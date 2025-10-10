@@ -140,7 +140,7 @@ geneci infer-network --expression-data input_data/DREAM4/EXP/dream4_100_01_exp.c
                      --technique RSNET --technique PCACMI --technique LOCPCACMI --technique PLSNET \
                      --technique PIDC --technique PUC --technique GRNVBEM --technique LEAP \
                      --technique NONLINEARODES --technique INFERELATOR \
-                     --output-dir inferred_networks/geneci_consensus
+                     --output-dir inferred_networks
 
 # 2. Optimize the assembly of the trust lists resulting from the above command
 geneci optimize-ensemble --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_LOCPCACMI.csv \
@@ -172,8 +172,14 @@ geneci optimize-ensemble --confidence-list inferred_networks/dream4_100_01_exp/l
                          --num-parents 3 --mutation-strength 0.1 \
                          --num-evaluations 50000 --cut-off-criteria PercLinksWithBestConf --cut-off-value 0.4 \
                          --function Quality --function DegreeDistribution --function Motifs \
-                         --algorithm NSGAII --plot-results --output-dir inferred_networks/geneci_consensus
+                         --algorithm NSGAII --plot-results --output-dir inferred_networks
 ```
+
+> 💡 **Note:**
+> Both the use of **Form 1** and the **second step of Form 2** internally call the evolutionary algorithm implemented in the core of **GENECI**. Therefore, when multiple objectives are selected, the process does **not** produce a single result but a **Pareto front** instead (see the output files listed in the [#Output](#output) section).
+> By inspecting the files `parallel_coordinates.html` and `pareto_front.html`, the user should select the most suitable solution for their case. Once the preferred solution has been identified, the exact **weights** assigned to each inference technique can be found in the file `VAR.csv`, by checking the row that corresponds to the same position in `FUN.csv`, which contains the optimization levels of each objective.
+> Having identified these weights, the user can then apply the `weighted-confidence` command to generate the **final consensus network**.
+
 
 - **Consensus under own criteria**: Assign specific weights to each of the files resulting from each technique. In case the researcher has some experience in this domain, he can determine for himself the weights he wants to assign to each inferred network to build his own consensus network.
 
