@@ -1,0 +1,725 @@
+import multiprocessing
+from pathlib import Path
+from typing import List, Optional
+
+import typer
+from rich import print
+
+from geneci.config import temp_folder_str
+from geneci.core.commands.benchmarking.expression_data import (
+    expression_data as core_expression_data,
+)
+from geneci.core.commands.benchmarking.expression_data import (
+    generate_from_real_network as core_generate_from_real_network,
+)
+from geneci.core.commands.benchmarking.expression_data import (
+    generate_from_scratch as core_generate_from_scratch,
+)
+from geneci.core.commands.benchmarking.gene_regulatory_networks import (
+    download_real_network as core_download_real_network,
+)
+from geneci.core.commands.benchmarking.gene_regulatory_networks import (
+    gold_standard as core_gold_standard,
+)
+from geneci.core.commands.benchmarking.validation import (
+    dream_list_of_links as core_dream_list_of_links,
+)
+from geneci.core.commands.benchmarking.validation import (
+    dream_pareto_front as core_dream_pareto_front,
+)
+from geneci.core.commands.benchmarking.validation import (
+    dream_weight_distribution as core_dream_weight_distribution,
+)
+from geneci.core.commands.benchmarking.validation import (
+    evaluation_data as core_evaluation_data,
+)
+from geneci.core.commands.benchmarking.validation import (
+    generic_list_of_links as core_generic_list_of_links,
+)
+from geneci.core.commands.benchmarking.validation import (
+    generic_pareto_front as core_generic_pareto_front,
+)
+from geneci.core.commands.benchmarking.validation import (
+    generic_weight_distribution as core_generic_weight_distribution,
+)
+from geneci.core.commands.main import apply_consensus as core_apply_consensus
+from geneci.core.commands.main import infer_network as core_infer_network
+from geneci.core.commands.plotting import draw_network as core_draw_network
+from geneci.core.commands.postprocessing import apply_cut as core_apply_cut
+from geneci.enums import (
+    Algorithm,
+    Challenge,
+    CutOffCriteria,
+    Database,
+    EvalDatabase,
+    FromRealGenerateDatabase,
+    MemeticDistanceType,
+    Mode,
+    NodesDistribution,
+    Perturbation,
+    Technique,
+    Topology,
+)
+
+
+def _run_core(fn, *args, **kwargs):
+    try:
+        return fn(*args, **kwargs)
+    except ValueError as exc:
+        print(f"[bold red]Error:[/bold red] {exc}")
+        raise typer.Exit(code=1)
+
+
+app = typer.Typer(rich_markup_mode="rich")
+
+# Benchmarking space
+benchmarking_app = typer.Typer(help="Benchmarking-related workflows.")
+app.add_typer(benchmarking_app, name="benchmarking", rich_help_panel="Benchmarking")
+
+benchmarking_grn_app = typer.Typer(help="Gene regulatory network assets.")
+benchmarking_app.add_typer(
+    benchmarking_grn_app,
+    name="gene-regulatory-networks",
+)
+
+benchmarking_expression_app = typer.Typer(help="Expression data assets and generation.")
+benchmarking_app.add_typer(
+    benchmarking_expression_app,
+    name="expression-data",
+)
+
+generate_app = typer.Typer(help="Generate expression data with SysGenSIM.")
+benchmarking_expression_app.add_typer(generate_app, name="generate")
+
+benchmarking_validation_app = typer.Typer(help="Validation datasets and scoring.")
+benchmarking_app.add_typer(benchmarking_validation_app, name="validation")
+
+validate_app = typer.Typer(help="Validate inferred networks.")
+benchmarking_validation_app.add_typer(validate_app, name="validate")
+
+dream_prediction_app = typer.Typer(
+    help="Validation for DREAM challenge networks.",
+)
+validate_app.add_typer(dream_prediction_app, name="dream-prediction")
+
+generic_prediction_app = typer.Typer(
+    help="Validation for generic problems with a gold standard.",
+)
+validate_app.add_typer(generic_prediction_app, name="generic-prediction")
+
+# Plotting space
+plotting_app = typer.Typer(help="Plotting and visualization commands.")
+app.add_typer(plotting_app, name="plotting", rich_help_panel="Plotting")
+
+# Postprocessing space
+postprocessing_app = typer.Typer(help="Postprocessing commands.")
+app.add_typer(postprocessing_app, name="postprocessing", rich_help_panel="Postprocessing")
+
+
+@app.command(rich_help_panel="Main commands")
+def infer_network(
+    expression_data: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help="Path to the CSV file with the expression data. Genes are distributed in rows and experimental conditions (time series) in columns.",
+    ),
+    technique: Optional[List[Technique]] = typer.Option(
+        ..., case_sensitive=False, help="Inference techniques to be performed."
+    ),
+    threads: int = typer.Option(
+        multiprocessing.cpu_count(),
+        help="Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.",
+    ),
+    str_threads: str = typer.Option(
+        None,
+        help="Comma-separated list with the identifying numbers of the threads to be used. If specified, the threads variable will automatically be set to the length of the list.",
+    ),
+    temp_folder_str: str = typer.Option(
+        temp_folder_str,
+        help="Path to the temporary folder that will make volume for Docker containers. By default, the central temporary folder of execution is used. Useful parameter for parallel executions from Python",
+    ),
+    output_dir: Path = typer.Option(
+        Path("./inferred_networks"), help="Path to the output folder."
+    ),
+):
+    """
+    Infer gene regulatory networks from expression data. Several techniques are available: ARACNE, BC3NET, C3NET, CLR, GENIE3_RF, GRNBOOST2, GENIE3_ET, MRNET, MRNETB, PCIT, TIGRESS, KBOOST, MEOMI, JUMP3, NARROMI, CMI2NI, RSNET, PCACMI, LOCPCACMI, PLSNET, PIDC, PUC, GRNVBEM, LEAP, NONLINEARODES and INFERELATOR.
+    """
+    _run_core(
+        core_infer_network,
+        expression_data=expression_data,
+        technique=technique,
+        threads=threads,
+        str_threads=str_threads,
+        temp_folder_str=temp_folder_str,
+        output_dir=output_dir,
+    )
+
+
+@app.command(rich_help_panel="Main commands")
+def apply_consensus(
+    confidence_list: Optional[List[str]] = typer.Option(
+        ...,
+        help="Paths of the CSV files with the confidence lists to be agreed upon.",
+        rich_help_panel="Input data",
+    ),
+    gene_names: Path = typer.Option(
+        None,
+        exists=True,
+        file_okay=True,
+        help="Path to the TXT file with the name of the contemplated genes separated by comma and without space. If not specified, only the genes specified in the lists of trusts will be considered.",
+        rich_help_panel="Input data",
+    ),
+    time_series: Path = typer.Option(
+        None,
+        exists=True,
+        file_okay=True,
+        help="Path to the CSV file with the time series from which the individual gene networks have been inferred. This parameter is only necessary in case of specifying the fitness function Loyalty.",
+        rich_help_panel="Times series - Loyalty",
+    ),
+    known_interactions: Path = typer.Option(
+        None,
+        exists=True,
+        file_okay=True,
+        help="Path to the CSV file with the known interactions between genes. If specified, a local search process will be performed before mutation.",
+        rich_help_panel="Local search",
+    ),
+    crossover_probability: float = typer.Option(
+        0.9, help="Crossover probability", rich_help_panel="Crossover"
+    ),
+    num_parents: int = typer.Option(
+        3, help="Number of parents", rich_help_panel="Crossover"
+    ),
+    mutation_probability: float = typer.Option(
+        -1,
+        help="Mutation probability. [default: 1/len(files)]",
+        show_default=False,
+        rich_help_panel="Mutation",
+    ),
+    mutation_strength: float = typer.Option(
+        0.1, help="Mutation strength", rich_help_panel="Mutation"
+    ),
+    memetic_distance_type: MemeticDistanceType = typer.Option(
+        MemeticDistanceType.all,
+        help="Memetic distance type",
+        rich_help_panel="Local search",
+    ),
+    memetic_probability: float = typer.Option(
+        0.55, help="Memetic probability", rich_help_panel="Local search"
+    ),
+    population_size: int = typer.Option(
+        100, help="Population size", rich_help_panel="Diversity and depth"
+    ),
+    num_evaluations: int = typer.Option(
+        25000, help="Number of evaluations", rich_help_panel="Diversity and depth"
+    ),
+    cut_off_criteria: CutOffCriteria = typer.Option(
+        "PercLinksWithBestConf",
+        case_sensitive=False,
+        help="Criteria for determining which links will be part of the final binary matrix.",
+        rich_help_panel="Cut-Off",
+    ),
+    cut_off_value: float = typer.Option(
+        0.4,
+        help="Numeric value associated with the selected criterion. Ex: MinConf = 0.5, NumLinksWithBestConf = 10, PercLinksWithBestConf = 0.4",
+        rich_help_panel="Cut-Off",
+    ),
+    function: Optional[List[str]] = typer.Option(
+        ...,
+        help='''A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. \n
+                Available terms: \n
+                    \t - Quality \n
+                    \t - DegreeDistribution \n
+                    \t - Motifs \n
+                    \t - Dynamicity \n
+                    \t - ReduceNonEssentialsInteractions \n
+                    \t - EigenVectorDistribution \n
+                    \t - Loyalty \n
+                    \t - Clustering \n
+                Examples: \n
+                    \t - Objective of one term: "Quality" \n
+                    \t - Objective of two terms: "0.5*Quality+0.5*DegreeDistribution" \n''',
+        rich_help_panel="Fitness",
+    ),
+    reference_point: str = typer.Option(
+        "-",
+        help="Reference point for the Pareto front. If specified, the search will be oriented towards this point. The format is 'f1;f2;f3'.",
+        rich_help_panel="Fitness",
+    ),
+    algorithm: Algorithm = typer.Option(
+        ...,
+        help="Evolutionary algorithm to be used during the optimization process. All are intended for a multi-objective approach with the exception of the genetic algorithm (GA).",
+        rich_help_panel="Orchestration",
+    ),
+    threads: int = typer.Option(
+        multiprocessing.cpu_count(),
+        help="Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.",
+        rich_help_panel="Orchestration",
+    ),
+    plot_results: bool = typer.Option(
+        True,
+        help="Indicate if you want to represent results graphically.",
+        rich_help_panel="Graphics",
+    ),
+    compare_performance: Path = typer.Option(
+        None,
+        exists=True,
+        file_okay=True,
+        help="Reference front with which to compare performance. Specifically, a graph will be returned to show for each generation the percentage of reference front solutions that have already been dominated by the current population. If a reference point is specified to carry out an articulated selection, the part of the reference front covered by that reference point will only be taken into account.",
+        rich_help_panel="Graphics",
+    ),
+    output_dir: Path = typer.Option(
+        "<<conf_list_path>>/../ea_consensus",
+        help="Path to the output folder.",
+        rich_help_panel="Output",
+    ),
+):
+    """
+    Analyze several trust lists and build a consensus network by applying an evolutionary algorithm.
+    """
+    _run_core(
+        core_apply_consensus,
+        confidence_list=confidence_list,
+        gene_names=gene_names,
+        time_series=time_series,
+        known_interactions=known_interactions,
+        crossover_probability=crossover_probability,
+        num_parents=num_parents,
+        mutation_probability=mutation_probability,
+        mutation_strength=mutation_strength,
+        memetic_distance_type=memetic_distance_type,
+        memetic_probability=memetic_probability,
+        population_size=population_size,
+        num_evaluations=num_evaluations,
+        cut_off_criteria=cut_off_criteria,
+        cut_off_value=cut_off_value,
+        function=function,
+        reference_point=reference_point,
+        algorithm=algorithm,
+        threads=threads,
+        plot_results=plot_results,
+        compare_performance=compare_performance,
+        output_dir=output_dir,
+    )
+
+
+@benchmarking_grn_app.command()
+def download_real_network(
+    database: FromRealGenerateDatabase = typer.Option(
+        ...,
+        case_sensitive=False,
+        help="Database from which the real gene regulatory network is to be obtained.",
+    ),
+    id: str = typer.Option(
+        ..., help="The identifier of the gene network within the selected database."
+    ),
+    output_dir: Path = typer.Option(
+        Path("./input_data"), help="Path to the output folder."
+    ),
+):
+    """
+    Download real gene regulatory networks in interaction-list format for simulation workflows.
+    """
+    _run_core(
+        core_download_real_network,
+        database=database,
+        id=id,
+        output_dir=output_dir,
+    )
+
+
+@benchmarking_grn_app.command()
+def gold_standard(
+    database: Optional[List[Database]] = typer.Option(
+        ..., case_sensitive=False, help="Databases for downloading gold standards."
+    ),
+    output_dir: Path = typer.Option(
+        Path("./input_data"), help="Path to the output folder."
+    ),
+    username: str = typer.Option(
+        None,
+        help="Synapse account username. Only necessary when selecting DREAM3 or DREAM5.",
+    ),
+    password: str = typer.Option(
+        None,
+        help="Synapse account password. Only necessary when selecting DREAM3 or DREAM5.",
+    ),
+):
+    """
+    Download benchmark gold-standard networks.
+    """
+    _run_core(
+        core_gold_standard,
+        database=database,
+        output_dir=output_dir,
+        username=username,
+        password=password,
+    )
+
+
+@benchmarking_expression_app.command(name="download")
+def expression_data(
+    database: Optional[List[Database]] = typer.Option(
+        ..., case_sensitive=False, help="Databases for downloading expression data."
+    ),
+    output_dir: Path = typer.Option(
+        Path("./input_data"), help="Path to the output folder."
+    ),
+    username: str = typer.Option(
+        None,
+        help="Synapse account username. Only necessary when selecting DREAM3 or DREAM5.",
+    ),
+    password: str = typer.Option(
+        None,
+        help="Synapse account password. Only necessary when selecting DREAM3 or DREAM5.",
+    ),
+):
+    """
+    Download benchmark expression datasets.
+    """
+    _run_core(
+        core_expression_data,
+        database=database,
+        output_dir=output_dir,
+        username=username,
+        password=password,
+    )
+
+
+@generate_app.command()
+def generate_from_scratch(
+    topology: Topology = typer.Option(
+        ...,
+        case_sensitive=False,
+        help="The type of topology to be attributed to the simulated gene network.",
+    ),
+    network_size: int = typer.Option(
+        ...,
+        min=20,
+        help="Number of genes that will make up the simulated gene network.",
+    ),
+    perturbation: Perturbation = typer.Option(
+        ...,
+        case_sensitive=False,
+        help="Type of perturbation to apply on the network to simulate expression levels for genes.",
+    ),
+    output_dir: Path = typer.Option(
+        Path("./input_data"), help="Path to the output folder."
+    ),
+):
+    """
+    Simulate expression data from scratch using SysGenSIM.
+    """
+    _run_core(
+        core_generate_from_scratch,
+        topology=topology,
+        network_size=network_size,
+        perturbation=perturbation,
+        output_dir=output_dir,
+    )
+
+
+@generate_app.command()
+def generate_from_real_network(
+    real_list_of_links: Path = typer.Option(
+        ...,
+        help="Path to the csv file with the list of links. You can only specify either a value of 1 for an activation link or -1 to indicate inhibition.",
+    ),
+    perturbation: Perturbation = typer.Option(
+        ...,
+        case_sensitive=False,
+        help="Type of perturbation to apply on the network to simulate expression levels for genes.",
+    ),
+    output_dir: Path = typer.Option(
+        Path("./input_data"), help="Path to the output folder."
+    ),
+):
+    """
+    Simulate expression data from a real-world network using SysGenSIM.
+    """
+    _run_core(
+        core_generate_from_real_network,
+        real_list_of_links=real_list_of_links,
+        perturbation=perturbation,
+        output_dir=output_dir,
+    )
+
+
+@benchmarking_validation_app.command()
+def evaluation_data(
+    database: Optional[List[EvalDatabase]] = typer.Option(
+        ..., case_sensitive=False, help="Databases for downloading evaluation data."
+    ),
+    output_dir: Path = typer.Option(
+        Path("./input_data"), help="Path to the output folder."
+    ),
+    username: str = typer.Option(..., help="Synapse account username."),
+    password: str = typer.Option(..., help="Synapse account password."),
+):
+    """
+    Download evaluation data for DREAM challenges.
+    """
+    _run_core(
+        core_evaluation_data,
+        database=database,
+        output_dir=output_dir,
+        username=username,
+        password=password,
+    )
+
+
+@dream_prediction_app.command()
+def dream_list_of_links(
+    challenge: Challenge = typer.Option(
+        ..., help="DREAM challenge to which the inferred network belongs"
+    ),
+    network_id: str = typer.Option(..., help="Predicted network identifier. Ex: 10_1"),
+    synapse_file: List[Path] = typer.Option(
+        ...,
+        help="Paths to files from synapse needed to perform inference evaluation. To download these files you need to register at https://www.synapse.org/# and download them manually or run the command benchmarking validation evaluation-data.",
+    ),
+    confidence_list: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help="Path to the CSV file with the list of trusted values.",
+    ),
+):
+    """
+    Validate one confidence list against a DREAM challenge network.
+    """
+    _run_core(
+        core_dream_list_of_links,
+        challenge=challenge,
+        network_id=network_id,
+        synapse_file=synapse_file,
+        confidence_list=confidence_list,
+    )
+
+
+@dream_prediction_app.command()
+def dream_weight_distribution(
+    challenge: Challenge = typer.Option(
+        ..., help="DREAM challenge to which the inferred network belongs"
+    ),
+    network_id: str = typer.Option(..., help="Predicted network identifier. Ex: 10_1"),
+    synapse_file: List[Path] = typer.Option(
+        ...,
+        help="Paths to files from synapse needed to perform inference evaluation. To download these files you need to register at https://www.synapse.org/# and download them manually or run the command benchmarking validation evaluation-data.",
+    ),
+    weight_file_summand: Optional[List[str]] = typer.Option(
+        ...,
+        help="Paths of the CSV files with the confidence lists together with its associated weights. Example: 0.7*/path/to/list.csv",
+    ),
+):
+    """
+    Validate one weighted confidence distribution against a DREAM challenge network.
+    """
+    _run_core(
+        core_dream_weight_distribution,
+        challenge=challenge,
+        network_id=network_id,
+        synapse_file=synapse_file,
+        weight_file_summand=weight_file_summand,
+    )
+
+
+@dream_prediction_app.command()
+def dream_pareto_front(
+    challenge: Challenge = typer.Option(
+        ..., help="DREAM challenge to which the inferred network belongs"
+    ),
+    network_id: str = typer.Option(..., help="Predicted network identifier. Ex: 10_1"),
+    synapse_file: List[Path] = typer.Option(
+        ...,
+        help="Paths to files from synapse needed to perform inference evaluation. To download these files you need to register at https://www.synapse.org/# and download them manually or run the command benchmarking validation evaluation-data.",
+    ),
+    weights_file: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help="File with the weights corresponding to a pareto front.",
+    ),
+    fitness_file: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help="File with the fitness values corresponding to a pareto front.",
+    ),
+    confidence_folder: Path = typer.Option(
+        ...,
+        help="Folder route that contains the confidence lists whose names correspond to those registered in the file of the file 'weights_file'",
+    ),
+    output_dir: Path = typer.Option("<<weights_file_dir>>", help="Output folder path"),
+    plot_metrics: bool = typer.Option(
+        True,
+        help="Indicate if you want to represent parallel coordinates graph with AUROC and AUPR metrics.",
+    ),
+):
+    """
+    Validate a full Pareto front against a DREAM challenge network.
+    """
+    _run_core(
+        core_dream_pareto_front,
+        challenge=challenge,
+        network_id=network_id,
+        synapse_file=synapse_file,
+        weights_file=weights_file,
+        fitness_file=fitness_file,
+        confidence_folder=confidence_folder,
+        output_dir=output_dir,
+        plot_metrics=plot_metrics,
+    )
+
+
+@generic_prediction_app.command()
+def generic_list_of_links(
+    confidence_list: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help="Path to the CSV file with the list of trusted values.",
+    ),
+    gs_binary_matrix: Path = typer.Option(
+        ..., exists=True, file_okay=True, help="Gold standard binary network"
+    ),
+):
+    """
+    Validate one confidence list against a generic gold standard.
+    """
+    _run_core(
+        core_generic_list_of_links,
+        confidence_list=confidence_list,
+        gs_binary_matrix=gs_binary_matrix,
+    )
+
+
+@generic_prediction_app.command()
+def generic_weight_distribution(
+    weight_file_summand: Optional[List[str]] = typer.Option(
+        ...,
+        help="Paths of the CSV files with the confidence lists together with its associated weights. Example: 0.7*/path/to/list.csv",
+    ),
+    gs_binary_matrix: Path = typer.Option(
+        ..., exists=True, file_okay=True, help="Gold standard binary network"
+    ),
+):
+    """
+    Validate one weighted confidence distribution against a generic gold standard.
+    """
+    _run_core(
+        core_generic_weight_distribution,
+        weight_file_summand=weight_file_summand,
+        gs_binary_matrix=gs_binary_matrix,
+    )
+
+
+@generic_prediction_app.command()
+def generic_pareto_front(
+    weights_file: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help="File with the weights corresponding to a pareto front.",
+    ),
+    fitness_file: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help="File with the fitness values corresponding to a pareto front.",
+    ),
+    confidence_folder: Path = typer.Option(
+        ...,
+        help="Folder route that contains the confidence lists whose names correspond to those registered in the file of the file 'weights_file'",
+    ),
+    gs_binary_matrix: Path = typer.Option(
+        ..., exists=True, file_okay=True, help="Gold standard binary network"
+    ),
+    output_dir: Path = typer.Option("<<weights_file_dir>>", help="Output folder path"),
+    plot_metrics: bool = typer.Option(
+        True,
+        help="Indicate if you want to represent parallel coordinates graph with AUROC and AUPR metrics.",
+    ),
+):
+    """
+    Validate a full Pareto front against a generic gold standard.
+    """
+    _run_core(
+        core_generic_pareto_front,
+        weights_file=weights_file,
+        fitness_file=fitness_file,
+        confidence_folder=confidence_folder,
+        gs_binary_matrix=gs_binary_matrix,
+        output_dir=output_dir,
+        plot_metrics=plot_metrics,
+    )
+
+
+@plotting_app.command()
+def draw_network(
+    confidence_list: Optional[List[str]] = typer.Option(
+        ..., help="Paths of the CSV files with the confidence lists to be represented"
+    ),
+    mode: Mode = typer.Option("Interactive2D", help="Mode of representation"),
+    nodes_distribution: NodesDistribution = typer.Option(
+        "Spring",
+        help="Node distribution in graph. Note: Interactive2D mode has its own distribution of nodes, so in case of be selected this parameter will be ignored",
+    ),
+    confidence_cut_off: float = typer.Option(0.5, help="Cut off value for confidence"),
+    output_folder: Path = typer.Option(
+        "<<conf_list_path>>/../network_graphics", help="Path to output folder"
+    ),
+):
+    """
+    Draw gene regulatory networks from confidence lists.
+    """
+    _run_core(
+        core_draw_network,
+        confidence_list=confidence_list,
+        mode=mode,
+        nodes_distribution=nodes_distribution,
+        confidence_cut_off=confidence_cut_off,
+        output_folder=output_folder,
+    )
+
+
+@postprocessing_app.command()
+def apply_cut(
+    confidence_list: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help="Path to the CSV file with the list of trusted values.",
+    ),
+    gene_names: Path = typer.Option(
+        None,
+        exists=True,
+        file_okay=True,
+        help="Path to the TXT file with the name of the contemplated genes separated by comma and without space. If not specified, only the genes specified in the list of trusts will be considered.",
+    ),
+    cut_off_criteria: CutOffCriteria = typer.Option(
+        ...,
+        case_sensitive=False,
+        help="Criteria for determining which links will be part of the final binary matrix.",
+    ),
+    cut_off_value: float = typer.Option(
+        ...,
+        help="Numeric value associated with the selected criterion. Ex: MinConf = 0.5, NumLinksWithBestConf = 10, PercLinksWithBestConf = 0.4",
+    ),
+    output_file: Path = typer.Option(
+        "<<conf_list_path>>/../networks/<<conf_list_name>>.csv",
+        help="Path to the output CSV file that will contain the binary matrix resulting from the cutting operation.",
+    ),
+):
+    """
+    Convert a confidence list into a binary network matrix.
+    """
+    _run_core(
+        core_apply_cut,
+        confidence_list=confidence_list,
+        gene_names=gene_names,
+        cut_off_criteria=cut_off_criteria,
+        cut_off_value=cut_off_value,
+        output_file=output_file,
+    )

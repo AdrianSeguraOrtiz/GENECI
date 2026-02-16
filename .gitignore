@@ -165,4 +165,4 @@ logs.txt
 components/*/*/mainstandaloneApplication/
 components/*/*/adriansegura99/
 
-*.lock
+poetry.lock

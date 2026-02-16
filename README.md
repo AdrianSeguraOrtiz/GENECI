@@ -15,18 +15,18 @@ To implement all the functionalities mentioned above, it has been necessary to p
 
 # Prerequisites
 
-- Python => 3.9
+- Python >= 3.13,<3.14
 - Docker
 
 # Instalation
 
 ```sh
-pip install geneci==4.0.1
+pip install geneci==5.0.0
 ```
 
 # Output
 
-To execute GENECI, the `run` command is provided with the file containing the expression levels of the genes that make up the network, the list of techniques to be agreed upon and the values of the different algorithm parameters in the event of not wishing to use those established by default. If more than one proposed objectives are used, the following files are obtained after execution:
+To execute GENECI, you typically run `infer-network` first and then `apply-consensus` over the generated confidence lists. If more than one objective is used during consensus optimization, the following files are obtained after execution:
 
 - `FUN.csv`: List with fitness values for each individual in the final population for each of the objective functions.
 - `VAR.csv`: List of winning weight vectors, i.e., individuals from the last generation.
@@ -64,667 +64,154 @@ To execute GENECI, the `run` command is provided with the file containing the ex
 
 # Example procedure
 
-1. **Obtain simulated expression data and their respective gold standards**. To do this, we have two options: 
+1. **Obtain expression data and gold standards**.
 
-- **Extraction**: Use the **extract-data** command to download expression data from known challenges and benchmarks.
+- **Benchmark downloads**:
 
 ```sh
 # Expression data
-geneci extract-data expression-data --database DREAM4 --output-dir input_data
+geneci benchmarking expression-data download --database DREAM4 --output-dir input_data
 
 # Gold standard
-geneci extract-data gold-standard --database DREAM4 --output-dir input_data
+geneci benchmarking gene-regulatory-networks gold-standard --database DREAM4 --output-dir input_data
 ```
 
-- **Simulation**: Use the **generate-data** command to generate expression data through the SysGenSIM simulator. In this case, data can be generated from scratch by choosing a particular node size and distribution, or from real biological networks stored in multiple databases. In both cases, the type of perturbation to be simulated must be specified.
+- **Simulation with SysGenSIM**:
 
 ```sh
 # From scratch
-geneci generate-data generate-from-scratch --topology eipo-modular \
-                                           --network-size 20 \
-                                           --perturbation knockout \
-                                           --output-dir input_data
+geneci benchmarking expression-data generate generate-from-scratch \
+  --topology eipo-modular \
+  --network-size 20 \
+  --perturbation knockout \
+  --output-dir input_data
 
 # From real network
-geneci generate-data download-real-network --database BioGrid \
-                                           --id Oryza_sativa_Japonica \
-                                           --output-dir input_data
-geneci generate-data generate-from-real-network --real-list-of-links input_data/simulated_based_on_real/RAW/BioGrid_Oryza_sativa_Japonica.tsv 
-                                                --perturbation overexpression
-                                                --output-dir input_data
+geneci benchmarking gene-regulatory-networks download-real-network \
+  --database BioGrid \
+  --id Oryza_sativa_Japonica \
+  --output-dir input_data
+
+geneci benchmarking expression-data generate generate-from-real-network \
+  --real-list-of-links input_data/simulated_based_on_real/RAW/BioGrid_Oryza_sativa_Japonica.tsv \
+  --perturbation overexpression \
+  --output-dir input_data
 ```
 
-2. **Inference and consensus** of networks for the selected expression data. To perform this task, you can make use of the **run** command or proceed to an equivalent execution consisting of the **infer-network** and **optimize-ensemble** commands. This can be very useful when you need to incorporate external trust lists or run the evolutionary algorithm with different configurations on the same files, without the need to infer them several times.
-
-- **Form 1**: Procedure prefixed by the command run.
+2. **Inference and consensus**.
 
 ```sh
-geneci run --expression-data input_data/DREAM4/EXP/dream4_100_01_exp.csv \
-           --technique ARACNE --technique BC3NET --technique C3NET --technique CLR \
-           --technique GENIE3_RF --technique GRNBOOST2 --technique GENIE3_ET \
-           --technique MRNET --technique MRNETB --technique PCIT --technique TIGRESS \
-           --technique KBOOST --technique MEOMI --technique NARROMI --technique CMI2NI \
-           --technique RSNET --technique PCACMI --technique LOCPCACMI --technique PLSNET \
-           --technique PIDC --technique PUC --technique GRNVBEM --technique LEAP \
-           --technique NONLINEARODES --technique INFERELATOR \
-           --crossover-probability 0.9 --mutation-probability 0.05 --population-size 100 \
-           --num-parents 3 --mutation-strength 0.1 \
-           --num-evaluations 50000 --cut-off-criteria PercLinksWithBestConf --cut-off-value 0.4 \
-           --function Quality --function DegreeDistribution --function Motifs \
-           --algorithm NSGAII --plot-fitness-evolution --plot-pareto-front \
-           --plot-parallel-coordinates --output-dir inferred_networks
+# 1. Infer GRN lists with individual techniques
+geneci infer-network \
+  --expression-data input_data/DREAM4/EXP/dream4_100_01_exp.csv \
+  --technique ARACNE --technique BC3NET --technique C3NET --technique CLR \
+  --technique GENIE3_RF --technique GRNBOOST2 --technique GENIE3_ET \
+  --technique MRNET --technique MRNETB --technique PCIT --technique TIGRESS \
+  --technique KBOOST --technique MEOMI --technique NARROMI --technique CMI2NI \
+  --technique RSNET --technique PCACMI --technique LOCPCACMI --technique PLSNET \
+  --technique PIDC --technique PUC --technique GRNVBEM --technique LEAP \
+  --technique NONLINEARODES --technique INFERELATOR \
+  --output-dir inferred_networks
+
+# 2. Apply evolutionary consensus
+geneci apply-consensus \
+  --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_LOCPCACMI.csv \
+  --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_BC3NET.csv \
+  --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_PLSNET.csv \
+  --function Quality --function DegreeDistribution --function Motifs \
+  --algorithm NSGAII \
+  --output-dir inferred_networks/dream4_100_01_exp/ea_consensus
 ```
 
-- **Form 2**: Division of the procedure into several commands
+3. **Network visualization**.
 
 ```sh
-# 1. Inference using individual techniques
-geneci infer-network --expression-data input_data/DREAM4/EXP/dream4_100_01_exp.csv \
-                     --technique ARACNE --technique BC3NET --technique C3NET --technique CLR \
-                     --technique GENIE3_RF --technique GRNBOOST2 --technique GENIE3_ET \
-                     --technique MRNET --technique MRNETB --technique PCIT --technique TIGRESS \
-                     --technique KBOOST --technique MEOMI --technique NARROMI --technique CMI2NI \
-                     --technique RSNET --technique PCACMI --technique LOCPCACMI --technique PLSNET \
-                     --technique PIDC --technique PUC --technique GRNVBEM --technique LEAP \
-                     --technique NONLINEARODES --technique INFERELATOR \
-                     --output-dir inferred_networks/geneci_consensus
-
-# 2. Optimize the assembly of the trust lists resulting from the above command
-geneci optimize-ensemble --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_LOCPCACMI.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_BC3NET.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_PLSNET.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_GRNVBEM.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_CMI2NI.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_CLR.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_INFERELATOR.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_GRNBOOST2.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_PCACMI.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_MRNET.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_PCIT.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_KBOOST.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_MEOMI.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_NONLINEARODES.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_GENIE3_ET.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_NARROMI.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_GENIE3_RF.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_RSNET.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_PIDC.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_ARACNE.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_MRNETB.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_TIGRESS.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_LEAP.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_PUC.csv \
-                         --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_C3NET.csv \
-                         --crossover-probability 0.9 --mutation-probability 0.05 --population-size 100 \
-                         --num-parents 3 --mutation-strength 0.1 \
-                         --num-evaluations 50000 --cut-off-criteria PercLinksWithBestConf --cut-off-value 0.4 \
-                         --function Quality --function DegreeDistribution --function Motifs \
-                         --algorithm NSGAII --plot-fitness-evolution --plot-pareto-front \
-                         --plot-parallel-coordinates --output-dir inferred_networks/geneci_consensus
+geneci plotting draw-network \
+  --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_LOCPCACMI.csv \
+  --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_BC3NET.csv \
+  --mode Interactive2D \
+  --nodes-distribution Spring \
+  --output-folder inferred_networks/dream4_100_01_exp/network_graphics
 ```
 
-- **Consensus under own criteria**: Assign specific weights to each of the files resulting from each technique. In case the researcher has some experience in this domain, he can determine for himself the weights he wants to assign to each inferred network to build his own consensus network.
+4. **Validation against benchmarks**.
 
 ```sh
-geneci weighted-confidence --weight-file-summand 0.5*inferred_networks/dream4_100_01_exp/lists/GRN_GENIE3_ET.csv \
-                           --weight-file-summand 0.25*inferred_networks/dream4_100_01_exp/lists/GRN_CMI2NI.csv \
-                           --weight-file-summand 0.25*inferred_networks/dream4_100_01_exp/lists/GRN_PIDC.csv \
-                           --output-file inferred_networks/dream4_100_01_exp/weighted_confidence.csv
+# Download DREAM validation assets
+geneci benchmarking validation evaluation-data \
+  --database DREAM4 \
+  --username TFM-SynapseAccount \
+  --password TFM-SynapsePassword
+
+# Validate one inferred list in DREAM mode
+geneci benchmarking validation validate dream-prediction dream-list-of-links \
+  --challenge D4C2 \
+  --network-id 100_1 \
+  --synapse-file input_data/DREAM4/EVAL/pdf_size100_1.mat \
+  --confidence-list inferred_networks/dream4_100_01_exp/ea_consensus/final_list.csv
+
+# Validate in generic mode
+geneci benchmarking validation validate generic-prediction generic-list-of-links \
+  --confidence-list inferred_networks/sim_BioGrid_Oryza_sativa_Japonica_mixed_exp/ea_consensus/final_list.csv \
+  --gs-binary-matrix input_data/simulated_based_on_real/GS/sim_BioGrid_Oryza_sativa_Japonica_mixed_gs.csv
 ```
 
-3. **Representation** of inferred networks using the **draw-network** command:
+5. **Postprocessing (network binarization)**.
 
 ```sh
-geneci draw-network --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_LOCPCACMI.csv \
-                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_BC3NET.csv \
-                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_PLSNET.csv \
-                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_GRNVBEM.csv \
-                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_CMI2NI.csv \
-                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_CLR.csv \
-                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_INFERELATOR.csv \
-                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_GRNBOOST2.csv \
-                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_PCACMI.csv \
-                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_MRNET.csv \
-                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_PCIT.csv \
-                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_KBOOST.csv \
-                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_MEOMI.csv \
-                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_NONLINEARODES.csv \
-                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_GENIE3_ET.csv \
-                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_NARROMI.csv \
-                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_GENIE3_RF.csv \
-                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_RSNET.csv \
-                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_PIDC.csv \
-                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_ARACNE.csv \
-                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_MRNETB.csv \
-                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_TIGRESS.csv \
-                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_LEAP.csv \
-                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_PUC.csv \
-                    --confidence-list inferred_networks/dream4_100_01_exp/lists/GRN_C3NET.csv \
-                    --mode Both --nodes-distribution Spring \
-                    --output-folder inferred_networks/dream4_100_01_exp/network_graphics
+geneci postprocessing apply-cut \
+  --confidence-list inferred_networks/dream4_100_01_exp/ea_consensus/final_list.csv \
+  --cut-off-criteria PercLinksWithBestConf \
+  --cut-off-value 0.4 \
+  --output-file inferred_networks/dream4_100_01_exp/ea_consensus/final_list_binarized.csv
 ```
 
-4. **Evaluation** of the quality of the inferred gene network with respect to the gold standard. Two procedures have been implemented: one specific to networks extracted from DREAM challenges, and another generic one that approaches the problem as a binary classification exercise. In both cases, the evaluation procedure can be applied to a list of interactions with their respective confidence levels, a certain weight distribution referring to the consensus, or even a Pareto front generated by our multi-objective algorithm mode that allows the representation of a parallel coordinate plot including both fitness functions and AUROC and AUPR metrics (which is quite useful for identifying high-quality regions). 
+# CLI reference
 
-- **DREAM**: For the evaluation of networks from DREAM challenges, the evaluation data must be previously downloaded using the **extract-data** command and the **evaluation-data** subcommand, which requires providing the database and credentials of an account on the Synapse platform. After that, the **evaluate** command is used followed by the **dream-prediction** subcommand to access the three input options mentioned above. In any case, the challenge identifier, network identifier, evaluation files and input files need to be specified. The input files will depend on the chosen option: **dream-list-of-links**, **dream-weight-distribution** or **dream-pareto-front**.
+Current CLI structure:
 
-```sh
-# 1. Download evaluation data
-geneci extract-data evaluation-data --database DREAM4 --username TFM-SynapseAccount --password TFM-SynapsePassword
-
-# 2. Evaluate the accuracy of the inferred consensus network.
-geneci evaluate dream-prediction dream-list-of-links --challenge D4C2 --network-id 100_1 \
-                                                     --synapse-file input_data/DREAM4/EVAL/pdf_size100_1.mat \
-                                                     --confidence-list inferred_networks/dream4_100_01_exp/ea_consensus/final_list.csv
+```text
+geneci
+├── infer-network
+├── apply-consensus
+├── benchmarking
+│   ├── gene-regulatory-networks
+│   │   ├── download-real-network
+│   │   └── gold-standard
+│   ├── expression-data
+│   │   ├── download
+│   │   └── generate
+│   │       ├── generate-from-scratch
+│   │       └── generate-from-real-network
+│   └── validation
+│       ├── evaluation-data
+│       └── validate
+│           ├── dream-prediction
+│           │   ├── dream-list-of-links
+│           │   ├── dream-weight-distribution
+│           │   └── dream-pareto-front
+│           └── generic-prediction
+│               ├── generic-list-of-links
+│               ├── generic-weight-distribution
+│               └── generic-pareto-front
+├── plotting
+│   └── draw-network
+└── postprocessing
+    └── apply-cut
 ```
 
-- **Generic**: For network evaluation using the generic procedure, we directly use the **evaluate** command followed by the **generic-prediction** subcommand. This gives us access to the three types of input mentioned earlier, to which we must provide the gold standard of the problem and the relevant input files: **generic-list-of-links**, **generic-weight-distribution**, and **generic-pareto-front**.
-
-```sh
-geneci evaluate generic-prediction generic-list-of-links --confidence-list inferred_networks/sim_BioGrid_Oryza_sativa_Japonica_mixed_exp/ea_consensus/final_list.csv
-                                                         --gs-binary-matrix input_data/simulated_based_on_real/GS/sim_BioGrid_Oryza_sativa_Japonica_mixed_gs.csv
-```
-
-5. **Binarization** of the inferred gene network. In many cases, it is useful to apply a cutoff criterion to convert a list of confidence values into a real network that asserts the specific interaction between genes. For this purpose, the **apply-cut** command is used, which is provided with the list of confidence values, the cutoff criterion and its corresponding threshold value.
-
-```sh
-geneci apply-cut --confidence-list inferred_networks/dream4_100_01_exp/ea_consensus/final_list.csv \
-                 --cut-off-criteria PercLinksWithBestConf --cut-off-value 0.4 \
-                 --output-file inferred_networks/dream4_100_01_exp/ea_consensus/final_list_binarized.csv
-```
-
-# `geneci`
-
-**Usage**:
+Top-level help:
 
 ```console
-$ geneci [OPTIONS] COMMAND [ARGS]...
+$ geneci --help
 ```
 
-**Options**:
-
-* `--install-completion`: Install completion for the current shell.
-* `--show-completion`: Show completion for the current shell, to copy it or customize the installation.
-* `--help`: Show this message and exit.
-
-**Commands**:
-
-* `apply-cut`: Converts a list of confidence values into a binary matrix that represents the final gene network.
-* `cluster-network`: Divide an initial gene network into several communities following the Infomap (recommended) or Louvain grouping algorithm.
-* `draw-network`: Draw gene regulatory networks from confidence lists.
-* `evaluate`: Evaluate the accuracy of the inferred network with respect to its gold standard.
-* `extract-data`: Extract public data generated by simulators such as SynTReN, Rogers and GeneNetWeaver, as well as data from known challenges like DREAM3, DREAM4, DREAM5 and IRMA.
-* `generate-data`: Simulate time series with gene expression levels using the SysGenSIM simulator. They can be generated from scratch or based on the interactions of a real gene network.
-* `infer-network`: Infer gene regulatory networks from expression data. Several techniques are available: ARACNE, BC3NET, C3NET, CLR, GENIE3_RF, GRNBOOST2, GENIE3_ET, MRNET, MRNETB, PCIT, TIGRESS, KBOOST, MEOMI, JUMP3, NARROMI, CMI2NI, RSNET, PCACMI, LOCPCACMI, PLSNET, PIDC, PUC, GRNVBEM, LEAP, NONLINEARODES and INFERELATOR.
-* `optimize-ensemble`: Analyzes several trust lists and builds a consensus network by applying an evolutionary algorithm.
-* `run`: Infer gene regulatory network from expression data by employing multiple unsupervised learning techniques and applying a genetic algorithm for consensus optimization.
-* `weighted-confidence`: Calculate the weighted sum of the confidence levels reported in several files based on a given distribution of weights.
-
-## `geneci apply-cut`
-
-Converts a list of confidence values into a binary matrix that represents the final gene network.
-
-**Usage**:
+Subtree help examples:
 
 ```console
-$ geneci apply-cut [OPTIONS]
+$ geneci benchmarking --help
+$ geneci benchmarking expression-data --help
+$ geneci benchmarking validation validate --help
+$ geneci plotting draw-network --help
+$ geneci postprocessing apply-cut --help
 ```
-
-**Options**:
-
-* `--confidence-list PATH`: Path to the CSV file with the list of trusted values.  [required]
-* `--gene-names PATH`: Path to the TXT file with the name of the contemplated genes separated by comma and without space. If not specified, only the genes specified in the list of trusts will be considered.
-* `--cut-off-criteria [MinConf|NumLinksWithBestConf|PercLinksWithBestConf]`: Criteria for determining which links will be part of the final binary matrix.  [required]
-* `--cut-off-value FLOAT`: Numeric value associated with the selected criterion. Ex: MinConf = 0.5, NumLinksWithBestConf = 10, PercLinksWithBestConf = 0.4  [required]
-* `--output-file PATH`: Path to the output CSV file that will contain the binary matrix resulting from the cutting operation.  [default: <<conf_list_path>>/../networks/<<conf_list_name>>.csv]
-* `--help`: Show this message and exit.
-
-## `geneci cluster-network`
-
-Divide an initial gene network into several communities following the Infomap (recommended) or Louvain grouping algorithm.
-
-**Usage**:
-
-```console
-$ geneci cluster-network [OPTIONS]
-```
-
-**Options**:
-
-* `--confidence-list PATH`: Path to the CSV file with the list of trusted values.  [required]
-* `--algorithm [Louvain|Infomap]`: Clustering algorithm  [default: Infomap] 
-* `--output-folder PATH`: Path to output folder  [default: communities]
-* `--help`: Show this message and exit.
-
-## `geneci draw-network`
-
-Draw gene regulatory networks from confidence lists.
-
-**Usage**:
-
-```console
-$ geneci draw-network [OPTIONS]
-```
-
-**Options**:
-
-* `--confidence-list TEXT`: Paths of the CSV files with the confidence lists to be represented  [required]
-* `--mode [Static2D|Interactive3D|Both]`: Mode of representation  [default: Both]
-* `--nodes-distribution [Spring|Circular|Kamada_kawai]`: Node distribution in graph  [default: Spring]
-* `--output-folder PATH`: Path to output folder  [default: <<conf_list_path>>/../network_graphics]
-* `--help`: Show this message and exit.
-
-## `geneci evaluate`
-
-Evaluate the accuracy of the inferred network with respect to its gold standard.
-
-**Usage**:
-
-```console
-$ geneci evaluate [OPTIONS] COMMAND [ARGS]...
-```
-
-**Options**:
-
-* `--help`: Show this message and exit.
-
-**Commands**:
-
-* `dream-prediction`: Evaluate the accuracy with which networks belonging to the DREAM challenges are predicted.
-* `generic-prediction`: Evaluate the accuracy with which any generic network has been predicted with respect to a given gold standard. To do so, it approaches the case as a binary classification problem between 0 and 1.
-
-### `geneci evaluate dream-prediction`
-
-Evaluate the accuracy with which networks belonging to the DREAM challenges are predicted.
-
-**Usage**:
-
-```console
-$ geneci evaluate dream-prediction [OPTIONS] COMMAND [ARGS]...
-```
-
-**Options**:
-
-* `--help`: Show this message and exit.
-
-**Commands**:
-
-* `dream-list-of-links`: Evaluate one list of links with confidence levels.
-* `dream-pareto-front`: Evaluate pareto front.
-* `dream-weight-distribution`: Evaluate one weight distribution.
-
-#### `geneci evaluate dream-prediction dream-list-of-links`
-
-Evaluate one list of links with confidence levels.
-
-**Usage**:
-
-```console
-$ geneci evaluate dream-prediction dream-list-of-links [OPTIONS]
-```
-
-**Options**:
-
-* `--challenge [D3C4|D4C2|D5C4]`: DREAM challenge to which the inferred network belongs  [required]
-* `--network-id TEXT`: Predicted network identifier. Ex: 10_1  [required]
-* `--synapse-file PATH`: Paths to files from synapse needed to perform inference evaluation. To download these files you need to register at https://www.synapse.org/# and download them manually or run the command extract-data evaluation-data.  [required]
-* `--confidence-list PATH`: Path to the CSV file with the list of trusted values.  [required]
-* `--help`: Show this message and exit.
-
-#### `geneci evaluate dream-prediction dream-pareto-front`
-
-Evaluate pareto front.
-
-**Usage**:
-
-```console
-$ geneci evaluate dream-prediction dream-pareto-front [OPTIONS]
-```
-
-**Options**:
-
-* `--challenge [D3C4|D4C2|D5C4]`: DREAM challenge to which the inferred network belongs  [required]
-* `--network-id TEXT`: Predicted network identifier. Ex: 10_1  [required]
-* `--synapse-file PATH`: Paths to files from synapse needed to perform inference evaluation. To download these files you need to register at https://www.synapse.org/# and download them manually or run the command extract-data evaluation-data.  [required]
-* `--weights-file PATH`: File with the weights corresponding to a pareto front.  [required]
-* `--fitness-file PATH`: File with the fitness values corresponding to a pareto front.  [required]
-* `--confidence-folder PATH`: Folder route that contains the confidence lists whose names correspond to those registered in the file of the file 'weights_file'.  [required]
-* `--output-dir PATH`: Output folder path  [default: <<weights_file_dir>>]
-* `--plot-metrics / --no-plot-metrics`: Indicate if you want to represent parallel coordinates graph with AUROC and AUPR metrics.  [default: plot-metrics]
-* `--help`: Show this message and exit.
-
-#### `geneci evaluate dream-prediction dream-weight-distribution`
-
-Evaluate one weight distribution.
-
-**Usage**:
-
-```console
-$ geneci evaluate dream-prediction dream-weight-distribution [OPTIONS]
-```
-
-**Options**:
-
-* `--challenge [D3C4|D4C2|D5C4]`: DREAM challenge to which the inferred network belongs  [required]
-* `--network-id TEXT`: Predicted network identifier. Ex: 10_1  [required]
-* `--synapse-file PATH`: Paths to files from synapse needed to perform inference evaluation. To download these files you need to register at https://www.synapse.org/# and download them manually or run the command extract-data evaluation-data.  [required]
-* `--weight-file-summand TEXT`: Paths of the CSV files with the confidence lists together with its associated weights. Example: 0.7*/path/to/list.csv  [required]
-* `--help`: Show this message and exit.
-
-### `geneci evaluate generic-prediction`
-
-Evaluate the accuracy with which any generic network has been predicted with respect to a given gold standard. To do so, it approaches the case as a binary classification problem between 0 and 1.
-
-**Usage**:
-
-```console
-$ geneci evaluate generic-prediction [OPTIONS] COMMAND [ARGS]...
-```
-
-**Options**:
-
-* `--help`: Show this message and exit.
-
-**Commands**:
-
-* `generic-list-of-links`: Evaluate one list of links with confidence levels.
-* `generic-pareto-front`: Evaluate pareto front.
-* `generic-weight-distribution`: Evaluate one weight distribution.
-
-#### `geneci evaluate generic-prediction generic-list-of-links`
-
-Evaluate one list of links with confidence levels.
-
-**Usage**:
-
-```console
-$ geneci evaluate generic-prediction generic-list-of-links [OPTIONS]
-```
-
-**Options**:
-
-* `--confidence-list PATH`: Path to the CSV file with the list of trusted values.  [required]
-* `--gs-binary-matrix PATH`: Gold standard binary network  [required]
-* `--help`: Show this message and exit.
-
-#### `geneci evaluate generic-prediction generic-pareto-front`
-
-Evaluate pareto front.
-
-**Usage**:
-
-```console
-$ geneci evaluate generic-prediction generic-pareto-front [OPTIONS]
-```
-
-**Options**:
-
-* `--weights-file PATH`: File with the weights corresponding to a pareto front.  [required]
-* `--fitness-file PATH`: File with the fitness values corresponding to a pareto front.  [required]
-* `--confidence-folder PATH`: Folder route that contains the confidence lists whose names correspond to those registered in the file of the file 'weights_file'.  [required]
-* `--gs-binary-matrix PATH`: Gold standard binary network  [required]
-* `--output-dir PATH`: Output folder path  [default: <<weights_file_dir>>]
-* `--plot-metrics / --no-plot-metrics`: Indicate if you want to represent parallel coordinates graph with AUROC and AUPR metrics.  [default: plot-metrics]
-* `--help`: Show this message and exit.
-
-#### `geneci evaluate generic-prediction generic-weight-distribution`
-
-Evaluate one weight distribution.
-
-**Usage**:
-
-```console
-$ geneci evaluate generic-prediction generic-weight-distribution [OPTIONS]
-```
-
-**Options**:
-
-* `--weight-file-summand TEXT`: Paths of the CSV files with the confidence lists together with its associated weights. Example: 0.7*/path/to/list.csv  [required]
-* `--gs-binary-matrix PATH`: Gold standard binary network  [required]
-* `--help`: Show this message and exit.
-
-## `geneci extract-data`
-
-Extract public data generated by simulators such as SynTReN, Rogers and GeneNetWeaver, as well as data from known challenges like DREAM3, DREAM4, DREAM5 and IRMA.
-
-**Usage**:
-
-```console
-$ geneci extract-data [OPTIONS] COMMAND [ARGS]...
-```
-
-**Options**:
-
-* `--help`: Show this message and exit.
-
-**Commands**:
-
-* `evaluation-data`: Download evaluation data of DREAM challenges.
-* `expression-data`: Download time series of gene expression data (already produced by simulators and published in challenges).
-* `gold-standard`: Download gold standards (of networks already produced by simulators and published in challenges).
-
-### `geneci extract-data evaluation-data`
-
-Download evaluation data of DREAM challenges.
-
-**Usage**:
-
-```console
-$ geneci extract-data evaluation-data [OPTIONS]
-```
-
-**Options**:
-
-* `--database [DREAM3|DREAM4|DREAM5]`: Databases for downloading evaluation data.  [required]
-* `--output-dir PATH`: Path to the output folder.  [default: input_data]
-* `--username TEXT`: Synapse account username.  [required]
-* `--password TEXT`: Synapse account password.  [required]
-* `--help`: Show this message and exit.
-
-### `geneci extract-data expression-data`
-
-Download time series of gene expression data (already produced by simulators and published in challenges).
-
-**Usage**:
-
-```console
-$ geneci extract-data expression-data [OPTIONS]
-```
-
-**Options**:
-
-* `--database [DREAM3|DREAM4|DREAM5|SynTReN|Rogers|GeneNetWeaver|IRMA]`: Databases for downloading expression data.  [required]
-* `--output-dir PATH`: Path to the output folder.  [default: input_data]
-* `--username TEXT`: Synapse account username. Only necessary when selecting DREAM3 or DREAM5.
-* `--password TEXT`: Synapse account password. Only necessary when selecting DREAM3 or DREAM5.
-* `--help`: Show this message and exit.
-
-### `geneci extract-data gold-standard`
-
-Download gold standards (of networks already produced by simulators and published in challenges).
-
-**Usage**:
-
-```console
-$ geneci extract-data gold-standard [OPTIONS]
-```
-
-**Options**:
-
-* `--database [DREAM3|DREAM4|DREAM5|SynTReN|Rogers|GeneNetWeaver|IRMA]`: Databases for downloading gold standards.  [required]
-* `--output-dir PATH`: Path to the output folder.  [default: input_data]
-* `--username TEXT`: Synapse account username. Only necessary when selecting DREAM3 or DREAM5.
-* `--password TEXT`: Synapse account password. Only necessary when selecting DREAM3 or DREAM5.
-* `--help`: Show this message and exit.
-
-## `geneci generate-data`
-
-Simulate time series with gene expression levels using the SysGenSIM simulator. They can be generated from scratch or based on the interactions of a real gene network.
-
-**Usage**:
-
-```console
-$ geneci generate-data [OPTIONS] COMMAND [ARGS]...
-```
-
-**Options**:
-
-* `--help`: Show this message and exit.
-
-**Commands**:
-
-* `download-real-network`: Download real gene regulatory networks in the form of interaction lists to be fed into the expression data simulator.
-* `generate-from-real-network`: Simulate time series with gene expression levels using the SysGenSIM simulator from real-world networks.
-* `generate-from-scratch`: Simulate time series with gene expression levels using the SysGenSIM simulator from scratch.
-
-### `geneci generate-data download-real-network`
-
-Download real gene regulatory networks in the form of interaction lists to be fed into the expression data simulator.
-
-**Usage**:
-
-```console
-$ geneci generate-data download-real-network [OPTIONS]
-```
-
-**Options**:
-
-* `--database [TFLink|RegulonDB|RegNetwork|BioGrid|GRNdb]`: Database from which the real gene regulatory network is to be obtained.  [required]
-* `--id TEXT`: The identifier of the gene network within the selected database.  [required]
-* `--output-dir PATH`: Path to the output folder.  [default: input_data]
-* `--help`: Show this message and exit.
-
-### `geneci generate-data generate-from-real-network`
-
-Simulate time series with gene expression levels using the SysGenSIM simulator from real-world networks.
-
-**Usage**:
-
-```console
-$ geneci generate-data generate-from-real-network [OPTIONS]
-```
-
-**Options**:
-
-* `--real-list-of-links PATH`: Path to the csv file with the list of links. You can only specify either a value of 1 for an activation link or -1 to indicate inhibition.  [required]
-* `--perturbation [knockout|knockdown|overexpression|mixed]`: Type of perturbation to apply on the network to simulate expression levels for genes.  [required]
-* `--output-dir PATH`: Path to the output folder.  [default: input_data]
-* `--help`: Show this message and exit.
-
-### `geneci generate-data generate-from-scratch`
-
-Simulate time series with gene expression levels using the SysGenSIM simulator from scratch.
-
-**Usage**:
-
-```console
-$ geneci generate-data generate-from-scratch [OPTIONS]
-```
-
-**Options**:
-
-* `--topology [random|random-acyclic|scale-free|small-world|eipo|random-modular|eipo-modular]`: The type of topology to be attributed to the simulated gene network.  [required]
-* `--network-size INTEGER RANGE`: Number of genes that will make up the simulated gene network.  [x>=20; required]
-* `--perturbation [knockout|knockdown|overexpression|mixed]`: Type of perturbation to apply on the network to simulate expression levels for genes.  [required]
-* `--output-dir PATH`: Path to the output folder.  [default: input_data]
-* `--help`: Show this message and exit.
-
-## `geneci infer-network`
-
-Infer gene regulatory networks from expression data. Several techniques are available: ARACNE, BC3NET, C3NET, CLR, GENIE3_RF, GRNBOOST2, GENIE3_ET, MRNET, MRNETB, PCIT, TIGRESS, KBOOST, MEOMI, JUMP3, NARROMI, CMI2NI, RSNET, PCACMI, LOCPCACMI, PLSNET, PIDC, PUC, GRNVBEM, LEAP, NONLINEARODES and INFERELATOR
-
-**Usage**:
-
-```console
-$ geneci infer-network [OPTIONS]
-```
-
-**Options**:
-
-* `--expression-data PATH`: Path to the CSV file with the expression data. Genes are distributed in rows and experimental conditions (time series) in columns.  [required]
-* `--technique [ARACNE|BC3NET|C3NET|CLR|GENIE3_RF|GRNBOOST2|GENIE3_ET|MRNET|MRNETB|PCIT|TIGRESS|KBOOST|MEOMI|JUMP3|NARROMI|CMI2NI|RSNET|PCACMI|LOCPCACMI|PLSNET|PIDC|PUC|GRNVBEM|LEAP|NONLINEARODES|INFERELATOR]`: Inference techniques to be performed.  [required]
-* `--threads INTEGER`: Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.  [default: 64]
-* `--str-threads TEXT`: Comma-separated list with the identifying numbers of the threads to be used. If specified, the threads variable will automatically be set to the length of the list.
-* `--output-dir PATH`: Path to the output folder.  [default: inferred_networks]
-* `--help`: Show this message and exit.
-
-## `geneci optimize-ensemble`
-
-Analyzes several trust lists and builds a consensus network by applying an evolutionary algorithm
-
-**Usage**:
-
-```console
-$ geneci optimize-ensemble [OPTIONS]
-```
-
-**Options**:
-
-* `--confidence-list TEXT`: Paths of the CSV files with the confidence lists to be agreed upon.  [required]
-* `--gene-names PATH`: Path to the TXT file with the name of the contemplated genes separated by comma and without space. If not specified, only the genes specified in the lists of trusts will be considered.
-* `--time-series PATH`: Path to the CSV file with the time series from which the individual gene networks have been inferred. This parameter is only necessary in case of specifying the fitness function Loyalty.
-* `--crossover-probability FLOAT`: Crossover probability  [default: 0.9]
-* `--num-parents INTEGER`: Number of parents  [default: 3]
-* `--mutation-probability FLOAT`: Mutation probability. [default: 1/len(files)]
-* `--mutation-strength FLOAT`: Mutation strength. [default: 0.1]
-* `--population-size INTEGER`: Population size  [default: 100]
-* `--num-evaluations INTEGER`: Number of evaluations  [default: 25000]
-* `--cut-off-criteria [MinConf|NumLinksWithBestConf|PercLinksWithBestConf]`: Criteria for determining which links will be part of the final binary matrix.  [default: PercLinksWithBestConf]
-* `--cut-off-value FLOAT`: Numeric value associated with the selected criterion. Ex: MinConf = 0.5, NumLinksWithBestConf = 10, PercLinksWithBestConf = 0.4  [default: 0.4]
-* `--function TEXT`: A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, DegreeDistribution and Motifs.  [required]
-* `--algorithm [GA|NSGAII|SMPSO]`: Evolutionary algorithm to be used during the optimization process. All are intended for a multi-objective approach with the exception of the genetic algorithm (GA).  [required]
-* `--threads INTEGER`: Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.  [default: 64]
-* `--plot-fitness-evolution / --no-plot-fitness-evolution`: Indicate if you want to represent the evolution of the fitness values.  [default: no-plot-fitness-evolution]
-* `--plot-pareto-front / --no-plot-pareto-front`: Indicate if you want to represent the Pareto front (only available for multi-objective mode of 2 or 3 functions). [default: no-plot-pareto-front]
-* `--plot-parallel-coordinates / --no-plot-parallel-coordinates`: Indicate if you want to represent the parallel coordinate graph (only available for multi-objective mode). [default: no-plot-parallel-coordinates]
-* `--output-dir PATH`: Path to the output folder.  [default: <<conf_list_path>>/../ea_consensus]
-* `--help`: Show this message and exit.
-
-## `geneci run`
-
-Infer gene regulatory network from expression data by employing multiple unsupervised learning techniques and applying a genetic algorithm for consensus optimization.
-
-**Usage**:
-
-```console
-$ geneci run [OPTIONS]
-```
-
-**Options**:
-
-* `--expression-data PATH`: Path to the CSV file with the expression data. Genes are distributed in rows and experimental conditions (time series) in columns.  [required]
-* `--time-series PATH`: Path to the CSV file with the time series from which the individual gene networks have been inferred. This parameter is only necessary in case of specifying the fitness function Loyalty.
-* `--technique [ARACNE|BC3NET|C3NET|CLR|GENIE3_RF|GRNBOOST2|GENIE3_ET|MRNET|MRNETB|PCIT|TIGRESS|KBOOST|MEOMI|JUMP3|NARROMI|CMI2NI|RSNET|PCACMI|LOCPCACMI|PLSNET|PIDC|PUC|GRNVBEM|LEAP|NONLINEARODES|INFERELATOR]`: Inference techniques to be performed.  [required]
-* `--crossover-probability FLOAT`: Crossover probability  [default: 0.9]
-* `--num-parents INTEGER`: Number of parents  [default: 3]
-* `--mutation-probability FLOAT`: Mutation probability. [default: 1/len(files)]
-* `--mutation-strength FLOAT`: Mutation strength. [default: 0.1]
-* `--population-size INTEGER`: Population size  [default: 100]
-* `--num-evaluations INTEGER`: Number of evaluations  [default: 25000]
-* `--cut-off-criteria [MinConf|NumLinksWithBestConf|PercLinksWithBestConf]`: Criteria for determining which links will be part of the final binary matrix.  [default: PercLinksWithBestConf]
-* `--cut-off-value FLOAT`: Numeric value associated with the selected criterion. Ex: MinConf = 0.5, NumLinksWithBestConf = 10, PercLinksWithBestConf = 0.4  [default: 0.4]
-* `--function TEXT`: A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. Available terms: Quality, DegreeDistribution and Motifs.  [required]
-* `--algorithm [GA|NSGAII|SMPSO]`: Evolutionary algorithm to be used during the optimization process. All are intended for a multi-objective approach with the exception of the genetic algorithm (GA).  [required]
-* `--threads INTEGER`: Number of threads to be used during parallelization. By default, the maximum number of threads available in the system is used.  [default: 64]
-* `--str-threads TEXT`: Comma-separated list with the identifying numbers of the threads to be used. If specified, the threads variable will automatically be set to the length of the list.
-* `--plot-fitness-evolution / --no-plot-fitness-evolution`: Indicate if you want to represent the evolution of the fitness values.  [default: no-plot-fitness-evolution]
-* `--plot-pareto-front / --no-plot-pareto-front`: Indicate if you want to represent the Pareto front (only available for multi-objective mode of 2 or 3 functions). [default: no-plot-pareto-front]
-* `--plot-parallel-coordinates / --no-plot-parallel-coordinates`: Indicate if you want to represent the parallel coordinate graph (only available for multi-objective mode). [default: no-plot-parallel-coordinates]
-* `--output-dir PATH`: Path to the output folder.  [default: inferred_networks]
-* `--help`: Show this message and exit.
-
-## `geneci weighted-confidence`
-
-Calculate the weighted sum of the confidence levels reported in several files based on a given distribution of weights.
-
-**Usage**:
-
-```console
-$ geneci weighted-confidence [OPTIONS]
-```
-
-**Options**:
-
-* `--weight-file-summand TEXT`: Paths of the CSV files with the confidence lists together with its associated weights. Example: 0.7*/path/to/list.csv  [required]
-* `--output-file PATH`: Output file path  [default: <<conf_list_path>>/../weighted_confidence.csv]
-* `--help`: Show this message and exit.

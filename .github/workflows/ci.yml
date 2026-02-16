@@ -12,25 +12,18 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Install Python 3.10.17
-      uses: actions/setup-python@v1
+    - uses: actions/checkout@v4
+    - name: Install Python 3.13.5
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.10.17
+        python-version: 3.13.5
     - name: Get full Python version
       shell: bash
-      run: echo ::set-output name=version::$(python -c "import sys; print('-'.join(str(v) for v in sys.version_info))")
+      run: python -c "import sys; print('.'.join(str(v) for v in sys.version_info[:3]))"
     - name: Install Poetry
       uses: snok/install-poetry@v1
       with:
-        version: 1.1.7
-    - name: Bootstrap poetry
-      shell: bash
-      run: |
-        curl -sSL https://install.python-poetry.org | python -
-    - name: Update PATH
-      shell: bash
-      run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+        version: 2.1.3
     - name: Configure poetry
       shell: bash
       run: poetry config virtualenvs.in-project true
