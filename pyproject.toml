@@ -17,13 +17,45 @@ dependencies = [
     "tqdm>=4.67.1,<5.0.0",
     "tornado>=6.5.4,<7.0.0",
     "scikit-learn>=1.7.0,<2.0.0",
+    "ortools>=9.10,<10.0",
+    "fastapi>=0.115.0,<0.116.0",
+    "uvicorn>=0.34.0,<0.35.0",
+    "python-multipart>=0.0.20,<0.0.21",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.4.0,<9.0.0",
+    "jsonschema>=4.25.0,<5.0.0",
+    "aiofiles>=24.1.0,<25.0.0",
+    "httpx>=0.28.0,<0.29.0",
+    "black>=24.0.0,<25.0.0",
+    "isort>=5.13.0,<6.0.0",
 ]
 
 [project.scripts]
 geneci = "geneci.__main__:main"
 
-[tool.poetry.group.dev.dependencies]
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["geneci*"]
+
+[tool.setuptools.package-data]
+"geneci.inference_catalog" = [
+    "schemas/*",
+    "schemas/**/*",
+    "input_specs/*",
+    "input_specs/**/*",
+    "tools/*",
+    "tools/**/*",
+]
+"geneci.gui.infer_network_v2" = [
+    "static/*",
+    "static/**/*",
+]
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=69.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
