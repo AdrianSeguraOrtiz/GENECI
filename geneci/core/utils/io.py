@@ -43,8 +43,12 @@ def write_evaluation_csv(
     output_path, sorted_idx, confidence_list, objective_labels, weights, df
 ):
     """Write evaluation dataframe with objective and metric summaries."""
-    df["aupr_scaled"] = (df["aupr"] - min(df["aupr"])) / (max(df["aupr"]) - min(df["aupr"]))
-    df["auroc_scaled"] = (df["auroc"] - min(df["auroc"])) / (max(df["auroc"]) - min(df["auroc"]))
+    df["aupr_scaled"] = (df["aupr"] - min(df["aupr"])) / (
+        max(df["aupr"]) - min(df["aupr"])
+    )
+    df["auroc_scaled"] = (df["auroc"] - min(df["auroc"])) / (
+        max(df["auroc"]) - min(df["auroc"])
+    )
     df["mean_scaled"] = (df["aupr_scaled"] + df["auroc_scaled"]) / 2
 
     with open(output_path, "w") as f:

@@ -3,14 +3,15 @@ import itertools
 from enum import Enum
 from pathlib import Path
 from typing import List, Optional
-from my_d3graph import d3graph, vec2adjmat
 
 import matplotlib.pyplot as plt
-import pandas as pd
 import networkx as nx
+import pandas as pd
 import plotly.graph_objects as go
 import typer
+from my_d3graph import d3graph, vec2adjmat
 from pyvis.network import Network
+
 
 def my_draw_networkx_edge_labels(
     G,
@@ -202,11 +203,10 @@ def draw_network(
     ),
     mode: Mode = typer.Option("Interactive2D", help="Mode of representation"),
     nodes_distribution: NodesDistribution = typer.Option(
-        "Spring", help="Node distribution in graph. Note: Interactive2D mode has its own distribution of nodes, so in case of be selected this parameter will be ignored"
+        "Spring",
+        help="Node distribution in graph. Note: Interactive2D mode has its own distribution of nodes, so in case of be selected this parameter will be ignored",
     ),
-    confidence_cut_off: float = typer.Option(
-        0.5, help="Cut off value for confidence"
-    ),
+    confidence_cut_off: float = typer.Option(0.5, help="Cut off value for confidence"),
     output_folder: str = typer.Option(..., help="Path to output folder"),
 ):
 
@@ -229,7 +229,11 @@ def draw_network(
         for conf_list in confidence_list:
             with open(conf_list, "r") as f:
                 reader = csv.reader(f)
-                tuples += [(row[0], row[1], float(row[2])) for row in reader if float(row[2]) >= confidence_cut_off]
+                tuples += [
+                    (row[0], row[1], float(row[2]))
+                    for row in reader
+                    if float(row[2]) >= confidence_cut_off
+                ]
 
         DG = nx.DiGraph()
         DG.add_weighted_edges_from(tuples)
@@ -267,7 +271,11 @@ def draw_network(
         for conf_list in confidence_list:
             with open(conf_list, "r") as f:
                 reader = csv.reader(f)
-                tuples = [(row[0], row[1], float(row[2])) for row in reader if float(row[2]) >= confidence_cut_off]
+                tuples = [
+                    (row[0], row[1], float(row[2]))
+                    for row in reader
+                    if float(row[2]) >= confidence_cut_off
+                ]
 
             DG = nx.DiGraph()
             DG.add_weighted_edges_from(tuples)
@@ -332,7 +340,11 @@ def draw_network(
         for conf_list in confidence_list:
             with open(conf_list, "r") as f:
                 reader = csv.reader(f)
-                tuples = [(row[0], row[1], float(row[2])) for row in reader if float(row[2]) >= confidence_cut_off]
+                tuples = [
+                    (row[0], row[1], float(row[2]))
+                    for row in reader
+                    if float(row[2]) >= confidence_cut_off
+                ]
 
             DG = nx.DiGraph()
             DG.add_weighted_edges_from(tuples)
@@ -381,12 +393,14 @@ def draw_network(
                 curved_edge_labels = {
                     k: round(v, 2)
                     for k, v in dict_edge_weights.items()
-                    if k in curved_edges and v > (1 - confidence_cut_off)/2 + confidence_cut_off
+                    if k in curved_edges
+                    and v > (1 - confidence_cut_off) / 2 + confidence_cut_off
                 }
                 straight_edge_labels = {
                     k: round(v, 2)
                     for k, v in dict_edge_weights.items()
-                    if k in straight_edges and v > (1 - confidence_cut_off)/2 + confidence_cut_off
+                    if k in straight_edges
+                    and v > (1 - confidence_cut_off) / 2 + confidence_cut_off
                 }
                 my_draw_networkx_edge_labels(
                     DG,
@@ -404,23 +418,32 @@ def draw_network(
             plt.title(f"Static network for {Path(conf_list).name} file")
             plt.savefig(f"{output_folder}/static_2D_{Path(conf_list).stem}_network.pdf")
             plt.close()
-    
+
     elif mode == Mode.Interactive2D:
         for conf_list in confidence_list:
             data = pd.read_csv(conf_list, header=None)
-            data.columns = ['source', 'target', 'weight']
+            data.columns = ["source", "target", "weight"]
 
             # Convert data to an adjacencia matrix
-            adjmat = vec2adjmat(data['source'], data['target'], data['weight']*100)
+            adjmat = vec2adjmat(data["source"], data["target"], data["weight"] * 100)
 
             # Create and visualize the directed graph
             d3 = d3graph()
             d3.graph(adjmat)
             d3.set_edge_properties(directed=True)
-            d3.set_node_properties(color='cluster', fontcolor='node_color', edge_color='cluster', size='degree', opacity='degree')
+            d3.set_node_properties(
+                color="cluster",
+                fontcolor="node_color",
+                edge_color="cluster",
+                size="degree",
+                opacity="degree",
+            )
 
             # Ssave the graph
-            d3.show(filepath= f"{output_folder}/interactive_2D_{Path(conf_list).stem}_network.html", set_slider=confidence_cut_off*100)
+            d3.show(
+                filepath=f"{output_folder}/interactive_2D_{Path(conf_list).stem}_network.html",
+                set_slider=confidence_cut_off * 100,
+            )
 
     elif mode == Mode.Compare2D:
         colors = [
@@ -433,11 +456,11 @@ def draw_network(
             "#BFBFBF",  # Gris perla oscurecido
             "#99FFFF",  # Turquesa claro oscurecido
             "#9999FF",  # Lavanda oscurecido
-            "#FFE0CC"   # Beige claro oscurecido
+            "#FFE0CC",  # Beige claro oscurecido
         ]
         color_map = {}
         iter_colors = itertools.cycle(colors)
-        
+
         # Initialize the pyvis graph
         net = Network(notebook=False, directed=True, height="1000px", width="100%")
 
@@ -448,22 +471,23 @@ def draw_network(
             color_map[Path(conf_list).stem] = color
             for _, row in data.iterrows():
                 source, target, weight = row
-                
+
                 # Discard interactions below the threshold
                 if weight < confidence_cut_off:
                     continue
                 title = f"{weight:.2f}"
-                
+
                 # Make sure the nodes exist before adding the edges
                 if source not in net.nodes:
                     net.add_node(source, title=source, shape="ellipse")
                 if target not in net.nodes:
                     net.add_node(target, title=target, shape="ellipse")
-                    
+
                 # Add the edge with the corresponding color and title
                 net.add_edge(source, target, title=title, color=color, value=weight)
 
-        net.set_options("""
+        net.set_options(
+            """
         {
             "edges": {
                 "scaling": {
@@ -476,7 +500,8 @@ def draw_network(
                 "maxVelocity": 15
             }
         }
-        """)
+        """
+        )
 
         # Save and show visualization
         # Guarda y muestra la visualización
@@ -500,6 +525,7 @@ def draw_network(
         # Sobrescribe el archivo con la leyenda añadida
         with open(output_path, "w") as file:
             file.write(html_content)
+
 
 if __name__ == "__main__":
     typer.run(draw_network)

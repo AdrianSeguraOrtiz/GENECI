@@ -1,7 +1,12 @@
 from geneci.core.utils.confidence import weighted_confidence
 from geneci.core.utils.consensus import simple_consensus
 from geneci.core.utils.cpu import get_optimal_cpu_distribution
-from geneci.core.utils.docker import available_images, client, get_volume, wait_and_close_container
+from geneci.core.utils.docker import (
+    available_images,
+    client,
+    get_volume,
+    wait_and_close_container,
+)
 from geneci.core.utils.io import (
     get_expression_data_from_module,
     get_gene_names_from_conf_list,

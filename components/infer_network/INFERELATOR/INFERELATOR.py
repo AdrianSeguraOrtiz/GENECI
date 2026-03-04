@@ -1,10 +1,12 @@
+import csv
 import multiprocessing
-from pathlib import Path
 import shutil
-from inferelator import inferelator_workflow, inferelator_verbose_level, MPControl
+from pathlib import Path
+
 import pandas as pd
 import typer
-import csv
+from inferelator import MPControl, inferelator_verbose_level, inferelator_workflow
+
 
 # Function for obtaining the list of genes from expression file.
 def get_gene_names_from_expression_file(expression_file):
@@ -15,6 +17,7 @@ def get_gene_names_from_expression_file(expression_file):
     f.close()
     return gene_list
 
+
 # Standarization of weights
 def process_list(conf_list: pd.DataFrame):
     v_conf = conf_list["combined_confidences"]
@@ -22,6 +25,7 @@ def process_list(conf_list: pd.DataFrame):
     conf_list["combined_confidences"] = v_scaled
     conf_list = conf_list.loc[conf_list["combined_confidences"] != 0]
     return conf_list
+
 
 def inferelator(
     in_file: str = typer.Argument(..., help="CSV input file"),
@@ -37,21 +41,24 @@ def inferelator(
 
     # Input file CSV to TSV format
     expression_file = str(Path(in_file).with_suffix(".tsv"))
-    csv.writer(open(expression_file, 'w+'), delimiter='\t').writerows(csv.reader(open(in_file)))
+    csv.writer(open(expression_file, "w+"), delimiter="\t").writerows(
+        csv.reader(open(in_file))
+    )
 
     # Set verbosity level to "Normal"
     inferelator_verbose_level(-1)
 
     # Create a worker
     worker = inferelator_workflow(regression="bbsr", workflow="tfa")
-    
+
     # Define the general run parameters
-    worker.set_file_paths(input_dir=str(Path(in_file).parent),
-                    expression_matrix_file=str(Path(expression_file).name),
-                    tf_names_file=str(Path(gene_names_file).name),
-                    output_dir="./to_remove")
-    worker.set_network_data_flags(use_no_gold_standard=True,
-                    use_no_prior=True)
+    worker.set_file_paths(
+        input_dir=str(Path(in_file).parent),
+        expression_matrix_file=str(Path(expression_file).name),
+        tf_names_file=str(Path(gene_names_file).name),
+        output_dir="./to_remove",
+    )
+    worker.set_network_data_flags(use_no_gold_standard=True, use_no_prior=True)
     worker.set_file_properties(expression_matrix_columns_are_genes=False)
     worker.set_run_parameters(num_bootstraps=50, random_seed=100)
 
@@ -78,7 +85,7 @@ def inferelator(
 
 
 # Multiprocessing needs to be protected with the if __name__ == 'main' pragma
-if __name__ == '__main__':
+if __name__ == "__main__":
     MPControl.set_multiprocess_engine("multiprocessing")
     MPControl.client.processes = multiprocessing.cpu_count()
     MPControl.connect()

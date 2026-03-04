@@ -12,7 +12,8 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from rich import print
 
-from geneci.config import tag, temp_folder_str as default_temp_folder_str
+from geneci.config import tag
+from geneci.config import temp_folder_str as default_temp_folder_str
 from geneci.core.utils.cpu import get_optimal_cpu_distribution
 from geneci.core.utils.docker import (
     available_images,
@@ -25,12 +26,7 @@ from geneci.core.utils.io import (
     get_gene_names_from_expression_file,
 )
 from geneci.core.utils.plotting import chord_diagram
-from geneci.enums import (
-    Algorithm,
-    CutOffCriteria,
-    MemeticDistanceType,
-    Technique,
-)
+from geneci.enums import Algorithm, CutOffCriteria, MemeticDistanceType, Technique
 
 
 def _plot_optimization(
@@ -385,20 +381,26 @@ def apply_consensus(
         )
 
     if compare_performance:
-        with open(f"{default_temp_folder_str}/ea_consensus/compare_performance.txt", "r") as file:
+        with open(
+            f"{default_temp_folder_str}/ea_consensus/compare_performance.txt", "r"
+        ) as file:
             line = file.readline().strip()
 
         data = list(map(float, line.split(",")))
 
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=list(range(len(data))), y=data, mode="lines+markers"))
+        fig.add_trace(
+            go.Scatter(x=list(range(len(data))), y=data, mode="lines+markers")
+        )
 
         fig.update_layout(
             title="Data chart",
             xaxis_title="Generation",
             yaxis_title="Percentage of reference front solutions dominated",
         )
-        fig.write_html(f"{default_temp_folder_str}/ea_consensus/compare_performance.html")
+        fig.write_html(
+            f"{default_temp_folder_str}/ea_consensus/compare_performance.html"
+        )
 
     if str(output_dir) == "<<conf_list_path>>/../ea_consensus":
         output_dir = f"{Path(confidence_list[0]).parent.parent}/ea_consensus"

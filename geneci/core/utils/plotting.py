@@ -240,9 +240,10 @@ def chord_diagram(
         idim = 0
 
         for _ in point:
-            angle_point = sector_angles[idim][0] + (
-                sector_angles[idim][1] - sector_angles[idim][0]
-            ) * point[idim]
+            angle_point = (
+                sector_angles[idim][0]
+                + (sector_angles[idim][1] - sector_angles[idim][0]) * point[idim]
+            )
             arc_points[-1].append((angle_point, angle_point))
             idim = idim + 1
 
@@ -295,7 +296,8 @@ def chord_diagram(
         for index_bin in range(len(hist_values)):
             start_angle_bin = (
                 sector_angles[iobj][0]
-                + (sector_angles[iobj][1] - sector_angles[iobj][0]) * bins_dim[index_bin]
+                + (sector_angles[iobj][1] - sector_angles[iobj][0])
+                * bins_dim[index_bin]
             )
             end_angle_bin = (
                 sector_angles[iobj][0]
@@ -372,9 +374,11 @@ def chord_diagram(
                     lw=2,
                 )
 
-                if bins_dim[index_bin] < points_matrix[ipoint, iobj] <= bins_dim[
-                    index_bin + 1
-                ]:
+                if (
+                    bins_dim[index_bin]
+                    < points_matrix[ipoint, iobj]
+                    <= bins_dim[index_bin + 1]
+                ):
                     for jdim in range(nobj):
                         if jdim >= 1:
                             handle_plots[iobj][index_bin].append(
@@ -528,7 +532,11 @@ def plot_moving_medians(
 
     # Plot moving medians with IQR shading
     for column in y:
-        ax.plot(data_normalized_sorted_by_metric[x], moving_medians_normalized[column], label=column)
+        ax.plot(
+            data_normalized_sorted_by_metric[x],
+            moving_medians_normalized[column],
+            label=column,
+        )
         ax.fill_between(
             data_normalized_sorted_by_metric[x],
             q1_normalized[column],

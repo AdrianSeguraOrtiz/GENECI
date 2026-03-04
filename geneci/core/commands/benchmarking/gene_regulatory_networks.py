@@ -28,7 +28,9 @@ def download_real_network(
 
     if id not in real_networks_dict[database.value]:
         print("The entered id is not available in the selected database.")
-        print(f"Please choose one of the following: {real_networks_dict[database.value]}")
+        print(
+            f"Please choose one of the following: {real_networks_dict[database.value]}"
+        )
         raise ValueError("Invalid network identifier for the selected database.")
 
     sep = "\t"

@@ -1,6 +1,7 @@
+from rich import print
+
 from geneci.cli.app import app
 from geneci.config import HEADER
-from rich import print
 
 
 def main() -> None:

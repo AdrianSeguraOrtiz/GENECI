@@ -2,6 +2,7 @@ import pandas as pd
 import typer
 from scipy.stats import wilcoxon
 
+
 def wilcox(
     input_file: str = typer.Option(..., help="Path to csv input file"),
 ):

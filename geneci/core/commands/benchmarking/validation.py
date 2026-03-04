@@ -48,7 +48,9 @@ def evaluation_data(
             if image not in available_images:
                 print("Downloading docker image ...")
                 client.images.pull(repository=image)
-            command = f"--output-folder ./EVAL/  --username {username} --password {password}"
+            command = (
+                f"--output-folder ./EVAL/  --username {username} --password {password}"
+            )
 
         elif db == EvalDatabase.DREAM5:
             image = f"adriansegura99/geneci_extract-data_dream5:{tag}"

@@ -8,7 +8,9 @@ client = docker.from_env()
 
 # List available images on the current device.
 available_images = [
-    img for tags in [i.tags for i in client.images.list() if len(i.tags) > 0] for img in tags
+    img
+    for tags in [i.tags for i in client.images.list() if len(i.tags) > 0]
+    for img in tags
 ]
 
 

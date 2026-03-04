@@ -197,7 +197,9 @@ def generate_from_real_network(
     exp_df = pd.read_csv(exp_file, sep="\t")
     top_df = pd.read_csv(top_file, sep="\t")
     tmp_genes = top_df.iloc[:, 0]
-    map_tmp_names = {tmp_gene_names[i]: gene_names[i] for i in range(len(tmp_gene_names))}
+    map_tmp_names = {
+        tmp_gene_names[i]: gene_names[i] for i in range(len(tmp_gene_names))
+    }
     genes = [map_tmp_names[key] for key in tmp_genes]
     completed_exp_df = pd.concat(
         [pd.Series(genes), exp_df.iloc[:, :-1]], join="inner", axis=1
