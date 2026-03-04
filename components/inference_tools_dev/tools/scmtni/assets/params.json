@@ -1,0 +1,8 @@
+{
+  "x": 3,
+  "p": 0.2,
+  "b": -0.9,
+  "q": 2.0,
+  "indep": false,
+  "split_genes": true
+}

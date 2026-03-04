@@ -1,0 +1,8 @@
+{
+  "regressor_kwargs": {
+    "n_estimators": 100,
+    "max_features": "sqrt"
+  },
+  "limit": 50,
+  "seed": 666
+}

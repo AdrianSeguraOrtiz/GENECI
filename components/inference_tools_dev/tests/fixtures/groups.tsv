@@ -1,0 +1,13 @@
+sample	cluster
+s1	cluster_root
+s2	cluster_root
+s3	cluster_root
+s4	cluster_root
+s5	cluster_root
+s6	cluster_root
+s7	cluster_child
+s8	cluster_child
+s9	cluster_child
+s10	cluster_child
+s11	cluster_child
+s12	cluster_child

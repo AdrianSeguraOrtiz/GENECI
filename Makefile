@@ -1,16 +1,45 @@
+PYTHON ?= $(if $(wildcard .venv/bin/python),.venv/bin/python,python)
+INFERENCE_DEV_SCRIPTS := components/inference_tools_dev/scripts
+PYTEST_FLAGS ?= -q
+ARGS ?=
+
 install:
-	@poetry install
+	@$(PYTHON) -m pip install --upgrade pip
+	@$(PYTHON) -m pip install -e .
+
+install-dev-deps:
+	@$(PYTHON) -m pip install --upgrade pip
+	@$(PYTHON) -m pip install -e ".[dev]"
 
 build:
-	@poetry build
+	@$(PYTHON) -m pip install --upgrade build
+	@$(PYTHON) -m build
 
 clean:
 	@find . -type d -name '.mypy_cache' -exec rm -rf {} +
 	@find . -type d -name '__pycache__' -exec rm -rf {} +
 
 black:
-	@poetry run isort --profile black geneci
-	@poetry run black geneci
+	@$(PYTHON) -m isort --profile black geneci components utils tests
+	@$(PYTHON) -m black geneci components utils tests
+
+build-tool-images:
+	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/build_tool_images.py $(ARGS)
+
+run-tool-smoketests:
+	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/run_smoketests.py $(ARGS)
+
+benchmark-tool-costs:
+	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/benchmark_costs.py $(ARGS)
+
+validate-toolspecs:
+	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/validate_toolspecs.py $(ARGS)
+
+validate-input-specs:
+	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/validate_input_specs.py $(ARGS)
+
+test-all:
+	@$(PYTHON) -m pytest $(PYTEST_FLAGS) tests
 
 build-images:
 	@mvn -f ./EAGRN-JMetal/pom.xml clean compile assembly:single
@@ -134,6 +163,7 @@ pull-images:
 	@docker pull adriansegura99/geneci_cluster-network:5.0.0
 
 release:
-	@echo Bump version to v$$(poetry version --short)
-	@git tag v$$(poetry version --short)
-	@git push origin v$$(poetry version --short)
+	@VERSION=$$($(PYTHON) -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])"); \
+	echo Bump version to v$$VERSION; \
+	git tag v$$VERSION; \
+	git push origin v$$VERSION

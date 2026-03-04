@@ -1,0 +1,6 @@
+{
+  "extra_files": ["tf_list.txt", "groups.tsv", "lineage_tree.tsv", "prior_grn.tsv"],
+  "checks": {
+    "require_cluster_context": true
+  }
+}

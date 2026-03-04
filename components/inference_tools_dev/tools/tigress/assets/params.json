@@ -1,0 +1,11 @@
+{
+  "alpha": 0.2,
+  "nstepsLARS": 1,
+  "nsplit": 20,
+  "normalizeexp": true,
+  "scoring": "area",
+  "allsteps": true,
+  "usemulticore": false,
+  "limit": 50,
+  "seed": 666
+}

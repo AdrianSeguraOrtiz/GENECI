@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geneci.dev/schemas/smoketest.config.schema.json",
+  "title": "SmoketestConfig",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "extra_files": {
+      "description": "Extra input files to copy into /io/extra for this tool smoketest.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "default": []
+    },
+    "require_progress": {
+      "description": "Whether the smoketest must observe progress.json during execution.",
+      "type": "boolean",
+      "default": true
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "require_cluster_context": {
+          "description": "Whether network.csv must include at least one row with context starting with 'cluster:'.",
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "default": {}
+    }
+  }
+}

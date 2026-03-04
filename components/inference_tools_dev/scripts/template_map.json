@@ -1,0 +1,42 @@
+{
+  "bundle_templates": {
+    "python_runtime_contract": [
+      "python/_run_tool_common.py"
+    ],
+    "python_arboreto": [
+      "python/_arboreto_common.py"
+    ]
+  },
+  "tools": {
+    "genie3": {
+      "runtime": "python",
+      "bundles": [
+        "python_runtime_contract",
+        "python_arboreto"
+      ]
+    },
+    "grnboost2": {
+      "runtime": "python",
+      "bundles": [
+        "python_runtime_contract",
+        "python_arboreto"
+      ]
+    },
+    "aracne3": {
+      "runtime": "python",
+      "bundles": [
+        "python_runtime_contract"
+      ]
+    },
+    "scmtni": {
+      "runtime": "python",
+      "bundles": [
+        "python_runtime_contract"
+      ]
+    },
+    "tigress": {
+      "runtime": "r",
+      "bundles": []
+    }
+  }
+}

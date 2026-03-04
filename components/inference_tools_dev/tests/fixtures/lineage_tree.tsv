@@ -1,0 +1,2 @@
+child	parent	gain_rate	loss_rate
+cluster_child	cluster_root	0.2	0.2
