@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GENECI GUI · infer-network-v2</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="hero">
+        <p class="eyebrow">GENECI GUI</p>
+        <h1>infer-network-v2</h1>
+        <p class="subtitle">
+          Build inputs from forms and drag-and-drop files, analyze compatibility, generate a plan, and execute.
+        </p>
+      </header>
+
+      <section class="panel workflow-step is-active" id="step-1" data-step="1">
+        <div class="step-head">
+          <button class="step-toggle" id="step-1-toggle" type="button">Step 1 · Dataset Inputs</button>
+          <div class="actions-inline">
+            <span class="step-state" id="step-1-state">draft</span>
+          </div>
+        </div>
+        <div class="step-body" id="step-1-body">
+          <h3>Dataset</h3>
+          <div class="grid three">
+            <label>
+              Dataset ID
+              <input id="dataset-id" type="text" value="gui_dataset" />
+            </label>
+            <label>
+              Column Kind
+              <select id="column-kind"></select>
+            </label>
+            <label>
+              Expression Profile
+              <select id="expression-profile"></select>
+            </label>
+          </div>
+          <div class="input-row full">
+            <div class="row-head">
+              <label class="row-label">Expression Matrix (TSV)</label>
+              <button
+                type="button"
+                class="info-icon"
+                id="expression-info-btn"
+                title="Expression matrix format"
+                aria-label="Expression matrix format info"
+              >i</button>
+            </div>
+            <div id="expression-dropzone" class="dropzone">
+              <input id="expression-file" type="file" accept=".tsv,.txt" hidden />
+              <div class="dropzone-text">
+                <strong>Drop expression file here</strong> or click to browse
+              </div>
+              <div id="expression-file-name" class="dropzone-file">No file selected</div>
+            </div>
+            <div id="expression-file-status" class="file-status">Pending validation</div>
+          </div>
+          <div class="actions-inline">
+            <button class="secondary" id="add-optional-input-btn" type="button">Add Optional Input</button>
+          </div>
+          <div id="extras-empty" class="muted-box">No optional inputs added yet.</div>
+          <div id="extras-list" class="extra-list"></div>
+
+          <div class="step-action-row">
+            <button id="analyze-btn" type="button">Analyze Inputs</button>
+          </div>
+          <div id="preflight-report-view" class="preflight-view muted-box">No preflight report yet.</div>
+
+          <div class="step-next-row">
+            <button class="secondary" id="step-1-next-btn" type="button" disabled>Next</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel workflow-step" id="step-2" data-step="2">
+        <div class="step-head">
+          <button class="step-toggle" id="step-2-toggle" type="button">Step 2 · Tools And Plan</button>
+          <div class="actions-inline">
+            <span class="step-state" id="step-2-state">blocked</span>
+          </div>
+        </div>
+        <div class="step-body" id="step-2-body">
+          <div class="tool-groups" id="tool-groups">
+            <article class="tool-group tool-group-eligible">
+              <header>
+                <h3>Eligible</h3>
+                <span id="eligible-count" class="group-count">0</span>
+              </header>
+              <div id="tools-eligible-list" class="tool-list"></div>
+            </article>
+            <article class="tool-group tool-group-warning">
+              <header>
+                <h3>Warning</h3>
+                <span id="warning-count" class="group-count">0</span>
+              </header>
+              <div id="tools-warning-list" class="tool-list"></div>
+            </article>
+            <article class="tool-group tool-group-blocked">
+              <header>
+                <h3>Blocked</h3>
+                <span id="blocked-count" class="group-count">0</span>
+              </header>
+              <div id="tools-blocked-list" class="tool-list"></div>
+            </article>
+          </div>
+
+          <details class="tool-request-box">
+            <summary>Request New Tool</summary>
+            <div class="tool-request-body">
+              <div class="grid two">
+                <label>
+                  Tool Name
+                  <input id="tool-request-tool-name" type="text" placeholder="e.g. PIDC2" />
+                </label>
+                <label>
+                  DOI / Publication
+                  <input id="tool-request-doi" type="text" placeholder="e.g. https://doi.org/..." />
+                </label>
+                <label>
+                  Implementation Repository URL
+                  <input id="tool-request-repo" type="text" placeholder="https://github.com/owner/repo" />
+                </label>
+                <label>
+                  Expected Inputs
+                  <input id="tool-request-inputs" type="text" placeholder="expression, tf_list, groups..." />
+                </label>
+              </div>
+              <label>
+                Expected Outputs
+                <input id="tool-request-outputs" type="text" placeholder="network.csv directed, sign field..." />
+              </label>
+              <label>
+                Notes
+                <textarea
+                  id="tool-request-notes"
+                  rows="4"
+                  placeholder="Why this tool would be useful in GENECI."
+                ></textarea>
+              </label>
+              <div class="actions-inline">
+                <button id="open-tool-request-issue-btn" class="secondary" type="button">
+                  Open Prefilled GitHub Issue
+                </button>
+              </div>
+            </div>
+          </details>
+
+          <details class="tool-request-box">
+            <summary>Report Tool Issue</summary>
+            <div class="tool-request-body">
+              <div class="grid two">
+                <label>
+                  Tool
+                  <select id="tool-issue-tool-id"></select>
+                </label>
+                <label>
+                  Issue Type
+                  <select id="tool-issue-type">
+                    <option value="compatibility">Compatibility / constraints</option>
+                    <option value="parameters">Parameters / defaults</option>
+                    <option value="runtime">Runtime / execution</option>
+                    <option value="docs">Documentation / metadata</option>
+                    <option value="other">Other</option>
+                  </select>
+                </label>
+              </div>
+              <label>
+                Observed Behavior
+                <textarea
+                  id="tool-issue-observed"
+                  rows="3"
+                  placeholder="What is wrong or missing in this tool catalog entry?"
+                ></textarea>
+              </label>
+              <label>
+                Expected Behavior
+                <textarea
+                  id="tool-issue-expected"
+                  rows="3"
+                  placeholder="What should happen instead?"
+                ></textarea>
+              </label>
+              <label>
+                Repro / Context
+                <textarea
+                  id="tool-issue-context"
+                  rows="3"
+                  placeholder="Dataset profile, inputs, constraints, plan/run details..."
+                ></textarea>
+              </label>
+              <div class="actions-inline">
+                <button id="open-tool-issue-btn" class="secondary" type="button">
+                  Open Prefilled GitHub Issue
+                </button>
+              </div>
+            </div>
+          </details>
+
+          <div class="panel-head compact-head">
+            <h3>Selected Runs</h3>
+            <div class="actions-inline">
+              <button class="secondary" id="add-all-tools-btn" type="button">Add All Eligible</button>
+              <button class="danger" id="clear-runs-btn" type="button">Clear Runs</button>
+            </div>
+          </div>
+          <div id="runs-empty" class="muted-box">No runs added yet. Add tools from the catalog above.</div>
+          <div id="runs-container" class="runs"></div>
+
+          <h3>Planning Options</h3>
+          <div class="grid three">
+            <label>
+              Output Directory
+              <input id="output-dir" type="text" value="./inferred_networks_v2" />
+            </label>
+            <label>
+              Max Cores
+              <input id="max-cores" type="number" min="1" step="1" value="8" />
+            </label>
+            <label>
+              Max RAM (GB)
+              <input id="max-ram" type="number" min="0.5" step="0.5" placeholder="auto" />
+            </label>
+            <label>
+              Planner
+              <select id="planner">
+                <option value="auto">auto</option>
+                <option value="cp_sat">cp_sat</option>
+                <option value="heuristic">heuristic</option>
+              </select>
+            </label>
+            <label>
+              Planner Time Limit (s)
+              <input id="planner-time" type="number" min="0.1" step="0.1" value="10" />
+            </label>
+            <label class="checkbox-row inline-checkbox">
+              <input id="strict" type="checkbox" />
+              Strict mode
+            </label>
+          </div>
+
+          <div class="step-action-row">
+            <button id="plan-btn" type="button">Generate Plan</button>
+          </div>
+
+          <div id="plan-summary" class="muted-box">No plan loaded yet.</div>
+          <div id="plan-waves" class="plan-waves"></div>
+
+          <div class="step-next-row">
+            <button class="secondary" id="step-2-next-btn" type="button" disabled>Next</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel workflow-step" id="step-3" data-step="3">
+        <div class="step-head">
+          <button class="step-toggle" id="step-3-toggle" type="button">Step 3 · Execute And Explore</button>
+          <div class="actions-inline">
+            <span class="step-state" id="step-3-state">blocked</span>
+          </div>
+        </div>
+        <div class="step-body" id="step-3-body">
+          <div class="actions-inline">
+            <button id="execute-btn" type="button">Execute Plan</button>
+            <label class="inline-input">
+              Progress Poll (s)
+              <input id="progress-poll" type="number" min="0.1" step="0.1" value="0.5" />
+            </label>
+          </div>
+          <div id="execution-alerts" class="execution-alerts muted-box">
+            No execution errors or warnings.
+          </div>
+          <div id="runtime-progress" class="runtime-progress muted-box">No runtime progress yet.</div>
+
+          <div class="panel-head compact-head">
+            <h3>Results Explorer</h3>
+            <div class="actions-inline">
+              <label class="inline-input">
+                Bundle mode
+                <select id="bundle-mode">
+                  <option value="light">light</option>
+                  <option value="full">full</option>
+                </select>
+              </label>
+              <button id="refresh-files-btn" class="secondary" type="button">Refresh Files</button>
+              <button id="download-bundle-btn" type="button">Download ZIP</button>
+            </div>
+          </div>
+          <div class="files-layout">
+            <div class="files-tree-wrap">
+              <div id="files-summary" class="muted-box">No files loaded yet.</div>
+              <div id="files-tree" class="files-tree"></div>
+            </div>
+            <div class="files-preview-wrap">
+              <div id="file-preview-header" class="muted-box">Select a file to preview.</div>
+              <div id="file-preview" class="file-preview"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div id="info-popover" class="info-popover hidden" role="dialog" aria-live="polite" aria-modal="false">
+      <div class="info-popover-card">
+        <button id="info-popover-close" class="info-popover-close" type="button" aria-label="Close help">×</button>
+        <div id="info-popover-content"></div>
+      </div>
+    </div>
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="false"></div>
+
+    <template id="run-template">
+      <article class="run-card">
+        <div class="run-top">
+          <div class="run-tool-meta">
+            <div class="run-tool-name"></div>
+            <input class="tool-id" type="hidden" />
+          </div>
+          <label>
+            Run ID
+            <input class="run-id" type="text" />
+          </label>
+          <button class="danger remove-run" type="button">Remove</button>
+        </div>
+        <label>
+          Params JSON
+          <textarea class="params-json" rows="10"></textarea>
+        </label>
+      </article>
+    </template>
+
+    <template id="extra-template">
+      <article class="extra-row">
+        <div class="extra-left">
+          <label>
+            Optional input
+            <select class="extra-key"></select>
+          </label>
+        </div>
+        <div class="extra-file-wrap">
+          <div class="extra-file-row">
+            <input class="extra-file" type="file" accept=".tsv,.txt,.csv,.log" />
+          </div>
+          <div class="extra-file-meta">
+            <div class="extra-file-name">No file selected</div>
+            <div class="extra-file-status file-status">Optional input not provided</div>
+          </div>
+        </div>
+        <div class="extra-actions">
+          <button
+            type="button"
+            class="info-icon extra-info-btn"
+            title="Optional input format"
+            aria-label="Optional input format info"
+          >i</button>
+          <button class="remove-extra icon-btn" type="button" aria-label="Remove optional input">×</button>
+        </div>
+      </article>
+    </template>
+
+    <template id="tool-catalog-item-template">
+      <article class="tool-item">
+        <div class="tool-item-head">
+          <h4 class="tool-item-name"></h4>
+          <span class="tool-item-badge"></span>
+        </div>
+        <div class="tool-item-meta"></div>
+        <div class="tool-item-actions"></div>
+      </article>
+    </template>
+
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>

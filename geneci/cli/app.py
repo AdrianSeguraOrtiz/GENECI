@@ -1,3 +1,4 @@
+import json
 import multiprocessing
 from pathlib import Path
 from typing import List, Optional
@@ -41,6 +42,18 @@ from geneci.core.commands.benchmarking.validation import (
 )
 from geneci.core.commands.benchmarking.validation import (
     generic_weight_distribution as core_generic_weight_distribution,
+)
+from geneci.core.commands.infer_network_v2 import (
+    infer_network_new as core_infer_network_new,
+)
+from geneci.core.commands.infer_network_v2 import (
+    plan_infer_network_new as core_plan_infer_network_new,
+)
+from geneci.core.commands.infer_network_v2 import (
+    preflight_infer_network_new as core_preflight_infer_network_new,
+)
+from geneci.core.commands.infer_network_v2 import (
+    run_infer_network_new_plan as core_run_infer_network_new_plan,
 )
 from geneci.core.commands.main import apply_consensus as core_apply_consensus
 from geneci.core.commands.main import infer_network as core_infer_network
@@ -113,7 +126,23 @@ app.add_typer(plotting_app, name="plotting", rich_help_panel="Plotting")
 
 # Postprocessing space
 postprocessing_app = typer.Typer(help="Postprocessing commands.")
-app.add_typer(postprocessing_app, name="postprocessing", rich_help_panel="Postprocessing")
+app.add_typer(
+    postprocessing_app, name="postprocessing", rich_help_panel="Postprocessing"
+)
+
+# GUI space
+gui_app = typer.Typer(help="Graphical interfaces for GENECI workflows.")
+app.add_typer(gui_app, name="gui", rich_help_panel="GUI")
+
+# infer-network-v2 space
+infer_network_v2_app = typer.Typer(
+    help="ToolSpec-driven infer-network-v2 pipeline commands.",
+)
+app.add_typer(
+    infer_network_v2_app,
+    name="infer-network-v2",
+    rich_help_panel="Main commands",
+)
 
 
 @app.command(rich_help_panel="Main commands")
@@ -155,6 +184,237 @@ def infer_network(
         temp_folder_str=temp_folder_str,
         output_dir=output_dir,
     )
+
+
+@infer_network_v2_app.command("preflight")
+def infer_network_v2_preflight(
+    dataset_manifest: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help="Path to dataset-manifest.json (includes embedded dataset spec).",
+    ),
+    tools_params: Optional[Path] = typer.Option(
+        None,
+        exists=True,
+        file_okay=True,
+        help="Optional tools_params.json to pre-validate requested runs.",
+    ),
+    output_json: Optional[Path] = typer.Option(
+        None,
+        help="Optional output path to persist preflight report JSON.",
+    ),
+    strict: bool = typer.Option(
+        False,
+        help="If true, incompatible tools/params raise an error during preflight.",
+    ),
+):
+    """
+    Validate dataset inputs and compute tool eligibility before planning.
+    """
+    report = _run_core(
+        core_preflight_infer_network_new,
+        dataset_manifest_path=dataset_manifest,
+        tools_params_path=tools_params,
+        strict=strict,
+    )
+    if output_json is not None:
+        output_json.parent.mkdir(parents=True, exist_ok=True)
+        output_json.write_text(
+            json.dumps(report, indent=2, ensure_ascii=True) + "\n", encoding="utf-8"
+        )
+        print(f"[bold green]preflight report written[/bold green]: {output_json}")
+    else:
+        eligible = len(report.get("catalog", {}).get("eligible", []))
+        warning = len(report.get("catalog", {}).get("warning", []))
+        blocked = len(report.get("catalog", {}).get("blocked", []))
+        selected = len(report.get("runs", {}).get("selected", []))
+        skipped = len(report.get("runs", {}).get("skipped", {}))
+        print("[bold green]infer-network-v2 preflight completed[/bold green]")
+        print(f"  eligible tools: {eligible}")
+        print(f"  warning tools: {warning}")
+        print(f"  blocked tools: {blocked}")
+        print(f"  selected runs: {selected}")
+        print(f"  skipped runs: {skipped}")
+
+
+@infer_network_v2_app.command("plan")
+def infer_network_v2_plan(
+    dataset_manifest: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help="Path to dataset-manifest.json (includes embedded dataset spec).",
+    ),
+    tools_params: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help=(
+            "Path to tools_params.json in runs format: "
+            "{'runs': [{'run_id': ..., 'tool_id': ..., 'params': ...}, ...]}."
+        ),
+    ),
+    output_dir: Path = typer.Option(
+        Path("./inferred_networks_v2"),
+        help="Output root directory for this orchestration run.",
+    ),
+    max_cores: int = typer.Option(
+        multiprocessing.cpu_count(),
+        help="Maximum number of CPU cores available to the execution planner.",
+    ),
+    max_ram_gb: Optional[float] = typer.Option(
+        None,
+        help="Maximum RAM (GB) available to the execution planner. If omitted, host RAM is used.",
+    ),
+    planner: str = typer.Option(
+        "auto",
+        help="Planning strategy: auto, cp_sat, heuristic.",
+    ),
+    planner_time_limit_seconds: float = typer.Option(
+        10.0,
+        help="Time limit in seconds for cp_sat planning attempts.",
+    ),
+    strict: bool = typer.Option(
+        False,
+        help="If true, incompatible tools/params raise an error.",
+    ),
+):
+    """
+    Generate a frozen run directory and plan.json without executing containers.
+    """
+    _run_core(
+        core_plan_infer_network_new,
+        dataset_manifest_path=dataset_manifest,
+        tools_params_path=tools_params,
+        output_dir=output_dir,
+        max_cores=max_cores,
+        max_ram_gb=max_ram_gb,
+        planner=planner,
+        planner_time_limit_seconds=planner_time_limit_seconds,
+        strict=strict,
+    )
+
+
+@infer_network_v2_app.command("run")
+def infer_network_v2_run(
+    run_dir: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+        help="Path to a frozen run directory produced by infer-network-v2 plan.",
+    ),
+    progress_poll_seconds: float = typer.Option(
+        0.5,
+        help="Polling interval in seconds for reading per-tool progress.json during execution.",
+    ),
+    strict: bool = typer.Option(
+        False,
+        help="If true, runtime tool failures raise an error.",
+    ),
+):
+    """
+    Execute a previously generated plan from run_dir.
+    """
+    _run_core(
+        core_run_infer_network_new_plan,
+        run_dir=run_dir,
+        progress_poll_seconds=progress_poll_seconds,
+        strict=strict,
+    )
+
+
+@infer_network_v2_app.command("execute")
+def infer_network_v2_execute(
+    dataset_manifest: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help="Path to dataset-manifest.json (includes embedded dataset spec).",
+    ),
+    tools_params: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help=(
+            "Path to tools_params.json in runs format: "
+            "{'runs': [{'run_id': ..., 'tool_id': ..., 'params': ...}, ...]}."
+        ),
+    ),
+    output_dir: Path = typer.Option(
+        Path("./inferred_networks_v2"),
+        help="Output root directory for this orchestration run.",
+    ),
+    max_cores: int = typer.Option(
+        multiprocessing.cpu_count(),
+        help="Maximum number of CPU cores available to the execution planner.",
+    ),
+    max_ram_gb: Optional[float] = typer.Option(
+        None,
+        help="Maximum RAM (GB) available to the execution planner. If omitted, host RAM is used.",
+    ),
+    planner: str = typer.Option(
+        "auto",
+        help="Planning strategy: auto, cp_sat, heuristic.",
+    ),
+    planner_time_limit_seconds: float = typer.Option(
+        10.0,
+        help="Time limit in seconds for cp_sat planning attempts.",
+    ),
+    progress_poll_seconds: float = typer.Option(
+        0.5,
+        help="Polling interval in seconds for reading per-tool progress.json during execution.",
+    ),
+    strict: bool = typer.Option(
+        False,
+        help="If true, incompatible tools/params and runtime tool failures raise an error.",
+    ),
+):
+    """
+    End-to-end execution wrapper (preflight + plan + run).
+    """
+    _run_core(
+        core_infer_network_new,
+        dataset_manifest_path=dataset_manifest,
+        tools_params_path=tools_params,
+        output_dir=output_dir,
+        max_cores=max_cores,
+        max_ram_gb=max_ram_gb,
+        planner=planner,
+        planner_time_limit_seconds=planner_time_limit_seconds,
+        progress_poll_seconds=progress_poll_seconds,
+        strict=strict,
+    )
+
+
+@gui_app.command("infer-network-v2")
+def gui_infer_network_v2(
+    host: str = typer.Option(
+        "127.0.0.1",
+        help="Host address for the local GUI server.",
+    ),
+    port: int = typer.Option(
+        8765,
+        min=1,
+        max=65535,
+        help="Port for the local GUI server.",
+    ),
+    open_browser: bool = typer.Option(
+        False,
+        "--open-browser/--no-open-browser",
+        help=(
+            "Automatically open the GUI in your default browser. "
+            "Disabled by default to avoid SSH/remote session confusion."
+        ),
+    ),
+):
+    """
+    Launch the local graphical interface for infer-network-v2.
+    """
+    from geneci.gui.infer_network_v2.server import run_server
+
+    run_server(host=host, port=port, open_browser=open_browser)
 
 
 @app.command(rich_help_panel="Main commands")
@@ -227,7 +487,7 @@ def apply_consensus(
     ),
     function: Optional[List[str]] = typer.Option(
         ...,
-        help='''A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. \n
+        help="""A mathematical expression that defines a particular fitness function based on the weighted sum of several independent terms. \n
                 Available terms: \n
                     \t - Quality \n
                     \t - DegreeDistribution \n
@@ -239,7 +499,7 @@ def apply_consensus(
                     \t - Clustering \n
                 Examples: \n
                     \t - Objective of one term: "Quality" \n
-                    \t - Objective of two terms: "0.5*Quality+0.5*DegreeDistribution" \n''',
+                    \t - Objective of two terms: "0.5*Quality+0.5*DegreeDistribution" \n""",
         rich_help_panel="Fitness",
     ),
     reference_point: str = typer.Option(
@@ -723,3 +983,7 @@ def apply_cut(
         cut_off_value=cut_off_value,
         output_file=output_file,
     )
+
+
+if __name__ == "__main__":
+    app()

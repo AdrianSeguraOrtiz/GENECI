@@ -24,6 +24,33 @@ To implement all the functionalities mentioned above, it has been necessary to p
 pip install geneci==5.0.0
 ```
 
+# infer-network-v2 (ToolSpec Pipeline)
+
+`infer-network-v2` now exposes a staged interface:
+
+```sh
+# 1) Validate dataset + catalog compatibility
+geneci infer-network-v2 preflight \
+  --dataset-manifest <dataset-manifest.json> \
+  --tools-params <tools_params.json>
+
+# 2) Build frozen run directory + plan.json
+geneci infer-network-v2 plan \
+  --dataset-manifest <dataset-manifest.json> \
+  --tools-params <tools_params.json> \
+  --output-dir <out_dir>
+
+# 3) Execute from planned run directory
+geneci infer-network-v2 run \
+  --run-dir <out_dir>/<RUN_ID>
+
+# Convenience end-to-end wrapper
+geneci infer-network-v2 execute \
+  --dataset-manifest <dataset-manifest.json> \
+  --tools-params <tools_params.json> \
+  --output-dir <out_dir>
+```
+
 # Output
 
 To execute GENECI, you typically run `infer-network` first and then `apply-consensus` over the generated confidence lists. If more than one objective is used during consensus optimization, the following files are obtained after execution:
