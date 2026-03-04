@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geneci.org/schemas/input-spec.schema.json",
+  "title": "GENECI InputSpec",
+  "description": "Declarative validation rules for infer-network-v2 input files.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "key",
+    "file_kind",
+    "description"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "key": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "file_kind": {
+      "type": "string",
+      "enum": [
+        "tsv",
+        "txt_list"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "example": {
+      "type": "string"
+    },
+    "delimiter": {
+      "type": "string",
+      "default": "\t"
+    },
+    "header": {
+      "type": "boolean",
+      "default": true
+    },
+    "min_rows": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0
+    },
+    "required_columns": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "default": []
+    },
+    "column_types": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "type": "string",
+        "enum": [
+          "string",
+          "int",
+          "float",
+          "bool"
+        ]
+      },
+      "default": {}
+    },
+    "min_columns": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1
+    },
+    "first_column_role": {
+      "type": "string",
+      "enum": [
+        "none",
+        "gene_id",
+        "expression_column_id"
+      ],
+      "default": "none"
+    },
+    "first_column_disallowed_names": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "default": []
+    },
+    "unique_first_column": {
+      "type": "boolean",
+      "default": false
+    },
+    "data_columns_type": {
+      "type": "string",
+      "enum": [
+        "any",
+        "float"
+      ],
+      "default": "any"
+    },
+    "data_numeric_min_fraction": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "default": 1.0
+    },
+    "cross_checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind"
+        ],
+        "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "column_subset_expression_genes",
+                  "column_subset_expression_columns",
+                  "first_column_subset_expression_columns",
+                  "row_count_matches_expression_columns",
+                  "line_subset_expression_genes"
+                ]
+              },
+          "column": {
+            "type": "string"
+          }
+        }
+      },
+      "default": []
+    }
+  }
+}

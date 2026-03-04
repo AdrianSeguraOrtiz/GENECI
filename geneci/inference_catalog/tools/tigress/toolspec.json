@@ -1,0 +1,127 @@
+{
+  "schema_version": "1.0",
+  "id": "tigress",
+  "name": "TIGRESS",
+  "publication": [
+    "https://doi.org/10.1186/1752-0509-6-145"
+  ],
+  "first_author": "Anne-Claire Haury",
+  "implementation_url": "https://github.com/jpvert/tigress",
+  "docker_image": "adriansegura99/inference-tools_tigress:1.0.0",
+  "accepts": [
+    "samples",
+    "cells",
+    "timepoints",
+    "perturbations"
+  ],
+  "assumes": "generic",
+  "extra_inputs": {
+    "required": [],
+    "optional": [
+      "tf_list"
+    ]
+  },
+  "outputs": {
+    "directed": true,
+    "sign": "none",
+    "evidence": "association"
+  },
+  "progress": {
+    "kind": "none",
+    "note": "TIGRESS package API does not expose fine-grained callbacks for per-target execution progress; wrapper reports only coarse lifecycle states in progress.json."
+  },
+  "params": {
+    "alpha": {
+      "type": "float",
+      "required": false,
+      "default": 0.2,
+      "min": 0,
+      "max": 1,
+      "description": "Randomization parameter for stability selection weighting in [0,1]."
+    },
+    "nstepsLARS": {
+      "type": "int",
+      "required": false,
+      "default": 5,
+      "min": 1,
+      "description": "Maximum number of LARS steps used by TIGRESS."
+    },
+    "nsplit": {
+      "type": "int",
+      "required": false,
+      "default": 100,
+      "min": 1,
+      "description": "Number of sample splits used in stability selection."
+    },
+    "normalizeexp": {
+      "type": "bool",
+      "required": false,
+      "default": true,
+      "description": "Whether to mean-center and scale expression values per gene."
+    },
+    "scoring": {
+      "type": "enum",
+      "required": false,
+      "default": "area",
+      "enum": [
+        "area",
+        "max"
+      ],
+      "description": "Stability selection scoring method."
+    },
+    "allsteps": {
+      "type": "bool",
+      "required": false,
+      "default": true,
+      "description": "Whether TIGRESS returns scores for all LARS steps up to nstepsLARS."
+    },
+    "usemulticore": {
+      "type": "bool",
+      "required": false,
+      "default": false,
+      "description": "Whether TIGRESS uses its internal multicore path."
+    },
+    "limit": {
+      "type": "union",
+      "required": false,
+      "default": null,
+      "description": "Optional number of top regulatory links to return. If null, all links are returned.",
+      "oneOf": [
+        {
+          "type": "int",
+          "required": false,
+          "default": 100000,
+          "min": 1,
+          "description": "Top-k links to return."
+        },
+        {
+          "type": "object",
+          "required": false,
+          "default": null,
+          "description": "Use null to return all links."
+        }
+      ]
+    },
+    "seed": {
+      "type": "union",
+      "required": false,
+      "default": null,
+      "description": "Optional random seed used by wrapper before calling TIGRESS.",
+      "oneOf": [
+        {
+          "type": "int",
+          "required": false,
+          "default": 666,
+          "description": "Deterministic seed."
+        },
+        {
+          "type": "object",
+          "required": false,
+          "default": null,
+          "description": "Use null for random seed."
+        }
+      ]
+    }
+  },
+  "artifacts_aux": []
+}

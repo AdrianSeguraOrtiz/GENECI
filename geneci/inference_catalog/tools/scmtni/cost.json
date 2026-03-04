@@ -1,0 +1,681 @@
+{
+  "benchmark_config": {
+    "sizes": [
+      {
+        "genes": 50,
+        "columns": 20
+      },
+      {
+        "genes": 100,
+        "columns": 40
+      },
+      {
+        "genes": 200,
+        "columns": 80
+      }
+    ],
+    "threads_tested": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "ram_gb_tested": [
+      8.0,
+      16.0,
+      32.0
+    ],
+    "repeats": 1,
+    "timeout_seconds": 1800
+  },
+  "runtime_points": [
+    {
+      "genes": 50,
+      "columns": 20,
+      "threads": 1,
+      "ram_gb": 8,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.637301,
+      "seconds_p90": 0.637301
+    },
+    {
+      "genes": 50,
+      "columns": 20,
+      "threads": 1,
+      "ram_gb": 16,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.579187,
+      "seconds_p90": 0.579187
+    },
+    {
+      "genes": 50,
+      "columns": 20,
+      "threads": 1,
+      "ram_gb": 32,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.606811,
+      "seconds_p90": 0.606811
+    },
+    {
+      "genes": 50,
+      "columns": 20,
+      "threads": 2,
+      "ram_gb": 8,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.609485,
+      "seconds_p90": 0.609485
+    },
+    {
+      "genes": 50,
+      "columns": 20,
+      "threads": 2,
+      "ram_gb": 16,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.595483,
+      "seconds_p90": 0.595483
+    },
+    {
+      "genes": 50,
+      "columns": 20,
+      "threads": 2,
+      "ram_gb": 32,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.623551,
+      "seconds_p90": 0.623551
+    },
+    {
+      "genes": 50,
+      "columns": 20,
+      "threads": 4,
+      "ram_gb": 8,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.624967,
+      "seconds_p90": 0.624967
+    },
+    {
+      "genes": 50,
+      "columns": 20,
+      "threads": 4,
+      "ram_gb": 16,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.604185,
+      "seconds_p90": 0.604185
+    },
+    {
+      "genes": 50,
+      "columns": 20,
+      "threads": 4,
+      "ram_gb": 32,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.566277,
+      "seconds_p90": 0.566277
+    },
+    {
+      "genes": 50,
+      "columns": 20,
+      "threads": 8,
+      "ram_gb": 8,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.639374,
+      "seconds_p90": 0.639374
+    },
+    {
+      "genes": 50,
+      "columns": 20,
+      "threads": 8,
+      "ram_gb": 16,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.574926,
+      "seconds_p90": 0.574926
+    },
+    {
+      "genes": 50,
+      "columns": 20,
+      "threads": 8,
+      "ram_gb": 32,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.613612,
+      "seconds_p90": 0.613612
+    },
+    {
+      "genes": 100,
+      "columns": 40,
+      "threads": 1,
+      "ram_gb": 8,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.692661,
+      "seconds_p90": 0.692661
+    },
+    {
+      "genes": 100,
+      "columns": 40,
+      "threads": 1,
+      "ram_gb": 16,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.641459,
+      "seconds_p90": 0.641459
+    },
+    {
+      "genes": 100,
+      "columns": 40,
+      "threads": 1,
+      "ram_gb": 32,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.673595,
+      "seconds_p90": 0.673595
+    },
+    {
+      "genes": 100,
+      "columns": 40,
+      "threads": 2,
+      "ram_gb": 8,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.693265,
+      "seconds_p90": 0.693265
+    },
+    {
+      "genes": 100,
+      "columns": 40,
+      "threads": 2,
+      "ram_gb": 16,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.73567,
+      "seconds_p90": 0.73567
+    },
+    {
+      "genes": 100,
+      "columns": 40,
+      "threads": 2,
+      "ram_gb": 32,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.672875,
+      "seconds_p90": 0.672875
+    },
+    {
+      "genes": 100,
+      "columns": 40,
+      "threads": 4,
+      "ram_gb": 8,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.679529,
+      "seconds_p90": 0.679529
+    },
+    {
+      "genes": 100,
+      "columns": 40,
+      "threads": 4,
+      "ram_gb": 16,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.731925,
+      "seconds_p90": 0.731925
+    },
+    {
+      "genes": 100,
+      "columns": 40,
+      "threads": 4,
+      "ram_gb": 32,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.729839,
+      "seconds_p90": 0.729839
+    },
+    {
+      "genes": 100,
+      "columns": 40,
+      "threads": 8,
+      "ram_gb": 8,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.70675,
+      "seconds_p90": 0.70675
+    },
+    {
+      "genes": 100,
+      "columns": 40,
+      "threads": 8,
+      "ram_gb": 16,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.675436,
+      "seconds_p90": 0.675436
+    },
+    {
+      "genes": 100,
+      "columns": 40,
+      "threads": 8,
+      "ram_gb": 32,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.678979,
+      "seconds_p90": 0.678979
+    },
+    {
+      "genes": 200,
+      "columns": 80,
+      "threads": 1,
+      "ram_gb": 8,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 0.986456,
+      "seconds_p90": 0.986456
+    },
+    {
+      "genes": 200,
+      "columns": 80,
+      "threads": 1,
+      "ram_gb": 16,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 1.010119,
+      "seconds_p90": 1.010119
+    },
+    {
+      "genes": 200,
+      "columns": 80,
+      "threads": 1,
+      "ram_gb": 32,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 1.081507,
+      "seconds_p90": 1.081507
+    },
+    {
+      "genes": 200,
+      "columns": 80,
+      "threads": 2,
+      "ram_gb": 8,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 1.059589,
+      "seconds_p90": 1.059589
+    },
+    {
+      "genes": 200,
+      "columns": 80,
+      "threads": 2,
+      "ram_gb": 16,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 1.041568,
+      "seconds_p90": 1.041568
+    },
+    {
+      "genes": 200,
+      "columns": 80,
+      "threads": 2,
+      "ram_gb": 32,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 1.092442,
+      "seconds_p90": 1.092442
+    },
+    {
+      "genes": 200,
+      "columns": 80,
+      "threads": 4,
+      "ram_gb": 8,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 1.039284,
+      "seconds_p90": 1.039284
+    },
+    {
+      "genes": 200,
+      "columns": 80,
+      "threads": 4,
+      "ram_gb": 16,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 1.036262,
+      "seconds_p90": 1.036262
+    },
+    {
+      "genes": 200,
+      "columns": 80,
+      "threads": 4,
+      "ram_gb": 32,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 1.000382,
+      "seconds_p90": 1.000382
+    },
+    {
+      "genes": 200,
+      "columns": 80,
+      "threads": 8,
+      "ram_gb": 8,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 1.084556,
+      "seconds_p90": 1.084556
+    },
+    {
+      "genes": 200,
+      "columns": 80,
+      "threads": 8,
+      "ram_gb": 16,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 1.040712,
+      "seconds_p90": 1.040712
+    },
+    {
+      "genes": 200,
+      "columns": 80,
+      "threads": 8,
+      "ram_gb": 32,
+      "status": "ok",
+      "repeats_total": 1,
+      "repeats_ok": 1,
+      "repeats_failed": 0,
+      "ok_rate": 1.0,
+      "failure_breakdown": {
+        "oom": 0,
+        "timeout": 0,
+        "error": 0
+      },
+      "seconds_p50": 1.019058,
+      "seconds_p90": 1.019058
+    }
+  ]
+}

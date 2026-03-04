@@ -1,0 +1,411 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geneci.org/schemas/tool-spec.schema.json",
+  "title": "GENECI ToolSpec",
+  "description": "Minimal tool annotation schema for GRN inference tools (compatibility, outputs, priors, provenance, extra inputs and parameter signature). All fields are required.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "name",
+    "publication",
+    "first_author",
+    "implementation_url",
+    "docker_image",
+    "accepts",
+    "assumes",
+    "extra_inputs",
+    "artifacts_aux",
+    "outputs",
+    "progress",
+    "params"
+  ],
+  "$defs": {
+    "param_def": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "required",
+        "default",
+        "description"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "int",
+            "float",
+            "bool",
+            "string",
+            "enum",
+            "object",
+            "array",
+            "union"
+          ],
+          "description": "Parameter value type."
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Whether the user must provide this parameter (true) or it can be omitted (false)."
+        },
+        "default": {
+          "description": "Default value for this parameter. Use null if there is no default / must be provided.",
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "array"
+            },
+            {
+              "type": "object"
+            }
+          ]
+        },
+        "enum": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          },
+          "description": "Allowed values when type=enum."
+        },
+        "min": {
+          "type": "number",
+          "description": "Minimum value (for int/float)."
+        },
+        "max": {
+          "type": "number",
+          "description": "Maximum value (for int/float)."
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Short human-readable description."
+        },
+        "properties": {
+          "type": "object",
+          "description": "Nested object fields when type=object.",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/param_def"
+          }
+        },
+        "items": {
+          "$ref": "#/$defs/param_def",
+          "description": "Array element definition when type=array."
+        },
+        "oneOf": {
+          "type": "array",
+          "minItems": 2,
+          "description": "Union/overloaded parameter definition when type=union (e.g., string OR int OR float).",
+          "items": {
+            "$ref": "#/$defs/param_def"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "enum"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "enum"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "array"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "items"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "union"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "oneOf"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0",
+      "description": "ToolSpec schema version."
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z0-9][a-z0-9_-]*$",
+      "description": "Stable tool identifier (lowercase, digits, underscore, hyphen)."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable tool name."
+    },
+    "publication": {
+      "description": "Scientific origin reference(s) (e.g., DOI(s), bib entry key(s), or citation string(s)).",
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      ]
+    },
+    "first_author": {
+      "type": "string",
+      "minLength": 1,
+      "description": "First author name for the primary publication shown in 'publication'."
+    },
+    "implementation_url": {
+      "type": "string",
+      "format": "uri",
+      "minLength": 1,
+      "description": "URL to the implementation used (e.g., PyPI, GitHub repository, Bioconductor, etc.)."
+    },
+    "docker_image": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Docker image name/tag generated by you (e.g., ghcr.io/user/tool:version)."
+    },
+    "accepts": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "samples",
+          "cells",
+          "timepoints",
+          "perturbations"
+        ]
+      },
+      "description": "Column kinds the tool can be applied to."
+    },
+    "assumes": {
+      "type": "string",
+      "enum": [
+        "scrna_specific",
+        "bulk_specific",
+        "generic"
+      ],
+      "description": "Domain assumption: scRNA-specific, bulk-specific, or generic (works for both)."
+    },
+    "extra_inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required",
+        "optional"
+      ],
+      "description": "Additional input artefacts (besides expression matrix) that the tool may consume. The orchestrator mounts them under /io/extra/.",
+      "properties": {
+        "required": {
+          "type": "array",
+          "minItems": 0,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "prior_grn",
+              "groups",
+              "lineage_tree",
+              "pseudotime",
+              "tf_list",
+              "gene_metadata",
+              "cell_metadata",
+              "gold_standard"
+            ]
+          },
+          "description": "Extra artefacts that MUST be provided for the tool to run."
+        },
+        "optional": {
+          "type": "array",
+          "minItems": 0,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "prior_grn",
+              "groups",
+              "lineage_tree",
+              "pseudotime",
+              "tf_list",
+              "gene_metadata",
+              "cell_metadata",
+              "gold_standard"
+            ]
+          },
+          "description": "Extra artefacts that MAY be provided to improve/enable certain modes."
+        }
+      }
+    },
+    "artifacts_aux": {
+      "type": "array",
+      "description": "Auxiliary files/directories generated in output-dir in addition to network.csv and progress.json.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path_pattern",
+          "kind"
+        ],
+        "properties": {
+          "path_pattern": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Glob pattern relative to output-dir (e.g., 'aracne3.stdout.log' or 'consolidated-net_*.tsv')."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "file",
+              "dir"
+            ],
+            "description": "Expected artifact type."
+          },
+          "require_non_empty": {
+            "type": "boolean",
+            "description": "If true, smoketests must verify the artifact has content."
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Human-readable artifact description."
+          }
+        }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "directed",
+        "sign",
+        "evidence"
+      ],
+      "properties": {
+        "directed": {
+          "type": "boolean",
+          "description": "Whether the output edges are directed."
+        },
+        "sign": {
+          "type": "string",
+          "enum": [
+            "none",
+            "signed",
+            "mixed"
+          ],
+          "description": "Sign support in outputs: none, signed (always), mixed (sometimes/partial)."
+        },
+        "evidence": {
+          "type": "string",
+          "enum": [
+            "association",
+            "causal",
+            "pseudotime_directed"
+          ],
+          "description": "Primary evidence type produced by the tool."
+        }
+      }
+    },
+    "progress": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "description": "Progress reporting contract exposed by the tool during execution.",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "none",
+            "task_partitions",
+            "target_genes",
+            "iterations"
+          ],
+          "description": "Semantic unit used to compute progress percentage."
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable clarification about progress semantics."
+        }
+      }
+    },
+    "params": {
+      "type": "object",
+      "description": "Tool parameter signature (definitions), not execution values. Use an empty object {} if the tool has no parameters.",
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/param_def"
+      }
+    }
+  }
+}

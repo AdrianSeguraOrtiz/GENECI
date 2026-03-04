@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "key": "groups",
+  "file_kind": "tsv",
+  "description": "Optional groups TSV: first column maps expression column identifiers to a cluster/group label.",
+  "example": "sample\tcluster\nS1\tA\nS2\tB",
+  "delimiter": "\t",
+  "header": true,
+  "min_rows": 1,
+  "min_columns": 2,
+  "first_column_role": "expression_column_id",
+  "required_columns": ["cluster"],
+  "unique_first_column": true,
+  "column_types": {
+    "cluster": "string"
+  },
+  "cross_checks": [
+    {"kind": "first_column_subset_expression_columns"}
+  ]
+}

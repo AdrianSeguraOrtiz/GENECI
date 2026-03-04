@@ -1,0 +1,142 @@
+{
+  "schema_version": "1.0",
+  "id": "genie3",
+  "name": "GENIE3",
+  "publication": [
+    "https://doi.org/10.1371/journal.pone.0012776"
+  ],
+  "first_author": "Vân Anh Huynh-Thu",
+  "implementation_url": "https://github.com/tmoerman/arboreto",
+  "docker_image": "adriansegura99/inference-tools_genie3:1.0.0",
+  "accepts": [
+    "samples",
+    "cells",
+    "timepoints",
+    "perturbations"
+  ],
+  "assumes": "generic",
+  "extra_inputs": {
+    "required": [],
+    "optional": [
+      "tf_list"
+    ]
+  },
+  "outputs": {
+    "directed": true,
+    "sign": "none",
+    "evidence": "association"
+  },
+  "progress": {
+    "kind": "task_partitions",
+    "note": "Progress percentage is computed from completed Dask task partitions."
+  },
+  "params": {
+    "regressor_type": {
+      "type": "enum",
+      "required": false,
+      "default": "RF",
+      "enum": [
+        "RF",
+        "ET"
+      ],
+      "description": "Regressor choice (case-insensitive): RandomForest ('RF') or ExtraTrees ('ET'). Default: RF."
+    },
+    "regressor_kwargs": {
+      "type": "object",
+      "required": false,
+      "default": {
+        "n_jobs": 1,
+        "n_estimators": 1000,
+        "max_features": "sqrt"
+      },
+      "description": "Hyperparameters for the selected regressor. Default corresponds to RF_KWARGS in this implementation.",
+      "properties": {
+        "n_estimators": {
+          "type": "int",
+          "required": false,
+          "default": 1000,
+          "min": 1,
+          "description": "Number of trees in the ensemble. Default: 1000."
+        },
+        "max_features": {
+          "type": "union",
+          "required": false,
+          "default": "sqrt",
+          "description": "Number of features to consider at each split (sklearn semantics). Default: 'sqrt'.",
+          "oneOf": [
+            {
+              "type": "string",
+              "required": false,
+              "default": "sqrt",
+              "description": "Named strategy (e.g., 'sqrt')."
+            },
+            {
+              "type": "int",
+              "required": false,
+              "default": 1,
+              "min": 1,
+              "description": "Absolute number of features."
+            },
+            {
+              "type": "float",
+              "required": false,
+              "default": 0.1,
+              "min": 0,
+              "max": 1,
+              "description": "Fraction of features."
+            }
+          ]
+        },
+        "n_jobs": {
+          "type": "int",
+          "required": false,
+          "default": 1,
+          "min": 1,
+          "description": "Number of parallel jobs used by the regressor. Default: 1."
+        }
+      }
+    },
+    "limit": {
+      "type": "union",
+      "required": false,
+      "default": null,
+      "description": "Optional number of top regulatory links to return. If null, all links are returned.",
+      "oneOf": [
+        {
+          "type": "int",
+          "required": false,
+          "default": 100000,
+          "min": 1,
+          "description": "Top-k links to return."
+        },
+        {
+          "type": "object",
+          "required": false,
+          "default": null,
+          "description": "Use null to return all links."
+        }
+      ]
+    },
+    "seed": {
+      "type": "union",
+      "required": false,
+      "default": 666,
+      "description": "Random seed for the regressors. Use null for a random seed. Default: 666.",
+      "oneOf": [
+        {
+          "type": "int",
+          "required": false,
+          "default": 666,
+          "description": "Detinistic seed."
+        },
+        {
+          "type": "object",
+          "required": false,
+          "default": null,
+          "description": "Use null for random seed."
+        }
+      ]
+    }
+  },
+  "artifacts_aux": []
+}

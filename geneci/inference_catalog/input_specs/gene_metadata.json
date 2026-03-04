@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "key": "gene_metadata",
+  "file_kind": "tsv",
+  "description": "Optional gene metadata TSV with at least a gene column.",
+  "example": "gene\tbiotype\nG1\tprotein_coding",
+  "delimiter": "\t",
+  "header": true,
+  "min_rows": 1,
+  "required_columns": ["gene"],
+  "column_types": {
+    "gene": "string"
+  },
+  "cross_checks": [
+    {"kind": "column_subset_expression_genes", "column": "gene"}
+  ]
+}

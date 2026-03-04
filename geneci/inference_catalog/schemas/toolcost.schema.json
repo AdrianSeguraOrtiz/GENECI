@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geneci.org/schemas/tool-cost.schema.json",
+  "title": "GENECI Tool Cost Profile",
+  "description": "Empirical benchmark-derived runtime/cost profile for a tool. Stored in geneci/inference_catalog/tools/<tool_id>/cost.json.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "benchmark_config",
+    "runtime_points"
+  ],
+  "properties": {
+    "benchmark_config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sizes",
+        "threads_tested",
+        "ram_gb_tested",
+        "repeats",
+        "timeout_seconds"
+      ],
+      "description": "Benchmark matrix configuration used to generate cost metrics.",
+      "properties": {
+        "sizes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "genes",
+              "columns"
+            ],
+            "properties": {
+              "genes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "columns": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          },
+          "description": "Input size points used in the benchmark."
+        },
+        "threads_tested": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "description": "Thread counts tested."
+        },
+        "ram_gb_tested": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "description": "RAM limits (GB) tested."
+        },
+        "repeats": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Configured repeats per benchmark point."
+        },
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Configured timeout per run in seconds."
+        }
+      }
+    },
+    "runtime_points": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Empirical runtime and failure profile by size and resource configuration.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "genes",
+          "columns",
+          "threads",
+          "ram_gb",
+          "status",
+          "repeats_total",
+          "repeats_ok",
+          "repeats_failed",
+          "ok_rate",
+          "failure_breakdown",
+          "seconds_p50",
+          "seconds_p90"
+        ],
+        "properties": {
+          "genes": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number of genes (rows)."
+          },
+          "columns": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number of columns (samples/cells/timepoints/perturbations)."
+          },
+          "threads": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Thread count used for this benchmark point."
+          },
+          "ram_gb": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Container memory limit (GB) used for this benchmark point."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "partial",
+              "oom",
+              "timeout",
+              "error"
+            ],
+            "description": "Aggregated run status for this point."
+          },
+          "repeats_total": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Total repeats attempted for this point."
+          },
+          "repeats_ok": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Successful repeats for this point."
+          },
+          "repeats_failed": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Failed repeats for this point."
+          },
+          "ok_rate": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Ratio repeats_ok / repeats_total."
+          },
+          "failure_breakdown": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "oom",
+              "timeout",
+              "error"
+            ],
+            "properties": {
+              "oom": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "timeout": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "error": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "description": "Failure counts by category across repeats for this point."
+          },
+          "seconds_p50": {
+            "description": "Median runtime over successful repeats; null when repeats_ok=0.",
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "seconds_p90": {
+            "description": "Approximate p90 runtime over successful repeats; null when repeats_ok=0.",
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

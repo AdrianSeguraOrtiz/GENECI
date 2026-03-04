@@ -1,0 +1,141 @@
+{
+  "schema_version": "1.0",
+  "id": "grnboost2",
+  "name": "GRNBoost2",
+  "publication": [
+    "https://doi.org/10.1093/bioinformatics/bty916"
+  ],
+  "first_author": "Thomas Moerman",
+  "implementation_url": "https://github.com/tmoerman/arboreto",
+  "docker_image": "adriansegura99/inference-tools_grnboost2:1.0.0",
+  "accepts": [
+    "samples",
+    "cells",
+    "timepoints",
+    "perturbations"
+  ],
+  "assumes": "generic",
+  "extra_inputs": {
+    "required": [],
+    "optional": [
+      "tf_list"
+    ]
+  },
+  "outputs": {
+    "directed": true,
+    "sign": "none",
+    "evidence": "association"
+  },
+  "progress": {
+    "kind": "task_partitions",
+    "note": "Progress percentage is computed from completed Dask task partitions."
+  },
+  "params": {
+    "regressor_kwargs": {
+      "type": "object",
+      "required": false,
+      "default": {
+        "learning_rate": 0.01,
+        "n_estimators": 5000,
+        "max_features": 0.1,
+        "subsample": 0.9
+      },
+      "description": "Hyperparameters for GRNBoost2 GBM regressor. Default corresponds to SGBM_KWARGS in arboreto.",
+      "properties": {
+        "learning_rate": {
+          "type": "float",
+          "required": false,
+          "default": 0.01,
+          "min": 0,
+          "description": "Shrinkage learning rate for boosting."
+        },
+        "n_estimators": {
+          "type": "int",
+          "required": false,
+          "default": 5000,
+          "min": 1,
+          "description": "Number of boosting stages."
+        },
+        "max_features": {
+          "type": "union",
+          "required": false,
+          "default": 0.1,
+          "description": "Number of features to consider at each split (sklearn semantics).",
+          "oneOf": [
+            {
+              "type": "string",
+              "required": false,
+              "default": "sqrt",
+              "description": "Named strategy (e.g., 'sqrt')."
+            },
+            {
+              "type": "int",
+              "required": false,
+              "default": 1,
+              "min": 1,
+              "description": "Absolute number of features."
+            },
+            {
+              "type": "float",
+              "required": false,
+              "default": 0.1,
+              "min": 0,
+              "max": 1,
+              "description": "Fraction of features."
+            }
+          ]
+        },
+        "subsample": {
+          "type": "float",
+          "required": false,
+          "default": 0.9,
+          "min": 0,
+          "max": 1,
+          "description": "Fraction of samples used for fitting each base learner."
+        }
+      }
+    },
+    "limit": {
+      "type": "union",
+      "required": false,
+      "default": null,
+      "description": "Optional number of top regulatory links to return. If null, all links are returned.",
+      "oneOf": [
+        {
+          "type": "int",
+          "required": false,
+          "default": 100000,
+          "min": 1,
+          "description": "Top-k links to return."
+        },
+        {
+          "type": "object",
+          "required": false,
+          "default": null,
+          "description": "Use null to return all links."
+        }
+      ]
+    },
+    "seed": {
+      "type": "union",
+      "required": false,
+      "default": null,
+      "description": "Random seed for the regressors. Use null for a random seed.",
+      "oneOf": [
+        {
+          "type": "int",
+          "required": false,
+          "default": 666,
+          "description": "Deterministic seed."
+        },
+        {
+          "type": "object",
+          "required": false,
+          "default": null,
+          "description": "Use null for random seed."
+        }
+      ]
+    }
+  },
+  "artifacts_aux": []
+}

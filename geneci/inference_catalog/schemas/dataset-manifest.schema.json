@@ -1,0 +1,201 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geneci.org/schemas/dataset-manifest.schema.json",
+  "title": "GENECI DatasetManifest",
+  "description": "Run-time manifest for GRN inference. Describes the embedded dataset spec, expression matrix path, and optional extra artefacts. This is the main orchestrator input.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "dataset"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0",
+      "description": "DatasetManifest schema version."
+    },
+
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z0-9][a-z0-9_-]*$",
+      "description": "Stable manifest identifier."
+    },
+
+    "dataset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["spec", "expression_matrix"],
+      "description": "Core dataset inputs (embedded semantic spec + expression matrix path).",
+      "properties": {
+        "spec": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["schema_version", "id", "name", "expression", "organism"],
+          "description": "Embedded dataset semantic annotation (formerly dataset-spec.json).",
+          "properties": {
+            "schema_version": {
+              "type": "string",
+              "const": "1.0"
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[a-z0-9][a-z0-9_-]*$",
+              "description": "Stable dataset identifier."
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Human-readable dataset name."
+            },
+            "expression": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["genes", "columns", "column_kind", "expression_profile"],
+              "properties": {
+                "genes": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Number of rows (genes). Rows are always genes by definition."
+                },
+                "columns": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Number of columns (samples/cells/timepoints/perturbations)."
+                },
+                "column_kind": {
+                  "type": "string",
+                  "enum": ["samples", "cells", "timepoints", "perturbations"],
+                  "description": "What each column represents."
+                },
+                "expression_profile": {
+                  "type": "string",
+                  "enum": ["bulk", "scrna", "mixed", "unknown"],
+                  "description": "Statistical nature of the expression matrix (bulk RNA-seq, single-cell RNA-seq, mixed, or unknown)."
+                },
+                "gene_id_kind": {
+                  "type": "string",
+                  "enum": ["symbol", "ensembl", "entrez", "mixed", "unknown"],
+                  "default": "unknown",
+                  "description": "Identifier kind used for gene names in rows."
+                }
+              }
+            },
+            "organism": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["tax_id"],
+              "properties": {
+                "tax_id": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "NCBI Taxonomy ID (e.g., 9606 human, 10090 mouse)."
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Optional organism name for humans."
+                }
+              }
+            },
+            "context": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [],
+              "description": "Optional biological context (free text or IDs). Useful for enrichment/prior integration in future versions.",
+              "properties": {
+                "disease": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Disease/condition label or ID (e.g., 'acute myeloid leukemia' or 'MONDO:0018874')."
+                },
+                "tissue": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Tissue/source label or ID (e.g., 'bone marrow' or 'UBERON:0002371')."
+                },
+                "cell_type": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Cell type label or ID (e.g., 'B cell' or 'CL:0000236')."
+                },
+                "study_system": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Short free-text context (e.g., 'PBMC', 'tumor microenvironment', 'drug response')."
+                }
+              }
+            }
+          }
+        },
+        "expression_matrix": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": ".*\\.tsv$",
+          "description": "Path to expression TSV. Detailed content validation is defined in input_specs/expression_matrix.json."
+        }
+      }
+    },
+
+    "extras": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional extra artefacts (paths) that some tools may consume. Use null when not provided.",
+      "properties": {
+        "prior_grn": {
+          "type": ["string", "null"],
+          "minLength": 1,
+          "pattern": ".*\\.tsv$",
+          "description": "Optional prior GRN TSV path. Detailed content validation is defined in input_specs/prior_grn.json."
+        },
+        "groups": {
+          "type": ["string", "null"],
+          "minLength": 1,
+          "pattern": ".*\\.tsv$",
+          "description": "Optional groups TSV path. Detailed content validation is defined in input_specs/groups.json."
+        },
+        "lineage_tree": {
+          "type": ["string", "null"],
+          "minLength": 1,
+          "pattern": ".*\\.tsv$",
+          "description": "Optional lineage tree TSV path. Detailed content validation is defined in input_specs/lineage_tree.json."
+        },
+        "pseudotime": {
+          "type": ["string", "null"],
+          "minLength": 1,
+          "pattern": ".*\\.tsv$",
+          "description": "Optional pseudotime TSV path. Detailed content validation is defined in input_specs/pseudotime.json."
+        },
+        "tf_list": {
+          "type": ["string", "null"],
+          "minLength": 1,
+          "pattern": ".*\\.txt$",
+          "description": "Optional TF list text file path. Detailed content validation is defined in input_specs/tf_list.json."
+        },
+        "gene_metadata": {
+          "type": ["string", "null"],
+          "minLength": 1,
+          "pattern": ".*\\.tsv$",
+          "description": "Optional gene metadata TSV path. Detailed content validation is defined in input_specs/gene_metadata.json."
+        },
+        "cell_metadata": {
+          "type": ["string", "null"],
+          "minLength": 1,
+          "pattern": ".*\\.tsv$",
+          "description": "Optional cell/sample metadata TSV path. Detailed content validation is defined in input_specs/cell_metadata.json."
+        },
+        "gold_standard": {
+          "type": ["string", "null"],
+          "minLength": 1,
+          "pattern": ".*\\.tsv$",
+          "description": "Optional gold-standard GRN TSV path. Detailed content validation is defined in input_specs/gold_standard.json."
+        }
+      }
+    },
+
+    "notes": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Optional human-readable notes about this manifest/run."
+    }
+  }
+}

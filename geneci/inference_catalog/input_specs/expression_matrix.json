@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "key": "expression_matrix",
+  "file_kind": "tsv",
+  "description": "Expression matrix TSV. Header row required. First column is gene identifier and remaining columns are samples/cells.",
+  "example": "gene\tcell_1\tcell_2\nG1\t0.12\t0.20\nG2\t1.30\t0.95",
+  "delimiter": "\t",
+  "header": true,
+  "min_rows": 1,
+  "min_columns": 2,
+  "first_column_role": "gene_id",
+  "first_column_disallowed_names": [
+    "cell",
+    "cells",
+    "sample",
+    "samples",
+    "timepoint",
+    "timepoints",
+    "perturbation",
+    "perturbations",
+    "cluster",
+    "pseudotime"
+  ],
+  "unique_first_column": true,
+  "data_columns_type": "float",
+  "data_numeric_min_fraction": 1.0,
+  "required_columns": [],
+  "column_types": {},
+  "cross_checks": []
+}
