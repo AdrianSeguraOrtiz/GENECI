@@ -24,7 +24,8 @@ Exit codes:
 Cost model written to cost.json:
 - runtime_points: aggregated per (genes, columns, threads, ram_gb), including
   status/failure information, ok_rate, failure_breakdown, and p50/p90 runtime estimates.
-- benchmark_config: benchmark matrix metadata (sizes/resources/repeats/timeout).
+- benchmark_config: benchmark matrix metadata (sizes/resources/repeats/timeout)
+  plus the resolved parameter profile used for the benchmark.
 """
 
 from __future__ import annotations
@@ -44,6 +45,8 @@ from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterator, Sequence
+
+from shared.param_profiles import DEFAULT_PARAM_OVERRIDES_DIR, resolve_dev_params
 
 INFERENCE_TOOLS_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -91,8 +94,17 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         type=Path,
         default=DEFAULT_TOOL_SOURCES_ROOT,
         help=(
-            "Path to tool source directories containing Dockerfile/wrappers/assets. "
+            "Path to tool source directories containing Dockerfile/wrappers. "
             f"Default: {DEFAULT_TOOL_SOURCES_ROOT}"
+        ),
+    )
+    parser.add_argument(
+        "--param-overrides-dir",
+        type=Path,
+        default=DEFAULT_PARAM_OVERRIDES_DIR,
+        help=(
+            "Path to optional per-tool dev parameter overrides merged onto ToolSpec defaults. "
+            f"Default: {DEFAULT_PARAM_OVERRIDES_DIR}"
         ),
     )
     parser.add_argument(
@@ -366,10 +378,10 @@ def write_prior_grn(path: Path, genes: Sequence[str], rng: random.Random) -> Non
 
 
 def prepare_io_dir(
-    tool_dir: Path,
     io_dir: Path,
     size: SizePoint,
     *,
+    resolved_params: dict[str, Any],
     seed: int,
     run_offset: int,
 ) -> None:
@@ -377,16 +389,11 @@ def prepare_io_dir(
     (io_dir / "extra").mkdir(parents=True, exist_ok=True)
     (io_dir / "out").mkdir(parents=True, exist_ok=True)
 
-    assets_dir = tool_dir / "assets"
-    params_src = assets_dir / "params.json"
-    if not params_src.exists():
-        raise RuntimeError(f"Missing params template: {params_src}")
-
     rng = random.Random(seed + run_offset)
     genes = write_expression_tsv(
         io_dir / "expression.tsv", size.genes, size.columns, rng
     )
-    shutil.copy2(params_src, io_dir / "params.json")
+    save_json(io_dir / "params.json", resolved_params)
 
     write_tf_list(io_dir / "extra" / "tf_list.txt", genes)
     clusters = write_groups(io_dir / "extra" / "groups.tsv", size.columns)
@@ -608,6 +615,7 @@ def build_benchmark_config(
     sizes: list[SizePoint],
     threads: list[int],
     ram_gb: list[int],
+    params_profile: dict[str, Any],
     args: argparse.Namespace,
 ) -> dict[str, Any]:
     """Build the benchmark_config block stored in cost.json."""
@@ -617,6 +625,7 @@ def build_benchmark_config(
         "ram_gb_tested": [float(r) for r in ram_gb],
         "repeats": int(args.repeats),
         "timeout_seconds": int(args.timeout),
+        "params_profile": params_profile,
     }
 
 
@@ -679,13 +688,13 @@ def make_cost_payload(
 def execute_tool_benchmarks(
     *,
     tool_id: str,
-    tool_dir: Path,
     image_tag: str,
     workdir: Path,
     sizes: list[SizePoint],
     threads: list[int],
     ram_gb: list[int],
     repeats: int,
+    resolved_params: dict[str, Any],
     seed: int,
     timeout: int,
     fail_fast: bool,
@@ -712,9 +721,9 @@ def execute_tool_benchmarks(
         )
         io_dir = workdir / run_key / "io"
         prepare_io_dir(
-            tool_dir,
             io_dir,
             plan.size,
+            resolved_params=resolved_params,
             seed=seed,
             run_offset=run_offset,
         )
@@ -760,12 +769,6 @@ def run(argv: Sequence[str] | None = None) -> int:
 
     discovered = discover_catalog_tools(args.catalog_tools_root)
     selected = select_tools(discovered, args.tool)
-    benchmark_config = build_benchmark_config(
-        sizes=sizes,
-        threads=threads,
-        ram_gb=ram_gb,
-        args=args,
-    )
 
     total_runs = len(selected) * len(sizes) * len(threads) * len(ram_gb) * args.repeats
     run_index = 0
@@ -802,15 +805,27 @@ def run(argv: Sequence[str] | None = None) -> int:
                 tool_id=tool_id,
                 keep_workdir=args.keep_workdir,
             )
+            resolved_params, params_profile = resolve_dev_params(
+                tool_id=tool_id,
+                catalog_tools_root=args.catalog_tools_root,
+                param_overrides_dir=args.param_overrides_dir,
+            )
+            benchmark_config = build_benchmark_config(
+                sizes=sizes,
+                threads=threads,
+                ram_gb=ram_gb,
+                params_profile=params_profile,
+                args=args,
+            )
             tool_runs, run_index, fail_fast_triggered = execute_tool_benchmarks(
                 tool_id=tool_id,
-                tool_dir=tool_source_dir,
                 image_tag=image_tag,
                 workdir=workdir,
                 sizes=sizes,
                 threads=threads,
                 ram_gb=ram_gb,
                 repeats=args.repeats,
+                resolved_params=resolved_params,
                 seed=args.seed,
                 timeout=args.timeout,
                 fail_fast=args.fail_fast,

@@ -26,7 +26,19 @@
       32.0
     ],
     "repeats": 1,
-    "timeout_seconds": 1800
+    "timeout_seconds": 1800,
+    "params_profile": {
+      "source": "toolspec_defaults_plus_override",
+      "override_file": "scmtni.json",
+      "resolved_params": {
+        "x": 3,
+        "p": 0.2,
+        "b": -0.9,
+        "q": 2,
+        "indep": false,
+        "split_genes": true
+      }
+    }
   },
   "runtime_points": [
     {

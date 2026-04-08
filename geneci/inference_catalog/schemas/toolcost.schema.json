@@ -18,7 +18,8 @@
         "threads_tested",
         "ram_gb_tested",
         "repeats",
-        "timeout_seconds"
+        "timeout_seconds",
+        "params_profile"
       ],
       "description": "Benchmark matrix configuration used to generate cost metrics.",
       "properties": {
@@ -74,6 +75,36 @@
           "type": "integer",
           "minimum": 0,
           "description": "Configured timeout per run in seconds."
+        },
+        "params_profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source",
+            "override_file",
+            "resolved_params"
+          ],
+          "description": "Resolved parameter profile used during benchmarking, derived from ToolSpec defaults plus an optional dev override.",
+          "properties": {
+            "source": {
+              "type": "string",
+              "enum": [
+                "toolspec_defaults",
+                "toolspec_defaults_plus_override"
+              ]
+            },
+            "override_file": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "minLength": 1
+            },
+            "resolved_params": {
+              "type": "object",
+              "description": "Concrete params.json payload passed to the wrapper during the benchmark."
+            }
+          }
         }
       }
     },

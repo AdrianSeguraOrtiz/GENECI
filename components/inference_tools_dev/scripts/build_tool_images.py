@@ -150,7 +150,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         type=Path,
         default=DEFAULT_TOOL_SOURCES_ROOT,
         help=(
-            "Path to tool source directories containing Dockerfile/wrappers/assets. "
+            "Path to tool source directories containing Dockerfile/wrappers. "
             f"Default: {DEFAULT_TOOL_SOURCES_ROOT}"
         ),
     )

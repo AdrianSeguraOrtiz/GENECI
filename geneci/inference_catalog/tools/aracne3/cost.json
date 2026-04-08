@@ -26,7 +26,22 @@
       32.0
     ],
     "repeats": 1,
-    "timeout_seconds": 1800
+    "timeout_seconds": 1800,
+    "params_profile": {
+      "source": "toolspec_defaults_plus_override",
+      "override_file": "aracne3.json",
+      "resolved_params": {
+        "alpha": 0.05,
+        "x": 1,
+        "adaptive": false,
+        "min_subnets": 0,
+        "method": "FDR",
+        "subsample": 1.0,
+        "no_alpha": true,
+        "no_maxent": true,
+        "seed": 666
+      }
+    }
   },
   "runtime_points": [
     {

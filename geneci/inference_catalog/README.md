@@ -73,8 +73,10 @@ Expected outputs:
 ## Notes
 
 - The orchestrator reads this catalog from inside the installed `geneci` package.
-- Tool sources used to build Docker images (e.g. `Dockerfile`, `run_tool.py`, `assets/params.json`)
+- Tool sources used to build Docker images (e.g. `Dockerfile`, `run_tool.py`)
   intentionally live outside the packaged runtime catalog in `components/inference_tools_dev/tools/`.
+- Dev-only smoke/benchmark parameter overrides derived from ToolSpec defaults live in
+  `components/inference_tools_dev/param_overrides/`.
 - Per-tool smoketest configs and their schema are intentionally *not* stored here; they live in:
   - `components/inference_tools_dev/tests/smoketest_configs/`
   - `components/inference_tools_dev/tests/schemas/smoketest.config.schema.json`

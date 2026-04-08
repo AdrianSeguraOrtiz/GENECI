@@ -26,7 +26,22 @@
       32.0
     ],
     "repeats": 1,
-    "timeout_seconds": 1800
+    "timeout_seconds": 1800,
+    "params_profile": {
+      "source": "toolspec_defaults_plus_override",
+      "override_file": "tigress.json",
+      "resolved_params": {
+        "alpha": 0.2,
+        "nstepsLARS": 1,
+        "nsplit": 20,
+        "normalizeexp": true,
+        "scoring": "area",
+        "allsteps": true,
+        "usemulticore": false,
+        "limit": 50,
+        "seed": 666
+      }
+    }
   },
   "runtime_points": [
     {

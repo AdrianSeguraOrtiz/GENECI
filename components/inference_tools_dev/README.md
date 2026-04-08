@@ -7,21 +7,23 @@ Use this area for:
 - building tool Docker images
 - running smoketests
 - benchmarking and updating `cost` profiles
+- keeping dev-only parameter overrides derived from ToolSpec defaults
 - keeping shared fixtures and smoketest-only configs
 
 Runtime catalog assets consumed by `infer_network_v2` live in `geneci/inference_catalog/`.
-Tool build sources and dev-only assets live in `components/inference_tools_dev/tools/`.
+Tool build sources live in `components/inference_tools_dev/tools/`.
+Dev-only parameter overrides live in `components/inference_tools_dev/param_overrides/`.
 
 ## Layout
 
 ```text
 components/inference_tools_dev/
+  param_overrides/
+    <tool_id>.json       # optional, merged onto ToolSpec defaults for smoketests/benchmarks
   tools/
     <tool_id>/
       Dockerfile
       run_tool.py | run_tool.R
-      assets/
-        params.json
   scripts/
     validate_toolspecs.py
     validate_input_specs.py
@@ -86,7 +88,8 @@ python components/inference_tools_dev/scripts/validate_input_specs.py
 
 Runs tool smoketests using:
 - tools from `geneci/inference_catalog/tools/`
-- tool sources/assets from `components/inference_tools_dev/tools/`
+- tool sources from `components/inference_tools_dev/tools/`
+- ToolSpec defaults plus optional overrides from `components/inference_tools_dev/param_overrides/`
 - fixtures from `components/inference_tools_dev/tests/fixtures/`
 - per-tool configs from `components/inference_tools_dev/tests/smoketest_configs/`
 
@@ -103,11 +106,12 @@ python components/inference_tools_dev/scripts/run_smoketests.py --list
 Fixture resolution order:
 1. `tests/fixtures/<tool_id>/<filename>`
 2. `tests/fixtures/<filename>`
-3. `components/inference_tools_dev/tools/<tool_id>/assets/<filename>`
 
 ### `benchmark_costs.py`
 
 Runs Docker benchmarks and writes `cost.json` profiles under the packaged catalog.
+Benchmark params are derived from ToolSpec defaults plus optional overrides in
+`components/inference_tools_dev/param_overrides/`.
 
 ```bash
 python components/inference_tools_dev/scripts/benchmark_costs.py
@@ -137,11 +141,12 @@ Environment note:
 ## Adding or updating a tool
 
 1. Edit the runtime metadata in `geneci/inference_catalog/tools/<tool_id>/toolspec.json`.
-2. Edit build sources/wrappers/dev assets in `components/inference_tools_dev/tools/<tool_id>/`.
+2. Edit build sources/wrappers in `components/inference_tools_dev/tools/<tool_id>/`.
 3. Validate ToolSpec with `validate_toolspecs.py`.
-4. Add/update smoketest config in `components/inference_tools_dev/tests/smoketest_configs/<tool_id>.json` (if needed).
-5. Run `run_smoketests.py`.
-6. Optionally run `benchmark_costs.py` to refresh `cost.json`.
+4. Add/update `components/inference_tools_dev/param_overrides/<tool_id>.json` if dev smoke/benchmark runs should differ from ToolSpec defaults.
+5. Add/update smoketest config in `components/inference_tools_dev/tests/smoketest_configs/<tool_id>.json` (if needed).
+6. Run `run_smoketests.py`.
+7. Optionally run `benchmark_costs.py` to refresh `cost.json`.
 
 ## Runtime docs
 

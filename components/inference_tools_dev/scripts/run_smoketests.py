@@ -28,6 +28,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
 
+from shared.param_profiles import DEFAULT_PARAM_OVERRIDES_DIR, resolve_dev_params
+
 INFERENCE_TOOLS_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_FIXTURES_DIR = INFERENCE_TOOLS_ROOT / "tests" / "fixtures"
 DEFAULT_SMOKETEST_CONFIGS_DIR = INFERENCE_TOOLS_ROOT / "tests" / "smoketest_configs"
@@ -85,8 +87,8 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         type=Path,
         default=DEFAULT_TOOL_SOURCES_ROOT,
         help=(
-            "Path to tool source directories (Dockerfile/wrappers/assets) used for build and "
-            f"assets-based smoketest inputs. Default: {DEFAULT_TOOL_SOURCES_ROOT}"
+            "Path to tool source directories (Dockerfile/wrappers) used for image builds. "
+            f"Default: {DEFAULT_TOOL_SOURCES_ROOT}"
         ),
     )
     parser.add_argument(
@@ -100,6 +102,15 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         type=Path,
         default=DEFAULT_SMOKETEST_CONFIGS_DIR,
         help=f"Path to per-tool smoketest config files. Default: {DEFAULT_SMOKETEST_CONFIGS_DIR}",
+    )
+    parser.add_argument(
+        "--param-overrides-dir",
+        type=Path,
+        default=DEFAULT_PARAM_OVERRIDES_DIR,
+        help=(
+            "Path to optional per-tool dev parameter overrides merged onto ToolSpec defaults. "
+            f"Default: {DEFAULT_PARAM_OVERRIDES_DIR}"
+        ),
     )
     parser.add_argument(
         "--tool",
@@ -263,19 +274,12 @@ def validate_image_tag_overrides(
 def prepare_smoke_io(
     *,
     tool_id: str,
-    tool_source_dir: Path,
+    catalog_tools_root: Path,
     fixtures_dir: Path,
+    param_overrides_dir: Path,
     config: SmokeConfig,
 ) -> tuple[tempfile.TemporaryDirectory[str], SmokeIOPaths]:
     """Create a temporary /io workspace and copy required smoketest inputs."""
-    assets_dir = tool_source_dir / "assets"
-    if not assets_dir.exists() or not assets_dir.is_dir():
-        raise RuntimeError(f"Assets directory not found: {assets_dir}")
-
-    params_src = assets_dir / "params.json"
-    if not params_src.exists():
-        raise RuntimeError(f"Missing params.json in tool assets: {params_src}")
-
     tmp_ctx = tempfile.TemporaryDirectory(prefix=f"smoke_{tool_id}_")
     tmp_dir = Path(tmp_ctx.name)
     io_dir = tmp_dir / "io"
@@ -284,18 +288,24 @@ def prepare_smoke_io(
     extra_dir.mkdir(parents=True, exist_ok=True)
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    resolved_params, _profile = resolve_dev_params(
+        tool_id=tool_id,
+        catalog_tools_root=catalog_tools_root,
+        param_overrides_dir=param_overrides_dir,
+    )
+
     expression_src = resolve_path(
-        assets_dir,
         fixtures_dir,
         tool_id,
         "expression.tsv",
     )
     shutil.copy2(expression_src, io_dir / "expression.tsv")
-    shutil.copy2(params_src, io_dir / "params.json")
+    with (io_dir / "params.json").open("w", encoding="utf-8") as fh:
+        json.dump(resolved_params, fh, indent=2, ensure_ascii=True)
+        fh.write("\n")
 
     for extra_name in config.extra_files:
         src = resolve_path(
-            assets_dir,
             fixtures_dir,
             tool_id,
             extra_name,
@@ -335,23 +345,21 @@ def run_container_lifecycle(
 
 
 def resolve_path(
-    tool_assets: Path,
     fixtures_dir: Path,
     tool_id: str,
     filename: str,
 ) -> Path:
     tool_fixture = fixtures_dir / tool_id / filename
     shared_fixture = fixtures_dir / filename
-    tool_asset = tool_assets / filename
 
-    candidates = [tool_fixture, shared_fixture, tool_asset]
+    candidates = [tool_fixture, shared_fixture]
 
     for candidate in candidates:
         if candidate.exists():
             return candidate
 
     raise FileNotFoundError(
-        f"Required smoketest file not found: {filename} (looked in {fixtures_dir} and {tool_assets})"
+        f"Required smoketest file not found: {filename} (looked in {tool_fixture} and {shared_fixture})"
     )
 
 
@@ -751,10 +759,10 @@ def run_tool_smoketest(
     *,
     tool_id: str,
     catalog_tool_dir: Path,
-    tool_source_dir: Path,
     fixtures_dir: Path,
     smoketest_configs_dir: Path,
     catalog_tools_root: Path,
+    param_overrides_dir: Path,
     tool_sources_root: Path,
     image_tag: str,
     threads: int,
@@ -769,8 +777,9 @@ def run_tool_smoketest(
     aux_artifacts = load_aux_artifacts(catalog_tool_dir)
     tmp_ctx, io_paths = prepare_smoke_io(
         tool_id=tool_id,
-        tool_source_dir=tool_source_dir,
+        catalog_tools_root=catalog_tools_root,
         fixtures_dir=fixtures_dir,
+        param_overrides_dir=param_overrides_dir,
         config=config,
     )
 
@@ -843,7 +852,9 @@ def run(argv: Sequence[str] | None = None) -> int:
         for tool_id, _catalog_tool_dir in selected:
             config_path = args.smoketest_configs_dir / f"{tool_id}.json"
             config_state = "config" if config_path.exists() else "default"
-            print(f"  - {tool_id}: {config_state}")
+            params_path = args.param_overrides_dir / f"{tool_id}.json"
+            params_state = "override" if params_path.exists() else "toolspec-defaults"
+            print(f"  - {tool_id}: {config_state}, params={params_state}")
         return 0
 
     image_tags = parse_image_tag_overrides(args.image_tag)
@@ -872,10 +883,10 @@ def run(argv: Sequence[str] | None = None) -> int:
             run_tool_smoketest(
                 tool_id=tool_id,
                 catalog_tool_dir=catalog_tool_dir,
-                tool_source_dir=tool_source_dir,
                 fixtures_dir=args.fixtures_dir,
                 smoketest_configs_dir=args.smoketest_configs_dir,
                 catalog_tools_root=args.catalog_tools_root,
+                param_overrides_dir=args.param_overrides_dir,
                 tool_sources_root=args.tool_sources_root,
                 image_tag=image_tag,
                 threads=args.threads,

@@ -1,0 +1,6 @@
+{
+  "subsample": 1.0,
+  "no_alpha": true,
+  "no_maxent": true,
+  "seed": 666
+}

@@ -1,0 +1,6 @@
+{
+  "nstepsLARS": 1,
+  "nsplit": 20,
+  "limit": 50,
+  "seed": 666
+}

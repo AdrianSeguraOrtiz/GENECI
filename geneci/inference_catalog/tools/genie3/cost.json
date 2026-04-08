@@ -26,7 +26,21 @@
       32.0
     ],
     "repeats": 1,
-    "timeout_seconds": 1800
+    "timeout_seconds": 1800,
+    "params_profile": {
+      "source": "toolspec_defaults_plus_override",
+      "override_file": "genie3.json",
+      "resolved_params": {
+        "regressor_type": "RF",
+        "regressor_kwargs": {
+          "n_jobs": 1,
+          "n_estimators": 100,
+          "max_features": "sqrt"
+        },
+        "limit": 50,
+        "seed": 666
+      }
+    }
   },
   "runtime_points": [
     {
