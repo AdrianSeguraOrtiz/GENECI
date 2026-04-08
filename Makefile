@@ -26,6 +26,12 @@ black:
 build-tool-images:
 	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/build_tool_images.py $(ARGS)
 
+push-tool-images:
+	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/sync_tool_images.py push $(ARGS)
+
+pull-tool-images:
+	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/sync_tool_images.py pull $(ARGS)
+
 run-tool-smoketests:
 	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/run_smoketests.py $(ARGS)
 
@@ -37,6 +43,20 @@ validate-toolspecs:
 
 validate-input-specs:
 	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/validate_input_specs.py $(ARGS)
+
+validate-tool-costs:
+	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/validate_tool_costs.py $(ARGS)
+
+validate-inference-catalog:
+	@$(MAKE) validate-toolspecs
+	@$(MAKE) validate-input-specs
+	@$(MAKE) validate-tool-costs
+
+clone-tool-repos:
+	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/sync_tool_repos.py clone $(ARGS)
+
+clean-tool-repos:
+	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/sync_tool_repos.py clean $(ARGS)
 
 test-all:
 	@$(PYTHON) -m pytest $(PYTEST_FLAGS) tests

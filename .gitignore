@@ -164,5 +164,6 @@ logs.txt
 
 components/*/*/mainstandaloneApplication/
 components/*/*/adriansegura99/
+components/inference_tools_dev/tools/*/repo/
 
 poetry.lock
