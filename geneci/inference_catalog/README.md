@@ -23,14 +23,10 @@ geneci/inference_catalog/
     input-spec.schema.json
   input_specs/
     expression_matrix.json
-    prior_grn.json
     groups.json
     lineage_tree.json
-    pseudotime.json
     tf_list.json
-    gene_metadata.json
-    cell_metadata.json
-    gold_standard.json
+    prior_grn_by_group.json
   tools/
     <tool_id>/
       toolspec.json

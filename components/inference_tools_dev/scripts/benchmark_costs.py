@@ -363,18 +363,25 @@ def write_lineage_tree(path: Path, clusters: Sequence[str]) -> None:
             writer.writerow([clusters[idx], clusters[idx - 1], "0.2", "0.8"])
 
 
-def write_prior_grn(path: Path, genes: Sequence[str], rng: random.Random) -> None:
+def write_prior_grn_by_group(
+    path: Path,
+    genes: Sequence[str],
+    groups: Sequence[str],
+    rng: random.Random,
+) -> None:
     n_tf = max(1, min(len(genes), max(3, len(genes) // 5)))
     tfs = list(genes[:n_tf])
     targets = list(genes)
     with path.open("w", encoding="utf-8", newline="") as fh:
         writer = csv.writer(fh, delimiter="\t", lineterminator="\n")
-        for tf in tfs:
-            k = min(5, len(targets))
-            chosen = rng.sample(targets, k=k) if k > 0 else []
-            for target in chosen:
-                score = rng.uniform(0.01, 1.0)
-                writer.writerow([tf, target, f"{score:.6f}"])
+        writer.writerow(["group", "source", "target", "score"])
+        for group in groups:
+            for tf in tfs:
+                k = min(5, len(targets))
+                chosen = rng.sample(targets, k=k) if k > 0 else []
+                for target in chosen:
+                    score = rng.uniform(0.01, 1.0)
+                    writer.writerow([group, tf, target, f"{score:.6f}"])
 
 
 def prepare_io_dir(
@@ -398,7 +405,12 @@ def prepare_io_dir(
     write_tf_list(io_dir / "extra" / "tf_list.txt", genes)
     clusters = write_groups(io_dir / "extra" / "groups.tsv", size.columns)
     write_lineage_tree(io_dir / "extra" / "lineage_tree.tsv", clusters)
-    write_prior_grn(io_dir / "extra" / "prior_grn.tsv", genes, rng)
+    write_prior_grn_by_group(
+        io_dir / "extra" / "prior_grn_by_group.tsv",
+        genes,
+        clusters,
+        rng,
+    )
 
 
 def run_container_once(

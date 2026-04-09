@@ -34,6 +34,7 @@ DEFAULT_INPUT_SPECS_ROOT = CATALOG_ROOT / "input_specs"
 REQUIRES_COLUMN_KINDS = {
     "column_subset_expression_genes",
     "column_subset_expression_columns",
+    "column_subset_extra_column",
 }
 
 
@@ -182,6 +183,21 @@ def semantic_errors_for_input_spec(
                         idx=idx, kind=kind
                     )
                 )
+            if kind == "column_subset_extra_column":
+                other_input = check.get("other_input")
+                other_column = check.get("other_column")
+                if not isinstance(other_input, str) or not other_input.strip():
+                    errors.append(
+                        "cross_checks[{idx}] requires non-empty 'other_input' for kind 'column_subset_extra_column'.".format(
+                            idx=idx
+                        )
+                    )
+                if not isinstance(other_column, str) or not other_column.strip():
+                    errors.append(
+                        "cross_checks[{idx}] requires non-empty 'other_column' for kind 'column_subset_extra_column'.".format(
+                            idx=idx
+                        )
+                    )
 
     return errors
 

@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "key": "tf_list",
   "file_kind": "txt_list",
-  "description": "Optional TF list text file. One TF identifier per line.",
+  "description": "TF list text file. One TF identifier per line.",
   "example": "SOX2\nMYC\nTP53",
   "min_rows": 1,
   "cross_checks": [

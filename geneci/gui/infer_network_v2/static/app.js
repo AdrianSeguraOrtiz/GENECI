@@ -2077,6 +2077,7 @@ function updatePreflightSummary(preflightReport = null) {
 function _toolMessages(entry) {
   const reasons = Array.isArray(entry?.reasons) ? entry.reasons : [];
   const warnings = Array.isArray(entry?.warnings) ? entry.warnings : [];
+  const pendingConditions = Array.isArray(entry?.pending_conditions) ? entry.pending_conditions : [];
   const out = [];
   for (const reason of reasons) {
     if (String(reason || "").trim()) {
@@ -2088,6 +2089,11 @@ function _toolMessages(entry) {
       out.push(String(warning).trim());
     }
   }
+  for (const pending of pendingConditions) {
+    if (String(pending || "").trim()) {
+      out.push(String(pending).trim());
+    }
+  }
   return out;
 }
 
@@ -2095,10 +2101,14 @@ function _toolSpecInfoPayload(tool) {
   const accepts = Array.isArray(tool?.accepts) ? tool.accepts : [];
   const requiredExtras = Array.isArray(tool?.required_extras) ? tool.required_extras : [];
   const optionalExtras = Array.isArray(tool?.optional_extras) ? tool.optional_extras : [];
+  const conditionalExtras = Array.isArray(tool?.conditional_required_extras) ? tool.conditional_required_extras : [];
   const publication = Array.isArray(tool?.publication) ? tool.publication : [];
   const firstAuthor = String(tool?.first_author || "").trim();
   const outputs = tool?.outputs && typeof tool.outputs === "object" ? tool.outputs : {};
   const progress = tool?.progress && typeof tool.progress === "object" ? tool.progress : {};
+  const conditionalSummary = conditionalExtras
+    .map((item) => String(item?.message || "").trim())
+    .filter(Boolean);
 
   const publicationLinks = publication.map((item) => ({
     label: String(item || "").trim(),
@@ -2113,6 +2123,7 @@ function _toolSpecInfoPayload(tool) {
       { label: "Accepts", value: accepts.length ? accepts.join(", ") : "-" },
       { label: "Required extras", value: requiredExtras.length ? requiredExtras.join(", ") : "none" },
       { label: "Optional extras", value: optionalExtras.length ? optionalExtras.join(", ") : "none" },
+      { label: "Conditional extras", value: conditionalSummary.length ? conditionalSummary.join(" | ") : "none" },
       {
         label: "Outputs",
         value: `directed=${String(outputs.directed ?? "-")}, sign=${outputs.sign ?? "-"}, evidence=${outputs.evidence ?? "-"}`,

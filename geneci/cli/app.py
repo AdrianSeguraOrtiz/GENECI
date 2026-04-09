@@ -5,6 +5,7 @@ from typing import List, Optional
 
 import typer
 from rich import print
+from rich.markup import escape
 
 from geneci.config import temp_folder_str
 from geneci.core.commands.benchmarking.expression_data import (
@@ -79,7 +80,7 @@ def _run_core(fn, *args, **kwargs):
     try:
         return fn(*args, **kwargs)
     except ValueError as exc:
-        print(f"[bold red]Error:[/bold red] {exc}")
+        print(f"[bold red]Error:[/bold red] {escape(str(exc))}")
         raise typer.Exit(code=1)
 
 
@@ -230,12 +231,24 @@ def infer_network_v2_preflight(
         blocked = len(report.get("catalog", {}).get("blocked", []))
         selected = len(report.get("runs", {}).get("selected", []))
         skipped = len(report.get("runs", {}).get("skipped", {}))
+        requirement_issues = report.get("runs", {}).get("requirement_issues", {})
+        requirement_issue_runs = (
+            len(requirement_issues) if isinstance(requirement_issues, dict) else 0
+        )
         print("[bold green]infer-network-v2 preflight completed[/bold green]")
         print(f"  eligible tools: {eligible}")
         print(f"  warning tools: {warning}")
         print(f"  blocked tools: {blocked}")
         print(f"  selected runs: {selected}")
         print(f"  skipped runs: {skipped}")
+        print(f"  runs with conditional input issues: {requirement_issue_runs}")
+        if isinstance(requirement_issues, dict):
+            for run_id in sorted(requirement_issues):
+                messages = requirement_issues.get(run_id, [])
+                if not isinstance(messages, list):
+                    continue
+                for message in messages:
+                    print(f"    - {escape(f'[{run_id}] {message}')}")
 
 
 @infer_network_v2_app.command("plan")

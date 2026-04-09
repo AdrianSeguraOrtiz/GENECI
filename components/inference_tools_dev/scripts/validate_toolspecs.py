@@ -145,6 +145,52 @@ def validate_one_toolspec(
     return validate_instance(validator, instance)
 
 
+def semantic_errors_for_toolspec(*, tool_id: str, instance: Any) -> list[str]:
+    errors: list[str] = []
+    if not isinstance(instance, dict):
+        return ["ToolSpec root must be a JSON object."]
+
+    raw_id = instance.get("id")
+    if not isinstance(raw_id, str) or raw_id.strip() != tool_id:
+        errors.append(
+            f"ToolSpec id must match directory name. expected='{tool_id}' got='{raw_id}'."
+        )
+
+    params = instance.get("params", {})
+    if not isinstance(params, dict):
+        params = {}
+
+    extra_inputs = instance.get("extra_inputs", {})
+    if not isinstance(extra_inputs, dict):
+        return errors
+
+    required = extra_inputs.get("required", [])
+    optional = extra_inputs.get("optional", [])
+    conditional = extra_inputs.get("conditional_required", [])
+
+    required_set = {x for x in required if isinstance(x, str)}
+    optional_set = {x for x in optional if isinstance(x, str)}
+    overlap = sorted(required_set.intersection(optional_set))
+    if overlap:
+        errors.append(
+            f"extra_inputs.required and extra_inputs.optional overlap: {overlap}"
+        )
+
+    if isinstance(conditional, list):
+        for idx, rule in enumerate(conditional, start=1):
+            if not isinstance(rule, dict):
+                continue
+            param_name = rule.get("param")
+            if isinstance(param_name, str) and param_name not in params:
+                errors.append(
+                    "extra_inputs.conditional_required[{idx}] references unknown parameter '{param}'.".format(
+                        idx=idx, param=param_name
+                    )
+                )
+
+    return errors
+
+
 def run(
     schema_path: Path,
     catalog_tools_root: Path,
@@ -165,9 +211,14 @@ def run(
     for tool_id, spec_path in selected:
         print(f"[{tool_id}] validating {spec_path}")
         try:
-            errors = validate_one_toolspec(
-                spec_path=spec_path,
-                validator=validator,
+            instance = load_json(spec_path)
+            errors = validate_instance(
+                validator,
+                instance,
+            )
+            semantic_errors = semantic_errors_for_toolspec(
+                tool_id=tool_id,
+                instance=instance,
             )
         except RuntimeError as exc:
             counters = ValidationCounters(
@@ -178,7 +229,7 @@ def run(
                 break
             continue
 
-        if not errors:
+        if not errors and not semantic_errors:
             counters = ValidationCounters(
                 valid=counters.valid + 1, invalid=counters.invalid
             )
@@ -188,9 +239,16 @@ def run(
         counters = ValidationCounters(
             valid=counters.valid, invalid=counters.invalid + 1
         )
-        print(f"  INVALID: {len(errors)} error(s)")
+        print(
+            "  INVALID: {count} error(s)".format(
+                count=len(errors) + len(semantic_errors)
+            )
+        )
         for idx, err in enumerate(errors, start=1):
             print(f"    {idx}. {to_json_pointer(err)} -> {err.message}")
+        base = len(errors)
+        for rel_idx, message in enumerate(semantic_errors, start=1):
+            print(f"    {base + rel_idx}. (semantic) {message}")
         if fail_fast:
             break
 

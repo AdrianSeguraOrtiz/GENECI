@@ -14,6 +14,99 @@ from .shared import (
 )
 
 
+def _parse_extra_inputs_spec(
+    *,
+    tool_id: str,
+    toolspec: dict[str, Any],
+    known_params: set[str] | None = None,
+) -> tuple[list[str], list[str], list[dict[str, Any]], list[str]]:
+    extra_inputs = toolspec.get("extra_inputs", {})
+    if not isinstance(extra_inputs, dict):
+        return [], [], [], ["invalid toolspec.extra_inputs"]
+
+    errors: list[str] = []
+    required_extras: list[str] = []
+    optional_extras: list[str] = []
+    conditional_required: list[dict[str, Any]] = []
+
+    req = extra_inputs.get("required", [])
+    opt = extra_inputs.get("optional", [])
+    cond = extra_inputs.get("conditional_required", [])
+
+    if isinstance(req, list):
+        required_extras = [x for x in req if isinstance(x, str)]
+    else:
+        errors.append("toolspec.extra_inputs.required must be an array")
+
+    if isinstance(opt, list):
+        optional_extras = [x for x in opt if isinstance(x, str)]
+    else:
+        errors.append("toolspec.extra_inputs.optional must be an array")
+
+    overlap = sorted(set(required_extras).intersection(optional_extras))
+    if overlap:
+        errors.append(
+            f"toolspec.extra_inputs.required/optional overlap: {overlap}"
+        )
+
+    if cond is None:
+        cond = []
+    if not isinstance(cond, list):
+        errors.append("toolspec.extra_inputs.conditional_required must be an array")
+        cond = []
+
+    for idx, raw_rule in enumerate(cond, start=1):
+        if not isinstance(raw_rule, dict):
+            errors.append(
+                f"toolspec.extra_inputs.conditional_required[{idx}] must be an object"
+            )
+            continue
+
+        input_key = str(raw_rule.get("input", "")).strip()
+        param_name = str(raw_rule.get("param", "")).strip()
+        op = str(raw_rule.get("op", "")).strip()
+        message = str(raw_rule.get("message", "")).strip()
+        value = raw_rule.get("value")
+
+        if not input_key:
+            errors.append(
+                f"toolspec.extra_inputs.conditional_required[{idx}].input is required"
+            )
+            continue
+        if not param_name:
+            errors.append(
+                f"toolspec.extra_inputs.conditional_required[{idx}].param is required"
+            )
+            continue
+        if op not in {"eq", "ne", "gt", "gte", "lt", "lte"}:
+            errors.append(
+                f"toolspec.extra_inputs.conditional_required[{idx}].op is invalid"
+            )
+            continue
+        if not message:
+            errors.append(
+                f"toolspec.extra_inputs.conditional_required[{idx}].message is required"
+            )
+            continue
+        if known_params is not None and param_name not in known_params:
+            errors.append(
+                f"toolspec.extra_inputs.conditional_required[{idx}] references unknown parameter '{param_name}'"
+            )
+            continue
+
+        conditional_required.append(
+            {
+                "input": input_key,
+                "param": param_name,
+                "op": op,
+                "value": value,
+                "message": message,
+            }
+        )
+
+    return required_extras, optional_extras, conditional_required, errors
+
+
 def _load_tools_params(tools_params_path: Path) -> dict[str, dict[str, Any]]:
     raw = _load_json_object(tools_params_path, "tools-params")
     if not raw:
@@ -84,8 +177,9 @@ def _check_tool_compatibility(
     constraints: SchemaConstraints,
     strict: bool,
     warnings: list[str],
-) -> tuple[bool, list[str]]:
+) -> tuple[bool, list[str], list[str]]:
     errors: list[str] = []
+    pending_conditions: list[str] = []
 
     accepts = toolspec.get("accepts")
     if not isinstance(accepts, list) or not all(isinstance(x, str) for x in accepts):
@@ -114,35 +208,46 @@ def _check_tool_compatibility(
                 f"tool assumes bulk_specific but dataset expression_profile is '{dataset.expression_profile}'"
             )
 
-    extra_inputs = toolspec.get("extra_inputs", {})
-    required_extras = []
-    optional_extras = []
-    if isinstance(extra_inputs, dict):
-        req = extra_inputs.get("required", [])
-        opt = extra_inputs.get("optional", [])
-        if isinstance(req, list):
-            required_extras = [x for x in req if isinstance(x, str)]
-        if isinstance(opt, list):
-            optional_extras = [x for x in opt if isinstance(x, str)]
-    else:
-        errors.append("invalid toolspec.extra_inputs")
+    toolspec_params = toolspec.get("params", {})
+    known_params = set(toolspec_params.keys()) if isinstance(toolspec_params, dict) else None
+    required_extras, optional_extras, conditional_required, extra_errors = (
+        _parse_extra_inputs_spec(
+            tool_id=tool_id,
+            toolspec=toolspec,
+            known_params=known_params,
+        )
+    )
+    errors.extend(extra_errors)
 
     for extra_key in required_extras:
         if dataset.extras.get(extra_key) is None:
             errors.append(f"required extra input missing in manifest: {extra_key}")
 
+    conditional_inputs = {
+        str(rule.get("input", "")).strip()
+        for rule in conditional_required
+        if str(rule.get("input", "")).strip()
+    }
     for extra_key in optional_extras:
+        if extra_key in conditional_inputs:
+            continue
         if dataset.extras.get(extra_key) is None:
             warnings.append(f"[{tool_id}] optional extra not provided: {extra_key}")
+
+    for rule in conditional_required:
+        input_key = str(rule.get("input", "")).strip()
+        message = str(rule.get("message", "")).strip()
+        if input_key and dataset.extras.get(input_key) is None and message:
+            pending_conditions.append(message)
 
     if errors:
         message = "; ".join(errors)
         if strict:
             raise ValueError(f"[{tool_id}] incompatible with dataset: {message}")
         warnings.append(f"[{tool_id}] skipped due to incompatibility: {message}")
-        return False, errors
+        return False, errors, []
 
-    return True, []
+    return True, [], pending_conditions
 
 
 def _validate_numeric_range(
@@ -152,10 +257,20 @@ def _validate_numeric_range(
 ) -> None:
     min_value = param_def.get("min")
     max_value = param_def.get("max")
-    if isinstance(min_value, (int, float)) and value < float(min_value):
-        raise ParamValidationError(f"{path} must be >= {min_value}")
-    if isinstance(max_value, (int, float)) and value > float(max_value):
-        raise ParamValidationError(f"{path} must be <= {max_value}")
+    if isinstance(min_value, (int, float)):
+        min_bound = float(min_value)
+        if bool(param_def.get("exclusive_min")):
+            if value <= min_bound:
+                raise ParamValidationError(f"{path} must be > {min_value}")
+        elif value < min_bound:
+            raise ParamValidationError(f"{path} must be >= {min_value}")
+    if isinstance(max_value, (int, float)):
+        max_bound = float(max_value)
+        if bool(param_def.get("exclusive_max")):
+            if value >= max_bound:
+                raise ParamValidationError(f"{path} must be < {max_value}")
+        elif value > max_bound:
+            raise ParamValidationError(f"{path} must be <= {max_value}")
 
 
 def _validate_param_value(
@@ -333,6 +448,75 @@ def _resolve_tool_params(
     return True, resolved, []
 
 
+def _conditional_rule_matches(
+    *,
+    resolved_params: dict[str, Any],
+    rule: dict[str, Any],
+) -> bool:
+    param_name = str(rule.get("param", "")).strip()
+    op = str(rule.get("op", "")).strip()
+    expected = rule.get("value")
+
+    if param_name not in resolved_params:
+        return False
+    actual = resolved_params.get(param_name)
+
+    if op == "eq":
+        return actual == expected
+    if op == "ne":
+        return actual != expected
+
+    if (
+        isinstance(actual, bool)
+        or isinstance(expected, bool)
+        or not isinstance(actual, (int, float))
+        or not isinstance(expected, (int, float))
+    ):
+        return False
+
+    actual_num = float(actual)
+    expected_num = float(expected)
+    if op == "gt":
+        return actual_num > expected_num
+    if op == "gte":
+        return actual_num >= expected_num
+    if op == "lt":
+        return actual_num < expected_num
+    if op == "lte":
+        return actual_num <= expected_num
+    return False
+
+
+def _collect_requirement_issues(
+    *,
+    tool_id: str,
+    toolspec: dict[str, Any],
+    dataset: DatasetContext,
+    resolved_params: dict[str, Any],
+) -> list[str]:
+    toolspec_params = toolspec.get("params", {})
+    known_params = (
+        set(toolspec_params.keys()) if isinstance(toolspec_params, dict) else None
+    )
+    _required, _optional, conditional_required, extra_errors = _parse_extra_inputs_spec(
+        tool_id=tool_id,
+        toolspec=toolspec,
+        known_params=known_params,
+    )
+    if extra_errors:
+        return [f"invalid toolspec extra-input rules: {msg}" for msg in extra_errors]
+
+    issues: list[str] = []
+    for rule in conditional_required:
+        input_key = str(rule.get("input", "")).strip()
+        message = str(rule.get("message", "")).strip()
+        if dataset.extras.get(input_key) is not None:
+            continue
+        if _conditional_rule_matches(resolved_params=resolved_params, rule=rule):
+            issues.append(message)
+    return issues
+
+
 def _scan_catalog_compatibility(
     *,
     tools_root: Path,
@@ -356,7 +540,7 @@ def _scan_catalog_compatibility(
             continue
 
         local_warnings: list[str] = []
-        compatible, reasons = _check_tool_compatibility(
+        compatible, reasons, pending_conditions = _check_tool_compatibility(
             tool_id=tool_id,
             toolspec=toolspec,
             dataset=dataset,
@@ -368,7 +552,7 @@ def _scan_catalog_compatibility(
         status = "eligible"
         if not compatible:
             status = "blocked"
-        elif local_warnings:
+        elif local_warnings or pending_conditions:
             status = "warning"
 
         entries.append(
@@ -377,6 +561,7 @@ def _scan_catalog_compatibility(
                 "status": status,
                 "reasons": reasons,
                 "warnings": local_warnings,
+                "pending_conditions": pending_conditions,
             }
         )
 

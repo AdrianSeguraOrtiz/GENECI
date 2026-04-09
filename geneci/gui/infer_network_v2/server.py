@@ -80,14 +80,10 @@ def _load_tools_bootstrap() -> dict[str, Any]:
     expr_spec = input_specs.get("expression_matrix", {})
 
     extra_examples = {
-        "prior_grn": "source\ttarget\tscore\nG1\tG2\t0.82",
         "groups": "sample\tcluster\nS1\tA\nS2\tB",
         "lineage_tree": "child\tparent\tgain_rate\tloss_rate\nC2\tC1\t0.2\t0.1",
-        "pseudotime": "cell\tpseudotime\nC1\t0.00\nC2\t0.42",
         "tf_list": "SOX2\nMYC\nTP53",
-        "gene_metadata": "gene\tbiotype\nG1\tprotein_coding",
-        "cell_metadata": "cell\tsample\nC1\tS1",
-        "gold_standard": "source\ttarget\tscore\nG1\tG2\t1.0",
+        "prior_grn_by_group": "group\tsource\ttarget\tscore\nA\tG1\tG2\t0.82\nB\tG1\tG3\t0.41",
     }
 
     tools: list[dict[str, Any]] = []
@@ -108,13 +104,19 @@ def _load_tools_bootstrap() -> dict[str, Any]:
         extra_inputs = toolspec.get("extra_inputs", {})
         required_extras = []
         optional_extras = []
+        conditional_required_extras = []
         if isinstance(extra_inputs, dict):
             req = extra_inputs.get("required", [])
             opt = extra_inputs.get("optional", [])
+            cond = extra_inputs.get("conditional_required", [])
             if isinstance(req, list):
                 required_extras = [x for x in req if isinstance(x, str)]
             if isinstance(opt, list):
                 optional_extras = [x for x in opt if isinstance(x, str)]
+            if isinstance(cond, list):
+                conditional_required_extras = [
+                    item for item in cond if isinstance(item, dict)
+                ]
 
         tools.append(
             {
@@ -126,6 +128,7 @@ def _load_tools_bootstrap() -> dict[str, Any]:
                 ],
                 "required_extras": required_extras,
                 "optional_extras": optional_extras,
+                "conditional_required_extras": conditional_required_extras,
                 "publication": (
                     [
                         str(x)

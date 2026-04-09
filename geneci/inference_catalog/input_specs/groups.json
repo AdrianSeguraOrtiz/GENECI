@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "key": "groups",
   "file_kind": "tsv",
-  "description": "Optional groups TSV: first column maps expression column identifiers to a cluster/group label.",
+  "description": "Groups TSV: first column maps expression column identifiers to a cluster/group label.",
   "example": "sample\tcluster\nS1\tA\nS2\tB",
   "delimiter": "\t",
   "header": true,

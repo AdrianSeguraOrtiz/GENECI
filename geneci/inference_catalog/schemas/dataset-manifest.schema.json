@@ -141,12 +141,6 @@
       "additionalProperties": false,
       "description": "Optional extra artefacts (paths) that some tools may consume. Use null when not provided.",
       "properties": {
-        "prior_grn": {
-          "type": ["string", "null"],
-          "minLength": 1,
-          "pattern": ".*\\.tsv$",
-          "description": "Optional prior GRN TSV path. Detailed content validation is defined in input_specs/prior_grn.json."
-        },
         "groups": {
           "type": ["string", "null"],
           "minLength": 1,
@@ -159,35 +153,17 @@
           "pattern": ".*\\.tsv$",
           "description": "Optional lineage tree TSV path. Detailed content validation is defined in input_specs/lineage_tree.json."
         },
-        "pseudotime": {
-          "type": ["string", "null"],
-          "minLength": 1,
-          "pattern": ".*\\.tsv$",
-          "description": "Optional pseudotime TSV path. Detailed content validation is defined in input_specs/pseudotime.json."
-        },
         "tf_list": {
           "type": ["string", "null"],
           "minLength": 1,
           "pattern": ".*\\.txt$",
           "description": "Optional TF list text file path. Detailed content validation is defined in input_specs/tf_list.json."
         },
-        "gene_metadata": {
+        "prior_grn_by_group": {
           "type": ["string", "null"],
           "minLength": 1,
           "pattern": ".*\\.tsv$",
-          "description": "Optional gene metadata TSV path. Detailed content validation is defined in input_specs/gene_metadata.json."
-        },
-        "cell_metadata": {
-          "type": ["string", "null"],
-          "minLength": 1,
-          "pattern": ".*\\.tsv$",
-          "description": "Optional cell/sample metadata TSV path. Detailed content validation is defined in input_specs/cell_metadata.json."
-        },
-        "gold_standard": {
-          "type": ["string", "null"],
-          "minLength": 1,
-          "pattern": ".*\\.tsv$",
-          "description": "Optional gold-standard GRN TSV path. Detailed content validation is defined in input_specs/gold_standard.json."
+          "description": "Optional group-specific prior GRN TSV path. Detailed content validation is defined in input_specs/prior_grn_by_group.json."
         }
       }
     },

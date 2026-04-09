@@ -417,8 +417,10 @@ def _write_tf_og_file(
     return tf_og_path
 
 
-def _load_prior_rows(prior_path: Path) -> List[Tuple[str, str, float]]:
-    rows: List[Tuple[str, str, float]] = []
+def _load_prior_rows_by_group(
+    prior_path: Path,
+) -> Dict[str, List[Tuple[str, str, float]]]:
+    rows_by_group: Dict[str, List[Tuple[str, str, float]]] = {}
 
     with prior_path.open("r", encoding="utf-8") as fh:
         for line_number, raw_line in enumerate(fh, start=1):
@@ -427,23 +429,24 @@ def _load_prior_rows(prior_path: Path) -> List[Tuple[str, str, float]]:
                 continue
 
             fields = [f for f in _split_fields(stripped) if f]
-            if len(fields) < 3:
+            if len(fields) < 4:
                 continue
 
-            source, target, raw_score = fields[0], fields[1], fields[2]
+            group, source, target, raw_score = fields[0], fields[1], fields[2], fields[3]
 
             try:
                 score = float(raw_score)
             except ValueError:
-                if line_number == 1:
+                if line_number == 1 and group.lower() == "group":
                     continue
                 raise ValueError(
-                    f"Invalid score in prior_grn at line {line_number}: {raw_score!r}"
+                    "Invalid score in prior_grn_by_group at "
+                    f"line {line_number}: {raw_score!r}"
                 )
 
-            rows.append((source, target, score))
+            rows_by_group.setdefault(group, []).append((source, target, score))
 
-    return rows
+    return rows_by_group
 
 
 def _write_motif_files(
@@ -459,7 +462,7 @@ def _write_motif_files(
     if prior_path is None:
         if q_value > 0:
             raise FileNotFoundError(
-                "q > 0 requires prior_grn, but /io/extra/prior_grn.tsv was not provided."
+                "q > 0 requires prior_grn_by_group, but /io/extra/prior_grn_by_group.tsv was not provided."
             )
 
         for cluster in cluster_order:
@@ -468,19 +471,34 @@ def _write_motif_files(
             motif_paths[cluster] = motif_path
         return motif_paths
 
-    prior_rows = _load_prior_rows(prior_path)
-    if not prior_rows:
+    prior_rows_by_group = _load_prior_rows_by_group(prior_path)
+    if not prior_rows_by_group:
         print(
-            "Warning: prior_grn has no usable rows; using empty per-cluster motif files.",
+            "Warning: prior_grn_by_group has no usable rows; using empty per-cluster motif files.",
+            file=sys.stderr,
+        )
+
+    unknown_groups = sorted(set(prior_rows_by_group).difference(cluster_order))
+    if unknown_groups:
+        joined = ", ".join(unknown_groups[:8])
+        print(
+            "Warning: prior_grn_by_group contains groups not present in groups.tsv "
+            f"and they will be ignored: {joined}",
             file=sys.stderr,
         )
 
     for cluster in cluster_order:
         motif_path = runtime_dir / f"{cluster}_prior.tsv"
+        cluster_rows = prior_rows_by_group.get(cluster, [])
+        if q_value > 0 and not cluster_rows:
+            print(
+                f"Warning: prior_grn_by_group has no rows for cluster '{cluster}'; using empty motif file.",
+                file=sys.stderr,
+            )
         with motif_path.open("w", encoding="utf-8", newline="") as fh:
             writer = csv.writer(fh, delimiter="\t", lineterminator="\n")
 
-            for src, tgt, score in prior_rows:
+            for src, tgt, score in cluster_rows:
                 src_gene = _normalize_gene_token(src, cluster_order)
                 tgt_gene = _normalize_gene_token(tgt, cluster_order)
 
@@ -734,7 +752,7 @@ def main() -> None:
         groups_path = _require_extra_file(args.extra, "groups.tsv", "groups")
         tf_path = _require_extra_file(args.extra, "tf_list.txt", "tf_list")
         lineage_tree_path = _optional_extra_file(args.extra, "lineage_tree.tsv")
-        prior_path = _optional_extra_file(args.extra, "prior_grn.tsv")
+        prior_path = _optional_extra_file(args.extra, "prior_grn_by_group.tsv")
 
         _write_progress(
             progress_path,

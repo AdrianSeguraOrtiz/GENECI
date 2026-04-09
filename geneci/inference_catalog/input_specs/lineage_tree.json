@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "key": "lineage_tree",
   "file_kind": "tsv",
-  "description": "Optional lineage tree TSV with child, parent, gain_rate and loss_rate.",
+  "description": "Lineage tree TSV with child, parent, gain_rate and loss_rate.",
   "example": "child\tparent\tgain_rate\tloss_rate\nC2\tC1\t0.2\t0.1",
   "delimiter": "\t",
   "header": true,

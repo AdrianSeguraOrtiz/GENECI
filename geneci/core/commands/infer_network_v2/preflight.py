@@ -22,6 +22,7 @@ from .commons.dataset import (
 from .commons.shared import INPUT_SPECS_DIR, PREFLIGHT_SCHEMA_VERSION
 from .commons.tools import (
     _check_tool_compatibility,
+    _collect_requirement_issues,
     _load_tools_params,
     _load_toolspec,
     _resolve_tool_params,
@@ -62,6 +63,7 @@ def preflight_infer_network_new(
     selected_tool_catalog_ids: dict[str, str] = {}
     skipped_tools: dict[str, str] = {}
     resolved_params_by_tool: dict[str, dict[str, Any]] = {}
+    requirement_issues: dict[str, list[str]] = {}
     requested_total = 0
 
     if tools_params_path is not None:
@@ -92,7 +94,7 @@ def preflight_infer_network_new(
                 continue
 
             toolspec = _load_toolspec(tools_root, catalog_tool_id)
-            compatible, compat_errors = _check_tool_compatibility(
+            compatible, compat_errors, _pending_conditions = _check_tool_compatibility(
                 tool_id=run_id,
                 toolspec=toolspec,
                 dataset=dataset,
@@ -126,6 +128,14 @@ def preflight_infer_network_new(
             selected_tools.append(run_id)
             selected_tool_catalog_ids[run_id] = catalog_tool_id
             resolved_params_by_tool[run_id] = resolved_params
+            issues = _collect_requirement_issues(
+                tool_id=run_id,
+                toolspec=toolspec,
+                dataset=dataset,
+                resolved_params=resolved_params,
+            )
+            if issues:
+                requirement_issues[run_id] = issues
 
     return {
         "schema_version": PREFLIGHT_SCHEMA_VERSION,
@@ -149,6 +159,7 @@ def preflight_infer_network_new(
             "selected": selected_tools,
             "catalog_tool_ids": selected_tool_catalog_ids,
             "resolved_params": resolved_params_by_tool,
+            "requirement_issues": requirement_issues,
             "skipped": skipped_tools,
         },
         "warnings": warnings,

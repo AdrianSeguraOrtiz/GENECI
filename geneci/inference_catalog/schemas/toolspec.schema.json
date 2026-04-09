@@ -89,9 +89,17 @@
           "type": "number",
           "description": "Minimum value (for int/float)."
         },
+        "exclusive_min": {
+          "type": "boolean",
+          "description": "Whether the minimum bound is exclusive (for int/float)."
+        },
         "max": {
           "type": "number",
           "description": "Maximum value (for int/float)."
+        },
+        "exclusive_max": {
+          "type": "boolean",
+          "description": "Whether the maximum bound is exclusive (for int/float)."
         },
         "description": {
           "type": "string",
@@ -268,14 +276,10 @@
           "items": {
             "type": "string",
             "enum": [
-              "prior_grn",
               "groups",
               "lineage_tree",
-              "pseudotime",
               "tf_list",
-              "gene_metadata",
-              "cell_metadata",
-              "gold_standard"
+              "prior_grn_by_group"
             ]
           },
           "description": "Extra artefacts that MUST be provided for the tool to run."
@@ -287,17 +291,79 @@
           "items": {
             "type": "string",
             "enum": [
-              "prior_grn",
               "groups",
               "lineage_tree",
-              "pseudotime",
               "tf_list",
-              "gene_metadata",
-              "cell_metadata",
-              "gold_standard"
+              "prior_grn_by_group"
             ]
           },
           "description": "Extra artefacts that MAY be provided to improve/enable certain modes."
+        },
+        "conditional_required": {
+          "type": "array",
+          "minItems": 0,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "input",
+              "param",
+              "op",
+              "value",
+              "message"
+            ],
+            "properties": {
+              "input": {
+                "type": "string",
+                "enum": [
+                  "groups",
+                  "lineage_tree",
+                  "tf_list",
+                  "prior_grn_by_group"
+                ]
+              },
+              "param": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+              },
+              "op": {
+                "type": "string",
+                "enum": [
+                  "eq",
+                  "ne",
+                  "gt",
+                  "gte",
+                  "lt",
+                  "lte"
+                ]
+              },
+              "value": {
+                "anyOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "description": "Extra artefacts that become required only when specific parameter values activate a certain tool mode."
         }
       }
     },

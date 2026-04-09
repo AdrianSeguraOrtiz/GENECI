@@ -98,6 +98,11 @@ def plan_infer_network_new(
         for k, v in runs_payload.get("resolved_params", {}).items()
         if isinstance(k, str) and isinstance(v, dict)
     }
+    requirement_issues = {
+        str(k): [str(x) for x in v if isinstance(x, str)]
+        for k, v in runs_payload.get("requirement_issues", {}).items()
+        if isinstance(k, str) and isinstance(v, list)
+    }
     skipped_tools = {
         str(k): str(v)
         for k, v in runs_payload.get("skipped", {}).items()
@@ -136,6 +141,11 @@ def plan_infer_network_new(
             for k, v in runs_payload.get("resolved_params", {}).items()
             if isinstance(k, str) and isinstance(v, dict)
         }
+        requirement_issues = {
+            str(k): [str(x) for x in v if isinstance(x, str)]
+            for k, v in runs_payload.get("requirement_issues", {}).items()
+            if isinstance(k, str) and isinstance(v, list)
+        }
         skipped_tools = {
             str(k): str(v)
             for k, v in runs_payload.get("skipped", {}).items()
@@ -146,6 +156,16 @@ def plan_infer_network_new(
                 "No compatible tools available after validation. "
                 "Check tools_params.json and dataset/tool compatibility."
             )
+
+    if requirement_issues:
+        error_lines: list[str] = []
+        for run_id in sorted(requirement_issues):
+            for message in requirement_issues[run_id]:
+                error_lines.append(f"[{run_id}] {message}")
+        raise ValueError(
+            "Planning blocked by missing conditional inputs:\n"
+            + "\n".join(error_lines)
+        )
 
     mode_options_by_tool = {}
     for run_id in selected_tools:

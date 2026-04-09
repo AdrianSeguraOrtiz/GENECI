@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "key": "prior_grn_by_group",
+  "file_kind": "tsv",
+  "description": "Group-specific prior GRN edges with group, source, target and score.",
+  "example": "group\tsource\ttarget\tscore\nA\tG1\tG2\t0.82\nB\tG1\tG3\t0.41",
+  "delimiter": "\t",
+  "header": true,
+  "min_rows": 1,
+  "required_columns": ["group", "source", "target", "score"],
+  "column_types": {
+    "group": "string",
+    "source": "string",
+    "target": "string",
+    "score": "float"
+  },
+  "cross_checks": [
+    {"kind": "column_subset_expression_genes", "column": "source"},
+    {"kind": "column_subset_expression_genes", "column": "target"},
+    {
+      "kind": "column_subset_extra_column",
+      "column": "group",
+      "other_input": "groups",
+      "other_column": "cluster"
+    }
+  ]
+}

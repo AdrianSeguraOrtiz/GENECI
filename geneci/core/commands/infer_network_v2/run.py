@@ -26,6 +26,7 @@ from .commons.runtime_helpers import (
     _run_wave,
 )
 from .commons.shared import _load_json_object, _write_json
+from .commons.tools import _collect_requirement_issues, _load_toolspec
 
 
 def run_infer_network_new_plan(
@@ -77,7 +78,7 @@ def run_infer_network_new_plan(
         if isinstance(k, str)
     }
 
-    _tools_root, schemas_dir = _resolve_catalog_paths()
+    tools_root, schemas_dir = _resolve_catalog_paths()
     constraints = _load_schema_constraints(schemas_dir)
     frozen_manifest = run_dir / "input" / "dataset-manifest.json"
     dataset = _parse_dataset_context(
@@ -95,6 +96,33 @@ def run_infer_network_new_plan(
         resolved_params_by_tool[run_id] = _load_json_object(
             params_path,
             f"resolved_params[{run_id}]",
+        )
+
+    requirement_issues: dict[str, list[str]] = {}
+    for run_id in selected_tools:
+        catalog_tool_id = selected_tool_catalog_ids.get(run_id, "").strip()
+        if not catalog_tool_id:
+            raise ValueError(
+                f"preflight report is missing catalog mapping for run '{run_id}'"
+            )
+        toolspec = _load_toolspec(tools_root, catalog_tool_id)
+        issues = _collect_requirement_issues(
+            tool_id=run_id,
+            toolspec=toolspec,
+            dataset=dataset,
+            resolved_params=resolved_params_by_tool[run_id],
+        )
+        if issues:
+            requirement_issues[run_id] = issues
+
+    if requirement_issues:
+        error_lines: list[str] = []
+        for run_id in sorted(requirement_issues):
+            for message in requirement_issues[run_id]:
+                error_lines.append(f"[{run_id}] {message}")
+        raise ValueError(
+            "Execution blocked by missing conditional inputs:\n"
+            + "\n".join(error_lines)
         )
 
     warnings = [str(w) for w in run_report.get("warnings", []) if isinstance(w, str)]

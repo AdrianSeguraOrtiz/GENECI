@@ -1,0 +1,7 @@
+group	source	target	score
+cluster_root	G1	G2	0.95
+cluster_root	G1	G4	0.65
+cluster_root	G3	G2	0.70
+cluster_child	G1	G2	0.88
+cluster_child	G3	G5	0.80
+cluster_child	G5	G1	0.60

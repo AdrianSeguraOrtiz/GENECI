@@ -127,12 +127,19 @@
                 "enum": [
                   "column_subset_expression_genes",
                   "column_subset_expression_columns",
+                  "column_subset_extra_column",
                   "first_column_subset_expression_columns",
                   "row_count_matches_expression_columns",
                   "line_subset_expression_genes"
                 ]
               },
           "column": {
+            "type": "string"
+          },
+          "other_input": {
+            "type": "string"
+          },
+          "other_column": {
             "type": "string"
           }
         }

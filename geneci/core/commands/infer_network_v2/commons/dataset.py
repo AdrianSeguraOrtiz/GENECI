@@ -238,6 +238,36 @@ def _coerce_cell_type(
     )
 
 
+def _read_tsv_column_values(path: Path, spec: dict[str, Any], column: str) -> set[str]:
+    delimiter = str(spec.get("delimiter", "\t"))
+    has_header = bool(spec.get("header", True))
+    if not has_header:
+        raise ValueError("referenced input does not define a header row")
+
+    with path.open("r", encoding="utf-8", newline="") as fh:
+        reader = csv.reader(fh, delimiter=delimiter)
+        header_row = next(reader, None)
+        fieldnames = [str(x).strip() for x in header_row] if header_row else []
+        if not fieldnames:
+            raise ValueError("referenced input is missing a header row")
+        try:
+            column_index = fieldnames.index(column)
+        except ValueError as exc:
+            raise ValueError(
+                f"referenced input is missing required column '{column}'"
+            ) from exc
+
+        values: set[str] = set()
+        expected_cols = len(fieldnames)
+        for row in reader:
+            if not row or len(row) != expected_cols:
+                continue
+            raw_value = str(row[column_index]).strip()
+            if raw_value:
+                values.add(raw_value)
+    return values
+
+
 def _validate_tsv_file_with_spec(
     *,
     key: str,
@@ -246,6 +276,7 @@ def _validate_tsv_file_with_spec(
     expression_genes: set[str],
     expression_columns: set[str],
     expression_columns_count: int,
+    extra_column_lookup: Any = None,
 ) -> dict[str, Any]:
     delimiter = str(spec.get("delimiter", "\t"))
     has_header = bool(spec.get("header", True))
@@ -536,6 +567,32 @@ def _validate_tsv_file_with_spec(
                 errors.append(
                     f"{path}: first column contains identifiers not present in expression columns: {sample}"
                 )
+        elif kind == "column_subset_extra_column":
+            other_input = str(rule.get("other_input", "")).strip()
+            other_column = str(rule.get("other_column", "")).strip()
+            if callable(extra_column_lookup):
+                reference_values, lookup_warning = extra_column_lookup(
+                    other_input,
+                    other_column,
+                )
+            else:
+                reference_values, lookup_warning = None, "cross-check lookup unavailable"
+            if lookup_warning:
+                warnings.append(
+                    f"{path}: skipped cross-check for column '{column}' against "
+                    f"extra '{other_input}.{other_column}': {lookup_warning}"
+                )
+                continue
+            if reference_values is None:
+                continue
+            present = values_by_column.get(column, set())
+            unknown = sorted(present.difference(reference_values))
+            if unknown:
+                sample = unknown[:5]
+                errors.append(
+                    f"{path}: column '{column}' contains identifiers not present in "
+                    f"extra '{other_input}.{other_column}': {sample}"
+                )
         elif kind == "row_count_matches_expression_columns":
             if row_count != expression_columns_count:
                 errors.append(
@@ -626,6 +683,56 @@ def _validate_dataset_inputs_by_specs(
     results: dict[str, Any] = {}
     errors: list[str] = []
     warnings: list[str] = []
+    extra_column_cache: dict[tuple[str, str], tuple[Optional[set[str]], Optional[str]]] = {}
+
+    def lookup_extra_column_values(
+        other_input: str,
+        other_column: str,
+    ) -> tuple[Optional[set[str]], Optional[str]]:
+        cache_key = (other_input, other_column)
+        if cache_key in extra_column_cache:
+            return extra_column_cache[cache_key]
+
+        if not other_input or not other_column:
+            result = (
+                None,
+                "invalid cross-check reference (other_input/other_column required)",
+            )
+            extra_column_cache[cache_key] = result
+            return result
+
+        other_path = dataset.extras.get(other_input)
+        if other_path is None:
+            result = (None, f"extra '{other_input}' was not provided")
+            extra_column_cache[cache_key] = result
+            return result
+
+        other_spec = input_specs.get(other_input, {})
+        file_kind = (
+            str(other_spec.get("file_kind", "tsv"))
+            if isinstance(other_spec, dict)
+            else "tsv"
+        )
+        if file_kind != "tsv":
+            result = (
+                None,
+                f"extra '{other_input}' is not a TSV input and cannot be referenced by column",
+            )
+            extra_column_cache[cache_key] = result
+            return result
+
+        try:
+            values = _read_tsv_column_values(
+                other_path,
+                other_spec if isinstance(other_spec, dict) else {},
+                other_column,
+            )
+        except ValueError as exc:
+            result = (None, str(exc))
+        else:
+            result = (values, None)
+        extra_column_cache[cache_key] = result
+        return result
 
     expr_spec = input_specs.get("expression_matrix", {})
     expr_result = _validate_tsv_file_with_spec(
@@ -635,6 +742,7 @@ def _validate_dataset_inputs_by_specs(
         expression_genes=expression_genes,
         expression_columns=expression_columns,
         expression_columns_count=len(expr_columns),
+        extra_column_lookup=lookup_extra_column_values,
     )
     results["expression_matrix"] = expr_result
     errors.extend(expr_result["errors"])
@@ -670,6 +778,7 @@ def _validate_dataset_inputs_by_specs(
                 expression_genes=expression_genes,
                 expression_columns=expression_columns,
                 expression_columns_count=len(expr_columns),
+                extra_column_lookup=lookup_extra_column_values,
             )
         extras_results[key] = res
         errors.extend(res["errors"])
