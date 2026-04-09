@@ -10,6 +10,7 @@ Use this area for:
 - running smoketests
 - benchmarking and updating `cost` profiles
 - cloning upstream implementation repositories for local inspection
+- fetching local publication caches from `toolspec.publication`
 - keeping dev-only parameter overrides derived from ToolSpec defaults
 - keeping shared fixtures and smoketest-only configs
 
@@ -28,6 +29,7 @@ components/inference_tools_dev/
       Dockerfile
       run_tool.py | run_tool.R
       repo/                # optional local clone of toolspec.implementation_url
+      papers/              # optional local publication cache derived from toolspec.publication
   scripts/
     shared/
     validate_toolspecs.py
@@ -38,6 +40,7 @@ components/inference_tools_dev/
     run_smoketests.py
     benchmark_costs.py
     sync_tool_repos.py
+    sync_tool_publications.py
     template_map.json
     templates/
   tests/
@@ -155,6 +158,28 @@ python components/inference_tools_dev/scripts/sync_tool_repos.py clone --tool ge
 python components/inference_tools_dev/scripts/sync_tool_repos.py clean --tool genie3
 ```
 
+### `sync_tool_publications.py`
+
+Lists, fetches, or removes local paper caches under
+`components/inference_tools_dev/tools/<tool_id>/papers`, using `toolspec.publication`.
+
+Fetch mode attempts to:
+- store DOI/citation metadata when available
+- resolve the landing page URL
+- download a PDF when directly accessible
+- extract `article.txt` from the PDF using `pdftotext` when available
+
+```bash
+python components/inference_tools_dev/scripts/sync_tool_publications.py list
+python components/inference_tools_dev/scripts/sync_tool_publications.py fetch --tool genie3
+python components/inference_tools_dev/scripts/sync_tool_publications.py clean --tool genie3
+```
+
+Notes:
+- PDF download is best-effort; some publisher pages may not expose a directly downloadable PDF.
+- `article.txt` generation depends on `pdftotext` being available in `PATH`.
+- Fetched papers are treated as local cache and are ignored by git.
+
 ## Root Makefile shortcuts
 
 From repository root:
@@ -172,6 +197,8 @@ make validate-tool-costs
 make validate-inference-catalog
 make clone-tool-repos ARGS="--tool genie3"
 make clean-tool-repos ARGS="--tool genie3"
+make fetch-tool-publications ARGS="--tool genie3"
+make clean-tool-publications ARGS="--tool genie3"
 make test-all
 ```
 
@@ -188,8 +215,9 @@ Environment note:
 4. Validate ToolSpec with `validate_toolspecs.py`.
 5. Add/update `components/inference_tools_dev/param_overrides/<tool_id>.json` if dev smoke/benchmark runs should differ from ToolSpec defaults.
 6. Add/update smoketest config in `components/inference_tools_dev/tests/smoketest_configs/<tool_id>.json` (if needed).
-7. Run `run_smoketests.py`.
-8. Optionally run `benchmark_costs.py` to refresh `cost.json`, then validate with `validate_tool_costs.py`.
+7. Optionally fetch the referenced papers into `tools/<tool_id>/papers/` with `sync_tool_publications.py fetch`.
+8. Run `run_smoketests.py`.
+9. Optionally run `benchmark_costs.py` to refresh `cost.json`, then validate with `validate_tool_costs.py`.
 
 ## Runtime docs
 

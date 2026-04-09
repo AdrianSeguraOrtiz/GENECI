@@ -58,6 +58,12 @@ clone-tool-repos:
 clean-tool-repos:
 	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/sync_tool_repos.py clean $(ARGS)
 
+fetch-tool-publications:
+	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/sync_tool_publications.py fetch $(ARGS)
+
+clean-tool-publications:
+	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/sync_tool_publications.py clean $(ARGS)
+
 test-all:
 	@$(PYTHON) -m pytest $(PYTEST_FLAGS) tests
 

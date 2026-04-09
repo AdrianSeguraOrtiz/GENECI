@@ -92,3 +92,33 @@ def load_required_toolspec_string(
         )
     return value.strip()
 
+
+def load_toolspec_publications(
+    *,
+    tool_id: str,
+    catalog_tools_root: Path,
+) -> list[str]:
+    toolspec = load_toolspec(catalog_tools_root, tool_id)
+    value = toolspec.get("publication")
+
+    if isinstance(value, str):
+        normalized = value.strip()
+        if not normalized:
+            raise RuntimeError(f"[{tool_id}] toolspec.publication must not be empty.")
+        return [normalized]
+
+    if isinstance(value, list):
+        publications: list[str] = []
+        for idx, item in enumerate(value, start=1):
+            if not isinstance(item, str) or not item.strip():
+                raise RuntimeError(
+                    f"[{tool_id}] toolspec.publication[{idx}] must be a non-empty string."
+                )
+            publications.append(item.strip())
+        if not publications:
+            raise RuntimeError(f"[{tool_id}] toolspec.publication must not be empty.")
+        return publications
+
+    raise RuntimeError(
+        f"[{tool_id}] toolspec.publication must be a string or array of strings."
+    )
