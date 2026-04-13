@@ -907,14 +907,6 @@ button:disabled {
   gap: 0.5rem;
 }
 
-.file-preview .inline-network-plot {
-  margin-top: 0.6rem;
-  min-height: 360px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.96);
-}
-
 .file-preview pre {
   margin: 0;
   white-space: pre-wrap;

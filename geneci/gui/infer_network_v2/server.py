@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import copy
 import csv
-import heapq
 import json
 import tempfile
 import threading
@@ -34,8 +33,6 @@ from geneci.core.commands.infer_network_v2 import (
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 GUI_TMP_ROOT = Path(tempfile.gettempdir()) / "geneci_gui" / "infer_network_v2"
-DEFAULT_NETWORK_PREVIEW_EDGES = 300
-MAX_NETWORK_PREVIEW_EDGES = 3000
 MAX_TEXT_PREVIEW_BYTES = 256 * 1024
 MAX_TABLE_PREVIEW_ROWS = 400
 
@@ -492,217 +489,6 @@ def _read_json_if_exists(path: Optional[str]) -> Optional[dict[str, Any]]:
     return data
 
 
-def _load_network_preview(
-    *,
-    run_report: Optional[dict[str, Any]],
-    max_edges: int,
-) -> Optional[dict[str, Any]]:
-    if not isinstance(run_report, dict):
-        return None
-    outputs = run_report.get("outputs")
-    if not isinstance(outputs, dict):
-        return None
-
-    network_path_raw = outputs.get("merged_network_normalized")
-    if not isinstance(network_path_raw, str) or not network_path_raw.strip():
-        return None
-
-    network_path = Path(network_path_raw)
-    if not network_path.exists() or not network_path.is_file():
-        return None
-
-    target_k = max(1, min(int(max_edges), MAX_NETWORK_PREVIEW_EDGES))
-    heap: list[tuple[float, int, dict[str, Any]]] = []
-    sequence = 0
-    total_edges = 0
-    min_score: Optional[float] = None
-    max_score: Optional[float] = None
-
-    with network_path.open("r", encoding="utf-8", newline="") as fh:
-        reader = csv.DictReader(fh)
-        for row in reader:
-            source = str(row.get("source", "")).strip()
-            target = str(row.get("target", "")).strip()
-            if not source or not target:
-                continue
-            try:
-                score = float(row.get("score", "nan"))
-            except Exception:  # noqa: BLE001
-                continue
-
-            total_edges += 1
-            if min_score is None or score < min_score:
-                min_score = score
-            if max_score is None or score > max_score:
-                max_score = score
-
-            edge = {
-                "source": source,
-                "target": target,
-                "score": score,
-                "tool_id": str(row.get("tool_id", "")),
-                "sign": str(row.get("sign", "")),
-                "evidence": str(row.get("evidence", "")),
-                "context": str(row.get("context", "")),
-            }
-            packed = (score, sequence, edge)
-            sequence += 1
-            if len(heap) < target_k:
-                heapq.heappush(heap, packed)
-            elif score > heap[0][0]:
-                heapq.heapreplace(heap, packed)
-
-    edges = [item[2] for item in sorted(heap, key=lambda x: x[0], reverse=True)]
-    if not edges:
-        return {
-            "path": str(network_path),
-            "total_edges": total_edges,
-            "returned_edges": 0,
-            "max_edges": target_k,
-            "score_min": min_score,
-            "score_max": max_score,
-            "nodes": [],
-            "edges": [],
-        }
-
-    node_metrics: dict[str, dict[str, Any]] = {}
-    for edge in edges:
-        src = edge["source"]
-        tgt = edge["target"]
-        score = float(edge["score"])
-
-        src_node = node_metrics.setdefault(
-            src, {"id": src, "out_degree": 0, "in_degree": 0, "weight_sum": 0.0}
-        )
-        tgt_node = node_metrics.setdefault(
-            tgt, {"id": tgt, "out_degree": 0, "in_degree": 0, "weight_sum": 0.0}
-        )
-
-        src_node["out_degree"] += 1
-        tgt_node["in_degree"] += 1
-        src_node["weight_sum"] += score
-        tgt_node["weight_sum"] += score
-
-    nodes = sorted(
-        node_metrics.values(),
-        key=lambda n: (-(n["out_degree"] + n["in_degree"]), -n["weight_sum"], n["id"]),
-    )
-
-    return {
-        "path": str(network_path),
-        "total_edges": total_edges,
-        "returned_edges": len(edges),
-        "max_edges": target_k,
-        "score_min": min_score,
-        "score_max": max_score,
-        "nodes": nodes,
-        "edges": edges,
-    }
-
-
-def _load_network_preview_from_csv(
-    *,
-    source: Path,
-    max_edges: int,
-) -> Optional[dict[str, Any]]:
-    if not source.exists() or not source.is_file():
-        return None
-
-    target_k = max(1, min(int(max_edges), MAX_NETWORK_PREVIEW_EDGES))
-    heap: list[tuple[float, int, dict[str, Any]]] = []
-    sequence = 0
-    total_edges = 0
-    min_score: Optional[float] = None
-    max_score: Optional[float] = None
-    has_required = False
-
-    with source.open("r", encoding="utf-8", newline="") as fh:
-        reader = csv.DictReader(fh)
-        headers = set(reader.fieldnames or [])
-        if not {"source", "target", "score"}.issubset(headers):
-            return None
-        has_required = True
-
-        for row in reader:
-            source_node = str(row.get("source", "")).strip()
-            target_node = str(row.get("target", "")).strip()
-            if not source_node or not target_node:
-                continue
-            try:
-                score = float(row.get("score", "nan"))
-            except Exception:  # noqa: BLE001
-                continue
-
-            total_edges += 1
-            if min_score is None or score < min_score:
-                min_score = score
-            if max_score is None or score > max_score:
-                max_score = score
-
-            edge = {
-                "source": source_node,
-                "target": target_node,
-                "score": score,
-                "tool_id": str(row.get("tool_id", "")),
-                "sign": str(row.get("sign", "")),
-                "evidence": str(row.get("evidence", "")),
-                "context": str(row.get("context", "")),
-            }
-            packed = (abs(score), sequence, edge)
-            sequence += 1
-            if len(heap) < target_k:
-                heapq.heappush(heap, packed)
-            elif abs(score) > heap[0][0]:
-                heapq.heapreplace(heap, packed)
-
-    if not has_required:
-        return None
-
-    edges = [item[2] for item in sorted(heap, key=lambda x: x[0], reverse=True)]
-    if not edges:
-        return {
-            "path": str(source),
-            "total_edges": total_edges,
-            "returned_edges": 0,
-            "max_edges": target_k,
-            "score_min": min_score,
-            "score_max": max_score,
-            "nodes": [],
-            "edges": [],
-        }
-
-    node_metrics: dict[str, dict[str, Any]] = {}
-    for edge in edges:
-        src = edge["source"]
-        tgt = edge["target"]
-        score = float(edge["score"])
-        src_node = node_metrics.setdefault(
-            src, {"id": src, "out_degree": 0, "in_degree": 0, "weight_sum": 0.0}
-        )
-        tgt_node = node_metrics.setdefault(
-            tgt, {"id": tgt, "out_degree": 0, "in_degree": 0, "weight_sum": 0.0}
-        )
-        src_node["out_degree"] += 1
-        tgt_node["in_degree"] += 1
-        src_node["weight_sum"] += score
-        tgt_node["weight_sum"] += score
-
-    nodes = sorted(
-        node_metrics.values(),
-        key=lambda n: (-(n["out_degree"] + n["in_degree"]), -n["weight_sum"], n["id"]),
-    )
-    return {
-        "path": str(source),
-        "total_edges": total_edges,
-        "returned_edges": len(edges),
-        "max_edges": target_k,
-        "score_min": min_score,
-        "score_max": max_score,
-        "nodes": nodes,
-        "edges": edges,
-    }
-
-
 def _collect_runtime_progress(*, run_dir: Optional[Path]) -> dict[str, Any]:
     if run_dir is None or not run_dir.exists() or not run_dir.is_dir():
         return {
@@ -1154,27 +940,6 @@ def create_app() -> FastAPI:
             return JSONResponse({"status": status, "plan": None})
         return JSONResponse({"status": status, "plan": plan, "plan_path": plan_path})
 
-    @app.get("/api/infer-network-v2/jobs/{job_id}/network-preview")
-    async def api_job_network_preview(
-        job_id: str,
-        max_edges: int = DEFAULT_NETWORK_PREVIEW_EDGES,
-    ) -> JSONResponse:
-        with STATE.lock:
-            job = STATE.jobs.get(job_id)
-            if job is None:
-                raise HTTPException(status_code=404, detail="Job not found")
-            payload = _job_payload(job)
-
-        run_report = _read_json_if_exists(payload.get("run_report_path"))
-        preview = _load_network_preview(run_report=run_report, max_edges=max_edges)
-        return JSONResponse(
-            {
-                "status": payload["status"],
-                "network_preview": preview,
-                "max_edges": max(1, min(int(max_edges), MAX_NETWORK_PREVIEW_EDGES)),
-            }
-        )
-
     @app.get("/api/infer-network-v2/jobs/{job_id}/files")
     async def api_job_files(
         job_id: str,
@@ -1210,7 +975,6 @@ def create_app() -> FastAPI:
         path: str,
         mode: str = "light",
         max_rows: int = MAX_TABLE_PREVIEW_ROWS,
-        max_network_edges: int = DEFAULT_NETWORK_PREVIEW_EDGES,
     ) -> JSONResponse:
         requested_path = str(path or "").strip().lstrip("/")
         if not requested_path:
@@ -1266,21 +1030,6 @@ def create_app() -> FastAPI:
                 delimiter=",",
                 max_rows=max(1, min(int(max_rows), MAX_TABLE_PREVIEW_ROWS)),
             )
-            network_preview = _load_network_preview_from_csv(
-                source=source,
-                max_edges=max(
-                    1, min(int(max_network_edges), MAX_NETWORK_PREVIEW_EDGES)
-                ),
-            )
-            if network_preview is not None:
-                return JSONResponse(
-                    {
-                        "path": requested_path,
-                        "viewer": "network_table_csv",
-                        **table,
-                        "network_preview": network_preview,
-                    }
-                )
             return JSONResponse(
                 {
                     "path": requested_path,
@@ -1295,21 +1044,6 @@ def create_app() -> FastAPI:
                 delimiter="\t",
                 max_rows=max(1, min(int(max_rows), MAX_TABLE_PREVIEW_ROWS)),
             )
-            network_preview = _load_network_preview_from_csv(
-                source=source,
-                max_edges=max(
-                    1, min(int(max_network_edges), MAX_NETWORK_PREVIEW_EDGES)
-                ),
-            )
-            if network_preview is not None:
-                return JSONResponse(
-                    {
-                        "path": requested_path,
-                        "viewer": "network_table_tsv",
-                        **table,
-                        "network_preview": network_preview,
-                    }
-                )
             return JSONResponse(
                 {
                     "path": requested_path,

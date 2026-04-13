@@ -4,11 +4,9 @@ const state = {
   stage: "draft",
   preflightReport: null,
   lastPlan: null,
-  lastNetworkPreview: null,
   runtimeProgress: null,
   pollTimer: null,
   loadedPlanKey: null,
-  loadedNetworkKey: null,
   loadedFilesKey: null,
   selectedFilePath: null,
   filesEntries: [],
@@ -19,7 +17,6 @@ const state = {
   notifiedFailures: new Set(),
   notifiedJobError: "",
 };
-const NETWORK_PREVIEW_MAX_EDGES = 300;
 
 function $(id) {
   return document.getElementById(id);
@@ -1007,13 +1004,6 @@ function resetPlanView(message) {
   $("plan-waves").innerHTML = "";
 }
 
-function resetNetworkView(message) {
-  state.lastNetworkPreview = null;
-  if (message) {
-    $("file-preview-header").textContent = message;
-  }
-}
-
 function resetFilesView(message) {
   state.selectedFilePath = null;
   $("files-summary").textContent = message || "No files loaded yet.";
@@ -1173,7 +1163,7 @@ function renderFilePreview(payload) {
   const viewer = payload.viewer || "none";
   $("file-preview-header").textContent = `${payload.path || "-"} · ${viewer}`;
 
-  if (viewer === "json" || viewer === "text" || viewer === "plan" || viewer === "network") {
+  if (viewer === "json" || viewer === "text" || viewer === "plan") {
     const pre = document.createElement("pre");
     pre.textContent = payload.text || payload.note || "No text preview.";
     previewRoot.appendChild(pre);
@@ -1218,26 +1208,6 @@ function renderFilePreview(payload) {
   };
 
   if (viewer === "table_csv" || viewer === "table_tsv") {
-    renderTable();
-    return;
-  }
-
-  if (viewer === "network_table_csv" || viewer === "network_table_tsv") {
-    const networkPreview = payload.network_preview || null;
-    if (networkPreview && Array.isArray(networkPreview.edges) && networkPreview.edges.length) {
-      const graphHost = document.createElement("div");
-      graphHost.className = "inline-network-plot";
-      graphHost.id = "file-network-table-plot";
-      previewRoot.appendChild(graphHost);
-      if (window.Plotly) {
-        const graph = _networkTraces(networkPreview);
-        window.Plotly.react(graphHost.id, graph.traces, graph.layout, graph.config);
-      } else {
-        const pre = document.createElement("pre");
-        pre.textContent = "Plotly is not available in this browser session.";
-        previewRoot.appendChild(pre);
-      }
-    }
     renderTable();
     return;
   }
@@ -1460,7 +1430,7 @@ async function fetchFileContent(jobId, virtualPath, mode) {
   const response = await fetch(
     `/api/infer-network-v2/jobs/${jobId}/file-content?mode=${encodeURIComponent(mode)}&path=${encodeURIComponent(
       virtualPath
-    )}&max_network_edges=${NETWORK_PREVIEW_MAX_EDGES}`
+    )}`
   );
   const payload = await response.json();
   if (!response.ok) {
@@ -1624,110 +1594,6 @@ function renderPlan(plan) {
   }
 }
 
-function circularLayout(nodes) {
-  const total = nodes.length;
-  const radius = Math.max(1, Math.sqrt(total) * 2.1);
-  const positions = new Map();
-
-  nodes.forEach((node, idx) => {
-    const angle = (2 * Math.PI * idx) / Math.max(1, total);
-    positions.set(node.id, {
-      x: radius * Math.cos(angle),
-      y: radius * Math.sin(angle),
-    });
-  });
-
-  return positions;
-}
-
-function _networkTraces(preview) {
-  const nodes = Array.isArray(preview?.nodes) ? preview.nodes : [];
-  const edges = Array.isArray(preview?.edges) ? preview.edges : [];
-  const positions = circularLayout(nodes);
-
-  const edgeX = [];
-  const edgeY = [];
-  for (const edge of edges) {
-    const srcPos = positions.get(edge.source);
-    const tgtPos = positions.get(edge.target);
-    if (!srcPos || !tgtPos) {
-      continue;
-    }
-    edgeX.push(srcPos.x, tgtPos.x, null);
-    edgeY.push(srcPos.y, tgtPos.y, null);
-  }
-
-  const nodeX = [];
-  const nodeY = [];
-  const nodeText = [];
-  const nodeSize = [];
-  const nodeColor = [];
-  for (const node of nodes) {
-    const pos = positions.get(node.id);
-    if (!pos) {
-      continue;
-    }
-    const inDegree = Number(node.in_degree || 0);
-    const outDegree = Number(node.out_degree || 0);
-    const degree = inDegree + outDegree;
-    nodeX.push(pos.x);
-    nodeY.push(pos.y);
-    nodeSize.push(8 + Math.log2(1 + degree) * 7);
-    nodeColor.push(outDegree - inDegree);
-    nodeText.push(
-      `${node.id}<br>` +
-        `in=${inDegree}, out=${outDegree}<br>` +
-        `weight_sum=${Number(node.weight_sum || 0).toFixed(4)}`
-    );
-  }
-
-  return {
-    traces: [
-      {
-        type: "scattergl",
-        mode: "lines",
-        x: edgeX,
-        y: edgeY,
-        line: { width: 0.7, color: "rgba(120,120,120,0.35)" },
-        hoverinfo: "skip",
-        showlegend: false,
-      },
-      {
-        type: "scattergl",
-        mode: "markers",
-        x: nodeX,
-        y: nodeY,
-        text: nodeText,
-        hovertemplate: "%{text}<extra></extra>",
-        marker: {
-          size: nodeSize,
-          color: nodeColor,
-          colorscale: "RdBu",
-          reversescale: true,
-          line: { width: 0.5, color: "#0f172a" },
-          colorbar: {
-            title: "out - in",
-          },
-        },
-        showlegend: false,
-      },
-    ],
-    layout: {
-      margin: { l: 20, r: 20, t: 20, b: 20 },
-      xaxis: { visible: false },
-      yaxis: { visible: false, scaleanchor: "x", scaleratio: 1 },
-      paper_bgcolor: "rgba(255,255,255,0)",
-      plot_bgcolor: "rgba(255,255,255,0)",
-      hovermode: "closest",
-    },
-    config: {
-      responsive: true,
-      displaylogo: false,
-      modeBarButtonsToRemove: ["select2d", "lasso2d"],
-    },
-  };
-}
-
 function renderPlanInlinePreview(plan, virtualPath) {
   const previewRoot = $("file-preview");
   previewRoot.innerHTML = "";
@@ -1797,47 +1663,6 @@ function renderPlanInlinePreview(plan, virtualPath) {
   previewRoot.appendChild(wavesHost);
 }
 
-function renderNetworkInlinePreview(preview, virtualPath) {
-  const previewRoot = $("file-preview");
-  previewRoot.innerHTML = "";
-  $("file-preview-header").textContent = `${virtualPath} · network`;
-
-  if (!preview || !Array.isArray(preview.edges) || !preview.edges.length) {
-    const pre = document.createElement("pre");
-    pre.textContent = "No merged network preview available yet.";
-    previewRoot.appendChild(pre);
-    return;
-  }
-
-  const nodes = Array.isArray(preview.nodes) ? preview.nodes : [];
-  const stats = document.createElement("div");
-  stats.className = "muted-box";
-  stats.textContent =
-    `source: ${preview.path || "-"}\n` +
-    `total_edges_in_file: ${preview.total_edges ?? "-"}\n` +
-    `edges_returned: ${preview.returned_edges ?? preview.edges.length}\n` +
-    `preview_limit: ${preview.max_edges ?? "-"}\n` +
-    `score_range: [${preview.score_min ?? "-"}, ${preview.score_max ?? "-"}]\n` +
-    `nodes_in_preview: ${nodes.length}`;
-  previewRoot.appendChild(stats);
-
-  const plotId = "file-network-plot";
-  const plot = document.createElement("div");
-  plot.className = "inline-network-plot";
-  plot.id = plotId;
-  previewRoot.appendChild(plot);
-
-  if (!window.Plotly) {
-    const pre = document.createElement("pre");
-    pre.textContent = "Plotly is not available in this browser session.";
-    previewRoot.appendChild(pre);
-    return;
-  }
-
-  const graph = _networkTraces(preview);
-  window.Plotly.react(plotId, graph.traces, graph.layout, graph.config);
-}
-
 async function fetchPlan(jobId) {
   const response = await fetch(`/api/infer-network-v2/jobs/${jobId}/plan`);
   if (!response.ok) {
@@ -1846,19 +1671,6 @@ async function fetchPlan(jobId) {
   const payload = await response.json();
   renderPlan(payload.plan);
   return payload.plan;
-}
-
-async function fetchNetworkPreview(jobId) {
-  const response = await fetch(
-    `/api/infer-network-v2/jobs/${jobId}/network-preview?max_edges=${NETWORK_PREVIEW_MAX_EDGES}`
-  );
-  if (!response.ok) {
-    throw new Error(`Failed to load network preview (${response.status})`);
-  }
-  const payload = await response.json();
-  state.lastNetworkPreview = payload.network_preview || null;
-  state.loadedNetworkKey = `${jobId}:${NETWORK_PREVIEW_MAX_EDGES}`;
-  return state.lastNetworkPreview;
 }
 
 async function refreshArtifacts(job) {
@@ -1871,13 +1683,6 @@ async function refreshArtifacts(job) {
     if (state.loadedPlanKey !== planKey) {
       await fetchPlan(job.job_id);
       state.loadedPlanKey = planKey;
-    }
-  }
-
-  if ((job.stage === "executed" && job.status === "completed") || job.status === "failed") {
-    const desiredNetworkKey = `${job.job_id}:${NETWORK_PREVIEW_MAX_EDGES}`;
-    if (state.loadedNetworkKey !== desiredNetworkKey) {
-      await fetchNetworkPreview(job.job_id);
     }
   }
 
@@ -2388,14 +2193,12 @@ async function submitPreflight() {
     const formData = buildPreflightFormData(config);
 
     state.loadedPlanKey = null;
-    state.loadedNetworkKey = null;
     state.loadedFilesKey = null;
     state.selectedFilePath = null;
     state.collapsedDirs.clear();
     state.eligibleToolIds = null;
     state.preflightReport = null;
     state.lastPlan = null;
-    state.lastNetworkPreview = null;
     state.runtimeProgress = null;
     state.notifiedFailures.clear();
     state.notifiedJobError = "";
@@ -2404,7 +2207,6 @@ async function submitPreflight() {
     updateRunsEmptyState();
     updateToolEligibilityView(null);
     resetPlanView("Waiting for preflight/plan output...");
-    resetNetworkView("Waiting for merged network output...");
     resetFilesView("Waiting for files...");
     renderRuntimeProgress(null);
     renderExecutionAlerts(null, null);
@@ -2530,7 +2332,6 @@ async function bootstrap() {
   updateRunsEmptyState();
   updateToolEligibilityView(null);
   resetPlanView("No plan loaded yet.");
-  resetNetworkView();
   resetFilesView("No files loaded yet.");
   renderRuntimeProgress(null);
   renderExecutionAlerts(null, null);
