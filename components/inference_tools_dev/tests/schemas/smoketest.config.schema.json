@@ -27,6 +27,16 @@
           "description": "Whether network.csv must include at least one row with context starting with 'cluster:'.",
           "type": "boolean",
           "default": false
+        },
+        "require_unique_unordered_pairs": {
+          "description": "Whether network.csv must contain at most one row per unordered source/target pair.",
+          "type": "boolean",
+          "default": false
+        },
+        "forbid_self_loops": {
+          "description": "Whether network.csv must exclude rows where source == target.",
+          "type": "boolean",
+          "default": false
         }
       },
       "default": {}

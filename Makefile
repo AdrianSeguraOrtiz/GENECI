@@ -2,6 +2,8 @@ PYTHON ?= $(if $(wildcard .venv/bin/python),.venv/bin/python,python)
 INFERENCE_DEV_SCRIPTS := components/inference_tools_dev/scripts
 PYTEST_FLAGS ?= -q
 ARGS ?=
+TOOL ?=
+WRAPPER ?= python
 
 install:
 	@$(PYTHON) -m pip install --upgrade pip
@@ -44,13 +46,32 @@ validate-toolspecs:
 validate-input-specs:
 	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/validate_input_specs.py $(ARGS)
 
+validate-smoketest-configs:
+	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/validate_smoketest_configs.py $(ARGS)
+
 validate-tool-costs:
 	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/validate_tool_costs.py $(ARGS)
 
 validate-inference-catalog:
 	@$(MAKE) validate-toolspecs
 	@$(MAKE) validate-input-specs
+	@$(MAKE) validate-smoketest-configs
 	@$(MAKE) validate-tool-costs
+
+scaffold-tool:
+	@test -n "$(TOOL)" || (echo "Usage: make scaffold-tool TOOL=<tool_id> [WRAPPER=<language>] [ARGS='...']" && exit 2)
+	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/scaffold_tool.py --tool $(TOOL) --wrapper $(WRAPPER) $(ARGS)
+
+prepare-tool-papers:
+	@test -n "$(TOOL)" || (echo "Usage: make prepare-tool-papers TOOL=<tool_id> [ARGS='...']" && exit 2)
+	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/prepare_tool_papers.py --tool $(TOOL) $(ARGS)
+
+verify-tool:
+	@test -n "$(TOOL)" || (echo "Usage: make verify-tool TOOL=<tool_id> [ARGS='...']" && exit 2)
+	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/validate_toolspecs.py --tool $(TOOL)
+	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/validate_input_specs.py
+	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/validate_smoketest_configs.py --tool $(TOOL)
+	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/run_smoketests.py --tool $(TOOL) $(ARGS)
 
 clone-tool-repos:
 	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/sync_tool_repos.py clone $(ARGS)

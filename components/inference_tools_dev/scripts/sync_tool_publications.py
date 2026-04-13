@@ -22,7 +22,6 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -41,6 +40,7 @@ from shared.catalog_tools import (
     load_toolspec_publications,
     select_tools,
 )
+from shared.paper_text import extract_pdf_to_text
 
 DEFAULT_USER_AGENT = "GENECI-inference-tools-dev/1.0 (+https://github.com/adriansegura99/GENECI)"
 DEFAULT_TIMEOUT_SECONDS = 30
@@ -270,22 +270,6 @@ def maybe_write_text(path: Path, text: str | None) -> None:
     if not normalized:
         return
     path.write_text(normalized + "\n", encoding="utf-8")
-
-
-def extract_pdf_to_text(*, pdf_path: Path, output_path: Path) -> tuple[bool, str | None]:
-    pdftotext_bin = shutil.which("pdftotext")
-    if pdftotext_bin is None:
-        return False, "pdftotext not available in PATH"
-
-    result = subprocess.run(
-        [pdftotext_bin, "-layout", str(pdf_path), str(output_path)],
-        text=True,
-        capture_output=True,
-        check=False,
-    )
-    if result.returncode != 0:
-        return False, (result.stderr.strip() or result.stdout.strip() or "pdftotext failed")
-    return True, None
 
 
 def fetch_doi_metadata(*, reference_url: str, timeout: int) -> dict[str, Any] | None:

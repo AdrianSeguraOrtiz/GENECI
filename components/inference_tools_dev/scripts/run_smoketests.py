@@ -41,7 +41,11 @@ DEFAULT_TOOL_SOURCES_ROOT = INFERENCE_TOOLS_ROOT / "tools"
 
 REQUIRED_NETWORK_COLUMNS = ["source", "target", "score", "sign", "evidence", "context"]
 ALLOWED_CONFIG_ROOT_KEYS = {"extra_files", "require_progress", "checks"}
-ALLOWED_CONFIG_CHECK_KEYS = {"require_cluster_context"}
+ALLOWED_CONFIG_CHECK_KEYS = {
+    "require_cluster_context",
+    "require_unique_unordered_pairs",
+    "forbid_self_loops",
+}
 
 
 @dataclass(frozen=True)
@@ -49,6 +53,8 @@ class SmokeConfig:
     extra_files: list[str]
     require_progress: bool
     require_cluster_context: bool
+    require_unique_unordered_pairs: bool
+    forbid_self_loops: bool
 
 
 @dataclass(frozen=True)
@@ -69,6 +75,8 @@ DEFAULT_CONFIG = SmokeConfig(
     extra_files=[],
     require_progress=True,
     require_cluster_context=False,
+    require_unique_unordered_pairs=False,
+    forbid_self_loops=False,
 )
 
 
@@ -406,11 +414,17 @@ def load_config(*, tool_id: str, configs_dir: Path) -> SmokeConfig:
     require_progress = bool(raw.get("require_progress", True))
 
     require_cluster_context = bool(checks.get("require_cluster_context", False))
+    require_unique_unordered_pairs = bool(
+        checks.get("require_unique_unordered_pairs", False)
+    )
+    forbid_self_loops = bool(checks.get("forbid_self_loops", False))
 
     return SmokeConfig(
         extra_files=extra_files,
         require_progress=require_progress,
         require_cluster_context=require_cluster_context,
+        require_unique_unordered_pairs=require_unique_unordered_pairs,
+        forbid_self_loops=forbid_self_loops,
     )
 
 
@@ -634,6 +648,24 @@ def validate_network(path: Path, config: SmokeConfig) -> int:
     if config.require_cluster_context:
         if not any(str(row.get("context", "")).startswith("cluster:") for row in rows):
             raise RuntimeError("Expected at least one row with context='cluster:*'.")
+
+    if config.forbid_self_loops:
+        for row in rows:
+            if str(row.get("source", "")) == str(row.get("target", "")):
+                raise RuntimeError(
+                    "Expected network.csv to exclude self-loops, but at least one row has source == target."
+                )
+
+    if config.require_unique_unordered_pairs:
+        seen_pairs: set[tuple[str, str]] = set()
+        for row in rows:
+            pair = tuple(sorted((str(row.get("source", "")), str(row.get("target", "")))))
+            if pair in seen_pairs:
+                raise RuntimeError(
+                    "Expected at most one row per unordered source/target pair, "
+                    f"but found a duplicate pair: {pair!r}."
+                )
+            seen_pairs.add(pair)
 
     return len(rows)
 

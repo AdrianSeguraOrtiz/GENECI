@@ -459,6 +459,12 @@ def run_container_once(
         return ("timeout", elapsed, f"Run exceeded timeout of {timeout_s} seconds.")
 
     network_path = io_dir / "out" / "network.csv"
+    deadline = time.perf_counter() + 2.0
+    while time.perf_counter() < deadline:
+        if network_path.exists() and network_path.stat().st_size > 0:
+            break
+        time.sleep(0.1)
+
     if not network_path.exists() or network_path.stat().st_size <= 0:
         return (
             "error",
