@@ -1,0 +1,8 @@
+{
+  "extra_files": [],
+  "require_progress": true,
+  "checks": {
+    "require_unique_unordered_pairs": true,
+    "forbid_self_loops": true
+  }
+}

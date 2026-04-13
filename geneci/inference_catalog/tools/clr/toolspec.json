@@ -1,0 +1,93 @@
+{
+  "schema_version": "1.0",
+  "id": "clr",
+  "name": "CLR",
+  "publication": [
+    "https://doi.org/10.1371/journal.pbio.0050008",
+    "https://doi.org/10.1186/1471-2105-9-461"
+  ],
+  "first_author": "Jeremiah J. Faith",
+  "year": 2007,
+  "method_summary": "Context Likelihood of Relatedness infers a symmetric weighted gene-gene network by comparing each mutual-information score against the empirical background distributions of both genes. In this integration, mutual information is computed with minet::build.mim and then minet::clr is applied so the wrapper preserves the method's raw CLR scores in network.csv.",
+  "method_keywords": [
+    "mutual_information",
+    "information_theory",
+    "context_likelihood",
+    "z_score",
+    "undirected"
+  ],
+  "implementation_url": "https://bioconductor.org/packages/minet/",
+  "docker_image": "adriansegura99/inference-tools_clr:1.0.0",
+  "accepts": [
+    "samples",
+    "cells",
+    "timepoints",
+    "perturbations"
+  ],
+  "assumes": "generic",
+  "extra_inputs": {
+    "required": [],
+    "optional": [],
+    "conditional_required": []
+  },
+  "outputs": {
+    "directed": false,
+    "sign": "none",
+    "evidence": "association"
+  },
+  "progress": {
+    "kind": "none",
+    "note": "minet/CLR exposes no native callbacks or incremental counters for MIM construction or CLR scoring; the wrapper can only report coarse lifecycle states."
+  },
+  "params": {
+    "estimator": {
+      "type": "enum",
+      "required": false,
+      "default": "spearman",
+      "enum": [
+        "mi.empirical",
+        "mi.mm",
+        "mi.shrink",
+        "mi.sg",
+        "pearson",
+        "spearman",
+        "kendall"
+      ],
+      "description": "Mutual-information estimator used by minet before running CLR. Correlation-based estimators are suitable for continuous expression data; discrete MI estimators are also available."
+    },
+    "disc": {
+      "type": "enum",
+      "required": false,
+      "default": "none",
+      "enum": [
+        "none",
+        "equalfreq",
+        "equalwidth",
+        "globalequalwidth"
+      ],
+      "description": "Discretization strategy used when the selected estimator requires discretized inputs."
+    },
+    "nbins": {
+      "type": "union",
+      "required": false,
+      "default": null,
+      "description": "Optional number of bins for discretization. Use null to follow the upstream default sqrt(NROW(dataset)).",
+      "oneOf": [
+        {
+          "type": "int",
+          "required": false,
+          "default": 10,
+          "min": 1,
+          "description": "Explicit number of discretization bins."
+        },
+        {
+          "type": "object",
+          "required": false,
+          "default": null,
+          "description": "Use null to preserve the upstream default sqrt(NROW(dataset))."
+        }
+      ]
+    }
+  },
+  "artifacts_aux": []
+}

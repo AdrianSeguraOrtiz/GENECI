@@ -37,6 +37,10 @@
     "tigress": {
       "runtime": "r",
       "bundles": []
+    },
+    "clr": {
+      "runtime": "r",
+      "bundles": []
     }
   }
 }
