@@ -6,6 +6,15 @@
     "https://doi.org/10.1186/1752-0509-6-145"
   ],
   "first_author": "Anne-Claire Haury",
+  "year": 2012,
+  "method_summary": "TIGRESS formulates GRN inference as a sparse regression problem and combines LARS-based feature selection with stability selection over repeated sample splits. It produces directed unsigned regulator-target scores from gene expression data.",
+  "method_keywords": [
+    "stability_selection",
+    "sparse_regression",
+    "lars",
+    "feature_selection",
+    "directed"
+  ],
   "implementation_url": "https://github.com/jpvert/tigress",
   "docker_image": "adriansegura99/inference-tools_tigress:1.0.0",
   "accepts": [

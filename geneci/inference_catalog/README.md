@@ -6,7 +6,7 @@ This directory is part of the Python package and is intended to be shipped in th
 It contains:
 - JSON schemas used by the orchestrator for validation/compatibility checks
 - Declarative input validation specs consumed by preflight (CLI/GUI/core)
-- Tool metadata (`toolspec.json`) for each inference tool
+- Tool metadata (`toolspec.json`) for each inference tool, including provenance and short method descriptors
 - Optional benchmark-derived planning profiles (`cost.json`) when available
 
 Development tooling (Dockerfiles, runtime wrappers, image build scripts, benchmarks, smoketests, fixtures)

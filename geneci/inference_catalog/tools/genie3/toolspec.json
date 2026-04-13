@@ -6,6 +6,15 @@
     "https://doi.org/10.1371/journal.pone.0012776"
   ],
   "first_author": "Vân Anh Huynh-Thu",
+  "year": 2010,
+  "method_summary": "GENIE3 infers directed regulator-target scores by fitting one tree-ensemble regression model per target gene and ranking candidate regulators by feature importance. This integration exposes the Random Forest and Extra Trees variants implemented through arboreto.",
+  "method_keywords": [
+    "tree_ensemble",
+    "random_forest",
+    "extra_trees",
+    "feature_importance",
+    "directed"
+  ],
   "implementation_url": "https://github.com/tmoerman/arboreto",
   "docker_image": "adriansegura99/inference-tools_genie3:1.0.0",
   "accepts": [

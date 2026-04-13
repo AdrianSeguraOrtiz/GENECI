@@ -7,6 +7,15 @@
     "https://doi.org/10.1093/bioinformatics/btw216"
   ],
   "first_author": "Adam A Margolin",
+  "year": 2006,
+  "method_summary": "ARACNe reconstructs an undirected gene association network from expression data using mutual information and data processing inequality pruning to remove indirect dependencies. The ARACNe3 implementation used here strengthens the base method with adaptive partitioning and consensus over subsampled subnetworks.",
+  "method_keywords": [
+    "mutual_information",
+    "information_theory",
+    "dpi_pruning",
+    "subsampling",
+    "undirected"
+  ],
   "implementation_url": "https://github.com/califano-lab/ARACNe3",
   "docker_image": "adriansegura99/inference-tools_aracne3:1.0.0",
   "accepts": [

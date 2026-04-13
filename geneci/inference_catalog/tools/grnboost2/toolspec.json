@@ -6,6 +6,15 @@
     "https://doi.org/10.1093/bioinformatics/bty916"
   ],
   "first_author": "Thomas Moerman",
+  "year": 2019,
+  "method_summary": "GRNBoost2 is a fast directed GRN inference method that follows the GENIE3 regression-per-target strategy but uses stochastic gradient boosting with early stopping to rank candidate regulators efficiently at scale. This integration uses the arboreto implementation.",
+  "method_keywords": [
+    "gradient_boosting",
+    "tree_ensemble",
+    "early_stopping",
+    "feature_importance",
+    "directed"
+  ],
   "implementation_url": "https://github.com/tmoerman/arboreto",
   "docker_image": "adriansegura99/inference-tools_grnboost2:1.0.0",
   "accepts": [

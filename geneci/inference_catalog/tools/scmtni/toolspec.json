@@ -6,6 +6,15 @@
     "https://doi.org/10.1038/s41467-023-38637-9"
   ],
   "first_author": "Shilu Zhang",
+  "year": 2023,
+  "method_summary": "scMTNI jointly infers cell type-specific directed gene regulatory networks from single-cell omics data using a multi-task learning framework that shares information along a cell lineage. The method can additionally incorporate prior networks such as motif-derived evidence for each group.",
+  "method_keywords": [
+    "single_cell",
+    "multi_task_learning",
+    "lineage_aware",
+    "prior_knowledge",
+    "directed"
+  ],
   "implementation_url": "https://github.com/Roy-lab/scMTNI",
   "docker_image": "adriansegura99/inference-tools_scmtni:1.0.0",
   "accepts": [
