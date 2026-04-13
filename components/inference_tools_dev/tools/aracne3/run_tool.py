@@ -309,6 +309,9 @@ def _convert_consolidated_to_network(consolidated_tsv: Path, network_csv: Path) 
                         f"Invalid mi.values at line {idx} in {consolidated_tsv.name}: {score_raw!r}"
                     ) from exc
 
+                if score == 0.0:
+                    continue
+
                 writer.writerow(
                     {
                         "source": source,

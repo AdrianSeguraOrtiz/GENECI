@@ -37,6 +37,9 @@ def _read_network_rows(path: Path, tool_id: str) -> list[dict[str, Any]]:
                     f"[{tool_id}] invalid numeric score at network.csv line {idx}: {row.get('score')!r}"
                 ) from exc
 
+            if score == 0.0:
+                continue
+
             rows.append(
                 {
                     "source": str(row["source"]),

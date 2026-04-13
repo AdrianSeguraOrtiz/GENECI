@@ -206,6 +206,7 @@ Requirements:
 - Preserve data-dependent or runtime-dependent upstream defaults; if the ToolSpec uses a sentinel such as `null` to mean "defer to upstream default", implement that by omitting the argument rather than hard-coding a replacement value
 - Make the wrapper produce raw `network.csv` scores for the chosen upstream interface and `progress.json`
 - Do not apply GENECI-specific score normalization in the wrapper; downstream normalization is handled later by [merge.py](geneci/core/commands/infer_network_v2/commons/merge.py)
+- Do not write rows with `score == 0` to `network.csv`; if the upstream method produces a dense matrix, filter zero-score edges in the wrapper before export
 - For undirected methods, export one row per unordered pair and exclude self-loops unless stronger primary evidence clearly requires another edge convention
 - Add or update [smoketest config](components/inference_tools_dev/tests/smoketest_configs/<tool_id>.json) and any needed fixtures under [tests/fixtures/](components/inference_tools_dev/tests/fixtures/)
 - Build the image and run the smoketest during this phase; if it fails, fix the implementation and repeat until it passes
@@ -469,6 +470,7 @@ If an upstream default depends on the dataset or runtime state, do not silently 
   - rule:
     - `network.csv` should preserve the direct scores of the chosen upstream interface
     - do not add an extra GENECI-specific score normalization layer in the wrapper; downstream normalization is handled later by `infer_network_v2`
+    - exact zero-score edges should be omitted from `network.csv`; zero means "no retained interaction", not a useful stored edge
 
 ### Progress
 

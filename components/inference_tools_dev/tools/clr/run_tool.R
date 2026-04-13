@@ -185,8 +185,7 @@ build_network <- function(score_matrix) {
     stop("CLR requires at least 2 genes to build a non-empty network.", call. = FALSE)
   }
 
-  rows <- vector("list", (n_genes * (n_genes - 1L)) %/% 2L)
-  idx <- 1L
+  rows <- list()
   for (i in seq_len(n_genes - 1L)) {
     for (j in seq.int(i + 1L, n_genes)) {
       score <- as.numeric(score_matrix[j, i])
@@ -200,7 +199,10 @@ build_network <- function(score_matrix) {
           call. = FALSE
         )
       }
-      rows[[idx]] <- data.frame(
+      if (score == 0) {
+        next
+      }
+      rows[[length(rows) + 1L]] <- data.frame(
         source = genes[[i]],
         target = genes[[j]],
         score = score,
@@ -209,10 +211,12 @@ build_network <- function(score_matrix) {
         context = "global",
         stringsAsFactors = FALSE
       )
-      idx <- idx + 1L
     }
   }
 
+  if (!length(rows)) {
+    stop("CLR produced no non-zero interactions for this dataset.", call. = FALSE)
+  }
   out <- do.call(rbind, rows)
   out[order(out$score, decreasing = TRUE), , drop = FALSE]
 }

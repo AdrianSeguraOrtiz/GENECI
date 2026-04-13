@@ -111,7 +111,7 @@ def validate_inferred_columns(inferred: pd.DataFrame) -> None:
 
 
 def to_standard_network(inferred: pd.DataFrame) -> pd.DataFrame:
-    return pd.DataFrame(
+    out = pd.DataFrame(
         {
             "source": inferred["TF"].astype(str),
             "target": inferred["target"].astype(str),
@@ -121,3 +121,4 @@ def to_standard_network(inferred: pd.DataFrame) -> pd.DataFrame:
             "context": ["global"] * len(inferred),
         }
     )
+    return out.loc[out["score"] != 0].reset_index(drop=True)

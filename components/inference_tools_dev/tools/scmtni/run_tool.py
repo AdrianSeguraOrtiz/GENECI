@@ -709,6 +709,8 @@ def _collect_network_rows(
                     }
                 )
 
+    rows = [row for row in rows if row["score"] != 0.0]
+
     rows.sort(key=lambda row: row["score"], reverse=True)
     return rows
 
