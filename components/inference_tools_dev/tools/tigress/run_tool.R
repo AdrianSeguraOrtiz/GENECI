@@ -160,10 +160,60 @@ read_expression_tsv <- function(expr_path) {
   obs_x_genes
 }
 
+# Upstream TIGRESS can index past the available LARS steps on small/collinear datasets.
+# Retry with fewer steps so the wrapper remains usable instead of failing outright.
+run_tigress_with_fallback <- function(expression_data, tf_names, params) {
+  requested_steps <- params$nstepsLARS
+  last_error <- NULL
+
+  for (steps in seq.int(requested_steps, 1L, by = -1L)) {
+    result <- tryCatch(
+      tigress::tigress(
+        expdata = expression_data,
+        tflist = tf_names,
+        targetlist = colnames(expression_data),
+        alpha = params$alpha,
+        nstepsLARS = steps,
+        nsplit = params$nsplit,
+        normalizeexp = params$normalizeexp,
+        scoring = params$scoring,
+        allsteps = params$allsteps,
+        verb = FALSE,
+        usemulticore = params$usemulticore
+      ),
+      error = function(e) e
+    )
+
+    if (!inherits(result, "error")) {
+      if (steps != requested_steps) {
+        message(
+          sprintf(
+            "Adjusted nstepsLARS from %d to %d because TIGRESS/lars could not realize the requested step count on this dataset.",
+            requested_steps,
+            steps
+          )
+        )
+      }
+      return(list(result = result, effective_nstepsLARS = steps))
+    }
+
+    last_error <- result
+    if (!grepl("subscript out of bounds", conditionMessage(result), fixed = TRUE) || steps == 1L) {
+      stop(result)
+    }
+  }
+
+  stop(last_error)
+}
+
 build_network <- function(score_matrix, limit) {
   edge_df <- as.data.frame(as.table(score_matrix), stringsAsFactors = FALSE)
   names(edge_df) <- c("source", "target", "score")
   edge_df$score <- as.numeric(edge_df$score)
+  edge_df <- edge_df[is.finite(edge_df$score) & edge_df$score != 0, , drop = FALSE]
+  if (!nrow(edge_df)) {
+    stop("TIGRESS produced no non-zero interactions for this dataset.", call. = FALSE)
+  }
   edge_df <- edge_df[order(edge_df$score, decreasing = TRUE), , drop = FALSE]
 
   if (!is.null(limit) && nrow(edge_df) > limit) {
@@ -225,19 +275,8 @@ main <- function() {
       "Running TIGRESS (no fine-grained internal progress available)"
     )
 
-    tigress_result <- tigress::tigress(
-      expdata = expression_data,
-      tflist = tf_names,
-      targetlist = colnames(expression_data),
-      alpha = params$alpha,
-      nstepsLARS = params$nstepsLARS,
-      nsplit = params$nsplit,
-      normalizeexp = params$normalizeexp,
-      scoring = params$scoring,
-      allsteps = params$allsteps,
-      verb = FALSE,
-      usemulticore = params$usemulticore
-    )
+    tigress_run <- run_tigress_with_fallback(expression_data, tf_names, params)
+    tigress_result <- tigress_run$result
 
     score_matrix <- if (is.list(tigress_result)) {
       tigress_result[[length(tigress_result)]]
