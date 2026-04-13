@@ -374,6 +374,13 @@ def _build_dataset_manifest_file(
             f"{bootstrap['expression_profiles']}"
         )
 
+    organism_cfg = dataset_cfg.get("organism")
+    if not isinstance(organism_cfg, dict):
+        raise ValueError("config.dataset.organism must be an object")
+    organism_tax_id = _safe_int(organism_cfg.get("tax_id"), default=0)
+    if organism_tax_id < 1:
+        raise ValueError("config.dataset.organism.tax_id must be an integer >= 1")
+
     expression_upload = form.get("expression_file")
     if expression_upload is None or not getattr(expression_upload, "filename", ""):
         raise ValueError("expression_file is required")
@@ -422,7 +429,7 @@ def _build_dataset_manifest_file(
                     "genes": genes,
                     "columns": columns,
                 },
-                "organism": {"tax_id": 9606},
+                "organism": {"tax_id": organism_tax_id},
             },
             "expression_matrix": str(Path("inputs") / "expression.tsv"),
         },
@@ -579,28 +586,31 @@ def _bundle_sources(
     request_dir: Path,
     run_dir: Optional[Path],
     mode: str,
+    include_inputs: bool = True,
 ) -> list[tuple[str, Path]]:
     if mode not in {"light", "full"}:
         raise ValueError("mode must be one of: light, full")
 
     sources: list[tuple[str, Path]] = []
 
-    request_candidates = [
-        request_dir / "dataset-manifest.json",
-        request_dir / "tools_params.json",
-        request_dir / "preflight_report.json",
-    ]
-    for path in request_candidates:
-        if path.exists() and path.is_file():
-            sources.append((f"input/{path.name}", path))
+    if include_inputs:
+        request_candidates = [
+            request_dir / "dataset-manifest.json",
+            request_dir / "tools_params.json",
+            request_dir / "preflight_report.json",
+        ]
+        for path in request_candidates:
+            if path.exists() and path.is_file():
+                sources.append((f"input/{path.name}", path))
 
-    inputs_dir = request_dir / "inputs"
-    if inputs_dir.exists() and inputs_dir.is_dir():
-        for path in sorted(inputs_dir.rglob("*")):
-            if not path.is_file():
-                continue
-            rel = path.relative_to(request_dir)
-            sources.append((f"input/{rel.as_posix()}", path))
+        if mode == "full":
+            inputs_dir = request_dir / "inputs"
+            if inputs_dir.exists() and inputs_dir.is_dir():
+                for path in sorted(inputs_dir.rglob("*")):
+                    if not path.is_file():
+                        continue
+                    rel = path.relative_to(request_dir)
+                    sources.append((f"input/{rel.as_posix()}", path))
 
     if run_dir is None or not run_dir.exists() or not run_dir.is_dir():
         return sources
@@ -891,7 +901,10 @@ def create_app() -> FastAPI:
 
     @app.get("/")
     async def index() -> FileResponse:
-        return FileResponse(STATIC_DIR / "index.html")
+        return FileResponse(
+            STATIC_DIR / "index.html",
+            headers={"Cache-Control": "no-store"},
+        )
 
     @app.get("/api/infer-network-v2/bootstrap")
     async def api_bootstrap() -> JSONResponse:
@@ -955,7 +968,10 @@ def create_app() -> FastAPI:
 
         try:
             sources = _bundle_sources(
-                request_dir=request_dir, run_dir=run_dir, mode=mode
+                request_dir=request_dir,
+                run_dir=run_dir,
+                mode=mode,
+                include_inputs=False,
             )
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc

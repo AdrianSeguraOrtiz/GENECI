@@ -175,6 +175,14 @@ body {
   flex-wrap: wrap;
 }
 
+.extras-actions {
+  margin-top: 0.7rem;
+}
+
+.extras-empty {
+  margin-top: 0.7rem;
+}
+
 .grid {
   display: grid;
   gap: 0.75rem;
@@ -490,6 +498,12 @@ button:disabled {
   align-content: start;
 }
 
+.tool-list-scroll {
+  max-height: 340px;
+  overflow: auto;
+  padding-right: 0.15rem;
+}
+
 .tool-item {
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -589,6 +603,12 @@ button:disabled {
   align-self: end;
 }
 
+.strict-option {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.45rem;
+}
+
 .inline-input {
   display: flex;
   align-items: center;
@@ -679,6 +699,16 @@ button:disabled {
   color: #0f172a;
 }
 
+.execution-alerts-section {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.execution-alerts-section-title {
+  font-weight: 700;
+  color: #334155;
+}
+
 .execution-alert {
   border: 1px solid rgba(15, 23, 42, 0.12);
   border-radius: 9px;
@@ -743,6 +773,15 @@ button:disabled {
   margin-top: 0.8rem;
   display: grid;
   gap: 0.7rem;
+}
+
+.runs-head {
+  margin-top: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+#plan-summary {
+  margin-top: 0.75rem;
 }
 
 .wave-card {

@@ -10,7 +10,7 @@ const state = {
   loadedFilesKey: null,
   selectedFilePath: null,
   filesEntries: [],
-  filesMode: "light",
+  filesMode: "full",
   collapsedDirs: new Set(),
   eligibleToolIds: null,
   activeStep: 1,
@@ -59,8 +59,8 @@ function pushToast({ title, message, kind = "error", ttlMs = 7000 }) {
 }
 
 function currentBundleMode() {
-  const mode = $("bundle-mode")?.value || "light";
-  return mode === "full" ? "full" : "light";
+  const mode = $("bundle-mode")?.value || "full";
+  return mode === "light" ? "light" : "full";
 }
 
 function formatBytes(bytes) {
@@ -889,6 +889,25 @@ function fillSelect(id, values) {
   }
 }
 
+function applyDatasetDefaults() {
+  const columnKind = $("column-kind");
+  const expressionProfile = $("expression-profile");
+  if (!columnKind || !expressionProfile) {
+    return;
+  }
+  const columnKindValues = Array.from(columnKind.options).map((option) => option.value);
+  const expressionProfileValues = Array.from(expressionProfile.options).map((option) => option.value);
+
+  if (columnKindValues.includes("cells")) {
+    columnKind.value = "cells";
+  }
+  if (columnKind.value === "cells" && expressionProfileValues.includes("scrna")) {
+    expressionProfile.value = "scrna";
+  } else if (expressionProfileValues.includes("bulk")) {
+    expressionProfile.value = "bulk";
+  }
+}
+
 function collectRuns() {
   const cards = Array.from(document.querySelectorAll(".run-card"));
   if (!cards.length) {
@@ -926,12 +945,20 @@ function buildDatasetConfig() {
   if (!datasetId) {
     throw new Error("dataset_id is required.");
   }
+  const organismTaxIdRaw = $("organism-tax-id").value.trim();
+  const organismTaxId = Number(organismTaxIdRaw);
+  if (!organismTaxIdRaw || !Number.isInteger(organismTaxId) || organismTaxId < 1) {
+    throw new Error("organism.tax_id must be a positive integer.");
+  }
 
   return {
     dataset: {
       id: datasetId,
       column_kind: $("column-kind").value,
       expression_profile: $("expression-profile").value,
+      organism: {
+        tax_id: organismTaxId,
+      },
     },
     options: buildOptions(),
   };
@@ -1012,6 +1039,30 @@ function resetFilesView(message) {
   $("file-preview").innerHTML = "";
 }
 
+function hasExecutionArtifacts(job = null) {
+  if (!job || !job.run_dir) {
+    return false;
+  }
+  const stage = String(job.stage || "");
+  const status = String(job.status || "");
+  return stage === "executed" || status === "failed";
+}
+
+function updateResultsExplorerVisibility(job = null) {
+  const section = $("results-explorer-section");
+  const placeholder = $("results-explorer-placeholder");
+  const visible = hasExecutionArtifacts(job);
+  if (section) {
+    section.hidden = !visible;
+  }
+  if (placeholder) {
+    placeholder.hidden = visible;
+  }
+  if (!visible) {
+    resetFilesView("Results Explorer will be available after execution.");
+  }
+}
+
 function renderRuntimeProgress(runtimeProgress = null) {
   const root = $("runtime-progress");
   if (!runtimeProgress || !Array.isArray(runtimeProgress.tools) || !runtimeProgress.tools.length) {
@@ -1084,6 +1135,18 @@ function _pushRuntimeFailureToasts(runtimeProgress = null) {
   }
 }
 
+function _normalizeExecutionAlertMessage(message) {
+  let normalized = String(message || "").trim();
+  normalized = normalized.replace(/^\[([^\]]+)\]\s+execution failed:\s*/i, "");
+  normalized = normalized.replace(/^[A-Za-z0-9_]+:\s*/i, "");
+  return normalized.trim();
+}
+
+function _isPreExecutionWarning(message) {
+  const text = String(message || "").trim().toLowerCase();
+  return text.includes("optional extra not provided");
+}
+
 function renderExecutionAlerts(job = null, runReport = null) {
   const root = $("execution-alerts");
   if (!root) {
@@ -1092,21 +1155,26 @@ function renderExecutionAlerts(job = null, runReport = null) {
   root.innerHTML = "";
 
   const errors = [];
-  const warnings = [];
-  if (runReport && Array.isArray(runReport.warnings)) {
-    warnings.push(...runReport.warnings.map((x) => String(x)).filter(Boolean));
-  }
+  const executionWarnings = [];
+  const preExecutionWarnings = [];
+  const rawWarnings = runReport && Array.isArray(runReport.warnings)
+    ? runReport.warnings.map((x) => String(x)).filter(Boolean)
+    : [];
+  const errorSignatures = new Set();
 
   const failedMap = runReport?.tools?.failed;
   if (failedMap && typeof failedMap === "object") {
     for (const [runId, reason] of Object.entries(failedMap)) {
-      errors.push(`${runId}: ${String(reason || "failed")}`);
+      const message = `${runId}: ${String(reason || "failed")}`;
+      errors.push(message);
+      errorSignatures.add(_normalizeExecutionAlertMessage(message));
     }
   }
 
   const jobError = String(job?.error || "").trim();
   if (jobError) {
     errors.push(jobError);
+    errorSignatures.add(_normalizeExecutionAlertMessage(jobError));
     const signature = `${job?.job_id || ""}:${jobError}`;
     if (state.notifiedJobError !== signature) {
       state.notifiedJobError = signature;
@@ -1119,35 +1187,78 @@ function renderExecutionAlerts(job = null, runReport = null) {
     }
   }
 
-  if (!errors.length && !warnings.length) {
+  const warningSeen = new Set();
+  for (const message of rawWarnings) {
+    const signature = _normalizeExecutionAlertMessage(message);
+    if (errorSignatures.has(signature)) {
+      continue;
+    }
+    const bucket = _isPreExecutionWarning(message) ? "pre" : "exec";
+    const dedupeKey = `${bucket}:${signature}`;
+    if (warningSeen.has(dedupeKey)) {
+      continue;
+    }
+    warningSeen.add(dedupeKey);
+    if (bucket === "pre") {
+      preExecutionWarnings.push(message);
+    } else {
+      executionWarnings.push(message);
+    }
+  }
+
+  if (!errors.length && !executionWarnings.length && !preExecutionWarnings.length) {
     root.textContent = "No execution errors or warnings.";
     return;
   }
 
   const title = document.createElement("div");
   title.className = "execution-alerts-title";
-  title.textContent = `Execution alerts: ${errors.length} error(s), ${warnings.length} warning(s)`;
+  title.textContent =
+    `Execution alerts: ${errors.length} error(s), ` +
+    `${executionWarnings.length} execution warning(s), ` +
+    `${preExecutionWarnings.length} pre-execution note(s)`;
   root.appendChild(title);
 
-  for (const message of errors.slice(0, 8)) {
-    const line = document.createElement("div");
-    line.className = "execution-alert error";
-    line.textContent = message;
-    root.appendChild(line);
-  }
-  for (const message of warnings.slice(0, 8)) {
-    const line = document.createElement("div");
-    line.className = "execution-alert warning";
-    line.textContent = message;
-    root.appendChild(line);
-  }
+  const renderAlertSection = (sectionTitle, messages, className) => {
+    if (!messages.length) {
+      return;
+    }
+    const section = document.createElement("section");
+    section.className = "execution-alerts-section";
+    const heading = document.createElement("div");
+    heading.className = "execution-alerts-section-title";
+    heading.textContent = sectionTitle;
+    section.appendChild(heading);
+    for (const message of messages.slice(0, 8)) {
+      const line = document.createElement("div");
+      line.className = `execution-alert ${className}`;
+      line.textContent = message;
+      section.appendChild(line);
+    }
+    root.appendChild(section);
+  };
+
+  renderAlertSection("Execution errors", errors, "error");
+  renderAlertSection("Execution warnings", executionWarnings, "warning");
+  renderAlertSection("Pre-execution notes", preExecutionWarnings, "warning");
 
   const hiddenErrors = Math.max(0, errors.length - 8);
-  const hiddenWarnings = Math.max(0, warnings.length - 8);
-  if (hiddenErrors || hiddenWarnings) {
+  const hiddenExecutionWarnings = Math.max(0, executionWarnings.length - 8);
+  const hiddenPreExecutionWarnings = Math.max(0, preExecutionWarnings.length - 8);
+  if (hiddenErrors || hiddenExecutionWarnings || hiddenPreExecutionWarnings) {
+    const parts = [];
+    if (hiddenErrors) {
+      parts.push(`${hiddenErrors} more error(s)`);
+    }
+    if (hiddenExecutionWarnings) {
+      parts.push(`${hiddenExecutionWarnings} more execution warning(s)`);
+    }
+    if (hiddenPreExecutionWarnings) {
+      parts.push(`${hiddenPreExecutionWarnings} more pre-execution note(s)`);
+    }
     const more = document.createElement("div");
     more.className = "execution-alert";
-    more.textContent = `... and ${hiddenErrors} more error(s), ${hiddenWarnings} more warning(s)`;
+    more.textContent = `... and ${parts.join(", ")}`;
     root.appendChild(more);
   }
 }
@@ -1406,7 +1517,7 @@ function renderFiles(entries, mode) {
   const list = state.filesEntries;
   const filesCount = list.filter((item) => item.kind === "file").length;
   const dirsCount = list.filter((item) => item.kind === "dir").length;
-  $("files-summary").textContent = `mode=${mode} | files=${filesCount} | dirs=${dirsCount}`;
+  $("files-summary").textContent = `bundle=${mode} | files=${filesCount} | dirs=${dirsCount}`;
 
   if (!list.length) {
     const empty = document.createElement("div");
@@ -1686,7 +1797,7 @@ async function refreshArtifacts(job) {
     }
   }
 
-  if (job.status !== "queued") {
+  if (hasExecutionArtifacts(job)) {
     const mode = currentBundleMode();
     const desiredFilesKey = `${job.job_id}:${mode}:${job.status}:${job.run_dir || ""}`;
     if (state.loadedFilesKey !== desiredFilesKey) {
@@ -1723,6 +1834,7 @@ async function pollJob(jobId) {
   renderRuntimeProgress(runtimeProgress);
   _pushRuntimeFailureToasts(runtimeProgress);
   renderExecutionAlerts(job, runReport);
+  updateResultsExplorerVisibility(job);
 
   syncActionButtons(job);
   await refreshArtifacts(job);
@@ -1787,9 +1899,6 @@ function updatePreflightSummary(preflightReport = null) {
     viewEl.textContent = "No preflight report yet.";
     return;
   }
-  const eligible = Array.isArray(preflightReport.catalog.eligible) ? preflightReport.catalog.eligible : [];
-  const warning = Array.isArray(preflightReport.catalog.warning) ? preflightReport.catalog.warning : [];
-  const blocked = Array.isArray(preflightReport.catalog.blocked) ? preflightReport.catalog.blocked : [];
   viewEl.innerHTML = "";
 
   const kpiGrid = document.createElement("div");
@@ -1797,9 +1906,6 @@ function updatePreflightSummary(preflightReport = null) {
   const kpis = [
     { label: "Dataset", value: String(preflightReport?.dataset?.dataset_id || "-") },
     { label: "Expression", value: `${preflightReport?.dataset?.genes ?? "-"} × ${preflightReport?.dataset?.columns ?? "-"}` },
-    { label: "Eligible", value: String(eligible.length) },
-    { label: "Warning", value: String(warning.length) },
-    { label: "Blocked", value: String(blocked.length) },
   ];
   for (const item of kpis) {
     const card = document.createElement("article");
@@ -1880,23 +1986,33 @@ function updatePreflightSummary(preflightReport = null) {
 }
 
 function _toolMessages(entry) {
+  const toolId = String(entry?.tool_id || "").trim();
   const reasons = Array.isArray(entry?.reasons) ? entry.reasons : [];
   const warnings = Array.isArray(entry?.warnings) ? entry.warnings : [];
   const pendingConditions = Array.isArray(entry?.pending_conditions) ? entry.pending_conditions : [];
   const out = [];
-  for (const reason of reasons) {
-    if (String(reason || "").trim()) {
-      out.push(String(reason).trim());
+  const seen = new Set();
+  const prefix = toolId ? `[${toolId}] skipped due to incompatibility:` : "";
+  const rawMessages = [...reasons, ...warnings, ...pendingConditions];
+
+  for (const raw of rawMessages) {
+    const text = String(raw || "").trim();
+    if (!text) {
+      continue;
     }
-  }
-  for (const warning of warnings) {
-    if (String(warning || "").trim()) {
-      out.push(String(warning).trim());
-    }
-  }
-  for (const pending of pendingConditions) {
-    if (String(pending || "").trim()) {
-      out.push(String(pending).trim());
+    const expanded = prefix && text.startsWith(prefix)
+      ? text
+          .slice(prefix.length)
+          .split(";")
+          .map((item) => item.trim())
+          .filter(Boolean)
+      : [text];
+    for (const message of expanded) {
+      if (seen.has(message)) {
+        continue;
+      }
+      seen.add(message);
+      out.push(message);
     }
   }
   return out;
@@ -2104,9 +2220,17 @@ function _renderToolCatalogList(containerId, entries, kind) {
     infoBtn.textContent = kind === "blocked" ? "Why Blocked" : "View Details";
     const messages = _toolMessages(entry);
     infoBtn.addEventListener("click", () => {
+      const detailLines =
+        kind === "blocked" && toolId
+          ? messages.map((message) =>
+              String(message || "").startsWith(`[${toolId}]`)
+                ? String(message)
+                : `[${toolId}] ${String(message)}`
+            )
+          : messages;
       showInfoTooltip({
         title: tool.name,
-        description: messages.length ? messages.join("\n") : "No additional details.",
+        description: detailLines.length ? detailLines.join("\n") : "No additional details.",
         example: "",
       });
     });
@@ -2207,7 +2331,7 @@ async function submitPreflight() {
     updateRunsEmptyState();
     updateToolEligibilityView(null);
     resetPlanView("Waiting for preflight/plan output...");
-    resetFilesView("Waiting for files...");
+    updateResultsExplorerVisibility(null);
     renderRuntimeProgress(null);
     renderExecutionAlerts(null, null);
     const response = await fetch("/api/infer-network-v2/preflight", {
@@ -2324,15 +2448,27 @@ async function bootstrap() {
   state.bootstrap = await response.json();
   fillSelect("column-kind", state.bootstrap.column_kinds);
   fillSelect("expression-profile", state.bootstrap.expression_profiles);
+  applyDatasetDefaults();
   _populateToolIssueSelect();
   syncExpressionHelpTooltip();
+  const strictInfoBtn = $("strict-info-btn");
+  if (strictInfoBtn) {
+    strictInfoBtn.dataset.help = JSON.stringify(
+      buildInfoTooltip({
+        title: "Strict Mode",
+        description:
+          "Fail fast on incompatibilities and execution failures. Without strict mode, incompatible tools may be skipped during analysis and successful tools can still complete even if others fail.",
+        example: "",
+      })
+    );
+  }
   initExpressionDropzone();
   await handleExpressionSelected(null);
   updateExtrasEmptyState();
   updateRunsEmptyState();
   updateToolEligibilityView(null);
   resetPlanView("No plan loaded yet.");
-  resetFilesView("No files loaded yet.");
+  updateResultsExplorerVisibility(null);
   renderRuntimeProgress(null);
   renderExecutionAlerts(null, null);
   state.notifiedFailures.clear();
@@ -2370,6 +2506,12 @@ function bindEvents() {
 
   $("expression-info-btn").addEventListener("click", () => {
     const payload = readHelpPayload($("expression-info-btn"));
+    if (payload) {
+      showInfoTooltip(payload);
+    }
+  });
+  $("strict-info-btn").addEventListener("click", () => {
+    const payload = readHelpPayload($("strict-info-btn"));
     if (payload) {
       showInfoTooltip(payload);
     }
