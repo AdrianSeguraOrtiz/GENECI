@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional
@@ -37,12 +38,14 @@ class SchemaConstraints:
 @dataclass(frozen=True)
 class ToolPlanItem:
     tool_id: str
+    run_id: str
     image: str
     threads: int
     ram_gb: float
     eta_seconds: float
     eta_source: str
     output_dir: str
+    group_label: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -57,6 +60,7 @@ class PlanWave:
 @dataclass(frozen=True)
 class ToolRuntimeIO:
     tool_id: str
+    run_id: str
     tool_dir: Path
     io_dir: Path
     out_dir: Path
@@ -143,3 +147,9 @@ def _task_eta_note(eta_source: str) -> Optional[str]:
     if eta_source == "fallback_invalid_cost":
         return "Cost profile was invalid or unusable; ETA is a conservative fallback estimate."
     return None
+
+
+def _slugify_token(value: str) -> str:
+    slug = re.sub(r"[^a-zA-Z0-9]+", "_", str(value).strip().lower())
+    slug = slug.strip("_")
+    return slug or "group"

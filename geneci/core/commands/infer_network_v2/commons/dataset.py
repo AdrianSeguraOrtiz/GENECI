@@ -193,6 +193,69 @@ def _read_expression_axes(path: Path) -> tuple[list[str], list[str]]:
     return genes, columns
 
 
+def _load_groups_by_column(
+    *,
+    groups_path: Path,
+    expression_columns: list[str],
+) -> tuple[list[str], dict[str, list[str]]]:
+    sample_to_group: dict[str, str] = {}
+    header_markers = {"sample", "cell", "column", "observation", "id"}
+    group_markers = {"group", "cluster", "cell_type", "label"}
+
+    with groups_path.open("r", encoding="utf-8", newline="") as fh:
+        reader = csv.reader(fh, delimiter="\t")
+        for line_idx, row in enumerate(reader, start=1):
+            if not row or not any(str(cell).strip() for cell in row):
+                continue
+            if len(row) < 2:
+                raise ValueError(
+                    f"{groups_path}: line {line_idx} must have at least 2 columns: sample and group"
+                )
+
+            sample = str(row[0]).strip()
+            group = str(row[1]).strip()
+            if (
+                line_idx == 1
+                and sample.lower() in header_markers
+                and group.lower() in group_markers
+            ):
+                continue
+            if not sample or not group:
+                raise ValueError(
+                    f"{groups_path}: line {line_idx} must have non-empty sample and group values"
+                )
+            if sample in sample_to_group:
+                raise ValueError(
+                    f"{groups_path}: duplicate sample assignment found: {sample}"
+                )
+            sample_to_group[sample] = group
+
+    missing = [column for column in expression_columns if column not in sample_to_group]
+    if missing:
+        preview = ", ".join(missing[:8])
+        raise ValueError(
+            f"{groups_path}: missing group assignments for expression columns: {preview}"
+        )
+
+    extra = [sample for sample in sample_to_group if sample not in set(expression_columns)]
+    if extra:
+        preview = ", ".join(extra[:8])
+        raise ValueError(
+            f"{groups_path}: contains samples not present in expression matrix: {preview}"
+        )
+
+    group_order: list[str] = []
+    group_to_columns: dict[str, list[str]] = {}
+    for column in expression_columns:
+        group = sample_to_group[column]
+        if group not in group_to_columns:
+            group_to_columns[group] = []
+            group_order.append(group)
+        group_to_columns[group].append(column)
+
+    return group_order, group_to_columns
+
+
 def _coerce_cell_type(
     *,
     value: str,

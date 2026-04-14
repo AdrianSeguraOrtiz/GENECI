@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import subprocess
@@ -221,11 +222,14 @@ def _prepare_tool_runtime_io(
     *,
     run_dir: Path,
     tool_id: str,
+    run_id: str,
+    output_dir: str,
     resolved_params: dict[str, Any],
     shared_expression: Path,
     shared_extras: dict[str, Path],
+    expression_source: Optional[Path] = None,
 ) -> ToolRuntimeIO:
-    tool_dir = run_dir / "tools" / tool_id
+    tool_dir = run_dir / output_dir
     io_dir = tool_dir / "io"
     extra_dir = io_dir / "extra"
     out_dir = io_dir / "out"
@@ -234,7 +238,7 @@ def _prepare_tool_runtime_io(
     out_dir.mkdir(parents=True, exist_ok=True)
 
     expression_dst = io_dir / "expression.tsv"
-    _link_or_copy_file(shared_expression, expression_dst)
+    _link_or_copy_file(expression_source or shared_expression, expression_dst)
 
     params_file = io_dir / "params.json"
     _write_json(params_file, resolved_params)
@@ -245,6 +249,7 @@ def _prepare_tool_runtime_io(
 
     return ToolRuntimeIO(
         tool_id=tool_id,
+        run_id=run_id,
         tool_dir=tool_dir,
         io_dir=io_dir,
         out_dir=out_dir,

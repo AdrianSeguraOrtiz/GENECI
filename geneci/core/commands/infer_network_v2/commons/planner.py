@@ -70,21 +70,26 @@ def _nearest_runtime_point(
 def _fallback_plan_item(
     *,
     tool_id: str,
+    run_id: str,
     image: str,
     dataset: DatasetContext,
     max_cores: int,
     max_ram_gb: float,
     eta_source: str,
+    output_dir: str,
+    group_label: Optional[str] = None,
 ) -> ToolPlanItem:
     fallback_eta = max(10.0, 0.02 * dataset.genes * dataset.columns)
     return ToolPlanItem(
         tool_id=tool_id,
+        run_id=run_id,
         image=image,
         threads=max(1, min(max_cores, 1)),
         ram_gb=max(1.0, min(max_ram_gb, 4.0)),
         eta_seconds=round(fallback_eta, 3),
         eta_source=eta_source,
-        output_dir=f"tools/{tool_id}",
+        output_dir=output_dir,
+        group_label=group_label,
     )
 
 
@@ -151,11 +156,14 @@ def _prune_modes_by_pareto(modes: list[ToolPlanItem]) -> list[ToolPlanItem]:
 def _estimate_tool_mode_options(
     *,
     tool_id: str,
+    run_id: str,
     toolspec: dict[str, Any],
     cost_profile: Optional[dict[str, Any]],
     dataset: DatasetContext,
     max_cores: int,
     max_ram_gb: float,
+    output_dir: str,
+    group_label: Optional[str] = None,
 ) -> tuple[list[ToolPlanItem], list[str]]:
     warnings: list[str] = []
     modes: list[ToolPlanItem] = []
@@ -169,11 +177,14 @@ def _estimate_tool_mode_options(
             [
                 _fallback_plan_item(
                     tool_id=tool_id,
+                    run_id=run_id,
                     image=image,
                     dataset=dataset,
                     max_cores=max_cores,
                     max_ram_gb=max_ram_gb,
                     eta_source="fallback_no_cost",
+                    output_dir=output_dir,
+                    group_label=group_label,
                 )
             ],
             warnings,
@@ -225,12 +236,14 @@ def _estimate_tool_mode_options(
         modes.append(
             ToolPlanItem(
                 tool_id=tool_id,
+                run_id=run_id,
                 image=image,
                 threads=int(threads),
                 ram_gb=round(float(ram), 3),
                 eta_seconds=round(float(eta), 3),
                 eta_source="cost_runtime_points_robust",
-                output_dir=f"tools/{tool_id}",
+                output_dir=output_dir,
+                group_label=group_label,
             )
         )
 
@@ -249,11 +262,14 @@ def _estimate_tool_mode_options(
         [
             _fallback_plan_item(
                 tool_id=tool_id,
+                run_id=run_id,
                 image=image,
                 dataset=dataset,
                 max_cores=max_cores,
                 max_ram_gb=max_ram_gb,
                 eta_source="fallback_invalid_cost",
+                output_dir=output_dir,
+                group_label=group_label,
             )
         ],
         warnings,

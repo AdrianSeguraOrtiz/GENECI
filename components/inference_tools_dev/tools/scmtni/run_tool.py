@@ -705,7 +705,7 @@ def _collect_network_rows(
                         "score": abs(coeff),
                         "sign": "?",
                         "evidence": "association",
-                        "context": f"cluster:{cluster}",
+                        "context": f"group:{cluster}",
                     }
                 )
 

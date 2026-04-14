@@ -190,15 +190,22 @@ def _load_plan_waves(
                 raise ValueError("plan.json contains invalid task entry")
             task = ToolPlanItem(
                 tool_id=str(raw_task.get("tool_id", "")),
+                run_id=str(raw_task.get("run_id", "")),
                 image=str(raw_task.get("image", "")),
                 threads=int(raw_task.get("threads", 0)),
                 ram_gb=float(raw_task.get("ram_gb", 0.0)),
                 eta_seconds=float(raw_task.get("eta_seconds", 0.0)),
                 eta_source=str(raw_task.get("eta_source", "")),
                 output_dir=str(raw_task.get("output_dir", "")),
+                group_label=(
+                    str(raw_task.get("group_label", ""))
+                    if raw_task.get("group_label") is not None
+                    else None
+                ),
             )
             if (
                 not task.tool_id
+                or not task.run_id
                 or not task.image
                 or task.threads < 1
                 or task.ram_gb <= 0
