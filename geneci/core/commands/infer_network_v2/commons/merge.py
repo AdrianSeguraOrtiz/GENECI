@@ -51,8 +51,6 @@ def _read_network_rows(path: Path, tool_id: str) -> list[dict[str, Any]]:
                 }
             )
 
-    if not rows:
-        raise ValueError(f"[{tool_id}] network.csv contains header but no rows: {path}")
     return rows
 
 
@@ -119,6 +117,13 @@ def _merge_network_outputs(
                 logs_path=result.logs_path,
                 error=str(exc),
             )
+            continue
+
+        if not rows:
+            warnings.append(
+                f"[{tool_id}] network output contains no non-zero edges; empty network kept as a valid result."
+            )
+            per_tool_rows[tool_id] = 0
             continue
 
         scores = [float(row["score"]) for row in rows]
