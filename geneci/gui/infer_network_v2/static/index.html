@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GENECI GUI · infer-network-v2</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260413c" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260414f" />
   </head>
   <body>
     <main class="app-shell">
@@ -112,97 +112,10 @@
             </article>
           </div>
 
-          <details class="tool-request-box">
-            <summary>Request New Tool</summary>
-            <div class="tool-request-body">
-              <div class="grid two">
-                <label>
-                  Tool Name
-                  <input id="tool-request-tool-name" type="text" placeholder="e.g. PIDC2" />
-                </label>
-                <label>
-                  DOI / Publication
-                  <input id="tool-request-doi" type="text" placeholder="e.g. https://doi.org/..." />
-                </label>
-                <label>
-                  Implementation Repository URL
-                  <input id="tool-request-repo" type="text" placeholder="https://github.com/owner/repo" />
-                </label>
-                <label>
-                  Expected Inputs
-                  <input id="tool-request-inputs" type="text" placeholder="expression, tf_list, groups..." />
-                </label>
-              </div>
-              <label>
-                Expected Outputs
-                <input id="tool-request-outputs" type="text" placeholder="network.csv directed, sign field..." />
-              </label>
-              <label>
-                Notes
-                <textarea
-                  id="tool-request-notes"
-                  rows="4"
-                  placeholder="Why this tool would be useful in GENECI."
-                ></textarea>
-              </label>
-              <div class="actions-inline">
-                <button id="open-tool-request-issue-btn" class="secondary" type="button">
-                  Open Prefilled GitHub Issue
-                </button>
-              </div>
-            </div>
-          </details>
-
-          <details class="tool-request-box">
-            <summary>Report Tool Issue</summary>
-            <div class="tool-request-body">
-              <div class="grid two">
-                <label>
-                  Tool
-                  <select id="tool-issue-tool-id"></select>
-                </label>
-                <label>
-                  Issue Type
-                  <select id="tool-issue-type">
-                    <option value="compatibility">Compatibility / constraints</option>
-                    <option value="parameters">Parameters / defaults</option>
-                    <option value="runtime">Runtime / execution</option>
-                    <option value="docs">Documentation / metadata</option>
-                    <option value="other">Other</option>
-                  </select>
-                </label>
-              </div>
-              <label>
-                Observed Behavior
-                <textarea
-                  id="tool-issue-observed"
-                  rows="3"
-                  placeholder="What is wrong or missing in this tool catalog entry?"
-                ></textarea>
-              </label>
-              <label>
-                Expected Behavior
-                <textarea
-                  id="tool-issue-expected"
-                  rows="3"
-                  placeholder="What should happen instead?"
-                ></textarea>
-              </label>
-              <label>
-                Repro / Context
-                <textarea
-                  id="tool-issue-context"
-                  rows="3"
-                  placeholder="Dataset profile, inputs, constraints, plan/run details..."
-                ></textarea>
-              </label>
-              <div class="actions-inline">
-                <button id="open-tool-issue-btn" class="secondary" type="button">
-                  Open Prefilled GitHub Issue
-                </button>
-              </div>
-            </div>
-          </details>
+          <div class="tool-request-actions">
+            <button id="open-tool-request-modal-btn" class="secondary" type="button">Request New Tool</button>
+            <button id="open-tool-issue-modal-btn" class="secondary" type="button">Report Tool Issue</button>
+          </div>
 
           <div class="panel-head compact-head runs-head">
             <h3>Selected Runs</h3>
@@ -288,9 +201,7 @@
           </div>
           <div id="runtime-progress" class="runtime-progress muted-box">No runtime progress yet.</div>
 
-          <div id="results-explorer-placeholder" class="muted-box">
-            Results Explorer will be available after execution.
-          </div>
+          <div id="results-explorer-placeholder" class="muted-box results-placeholder">Results Explorer will be available after execution.</div>
           <div id="results-explorer-section" hidden>
             <div class="panel-head compact-head">
               <h3>Results Explorer</h3>
@@ -317,14 +228,141 @@
               </div>
             </div>
           </div>
+
+          <div id="reproducibility-placeholder" class="muted-box results-placeholder">Reproducibility snippets will be available after execution.</div>
+          <section id="reproducibility-section" hidden>
+            <div class="panel-head compact-head">
+              <h3>Reproduce This Run</h3>
+            </div>
+            <div id="reproducibility-grid" class="repro-grid"></div>
+          </section>
         </div>
       </section>
+
+      <div id="tool-request-modal" class="info-popover hidden" role="dialog" aria-modal="true" aria-labelledby="tool-request-modal-title">
+        <div class="info-popover-card tool-request-modal-card">
+          <button id="tool-request-modal-close" class="info-popover-close" type="button" aria-label="Close tool request">×</button>
+          <h4 id="tool-request-modal-title">Request New Tool</h4>
+          <div class="tool-request-body">
+              <div class="grid two">
+                <label>
+                  Tool Name
+                  <input id="tool-request-tool-name" type="text" placeholder="e.g. PIDC2" />
+                </label>
+                <label>
+                  DOI / Publication
+                  <input id="tool-request-doi" type="text" placeholder="e.g. https://doi.org/..." />
+                </label>
+                <label>
+                  Implementation Repository URL
+                  <input id="tool-request-repo" type="text" placeholder="https://github.com/owner/repo" />
+                </label>
+                <label>
+                  Expected Inputs
+                  <input id="tool-request-inputs" type="text" placeholder="expression, tf_list, groups..." />
+                </label>
+              </div>
+              <label>
+                Expected Outputs
+                <input id="tool-request-outputs" type="text" placeholder="network.csv directed, sign field..." />
+              </label>
+              <label>
+                Notes
+                <textarea
+                  id="tool-request-notes"
+                  rows="4"
+                  placeholder="Why this tool would be useful in GENECI."
+                ></textarea>
+              </label>
+              <div class="actions-inline">
+                <button id="open-tool-request-issue-btn" class="secondary" type="button">
+                  Open Prefilled GitHub Issue
+                </button>
+              </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tool-issue-modal" class="info-popover hidden" role="dialog" aria-modal="true" aria-labelledby="tool-issue-modal-title">
+        <div class="info-popover-card tool-request-modal-card">
+          <button id="tool-issue-modal-close" class="info-popover-close" type="button" aria-label="Close tool issue">×</button>
+          <h4 id="tool-issue-modal-title">Report Tool Issue</h4>
+          <div class="tool-request-body">
+              <div class="grid two">
+                <label>
+                  Tool
+                  <select id="tool-issue-tool-id"></select>
+                </label>
+                <label>
+                  Issue Type
+                  <select id="tool-issue-type">
+                    <option value="compatibility">Compatibility / constraints</option>
+                    <option value="parameters">Parameters / defaults</option>
+                    <option value="runtime">Runtime / execution</option>
+                    <option value="docs">Documentation / metadata</option>
+                    <option value="other">Other</option>
+                  </select>
+                </label>
+              </div>
+              <label>
+                Observed Behavior
+                <textarea
+                  id="tool-issue-observed"
+                  rows="3"
+                  placeholder="What is wrong or missing in this tool catalog entry?"
+                ></textarea>
+              </label>
+              <label>
+                Expected Behavior
+                <textarea
+                  id="tool-issue-expected"
+                  rows="3"
+                  placeholder="What should happen instead?"
+                ></textarea>
+              </label>
+              <label>
+                Repro / Context
+                <textarea
+                  id="tool-issue-context"
+                  rows="3"
+                  placeholder="Dataset profile, inputs, constraints, plan/run details..."
+                ></textarea>
+              </label>
+              <div class="actions-inline">
+                <button id="open-tool-issue-btn" class="secondary" type="button">
+                  Open Prefilled GitHub Issue
+                </button>
+              </div>
+          </div>
+        </div>
+      </div>
     </main>
 
     <div id="info-popover" class="info-popover hidden" role="dialog" aria-live="polite" aria-modal="false">
       <div class="info-popover-card">
         <button id="info-popover-close" class="info-popover-close" type="button" aria-label="Close help">×</button>
         <div id="info-popover-content"></div>
+      </div>
+    </div>
+    <div id="params-modal" class="info-popover hidden" role="dialog" aria-modal="true" aria-labelledby="params-modal-title">
+      <div class="info-popover-card params-modal-card">
+        <button id="params-modal-close" class="info-popover-close" type="button" aria-label="Close parameters">×</button>
+        <div class="params-modal-head">
+          <h4 id="params-modal-title">Parameters</h4>
+          <div class="actions-inline">
+            <button id="params-modal-reset" class="secondary" type="button">Reset</button>
+            <button id="params-modal-save" type="button">Apply</button>
+          </div>
+        </div>
+        <div id="params-modal-status" class="muted-box">Adjust parameters and apply changes.</div>
+        <div id="params-modal-form" class="run-params-form"></div>
+      </div>
+    </div>
+    <div id="repro-steps-modal" class="info-popover hidden" role="dialog" aria-modal="true" aria-labelledby="repro-steps-modal-title">
+      <div class="info-popover-card repro-steps-modal-card">
+        <button id="repro-steps-modal-close" class="info-popover-close" type="button" aria-label="Close reproducibility steps">×</button>
+        <h4 id="repro-steps-modal-title">Reproducibility Steps</h4>
+        <div id="repro-steps-modal-body" class="repro-steps-modal-body"></div>
       </div>
     </div>
     <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="false"></div>
@@ -344,12 +382,18 @@
             Run ID
             <input class="run-id" type="text" />
           </label>
-          <button class="danger remove-run" type="button">Remove</button>
+          <button class="remove-run icon-btn" type="button" aria-label="Remove run">×</button>
         </div>
-        <label>
-          Params JSON
-          <textarea class="params-json" rows="10"></textarea>
-        </label>
+        <div class="run-section-head">
+          <strong>Parameters</strong>
+          <div class="actions-inline">
+            <button class="secondary open-params" type="button">Configure</button>
+            <button class="secondary reset-params" type="button">Reset</button>
+          </div>
+        </div>
+        <div class="run-params-summary muted-box">Default parameters</div>
+        <div class="run-params-form" hidden></div>
+        <div class="run-validation muted-box">Run configuration looks valid.</div>
       </article>
     </template>
 
@@ -393,6 +437,6 @@
       </article>
     </template>
 
-    <script src="/static/app.js?v=20260413c" defer></script>
+    <script type="module" src="/static/app/main.js?v=20260414j"></script>
   </body>
 </html>
