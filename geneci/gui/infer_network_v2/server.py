@@ -5,6 +5,7 @@ from __future__ import annotations
 import copy
 import csv
 import json
+import shlex
 import tempfile
 import threading
 import traceback
@@ -485,6 +486,270 @@ def _job_payload(job: GuiJob) -> dict[str, Any]:
         "traceback": job.traceback,
         "started_at": job.started_at,
         "finished_at": job.finished_at,
+    }
+
+
+def _shell_join_pretty(args: list[str]) -> str:
+    if not args:
+        return ""
+    if len(args) <= 3:
+        return " ".join(shlex.quote(str(item)) for item in args)
+
+    head = " ".join(shlex.quote(str(item)) for item in args[:3])
+    groups: list[str] = []
+    idx = 3
+    while idx < len(args):
+        token = str(args[idx])
+        if token.startswith("--") and idx + 1 < len(args):
+            next_token = str(args[idx + 1])
+            if not next_token.startswith("--"):
+                groups.append(
+                    f"{shlex.quote(token)} {shlex.quote(next_token)}"
+                )
+                idx += 2
+                continue
+        groups.append(shlex.quote(token))
+        idx += 1
+
+    if not groups:
+        return head
+    return head + "".join(f" \\\n  {group}" for group in groups)
+
+
+def _python_path_expr(path_value: Optional[str]) -> str:
+    return f"Path({str(path_value or '')!r})"
+
+
+def _python_literal(value: Any) -> str:
+    return repr(value)
+
+
+def _append_cli_option(args: list[str], name: str, value: Any) -> None:
+    if value is None:
+        return
+    if isinstance(value, bool):
+        if value:
+            args.append(name)
+        return
+    text = str(value).strip()
+    if not text:
+        return
+    args.extend([name, text])
+
+
+def _build_reproducibility_payload(job: GuiJob) -> dict[str, Any]:
+    run_dir_raw = str(job.run_dir or "").strip()
+    if not run_dir_raw:
+        return {
+            "available": False,
+            "message": "Reproducibility snippets will be available after planning and execution.",
+        }
+    run_dir = Path(run_dir_raw).resolve()
+    dataset_manifest = (run_dir / "input" / "dataset-manifest.json").resolve()
+    tools_params = (run_dir / "input" / "tools_params.json").resolve()
+    if not dataset_manifest.exists() or not tools_params.exists():
+        return {
+            "available": False,
+            "message": "Frozen run inputs are not available yet in the output directory.",
+        }
+
+    dataset_manifest_path = str(dataset_manifest)
+    tools_params_path = str(tools_params)
+    plan_payload = _read_json_if_exists(job.plan_path or str(run_dir / "plan.json")) or {}
+    resource_limits = (
+        plan_payload.get("resource_limits", {})
+        if isinstance(plan_payload.get("resource_limits"), dict)
+        else {}
+    )
+    planner_payload = (
+        plan_payload.get("planner", {})
+        if isinstance(plan_payload.get("planner"), dict)
+        else {}
+    )
+
+    output_dir = str(job.output_dir).strip()
+    max_cores = resource_limits.get("max_cores", 4)
+    max_ram_gb = resource_limits.get("max_ram_gb")
+    planner = str(planner_payload.get("requested", "auto") or "auto")
+    planner_time_limit_seconds = float(
+        planner_payload.get("cp_sat_time_limit_seconds", 10.0)
+    )
+    strict = False
+    progress_poll_seconds = 0.5
+    preflight_output_json = str((run_dir / "preflight_report.json").resolve())
+
+    cli_unified_args = [
+        "geneci",
+        "infer-network-v2",
+        "execute",
+        "--dataset-manifest",
+        dataset_manifest_path,
+        "--tools-params",
+        tools_params_path,
+        "--output-dir",
+        output_dir,
+        "--max-cores",
+        str(max_cores),
+        "--planner",
+        planner,
+        "--planner-time-limit-seconds",
+        str(planner_time_limit_seconds),
+        "--progress-poll-seconds",
+        str(progress_poll_seconds),
+    ]
+    _append_cli_option(cli_unified_args, "--max-ram-gb", max_ram_gb)
+    _append_cli_option(cli_unified_args, "--strict", strict)
+
+    cli_preflight_args = [
+        "geneci",
+        "infer-network-v2",
+        "preflight",
+        "--dataset-manifest",
+        dataset_manifest_path,
+        "--tools-params",
+        tools_params_path,
+        "--output-json",
+        preflight_output_json,
+    ]
+    _append_cli_option(cli_preflight_args, "--strict", strict)
+
+    cli_plan_args = [
+        "geneci",
+        "infer-network-v2",
+        "plan",
+        "--dataset-manifest",
+        dataset_manifest_path,
+        "--tools-params",
+        tools_params_path,
+        "--output-dir",
+        output_dir,
+        "--max-cores",
+        str(max_cores),
+        "--planner",
+        planner,
+        "--planner-time-limit-seconds",
+        str(planner_time_limit_seconds),
+    ]
+    _append_cli_option(cli_plan_args, "--max-ram-gb", max_ram_gb)
+    _append_cli_option(cli_plan_args, "--strict", strict)
+
+    cli_run_args = [
+        "geneci",
+        "infer-network-v2",
+        "run",
+        "--run-dir",
+        "<run_dir produced by the plan step>",
+        "--progress-poll-seconds",
+        str(progress_poll_seconds),
+    ]
+    _append_cli_option(cli_run_args, "--strict", strict)
+
+    python_unified = "\n".join(
+        [
+            "from pathlib import Path",
+            "",
+            "from geneci.core.commands.infer_network_v2 import infer_network_new",
+            "",
+            "run_dir = infer_network_new(",
+            f"    dataset_manifest_path={_python_path_expr(dataset_manifest_path)},",
+            f"    tools_params_path={_python_path_expr(tools_params_path)},",
+            f"    output_dir={_python_path_expr(output_dir)},",
+            f"    max_cores={int(max_cores)},",
+            f"    max_ram_gb={_python_literal(max_ram_gb)},",
+            f"    planner={_python_literal(planner)},",
+            f"    planner_time_limit_seconds={planner_time_limit_seconds},",
+            f"    progress_poll_seconds={progress_poll_seconds},",
+            f"    strict={_python_literal(strict)},",
+            ")",
+            "",
+            "print(run_dir)",
+        ]
+    )
+
+    python_steps = "\n".join(
+        [
+            "from pathlib import Path",
+            "",
+            "from geneci.core.commands.infer_network_v2 import (",
+            "    plan_infer_network_new,",
+            "    preflight_infer_network_new,",
+            "    run_infer_network_new_plan,",
+            ")",
+            "",
+            f"dataset_manifest_path = {_python_path_expr(dataset_manifest_path)}",
+            f"tools_params_path = {_python_path_expr(tools_params_path)}",
+            f"output_dir = {_python_path_expr(output_dir)}",
+            "",
+            "preflight_report = preflight_infer_network_new(",
+            "    dataset_manifest_path=dataset_manifest_path,",
+            "    tools_params_path=tools_params_path,",
+            f"    strict={_python_literal(strict)},",
+            ")",
+            "",
+            "run_dir = plan_infer_network_new(",
+            "    dataset_manifest_path=dataset_manifest_path,",
+            "    tools_params_path=tools_params_path,",
+            "    output_dir=output_dir,",
+            f"    max_cores={int(max_cores)},",
+            f"    max_ram_gb={_python_literal(max_ram_gb)},",
+            f"    planner={_python_literal(planner)},",
+            f"    planner_time_limit_seconds={planner_time_limit_seconds},",
+            f"    strict={_python_literal(strict)},",
+            "    preflight_report=preflight_report,",
+            ")",
+            "",
+            "run_dir = run_infer_network_new_plan(",
+            "    run_dir=run_dir,",
+            f"    progress_poll_seconds={progress_poll_seconds},",
+            f"    strict={_python_literal(strict)},",
+            ")",
+            "",
+            "print(run_dir)",
+        ]
+    )
+
+    return {
+        "available": True,
+        "cli": {
+            "title": "CLI",
+            "summary": "Replay this GUI job using the frozen inputs stored in the run output directory.",
+            "primary_label": "Unified command",
+            "primary_language": "bash",
+            "primary_code": _shell_join_pretty(cli_unified_args),
+            "steps_label": "If you prefer by steps",
+            "steps": [
+                {
+                    "title": "1. Preflight",
+                    "language": "bash",
+                    "code": _shell_join_pretty(cli_preflight_args),
+                },
+                {
+                    "title": "2. Plan",
+                    "language": "bash",
+                    "code": _shell_join_pretty(cli_plan_args),
+                },
+                {
+                    "title": "3. Run",
+                    "language": "bash",
+                    "code": _shell_join_pretty(cli_run_args),
+                },
+            ],
+        },
+        "python": {
+            "title": "Python",
+            "summary": "Replay this GUI job using the current infer-network-v2 Python API and the frozen run inputs.",
+            "primary_label": "Unified code",
+            "primary_language": "python",
+            "primary_code": python_unified,
+            "steps_label": "If you prefer by steps",
+            "steps": [
+                {
+                    "title": "1-3. Preflight, plan, and run",
+                    "language": "python",
+                    "code": python_steps,
+                }
+            ],
+        },
     }
 
 
@@ -1084,6 +1349,7 @@ def create_app() -> FastAPI:
             if job is None:
                 raise HTTPException(status_code=404, detail="Job not found")
             payload = _job_payload(job)
+            reproducibility = _build_reproducibility_payload(job)
 
         run_report = _read_json_if_exists(payload.get("run_report_path"))
         preflight_report = _read_json_if_exists(payload.get("preflight_report_path"))
@@ -1096,6 +1362,7 @@ def create_app() -> FastAPI:
                 "run_report": run_report,
                 "preflight_report": preflight_report,
                 "runtime_progress": runtime_progress,
+                "reproducibility": reproducibility,
             }
         )
 
@@ -1412,6 +1679,8 @@ def create_app() -> FastAPI:
         except Exception as exc:  # noqa: BLE001
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
+        options_cfg = dict(options)
+        options_cfg.setdefault("output_dir", str(output_dir))
         with STATE.lock:
             job = STATE.jobs[job_id]
             job.status = "queued"
@@ -1423,8 +1692,6 @@ def create_app() -> FastAPI:
             job.plan_path = None
             job.run_report_path = None
 
-        options_cfg = dict(options)
-        options_cfg.setdefault("output_dir", str(output_dir))
         worker = threading.Thread(
             target=_run_job,
             kwargs={
