@@ -18,6 +18,7 @@
   ],
   "implementation_url": "https://github.com/califano-lab/ARACNe3",
   "docker_image": "adriansegura99/inference-tools_aracne3:1.0.0",
+  "execution_scope": "global",
   "accepts": [
     "samples",
     "cells",

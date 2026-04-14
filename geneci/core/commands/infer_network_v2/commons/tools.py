@@ -114,7 +114,7 @@ def _load_tools_params(tools_params_path: Path) -> dict[str, dict[str, Any]]:
 
     parsed: dict[str, dict[str, Any]] = {}
     # Required format:
-    # {"runs": [{"run_id": "...", "tool_id": "...", "params": {...}}, ...]}
+    # {"runs": [{"run_id": "...", "tool_id": "...", "params": {...}, "execution": {...}}, ...]}
     runs = raw.get("runs")
     if not isinstance(runs, list) or not runs:
         raise ValueError(
@@ -142,6 +142,14 @@ def _load_tools_params(tools_params_path: Path) -> dict[str, dict[str, Any]]:
         if not isinstance(params, dict):
             raise ValueError(f"tools-params.runs[{idx}].params must be an object")
 
+        execution = item.get("execution", {})
+        if execution is None:
+            execution = {}
+        if not isinstance(execution, dict):
+            raise ValueError(
+                f"tools-params.runs[{idx}].execution must be an object when provided"
+            )
+
         run_id_raw = item.get("run_id")
         if run_id_raw is None or (
             isinstance(run_id_raw, str) and not run_id_raw.strip()
@@ -156,7 +164,11 @@ def _load_tools_params(tools_params_path: Path) -> dict[str, dict[str, Any]]:
 
         if run_id in parsed:
             raise ValueError(f"Duplicate run_id in tools-params: {run_id}")
-        parsed[run_id] = {"tool_id": tool_id, "params": params}
+        parsed[run_id] = {
+            "tool_id": tool_id,
+            "params": params,
+            "execution": execution,
+        }
     return parsed
 
 
@@ -167,6 +179,61 @@ def _load_toolspec(tools_root: Path, tool_id: str) -> dict[str, Any]:
             f"Tool '{tool_id}' requested in tools-params but toolspec not found: {toolspec_path}"
         )
     return _load_json_object(toolspec_path, f"toolspec[{tool_id}]")
+
+
+def _parse_execution_scope(*, tool_id: str, toolspec: dict[str, Any]) -> str:
+    execution_scope = str(toolspec.get("execution_scope", "")).strip()
+    if execution_scope not in {"global", "group"}:
+        raise ValueError(
+            f"[{tool_id}] toolspec.execution_scope must be one of: global, group"
+        )
+    return execution_scope
+
+
+def _resolve_run_execution(
+    *,
+    run_id: str,
+    toolspec: dict[str, Any],
+    user_execution: dict[str, Any],
+    strict: bool,
+    warnings: list[str],
+) -> tuple[bool, dict[str, Any], list[str]]:
+    errors: list[str] = []
+    try:
+        execution_scope = _parse_execution_scope(tool_id=run_id, toolspec=toolspec)
+    except ValueError as exc:
+        errors.append(str(exc))
+        execution_scope = "global"
+
+    unknown_keys = sorted(set(user_execution.keys()).difference({"group_mode"}))
+    for key in unknown_keys:
+        warnings.append(f"[{run_id}] unknown execution key ignored: {key}")
+
+    group_mode_raw = user_execution.get("group_mode")
+    if group_mode_raw is None:
+        group_mode = "per_group" if execution_scope == "group" else "global"
+    elif not isinstance(group_mode_raw, str):
+        errors.append("execution.group_mode must be string when provided")
+        group_mode = "global"
+    else:
+        group_mode = group_mode_raw.strip()
+        if group_mode not in {"global", "per_group"}:
+            errors.append("execution.group_mode must be one of: global, per_group")
+
+    if execution_scope == "group" and group_mode == "global":
+        errors.append(
+            "execution.group_mode=global is not allowed because toolspec.execution_scope=group"
+        )
+
+    if errors:
+        if strict:
+            raise ValueError(f"[{run_id}] invalid execution config: {'; '.join(errors)}")
+        warnings.append(
+            f"[{run_id}] skipped due to invalid execution config: {'; '.join(errors)}"
+        )
+        return False, {}, errors
+
+    return True, {"group_mode": group_mode}, []
 
 
 def _check_tool_compatibility(
@@ -180,6 +247,11 @@ def _check_tool_compatibility(
 ) -> tuple[bool, list[str], list[str]]:
     errors: list[str] = []
     pending_conditions: list[str] = []
+
+    try:
+        _parse_execution_scope(tool_id=tool_id, toolspec=toolspec)
+    except ValueError as exc:
+        errors.append(str(exc))
 
     accepts = toolspec.get("accepts")
     if not isinstance(accepts, list) or not all(isinstance(x, str) for x in accepts):
@@ -493,6 +565,7 @@ def _collect_requirement_issues(
     toolspec: dict[str, Any],
     dataset: DatasetContext,
     resolved_params: dict[str, Any],
+    resolved_execution: dict[str, Any],
 ) -> list[str]:
     toolspec_params = toolspec.get("params", {})
     known_params = (
@@ -507,6 +580,9 @@ def _collect_requirement_issues(
         return [f"invalid toolspec extra-input rules: {msg}" for msg in extra_errors]
 
     issues: list[str] = []
+    group_mode = str(resolved_execution.get("group_mode", "")).strip()
+    if group_mode == "per_group" and dataset.extras.get("groups") is None:
+        issues.append("groups is required when execution.group_mode=per_group.")
     for rule in conditional_required:
         input_key = str(rule.get("input", "")).strip()
         message = str(rule.get("message", "")).strip()

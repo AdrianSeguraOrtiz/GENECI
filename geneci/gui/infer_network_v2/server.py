@@ -119,6 +119,7 @@ def _load_tools_bootstrap() -> dict[str, Any]:
             {
                 "tool_id": tool_id,
                 "name": str(toolspec.get("name", tool_id)),
+                "execution_scope": str(toolspec.get("execution_scope", "")),
                 "assumes": str(toolspec.get("assumes", "")),
                 "accepts": [
                     x for x in toolspec.get("accepts", []) if isinstance(x, str)
@@ -328,12 +329,18 @@ def _normalize_runs(raw_runs: Any) -> list[dict[str, Any]]:
         params = raw.get("params", {})
         if not isinstance(params, dict):
             raise ValueError(f"runs[{idx}].params must be an object")
+        execution = raw.get("execution", {})
+        if execution is None:
+            execution = {}
+        if not isinstance(execution, dict):
+            raise ValueError(f"runs[{idx}].execution must be an object")
 
         normalized.append(
             {
                 "run_id": run_id,
                 "tool_id": tool_id,
                 "params": params,
+                "execution": execution,
             }
         )
 
@@ -509,7 +516,9 @@ def _collect_runtime_progress(*, run_dir: Optional[Path]) -> dict[str, Any]:
             },
         }
 
+    plan_payload = _read_json_if_exists(str(run_dir / "plan.json"))
     status_by_tool: dict[str, str] = {}
+    logical_results: dict[str, Any] = {}
     run_report = _read_json_if_exists(str(run_dir / "run_report.json"))
     if isinstance(run_report, dict):
         tools_payload = run_report.get("tools")
@@ -521,15 +530,29 @@ def _collect_runtime_progress(*, run_dir: Optional[Path]) -> dict[str, Any]:
                     for tool_id, status in status_payload.items()
                     if isinstance(tool_id, str)
                 }
+            results_payload = tools_payload.get("results")
+            if isinstance(results_payload, dict):
+                logical_results = {
+                    str(run_id): value
+                    for run_id, value in results_payload.items()
+                    if isinstance(run_id, str) and isinstance(value, dict)
+                }
 
-    tools_root = run_dir / "tools"
+    logical_runs: list[dict[str, Any]] = []
+    if isinstance(plan_payload, dict):
+        raw_runs = plan_payload.get("runs")
+        if isinstance(raw_runs, list):
+            logical_runs = [item for item in raw_runs if isinstance(item, dict)]
+
     tool_entries: list[dict[str, Any]] = []
-    if tools_root.exists() and tools_root.is_dir():
-        for tool_dir in sorted(tools_root.iterdir()):
-            if not tool_dir.is_dir():
+    if logical_runs:
+        for logical in logical_runs:
+            run_id = str(logical.get("run_id", "")).strip()
+            if not run_id:
                 continue
-            run_id = tool_dir.name
+            tool_dir = run_dir / "tools" / run_id
             progress_file = tool_dir / "io" / "out" / "progress.json"
+            direct_payload: dict[str, Any] = {}
             percent = 0
             status = status_by_tool.get(run_id, "pending")
             phase = "pending"
@@ -538,13 +561,13 @@ def _collect_runtime_progress(*, run_dir: Optional[Path]) -> dict[str, Any]:
 
             if progress_file.exists() and progress_file.is_file():
                 try:
-                    payload = json.loads(progress_file.read_text(encoding="utf-8"))
+                    direct_payload = json.loads(progress_file.read_text(encoding="utf-8"))
                 except Exception:  # noqa: BLE001
-                    payload = {}
-                percent = int(payload.get("percent", percent))
-                status = str(payload.get("status", status))
-                phase = str(payload.get("phase", phase))
-                message = str(payload.get("message", ""))
+                    direct_payload = {}
+                percent = int(direct_payload.get("percent", 0))
+                status = str(direct_payload.get("status", status))
+                phase = str(direct_payload.get("phase", phase))
+                message = str(direct_payload.get("message", ""))
                 updated_at = (
                     datetime.fromtimestamp(
                         progress_file.stat().st_mtime, tz=timezone.utc
@@ -552,9 +575,98 @@ def _collect_runtime_progress(*, run_dir: Optional[Path]) -> dict[str, Any]:
                     .isoformat()
                     .replace("+00:00", "Z")
                 )
-            elif status in {"completed", "failed"}:
-                percent = 100
-                phase = "done" if status == "completed" else "failed"
+            else:
+                physical_tasks = logical.get("physical_tasks", [])
+                if (
+                    isinstance(physical_tasks, list)
+                    and len(physical_tasks) > 1
+                ):
+                    child_results = logical_results.get(run_id, {}).get("child_results", {})
+                    weighted_total = 0.0
+                    weighted_progress = 0.0
+                    completed = 0
+                    failed = 0
+                    running = 0
+                    pending = 0
+                    for child in physical_tasks:
+                        if not isinstance(child, dict):
+                            continue
+                        output_dir = str(child.get("output_dir", "")).strip()
+                        if not output_dir:
+                            continue
+                        weight = float(child.get("eta_seconds", 0.0) or 0.0)
+                        weight = max(weight, 1.0)
+                        child_progress_file = run_dir / output_dir / "io" / "out" / "progress.json"
+                        child_percent = 0
+                        child_status = "pending"
+                        child_updated_at: Optional[str] = None
+                        if child_progress_file.exists() and child_progress_file.is_file():
+                            try:
+                                payload = json.loads(
+                                    child_progress_file.read_text(encoding="utf-8")
+                                )
+                            except Exception:  # noqa: BLE001
+                                payload = {}
+                            child_percent = int(payload.get("percent", 0))
+                            child_status = str(payload.get("status", "pending"))
+                            child_updated_at = (
+                                datetime.fromtimestamp(
+                                    child_progress_file.stat().st_mtime,
+                                    tz=timezone.utc,
+                                )
+                                .isoformat()
+                                .replace("+00:00", "Z")
+                            )
+                        else:
+                            task_id = str(child.get("task_id", "")).strip()
+                            if (
+                                isinstance(child_results, dict)
+                                and task_id
+                                and isinstance(child_results.get(task_id), dict)
+                            ):
+                                payload = child_results[task_id]
+                                child_status = str(payload.get("status", "pending"))
+                                if child_status in {"completed", "failed"}:
+                                    child_percent = 100
+
+                        child_status = child_status.lower().strip()
+                        if child_status == "completed":
+                            completed += 1
+                        elif child_status == "failed":
+                            failed += 1
+                        elif child_status == "running":
+                            running += 1
+                        else:
+                            pending += 1
+
+                        if child_updated_at is not None:
+                            if updated_at is None or child_updated_at > updated_at:
+                                updated_at = child_updated_at
+                        weighted_total += weight
+                        weighted_progress += weight * max(0, min(100, child_percent))
+
+                    if weighted_total > 0:
+                        percent = int(round(weighted_progress / weighted_total))
+                    if status not in {"completed", "failed"}:
+                        if running > 0:
+                            status = "running"
+                        elif pending == len(physical_tasks):
+                            status = "pending"
+                        elif completed > 0 and failed == 0 and pending == 0:
+                            status = "completed"
+                        elif failed == len(physical_tasks):
+                            status = "failed"
+                        else:
+                            status = "running"
+                    phase = "grouped"
+                    message = (
+                        f"{completed}/{len(physical_tasks)} groups completed"
+                        + (f", {failed} failed" if failed else "")
+                        + (f", {running} running" if running else "")
+                    )
+                elif status in {"completed", "failed"}:
+                    percent = 100
+                    phase = "done" if status == "completed" else "failed"
 
             percent = max(0, min(100, int(percent)))
             normalized_status = status.lower().strip()
@@ -570,6 +682,54 @@ def _collect_runtime_progress(*, run_dir: Optional[Path]) -> dict[str, Any]:
                     "updated_at": updated_at,
                 }
             )
+    else:
+        tools_root = run_dir / "tools"
+        if tools_root.exists() and tools_root.is_dir():
+            for tool_dir in sorted(tools_root.iterdir()):
+                if not tool_dir.is_dir():
+                    continue
+                run_id = tool_dir.name
+                progress_file = tool_dir / "io" / "out" / "progress.json"
+                percent = 0
+                status = status_by_tool.get(run_id, "pending")
+                phase = "pending"
+                message = ""
+                updated_at: Optional[str] = None
+
+                if progress_file.exists() and progress_file.is_file():
+                    try:
+                        payload = json.loads(progress_file.read_text(encoding="utf-8"))
+                    except Exception:  # noqa: BLE001
+                        payload = {}
+                    percent = int(payload.get("percent", percent))
+                    status = str(payload.get("status", status))
+                    phase = str(payload.get("phase", phase))
+                    message = str(payload.get("message", ""))
+                    updated_at = (
+                        datetime.fromtimestamp(
+                            progress_file.stat().st_mtime, tz=timezone.utc
+                        )
+                        .isoformat()
+                        .replace("+00:00", "Z")
+                    )
+                elif status in {"completed", "failed"}:
+                    percent = 100
+                    phase = "done" if status == "completed" else "failed"
+
+                percent = max(0, min(100, int(percent)))
+                normalized_status = status.lower().strip()
+                if normalized_status not in {"pending", "running", "completed", "failed"}:
+                    normalized_status = "running" if percent > 0 else "pending"
+                tool_entries.append(
+                    {
+                        "run_id": run_id,
+                        "percent": percent,
+                        "status": normalized_status,
+                        "phase": phase,
+                        "message": message,
+                        "updated_at": updated_at,
+                    }
+                )
 
     summary = {
         "total": len(tool_entries),

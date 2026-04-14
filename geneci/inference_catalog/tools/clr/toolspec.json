@@ -18,6 +18,7 @@
   ],
   "implementation_url": "https://bioconductor.org/packages/minet/",
   "docker_image": "adriansegura99/inference-tools_clr:1.0.0",
+  "execution_scope": "global",
   "accepts": [
     "samples",
     "cells",

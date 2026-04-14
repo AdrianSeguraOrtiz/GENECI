@@ -199,7 +199,11 @@ def infer_network_v2_preflight(
         None,
         exists=True,
         file_okay=True,
-        help="Optional tools_params.json to pre-validate requested runs.",
+        help=(
+            "Optional tools_params.json to pre-validate requested runs "
+            "({'runs': [{'run_id': ..., 'tool_id': ..., 'params': ..., "
+            "'execution': {'group_mode': 'global|per_group'}}, ...]})."
+        ),
     ),
     output_json: Optional[Path] = typer.Option(
         None,
@@ -265,7 +269,8 @@ def infer_network_v2_plan(
         file_okay=True,
         help=(
             "Path to tools_params.json in runs format: "
-            "{'runs': [{'run_id': ..., 'tool_id': ..., 'params': ...}, ...]}."
+            "{'runs': [{'run_id': ..., 'tool_id': ..., 'params': ..., "
+            "'execution': {'group_mode': 'global|per_group'}}, ...]}."
         ),
     ),
     output_dir: Path = typer.Option(
@@ -352,7 +357,8 @@ def infer_network_v2_execute(
         file_okay=True,
         help=(
             "Path to tools_params.json in runs format: "
-            "{'runs': [{'run_id': ..., 'tool_id': ..., 'params': ...}, ...]}."
+            "{'runs': [{'run_id': ..., 'tool_id': ..., 'params': ..., "
+            "'execution': {'group_mode': 'global|per_group'}}, ...]}."
         ),
     ),
     output_dir: Path = typer.Option(

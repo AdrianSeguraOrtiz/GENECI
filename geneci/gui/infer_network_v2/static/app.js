@@ -357,6 +357,10 @@ function toolById(toolId) {
   return tools.find((item) => item.tool_id === toolId) || null;
 }
 
+function defaultGroupModeForTool(tool) {
+  return String(tool?.execution_scope || "").trim() === "group" ? "per_group" : "global";
+}
+
 function setStatusBadge(el, kind, text) {
   if (!el) {
     return;
@@ -602,6 +606,7 @@ function addRunCard(initial = {}) {
   const runIdInput = node.querySelector(".run-id");
   const toolInput = node.querySelector(".tool-id");
   const toolNameEl = node.querySelector(".run-tool-name");
+  const executionModeInput = node.querySelector(".execution-group-mode");
   const paramsTextarea = node.querySelector(".params-json");
   const removeBtn = node.querySelector(".remove-run");
 
@@ -617,6 +622,32 @@ function addRunCard(initial = {}) {
   }
   toolInput.value = tool.tool_id;
   toolNameEl.textContent = tool.name;
+  const executionScope = String(tool.execution_scope || "").trim();
+  const initialGroupMode = String(initial?.execution?.group_mode || "").trim();
+  const selectedGroupMode = initialGroupMode || defaultGroupModeForTool(tool);
+
+  executionModeInput.innerHTML = "";
+  const modeOptions =
+    executionScope === "group"
+      ? [{ value: "per_group", label: "Per group" }]
+      : [
+          { value: "global", label: "Global" },
+          { value: "per_group", label: "Per group" },
+        ];
+  for (const optionMeta of modeOptions) {
+    const option = document.createElement("option");
+    option.value = optionMeta.value;
+    option.textContent = optionMeta.label;
+    executionModeInput.appendChild(option);
+  }
+  executionModeInput.value = modeOptions.some((item) => item.value === selectedGroupMode)
+    ? selectedGroupMode
+    : modeOptions[0].value;
+  executionModeInput.disabled = executionScope === "group";
+  executionModeInput.title =
+    executionScope === "group"
+      ? "This tool executes by group natively."
+      : "Choose whether to run the tool once globally or once per group.";
 
   if (initial.run_id) {
     runIdInput.value = initial.run_id;
@@ -935,6 +966,9 @@ function collectRuns() {
       run_id: runId,
       tool_id: toolId,
       params,
+      execution: {
+        group_mode: card.querySelector(".execution-group-mode").value,
+      },
     });
   });
   return runs;
@@ -1632,7 +1666,8 @@ function renderPlan(plan) {
   const lines = [
     `run_id: ${plan.run_id || "-"}`,
     `planner: requested=${planner.requested || "-"}, used=${planner.used || "-"}`,
-    `tasks_total: ${totals.tasks_total ?? "-"}`,
+    `logical_runs_total: ${totals.logical_runs_total ?? "-"}`,
+    `physical_tasks_total: ${totals.physical_tasks_total ?? totals.tasks_total ?? "-"}`,
     `waves_total: ${totals.waves_total ?? "-"}`,
     `threads_peak: ${totals.threads_peak ?? "-"}`,
     `ram_peak_gb: ${totals.ram_peak_gb ?? "-"}`,
@@ -1642,11 +1677,68 @@ function renderPlan(plan) {
 
   const wavesRoot = $("plan-waves");
   wavesRoot.innerHTML = "";
+  const logicalRuns = Array.isArray(plan.runs) ? plan.runs : [];
   const waves = Array.isArray(plan.waves) ? plan.waves : [];
-  if (!waves.length) {
+  if (!logicalRuns.length && !waves.length) {
     wavesRoot.textContent = "This plan has no waves.";
     return;
   }
+
+  if (logicalRuns.length) {
+    const runsCard = document.createElement("article");
+    runsCard.className = "wave-card";
+
+    const runsHead = document.createElement("div");
+    runsHead.className = "wave-head";
+    runsHead.innerHTML =
+      `<span class="wave-title">Configured Runs</span>` +
+      `<span>runs=${logicalRuns.length}</span>`;
+    runsCard.appendChild(runsHead);
+
+    const runsTable = document.createElement("table");
+    runsTable.className = "wave-table";
+    runsTable.innerHTML =
+      "<thead><tr>" +
+      "<th>run_id</th><th>tool_id</th><th>mode</th><th>scope</th><th>physical_tasks</th><th>eta_s</th>" +
+      "</tr></thead>";
+    const runsBody = document.createElement("tbody");
+    for (const run of logicalRuns) {
+      const tr = document.createElement("tr");
+      const cells = [
+        run.run_id || "-",
+        run.tool_id || "-",
+        run?.execution?.group_mode || "-",
+        run.execution_scope || "-",
+        run.physical_tasks_total ?? "-",
+        run.eta_seconds ?? "-",
+      ];
+      for (const value of cells) {
+        const td = document.createElement("td");
+        td.textContent = String(value);
+        tr.appendChild(td);
+      }
+      runsBody.appendChild(tr);
+    }
+    runsTable.appendChild(runsBody);
+    runsCard.appendChild(runsTable);
+    wavesRoot.appendChild(runsCard);
+  }
+
+  if (!waves.length) {
+    return;
+  }
+
+  const wavesDetails = document.createElement("details");
+  wavesDetails.className = "muted-box";
+  if (!logicalRuns.length) {
+    wavesDetails.open = true;
+  }
+  const wavesSummary = document.createElement("summary");
+  wavesSummary.textContent = `Internal waves (${waves.length})`;
+  wavesDetails.appendChild(wavesSummary);
+
+  const wavesHost = document.createElement("div");
+  wavesHost.className = "plan-waves";
 
   for (const wave of waves) {
     const card = document.createElement("article");
@@ -1675,7 +1767,7 @@ function renderPlan(plan) {
     table.className = "wave-table";
     table.innerHTML =
       "<thead><tr>" +
-      "<th>run_id</th><th>threads</th><th>ram_gb</th><th>eta_s</th><th>source</th><th>note</th>" +
+      "<th>run_id</th><th>task_id</th><th>group</th><th>threads</th><th>ram_gb</th><th>eta_s</th><th>source</th><th>note</th>" +
       "</tr></thead>";
 
     const tbody = document.createElement("tbody");
@@ -1684,6 +1776,8 @@ function renderPlan(plan) {
       const tr = document.createElement("tr");
       const cells = [
         task.run_id || task.tool_id || "-",
+        task.tool_id || "-",
+        task.group_label || "-",
         task.threads ?? "-",
         task.ram_gb ?? "-",
         task.eta_seconds ?? "-",
@@ -1701,8 +1795,10 @@ function renderPlan(plan) {
 
     card.appendChild(head);
     card.appendChild(table);
-    wavesRoot.appendChild(card);
+    wavesHost.appendChild(card);
   }
+  wavesDetails.appendChild(wavesHost);
+  wavesRoot.appendChild(wavesDetails);
 }
 
 function renderPlanInlinePreview(plan, virtualPath) {
@@ -1724,8 +1820,48 @@ function renderPlanInlinePreview(plan, virtualPath) {
 
   const wavesHost = document.createElement("div");
   wavesHost.className = "inline-plan-waves";
+  const logicalRuns = Array.isArray(plan.runs) ? plan.runs : [];
   const waves = Array.isArray(plan.waves) ? plan.waves : [];
+  if (logicalRuns.length) {
+    const runsCard = document.createElement("article");
+    runsCard.className = "wave-card";
+    const runsHead = document.createElement("div");
+    runsHead.className = "wave-head";
+    runsHead.innerHTML = `<span class=\"wave-title\">Configured Runs</span><span>runs=${logicalRuns.length}</span>`;
+    runsCard.appendChild(runsHead);
+    const runsTable = document.createElement("table");
+    runsTable.className = "wave-table";
+    runsTable.innerHTML =
+      "<thead><tr>" +
+      "<th>run_id</th><th>tool_id</th><th>mode</th><th>scope</th><th>physical_tasks</th><th>eta_s</th>" +
+      "</tr></thead>";
+    const runsBody = document.createElement("tbody");
+    for (const run of logicalRuns) {
+      const tr = document.createElement("tr");
+      const cells = [
+        run.run_id || "-",
+        run.tool_id || "-",
+        run?.execution?.group_mode || "-",
+        run.execution_scope || "-",
+        run.physical_tasks_total ?? "-",
+        run.eta_seconds ?? "-",
+      ];
+      for (const value of cells) {
+        const td = document.createElement("td");
+        td.textContent = String(value);
+        tr.appendChild(td);
+      }
+      runsBody.appendChild(tr);
+    }
+    runsTable.appendChild(runsBody);
+    runsCard.appendChild(runsTable);
+    wavesHost.appendChild(runsCard);
+  }
   if (!waves.length) {
+    if (logicalRuns.length) {
+      previewRoot.appendChild(wavesHost);
+      return;
+    }
     const pre = document.createElement("pre");
     pre.textContent = "This plan has no waves.";
     previewRoot.appendChild(pre);
@@ -1746,7 +1882,7 @@ function renderPlanInlinePreview(plan, virtualPath) {
     table.className = "wave-table";
     table.innerHTML =
       "<thead><tr>" +
-      "<th>run_id</th><th>threads</th><th>ram_gb</th><th>eta_s</th><th>source</th><th>note</th>" +
+      "<th>run_id</th><th>task_id</th><th>group</th><th>threads</th><th>ram_gb</th><th>eta_s</th><th>source</th><th>note</th>" +
       "</tr></thead>";
     const tbody = document.createElement("tbody");
     const tasks = Array.isArray(wave.tasks) ? wave.tasks : [];
@@ -1754,6 +1890,8 @@ function renderPlanInlinePreview(plan, virtualPath) {
       const tr = document.createElement("tr");
       const cells = [
         task.run_id || task.tool_id || "-",
+        task.tool_id || "-",
+        task.group_label || "-",
         task.threads ?? "-",
         task.ram_gb ?? "-",
         task.eta_seconds ?? "-",
@@ -2040,6 +2178,7 @@ function _toolSpecInfoPayload(tool) {
     description: "",
     fields: [
       { label: "Tool ID", value: tool?.tool_id || "-" },
+      { label: "Execution Scope", value: tool?.execution_scope || "-" },
       { label: "Assumes", value: tool?.assumes || "-" },
       { label: "Accepts", value: accepts.length ? accepts.join(", ") : "-" },
       { label: "Required extras", value: requiredExtras.length ? requiredExtras.join(", ") : "none" },

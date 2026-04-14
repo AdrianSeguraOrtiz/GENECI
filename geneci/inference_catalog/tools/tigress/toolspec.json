@@ -17,6 +17,7 @@
   ],
   "implementation_url": "https://github.com/jpvert/tigress",
   "docker_image": "adriansegura99/inference-tools_tigress:1.0.0",
+  "execution_scope": "global",
   "accepts": [
     "samples",
     "cells",

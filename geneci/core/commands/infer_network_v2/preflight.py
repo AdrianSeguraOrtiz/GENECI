@@ -25,6 +25,7 @@ from .commons.tools import (
     _collect_requirement_issues,
     _load_tools_params,
     _load_toolspec,
+    _resolve_run_execution,
     _resolve_tool_params,
     _scan_catalog_compatibility,
 )
@@ -63,6 +64,7 @@ def preflight_infer_network_new(
     selected_tool_catalog_ids: dict[str, str] = {}
     skipped_tools: dict[str, str] = {}
     resolved_params_by_tool: dict[str, dict[str, Any]] = {}
+    resolved_execution_by_tool: dict[str, dict[str, Any]] = {}
     requirement_issues: dict[str, list[str]] = {}
     requested_total = 0
 
@@ -72,6 +74,7 @@ def preflight_infer_network_new(
         for run_id, run_spec in tools_params.items():
             catalog_tool_id = str(run_spec.get("tool_id", "")).strip()
             user_params = run_spec.get("params", {})
+            user_execution = run_spec.get("execution", {})
             if not catalog_tool_id:
                 if strict:
                     raise ValueError(
@@ -91,6 +94,16 @@ def preflight_infer_network_new(
                     f"[{run_id}] skipped: invalid tool request (params must be object)"
                 )
                 skipped_tools[run_id] = "invalid tool request: params must be object"
+                continue
+            if not isinstance(user_execution, dict):
+                if strict:
+                    raise ValueError(
+                        f"[{run_id}] invalid tool request: execution must be object"
+                    )
+                warnings.append(
+                    f"[{run_id}] skipped: invalid tool request (execution must be object)"
+                )
+                skipped_tools[run_id] = "invalid tool request: execution must be object"
                 continue
 
             toolspec = _load_toolspec(tools_root, catalog_tool_id)
@@ -125,14 +138,27 @@ def preflight_infer_network_new(
                 skipped_tools[run_id] = "; ".join(param_errors)
                 continue
 
+            valid_execution, resolved_execution, execution_errors = _resolve_run_execution(
+                run_id=run_id,
+                toolspec=toolspec,
+                user_execution=user_execution,
+                strict=strict,
+                warnings=warnings,
+            )
+            if not valid_execution:
+                skipped_tools[run_id] = "; ".join(execution_errors)
+                continue
+
             selected_tools.append(run_id)
             selected_tool_catalog_ids[run_id] = catalog_tool_id
             resolved_params_by_tool[run_id] = resolved_params
+            resolved_execution_by_tool[run_id] = resolved_execution
             issues = _collect_requirement_issues(
                 tool_id=run_id,
                 toolspec=toolspec,
                 dataset=dataset,
                 resolved_params=resolved_params,
+                resolved_execution=resolved_execution,
             )
             if issues:
                 requirement_issues[run_id] = issues
@@ -159,6 +185,7 @@ def preflight_infer_network_new(
             "selected": selected_tools,
             "catalog_tool_ids": selected_tool_catalog_ids,
             "resolved_params": resolved_params_by_tool,
+            "resolved_execution": resolved_execution_by_tool,
             "requirement_issues": requirement_issues,
             "skipped": skipped_tools,
         },
