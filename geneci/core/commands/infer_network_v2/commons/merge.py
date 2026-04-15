@@ -94,11 +94,13 @@ def _merge_network_outputs(
     merged_raw_rows: list[dict[str, Any]] = []
     merged_norm_rows: list[dict[str, Any]] = []
     per_tool_rows: dict[str, int] = {}
+    had_completed_network_output = False
 
     for tool_id in sorted(updated.keys()):
         result = updated[tool_id]
         if result.status != "completed" or not result.network_path:
             continue
+        had_completed_network_output = True
 
         network_path = Path(result.network_path)
         try:
@@ -167,13 +169,13 @@ def _merge_network_outputs(
     merged_raw_path: Optional[Path] = None
     merged_norm_path: Optional[Path] = None
 
-    if merged_raw_rows:
+    if merged_raw_rows or had_completed_network_output:
         merged_raw_path = run_dir / "merged_network_raw.csv"
         _write_network_rows(
             path=merged_raw_path, rows=merged_raw_rows, include_tool_id=True
         )
 
-    if merged_norm_rows:
+    if merged_norm_rows or had_completed_network_output:
         merged_norm_path = run_dir / "merged_network_normalized.csv"
         _write_network_rows(
             path=merged_norm_path, rows=merged_norm_rows, include_tool_id=True

@@ -29,6 +29,11 @@ from .commons.merge import (
     _read_network_rows,
     _write_network_rows,
 )
+from .commons.network_exports import (
+    export_cytoscape_style_script,
+    export_network_gexf,
+    export_network_graphml,
+)
 from .commons.runtime_helpers import (
     _ensure_docker_cli,
     _prepare_shared_inputs,
@@ -392,6 +397,10 @@ def run_infer_network_new_plan(
     physical_results: dict[str, ToolExecutionResult] = {}
     merged_raw_path = None
     merged_norm_path = None
+    merged_raw_gexf_path = None
+    merged_norm_gexf_path = None
+    merged_raw_graphml_path = None
+    merged_norm_graphml_path = None
     per_tool_rows = {}
 
     _ensure_docker_cli()
@@ -546,6 +555,32 @@ def run_infer_network_new_plan(
         )
     )
 
+    merged_raw_gexf_path: Path | None = None
+    merged_raw_graphml_path: Path | None = None
+    merged_norm_gexf_path: Path | None = None
+    merged_norm_graphml_path: Path | None = None
+    merged_norm_cytoscape_script_path: Path | None = None
+
+    if merged_raw_path is not None:
+        merged_raw_gexf_path = run_dir / "merged_network_raw.gexf"
+        merged_raw_graphml_path = run_dir / "merged_network_raw.graphml"
+        export_network_gexf(merged_raw_path, merged_raw_gexf_path)
+        export_network_graphml(merged_raw_path, merged_raw_graphml_path)
+
+    if merged_norm_path is not None:
+        merged_norm_gexf_path = run_dir / "merged_network_normalized.gexf"
+        merged_norm_graphml_path = run_dir / "merged_network_normalized.graphml"
+        merged_norm_cytoscape_script_path = (
+            run_dir / "merged_network_normalized_cytoscape.py"
+        )
+        export_network_gexf(merged_norm_path, merged_norm_gexf_path)
+        export_network_graphml(merged_norm_path, merged_norm_graphml_path)
+        export_cytoscape_style_script(
+            csv_path=merged_norm_path,
+            graphml_path=merged_norm_graphml_path,
+            out_path=merged_norm_cytoscape_script_path,
+        )
+
     completed_tools = sorted(
         tool_id
         for tool_id, result in execution_results.items()
@@ -576,8 +611,25 @@ def run_infer_network_new_plan(
         "merged_network_raw": (
             str(merged_raw_path.resolve()) if merged_raw_path else None
         ),
+        "merged_network_raw_gexf": (
+            str(merged_raw_gexf_path.resolve()) if merged_raw_gexf_path else None
+        ),
+        "merged_network_raw_graphml": (
+            str(merged_raw_graphml_path.resolve()) if merged_raw_graphml_path else None
+        ),
         "merged_network_normalized": (
             str(merged_norm_path.resolve()) if merged_norm_path else None
+        ),
+        "merged_network_normalized_gexf": (
+            str(merged_norm_gexf_path.resolve()) if merged_norm_gexf_path else None
+        ),
+        "merged_network_normalized_graphml": (
+            str(merged_norm_graphml_path.resolve()) if merged_norm_graphml_path else None
+        ),
+        "merged_network_normalized_cytoscape_script": (
+            str(merged_norm_cytoscape_script_path.resolve())
+            if merged_norm_cytoscape_script_path
+            else None
         ),
         "rows_per_tool": per_tool_rows,
     }
@@ -613,8 +665,21 @@ def run_infer_network_new_plan(
     print(f"  waves: {len(waves)}")
     if merged_raw_path:
         print(f"  merged raw: {merged_raw_path}")
+    if merged_raw_gexf_path:
+        print(f"  merged raw gexf: {merged_raw_gexf_path}")
+    if merged_raw_graphml_path:
+        print(f"  merged raw graphml: {merged_raw_graphml_path}")
     if merged_norm_path:
         print(f"  merged normalized: {merged_norm_path}")
+    if merged_norm_gexf_path:
+        print(f"  merged normalized gexf: {merged_norm_gexf_path}")
+    if merged_norm_graphml_path:
+        print(f"  merged normalized graphml: {merged_norm_graphml_path}")
+    if merged_norm_cytoscape_script_path:
+        print(
+            "  merged normalized cytoscape preset:"
+            f" {merged_norm_cytoscape_script_path}"
+        )
     if warnings:
         print(f"  warnings: {len(warnings)} (see run_report.json)")
 
