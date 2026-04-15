@@ -1105,7 +1105,7 @@ button:disabled {
 .files-layout {
   margin-top: 0.8rem;
   display: grid;
-  grid-template-columns: 1fr 1.35fr;
+  grid-template-columns: minmax(340px, 1.08fr) minmax(420px, 1.12fr);
   gap: 0.8rem;
 }
 
@@ -1138,7 +1138,7 @@ button:disabled {
   border-radius: 6px;
   font-weight: 500;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 0.6rem;
   box-shadow: none !important;
@@ -1179,13 +1179,16 @@ button:disabled {
   color: #64748b;
   font-size: 0.75rem;
   margin-left: 0.4rem;
+  flex: 0 0 auto;
+  text-align: right;
 }
 
 .node-label {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.34rem;
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .toggle-glyph {
@@ -1200,9 +1203,9 @@ button:disabled {
 }
 
 .node-name {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.2;
 }
 
 .file-preview {
@@ -1217,6 +1220,58 @@ button:disabled {
 
 .file-preview .plan-inline-summary {
   margin-bottom: 0.6rem;
+}
+
+.network-export-guide {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.network-export-guide h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.network-export-guide p {
+  margin: 0;
+  color: #475569;
+}
+
+.network-export-tips {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.35rem;
+  color: #334155;
+}
+
+.network-export-code {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #0f172a;
+}
+
+.network-export-code-head {
+  padding: 0.35rem 0.55rem;
+  background: rgba(148, 163, 184, 0.14);
+  color: #cbd5e1;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.network-export-code pre {
+  margin: 0;
+  padding: 0.8rem;
+  overflow-x: auto;
+  color: #e2e8f0;
+  background: #0f172a;
+  font-family: "IBM Plex Mono", "Fira Code", monospace;
+  font-size: 0.77rem;
+  line-height: 1.5;
+  white-space: pre;
 }
 
 .file-preview .inline-plan-waves {

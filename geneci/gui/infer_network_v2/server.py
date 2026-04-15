@@ -1052,6 +1052,11 @@ def _bundle_sources(
             run_dir / "run_report.json",
             run_dir / "merged_network_raw.csv",
             run_dir / "merged_network_normalized.csv",
+            run_dir / "merged_network_raw.gexf",
+            run_dir / "merged_network_raw.graphml",
+            run_dir / "merged_network_normalized.gexf",
+            run_dir / "merged_network_normalized.graphml",
+            run_dir / "merged_network_normalized_cytoscape.py",
         ]
         for path in run_candidates:
             if path.exists() and path.is_file():
@@ -1075,6 +1080,12 @@ def _viewer_for_virtual_path(path: str) -> str:
     basename = Path(normalized).name
     if normalized == "run/plan.json":
         return "plan"
+    if normalized.endswith("_cytoscape.py") or ".cytoscape." in basename:
+        return "network_cytoscape_script"
+    if normalized.endswith(".gexf"):
+        return "network_gexf"
+    if normalized.endswith(".graphml"):
+        return "network_graphml"
     if normalized.endswith(".json"):
         return "json"
     if normalized.endswith(".csv"):
@@ -1464,6 +1475,73 @@ def create_app() -> FastAPI:
                     "viewer": "json",
                     "text": text,
                     "truncated": False,
+                }
+            )
+
+        if viewer in {"network_gexf", "network_graphml", "network_cytoscape_script"}:
+            if viewer == "network_cytoscape_script":
+                preview = _preview_text(source, MAX_TEXT_PREVIEW_BYTES)
+                return JSONResponse(
+                    {
+                        "path": requested_path,
+                        "viewer": viewer,
+                        "format": "Cytoscape preset",
+                        "title": "Cytoscape Desktop preset script",
+                        "summary": (
+                            "Helper script that imports the sibling normalized GraphML export into a running "
+                            "Cytoscape Desktop instance and applies the GENECI default style preset."
+                        ),
+                        "recommended_tools": ["Cytoscape Desktop", "py4cytoscape"],
+                        "tips": [
+                            "This artifact is specific to Cytoscape Desktop and uses the normalized GraphML export as its data source.",
+                            "Default mappings: edge width by score, edge color by tool_id, edge line type by context scope.",
+                            "Run it with Cytoscape Desktop open and CyREST enabled on the default localhost port.",
+                            "If you prefer manual styling, you can still import the sibling GraphML file directly.",
+                        ],
+                        "download_hint": (
+                            "Typical usage: python merged_network_normalized_cytoscape.py"
+                        ),
+                        "text": preview["text"],
+                        "truncated": preview["truncated"],
+                    }
+                )
+
+            format_label = "GEXF" if viewer == "network_gexf" else "GraphML"
+            recommended_tools = (
+                ["Cytoscape Desktop", "Gephi", "Python / NetworkX / igraph"]
+                if viewer == "network_graphml"
+                else ["Gephi"]
+            )
+            tip_lines = (
+                [
+                    "Use this export for desktop-scale network exploration rather than in-browser rendering.",
+                    "This file preserves one edge per CSV row, including context and tool_id edge attributes.",
+                    "This export carries graph data and edge attributes, not an application-specific visual style preset.",
+                    "Gephi is the recommended first choice for interactive layout and filtering.",
+                    "If you plan to use Cytoscape Desktop, prefer the GraphML export; GEXF import there depends on an app/plugin rather than the standard importer.",
+                ]
+                if viewer == "network_gexf"
+                else [
+                    "Use this export for interoperable graph workflows across desktop and scripting tools.",
+                    "This file preserves one edge per CSV row, including context and tool_id edge attributes.",
+                    "The export also includes context_scope, which is convenient for styling global vs grouped edges in Cytoscape Desktop.",
+                    "This export carries graph data and edge attributes, not an application-specific visual style preset.",
+                    "GraphML is the best default choice for Cytoscape Desktop and remains directly usable in Gephi.",
+                    "If you want the GENECI default Cytoscape styling automatically, use the sibling merged_network_normalized_cytoscape.py artifact.",
+                ]
+            )
+            return JSONResponse(
+                {
+                    "path": requested_path,
+                    "viewer": viewer,
+                    "format": format_label,
+                    "title": f"{format_label} network export",
+                    "summary": (
+                        "External visualization/export artifact generated from the merged network output."
+                    ),
+                    "recommended_tools": recommended_tools,
+                    "tips": tip_lines,
+                    "download_hint": "Use Download ZIP or open the file directly from the run directory.",
                 }
             )
 

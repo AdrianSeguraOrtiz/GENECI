@@ -4,6 +4,20 @@ import { state } from "../core/state.js";
 import { renderPlanInlinePreview } from "../plan/view.js";
 import { pushToast } from "../ui/toasts.js";
 
+function viewerLabel(viewer) {
+  const raw = String(viewer || "none");
+  if (raw === "network_gexf") {
+    return "gexf";
+  }
+  if (raw === "network_graphml") {
+    return "graphml";
+  }
+  if (raw === "network_cytoscape_script") {
+    return "cytoscape";
+  }
+  return raw;
+}
+
 export function resetFilesView(message) {
   state.selectedFilePath = null;
   $("files-summary").textContent = message || "No files loaded yet.";
@@ -21,7 +35,71 @@ export function renderFilePreview(payload) {
   }
 
   const viewer = payload.viewer || "none";
-  $("file-preview-header").textContent = `${payload.path || "-"} · ${viewer}`;
+  $("file-preview-header").textContent = `${payload.path || "-"} · ${viewerLabel(viewer)}`;
+
+  if (viewer === "network_gexf" || viewer === "network_graphml" || viewer === "network_cytoscape_script") {
+    const card = document.createElement("section");
+    card.className = "network-export-guide";
+
+    const title = document.createElement("h4");
+    title.textContent = String(payload.title || `${payload.format || "Network"} export`);
+    card.appendChild(title);
+
+    const summary = document.createElement("p");
+    summary.textContent = String(payload.summary || "");
+    card.appendChild(summary);
+
+    const tools = Array.isArray(payload.recommended_tools) ? payload.recommended_tools : [];
+    if (tools.length) {
+      const toolsBox = document.createElement("div");
+      toolsBox.className = "muted-box";
+      toolsBox.textContent = `Recommended tools: ${tools.join(", ")}`;
+      card.appendChild(toolsBox);
+    }
+
+    const tips = Array.isArray(payload.tips) ? payload.tips : [];
+    if (tips.length) {
+      const list = document.createElement("ul");
+      list.className = "network-export-tips";
+      for (const tip of tips) {
+        const li = document.createElement("li");
+        li.textContent = String(tip);
+        list.appendChild(li);
+      }
+      card.appendChild(list);
+    }
+
+    const hint = document.createElement("div");
+    hint.className = "muted-box";
+    hint.textContent = String(payload.download_hint || "");
+    card.appendChild(hint);
+
+    if (viewer === "network_cytoscape_script" && payload.text) {
+      const codeWrap = document.createElement("div");
+      codeWrap.className = "network-export-code";
+
+      const codeHead = document.createElement("div");
+      codeHead.className = "network-export-code-head";
+      codeHead.textContent = "PYTHON";
+      codeWrap.appendChild(codeHead);
+
+      const pre = document.createElement("pre");
+      pre.textContent = String(payload.text);
+      codeWrap.appendChild(pre);
+
+      if (payload.truncated) {
+        const note = document.createElement("div");
+        note.className = "muted-box";
+        note.textContent = "Preview truncated. Open the file directly from the run directory if needed.";
+        card.appendChild(note);
+      }
+
+      card.appendChild(codeWrap);
+    }
+
+    previewRoot.appendChild(card);
+    return;
+  }
 
   if (viewer === "json" || viewer === "text" || viewer === "plan") {
     const pre = document.createElement("pre");
@@ -212,7 +290,7 @@ function renderTreeNode({ node, depth, mode }) {
   if (node.kind === "file") {
     metaBits.push(formatBytes(node.size_bytes));
     if (node.viewer && node.viewer !== "none") {
-      metaBits.push(node.viewer);
+      metaBits.push(viewerLabel(node.viewer));
     }
   } else {
     metaBits.push(`${node.children.length} item(s)`);
