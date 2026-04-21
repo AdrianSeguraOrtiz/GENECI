@@ -1,0 +1,45 @@
+{
+  "simulator_id": "dyngen",
+  "request": {
+    "profile": "scrna_global",
+    "seed": 11,
+    "effective_extras": ["tf_list"],
+    "input_files": {},
+    "params": {
+      "backbone_template": "cycle_simple",
+      "num_cells": 10,
+      "num_tfs": 3,
+      "num_targets": 4,
+      "num_hks": 2,
+      "distance_metric": "spearman",
+      "feature_network_params": {
+        "damping": 0.05,
+        "target_resampling": 2,
+        "max_in_degree": 4
+      },
+      "gold_standard_params": {
+        "tau": 0.02,
+        "census_interval": 0.25,
+        "simulate_targets": true
+      },
+      "simulation_params": {
+        "compute_dimred": false
+      },
+      "experiment_params": {
+        "map_reference_cpm": false,
+        "map_reference_ls": false
+      }
+    }
+  },
+  "expect_progress": true,
+  "required_files": [
+    "expression.tsv",
+    "extras/tf_list.txt",
+    "truth/global_network.csv",
+    "truth/legacy/global_gs.csv",
+    "simulator-output-manifest.json",
+    "progress.json",
+    "provenance/raw/model.rds",
+    "provenance/raw/dataset.rds"
+  ]
+}

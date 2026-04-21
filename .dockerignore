@@ -2,3 +2,11 @@ inferred_networks*/
 template*/
 pareto_fronts*/
 input_data/
+.git/
+**/.git/
+.venv/
+.pytest_cache/
+benchmarks_v2/
+**/__pycache__/
+**/.DS_Store
+components/generate_data/*/papers/

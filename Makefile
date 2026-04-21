@@ -1,5 +1,6 @@
 PYTHON ?= $(if $(wildcard .venv/bin/python),.venv/bin/python,python)
 INFERENCE_DEV_SCRIPTS := components/inference_tools_dev/scripts
+GENERATE_DEV_SCRIPTS := components/generate_data_dev/scripts
 PYTEST_FLAGS ?= -q
 ARGS ?=
 TOOL ?=
@@ -36,6 +37,10 @@ pull-tool-images:
 
 run-tool-smoketests:
 	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/run_smoketests.py $(ARGS)
+
+run-simulator-smoketests:
+	@$(PYTHON) $(GENERATE_DEV_SCRIPTS)/run_smoketests.py $(ARGS)
+
 
 benchmark-tool-costs:
 	@$(PYTHON) $(INFERENCE_DEV_SCRIPTS)/benchmark_costs.py $(ARGS)

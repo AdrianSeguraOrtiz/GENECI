@@ -1,0 +1,39 @@
+{
+  "simulator_id": "dyngen",
+  "request": {
+    "profile": "scrna_grouped",
+    "seed": 19,
+    "effective_extras": ["groups", "tf_list"],
+    "input_files": {},
+    "params": {
+      "backbone_template": "bifurcating_loop",
+      "num_cells": 10,
+      "num_tfs": 3,
+      "num_targets": 4,
+      "num_hks": 2,
+      "simulation_params": {
+        "num_simulations": 4,
+        "compute_dimred": false,
+        "compute_rna_velocity": true,
+        "store_reaction_propensities": true,
+        "kinetics_noise_kind": "none"
+      },
+      "experiment_params": {
+        "map_reference_cpm": false,
+        "map_reference_ls": false
+      }
+    }
+  },
+  "expect_progress": true,
+  "required_files": [
+    "expression.tsv",
+    "extras/groups.tsv",
+    "extras/tf_list.txt",
+    "truth/global_network.csv",
+    "truth/legacy/global_gs.csv",
+    "simulator-output-manifest.json",
+    "progress.json",
+    "provenance/raw/model.rds",
+    "provenance/raw/dataset.rds"
+  ]
+}

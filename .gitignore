@@ -166,5 +166,8 @@ components/*/*/mainstandaloneApplication/
 components/*/*/adriansegura99/
 components/inference_tools_dev/tools/*/repo/
 components/inference_tools_dev/tools/*/papers/
+components/generate_data/*/repo/
+components/generate_data/*/papers/
+components/generate_data/*/*.html
 
 poetry.lock

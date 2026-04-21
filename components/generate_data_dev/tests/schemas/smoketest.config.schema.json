@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geneci.org/schemas/simulator-smoketest.config.schema.json",
+  "title": "GENECI Simulator Smoketest Config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "simulator_id",
+    "request",
+    "expect_progress",
+    "required_files"
+  ],
+  "properties": {
+    "simulator_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "effective_extras",
+        "input_files",
+        "params"
+      ],
+      "properties": {
+        "profile": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "effective_extras": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "input_files": {
+          "type": "object",
+          "default": {},
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "params": {
+          "type": "object"
+        }
+      }
+    },
+    "expect_progress": {
+      "type": "boolean"
+    },
+    "required_files": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}
