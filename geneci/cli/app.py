@@ -11,6 +11,24 @@ from geneci.config import temp_folder_str
 from geneci.core.commands.benchmarking.expression_data import (
     expression_data as core_expression_data,
 )
+from geneci.core.commands.benchmarking.generate_v2 import (
+    list_simulator_catalog as core_generate_v2_catalog_list,
+)
+from geneci.core.commands.benchmarking.generate_v2 import (
+    plan_generate_v2_request as core_plan_generate_v2_request,
+)
+from geneci.core.commands.benchmarking.generate_v2 import (
+    preflight_generate_v2_scenario as core_preflight_generate_v2_scenario,
+)
+from geneci.core.commands.benchmarking.generate_v2 import (
+    run_generate_v2 as core_run_generate_v2,
+)
+from geneci.core.commands.benchmarking.generate_v2 import (
+    show_simulator_catalog_item as core_generate_v2_catalog_show,
+)
+from geneci.core.commands.benchmarking.generate_v2 import (
+    validate_generate_v2_request as core_validate_generate_v2_request,
+)
 from geneci.core.commands.benchmarking.expression_data import (
     generate_from_real_network as core_generate_from_real_network,
 )
@@ -84,6 +102,21 @@ def _run_core(fn, *args, **kwargs):
         raise typer.Exit(code=1)
 
 
+def _load_json_object_for_cli(path: Path) -> dict:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        print(
+            "[bold red]Error:[/bold red] "
+            f"{escape(str(path))} is malformed JSON at line {exc.lineno}, column {exc.colno}: {escape(exc.msg)}"
+        )
+        raise typer.Exit(code=1)
+    if not isinstance(payload, dict):
+        print(f"[bold red]Error:[/bold red] {escape(str(path))} must contain a JSON object")
+        raise typer.Exit(code=1)
+    return payload
+
+
 app = typer.Typer(rich_markup_mode="rich")
 
 # Benchmarking space
@@ -100,6 +133,20 @@ benchmarking_expression_app = typer.Typer(help="Expression data assets and gener
 benchmarking_app.add_typer(
     benchmarking_expression_app,
     name="expression-data",
+)
+
+benchmarking_generate_v2_app = typer.Typer(
+    help="Scenario-first benchmark generation with normalized dataset packages."
+)
+benchmarking_app.add_typer(
+    benchmarking_generate_v2_app,
+    name="generate-v2",
+)
+
+benchmarking_generate_v2_catalog_app = typer.Typer(help="Simulator catalog commands.")
+benchmarking_generate_v2_app.add_typer(
+    benchmarking_generate_v2_catalog_app,
+    name="catalog",
 )
 
 generate_app = typer.Typer(help="Generate expression data with SysGenSIM.")
@@ -144,6 +191,165 @@ app.add_typer(
     name="infer-network-v2",
     rich_help_panel="Main commands",
 )
+
+
+@benchmarking_generate_v2_catalog_app.command("list")
+def benchmarking_generate_v2_catalog_list():
+    """
+    List available generate-v2 simulators.
+    """
+    items = _run_core(core_generate_v2_catalog_list)
+    if not items:
+        print("[bold yellow]No simulators found[/bold yellow]")
+        return
+    print("[bold green]generate-v2 simulators[/bold green]")
+    for item in items:
+        profiles = ", ".join(item.get("supports_profiles", []))
+        print(f"  - {item.get('id')}: {item.get('name')} [{profiles}]")
+
+
+@benchmarking_generate_v2_catalog_app.command("show")
+def benchmarking_generate_v2_catalog_show(
+    simulator_id: str = typer.Option(
+        ...,
+        "--simulator-id",
+        help="Simulator identifier from the generate-v2 catalog.",
+    ),
+):
+    """
+    Show one simulator spec from the generate-v2 catalog.
+    """
+    spec = _run_core(core_generate_v2_catalog_show, simulator_id)
+    print(json.dumps(spec, indent=2, ensure_ascii=True))
+
+
+@benchmarking_generate_v2_app.command("validate-request")
+def benchmarking_generate_v2_validate_request(
+    request: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help="Path to benchmark-request.json.",
+    ),
+):
+    """
+    Validate a generate-v2 benchmark request against schemas and catalog constraints.
+    """
+    report = _run_core(core_validate_generate_v2_request, request)
+    print("[bold green]generate-v2 request is valid[/bold green]")
+    print(f"  request id: {report['request_id']}")
+    print(f"  profile: {report['profile']}")
+    print(f"  simulator: {report['simulator_id']}")
+    print(f"  replicates: {report['replicates']}")
+    print(f"  requested extras: {', '.join(report['requested_extras']) or '(none)'}")
+    print(f"  effective extras: {', '.join(report['effective_extras']) or '(none)'}")
+    print(f"  input files: {', '.join(report['input_files']) or '(none)'}")
+    print(f"  seeds: {', '.join(str(x) for x in report['replicate_seeds'])}")
+
+
+@benchmarking_generate_v2_app.command("preflight")
+def benchmarking_generate_v2_preflight(
+    scenario: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help="Path to scenario-request.json.",
+    ),
+):
+    """
+    Classify simulators for a scenario-first generate-v2 request.
+    """
+    report = _run_core(core_preflight_generate_v2_scenario, scenario)
+    summary = report["catalog_summary"]
+    print("[bold green]generate-v2 scenario preflight[/bold green]")
+    print(f"  scenario id: {report['scenario']['id']}")
+    print(f"  profile: {report['scenario']['profile']}")
+    print(
+        f"  requested extras: {', '.join(report['scenario']['requested_extras']) or '(none)'}"
+    )
+    print(
+        f"  effective extras: {', '.join(report['scenario']['effective_extras']) or '(none)'}"
+    )
+    print(
+        f"  input files: {', '.join(report['scenario']['input_files']) or '(none)'}"
+    )
+    print(
+        f"  catalog summary: total={summary['total']} "
+        f"eligible={summary['eligible']} warning={summary['warning']} blocked={summary['blocked']}"
+    )
+    for bucket in ("eligible", "warning", "blocked"):
+        entries = report[bucket]
+        if not entries:
+            continue
+        print(f"  {bucket}:")
+        for entry in entries:
+            suffix = ""
+            reasons = entry["blocking_reasons"] if bucket == "blocked" else entry["warnings"]
+            if reasons:
+                suffix = " - " + "; ".join(reasons)
+            print(f"    - {entry['simulator_id']}{suffix}")
+
+
+@benchmarking_generate_v2_app.command("plan")
+def benchmarking_generate_v2_plan(
+    scenario: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help="Path to scenario-request.json.",
+    ),
+    simulator_id: str = typer.Option(
+        ...,
+        "--simulator-id",
+        help="Simulator identifier chosen from generate-v2 preflight.",
+    ),
+    params: Path | None = typer.Option(
+        None,
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        help="Optional JSON object with simulator parameter overrides.",
+    ),
+    out: Path = typer.Option(
+        ...,
+        help="Path where the resolved benchmark-request.json will be written.",
+    ),
+):
+    """
+    Resolve a scenario request into a runnable benchmark-request.json for one simulator.
+    """
+    output_path = _run_core(
+        core_plan_generate_v2_request,
+        scenario_request_path=scenario,
+        simulator_id=simulator_id,
+        simulator_params=_load_json_object_for_cli(params) if params else None,
+        output_path=out,
+    )
+    print(f"[bold green]benchmark request planned[/bold green]: {output_path}")
+
+
+@benchmarking_generate_v2_app.command("run")
+def benchmarking_generate_v2_run(
+    request: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help="Path to benchmark-request.json.",
+    ),
+    output_dir: Path = typer.Option(
+        Path("./benchmarks_v2"),
+        help="Root directory where the benchmark package will be created.",
+    ),
+):
+    """
+    Generate a benchmark package from a resolved benchmark-request.json.
+    """
+    benchmark_root = _run_core(
+        core_run_generate_v2,
+        request_path=request,
+        output_dir=output_dir,
+    )
+    print(f"[bold green]benchmark written[/bold green]: {benchmark_root}")
 
 
 @app.command(rich_help_panel="Main commands")

@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geneci.org/schemas/simulator-output-manifest.schema.json",
+  "title": "GENECI SimulatorOutputManifest",
+  "description": "Normalized simulator-wrapper output contract consumed by generate-v2 core.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "simulator_id",
+    "profile",
+    "seed",
+    "expression",
+    "extras",
+    "truth",
+    "provenance"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "simulator_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile": {
+      "type": "string",
+      "minLength": 1
+    },
+    "seed": {
+      "type": "integer"
+    },
+    "expression": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "genes", "columns", "column_kind", "expression_profile"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1, "pattern": ".*\\.tsv$" },
+        "genes": { "type": "integer", "minimum": 1 },
+        "columns": { "type": "integer", "minimum": 1 },
+        "column_kind": {
+          "type": "string",
+          "enum": ["samples", "cells", "timepoints", "perturbations"]
+        },
+        "expression_profile": {
+          "type": "string",
+          "enum": ["bulk", "scrna", "mixed", "unknown"]
+        }
+      }
+    },
+    "extras": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "groups": { "type": ["string", "null"], "pattern": ".*\\.tsv$" },
+        "lineage_tree": { "type": ["string", "null"], "pattern": ".*\\.tsv$" },
+        "tf_list": { "type": ["string", "null"], "pattern": ".*\\.txt$" },
+        "prior_grn_by_group": { "type": ["string", "null"], "pattern": ".*\\.tsv$" }
+      }
+    },
+    "truth": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["global_network", "legacy_binary_matrix", "group_networks"],
+      "properties": {
+        "global_network": { "type": ["string", "null"], "pattern": ".*\\.csv$" },
+        "legacy_binary_matrix": { "type": ["string", "null"], "pattern": ".*\\.csv$" },
+        "group_networks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["group", "path"],
+            "properties": {
+              "group": { "type": "string", "minLength": 1 },
+              "path": { "type": "string", "pattern": ".*\\.csv$" }
+            }
+          }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["raw_dir"],
+      "properties": {
+        "raw_dir": { "type": "string", "minLength": 1 },
+        "notes": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

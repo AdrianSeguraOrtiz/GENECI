@@ -85,17 +85,90 @@
               "additionalProperties": false,
               "required": ["tax_id"],
               "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": ["biological", "synthetic", "unknown"],
+                  "default": "biological",
+                  "description": "Whether the dataset comes from a biological organism, a synthetic simulator, or is unknown."
+                },
                 "tax_id": {
-                  "type": "integer",
-                  "minimum": 1,
-                  "description": "NCBI Taxonomy ID (e.g., 9606 human, 10090 mouse)."
+                  "description": "NCBI Taxonomy ID (e.g., 9606 human, 10090 mouse). Null is allowed for synthetic or unknown datasets.",
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 },
                 "name": {
                   "type": "string",
                   "minLength": 1,
                   "description": "Optional organism name for humans."
                 }
-              }
+              },
+              "allOf": [
+                {
+                  "if": {
+                    "not": {
+                      "required": ["kind"]
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "tax_id": {
+                        "type": "integer",
+                        "minimum": 1
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "kind": {
+                        "const": "biological"
+                      }
+                    },
+                    "required": ["kind"]
+                  },
+                  "then": {
+                    "properties": {
+                      "tax_id": {
+                        "type": "integer",
+                        "minimum": 1
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "kind": {
+                        "enum": ["synthetic", "unknown"]
+                      }
+                    },
+                    "required": ["kind"]
+                  },
+                  "then": {
+                    "properties": {
+                      "tax_id": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 1
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              ]
             },
             "context": {
               "type": "object",

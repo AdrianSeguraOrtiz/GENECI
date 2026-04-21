@@ -1,0 +1,423 @@
+{
+  "schema_version": "1.0",
+  "id": "dyngen",
+  "name": "dyngen",
+  "publication": [
+    "https://doi.org/10.1038/s41467-021-24152-2"
+  ],
+  "first_author": "Robrecht Cannoodt",
+  "year": 2021,
+  "simulation_summary": "Simulates dynamic single-cell gene regulatory processes from a user-specified backbone, exposing cell-state annotations, regulatory ground truth and optional multimodal trajectory-derived artefacts such as RNA velocity and cell-specific GRNs.",
+  "simulation_keywords": [
+    "scrna",
+    "trajectory",
+    "single_cell",
+    "dynamic_grn",
+    "rna_velocity"
+  ],
+  "implementation_url": "https://github.com/dynverse/dyngen",
+  "docker_image": "adriansegura99/simulator_dyngen:1.0.0",
+  "simulator_inputs": {
+    "required": [],
+    "optional": []
+  },
+  "profile_capabilities": {
+    "scrna_global": {
+      "native_extras": [],
+      "derivable_extras": ["tf_list"],
+      "truth_outputs": {
+        "global_network": "native",
+        "legacy_binary_matrix": "derivable",
+        "group_networks": "none"
+      },
+      "artifacts_aux": [
+        {
+          "id": "milestone_network",
+          "kind": "graph",
+          "description": "Directed milestone-state network describing the simulated trajectory topology."
+        },
+        {
+          "id": "milestone_percentages",
+          "kind": "table",
+          "description": "Per-cell soft assignments over milestone states derived from the simulated trajectory."
+        },
+        {
+          "id": "progressions",
+          "kind": "table",
+          "description": "Per-cell progression records along directed milestone transitions."
+        },
+        {
+          "id": "rna_velocity",
+          "kind": "matrix",
+          "description": "Ground-truth RNA velocity vectors derived from the simulated reactions."
+        },
+        {
+          "id": "cellwise_grn",
+          "kind": "table",
+          "description": "Cell-specific regulatory interaction scores that can be aggregated into state- or group-level truth."
+        }
+      ],
+      "notes": "Global scRNA snapshots can be generated from either built-in dyngen backbones or a custom backbone definition without exporting explicit groups."
+    },
+    "scrna_grouped": {
+      "native_extras": [],
+      "derivable_extras": ["groups", "lineage_tree", "tf_list"],
+      "truth_outputs": {
+        "global_network": "native",
+        "legacy_binary_matrix": "derivable",
+        "group_networks": "derivable"
+      },
+      "artifacts_aux": [
+        {
+          "id": "milestone_network",
+          "kind": "graph",
+          "description": "Directed milestone-state network describing the simulated trajectory topology."
+        },
+        {
+          "id": "milestone_percentages",
+          "kind": "table",
+          "description": "Per-cell soft assignments over milestone states derived from the simulated trajectory."
+        },
+        {
+          "id": "progressions",
+          "kind": "table",
+          "description": "Per-cell progression records along directed milestone transitions."
+        },
+        {
+          "id": "rna_velocity",
+          "kind": "matrix",
+          "description": "Ground-truth RNA velocity vectors derived from the simulated reactions."
+        },
+        {
+          "id": "cellwise_grn",
+          "kind": "table",
+          "description": "Cell-specific regulatory interaction scores that can be aggregated into state- or group-level truth."
+        }
+      ],
+      "notes": "Groups can be derived from milestone assignments, lineage_tree from the milestone network, and group-level truth from cell-specific regulatory activity."
+    }
+  },
+  "params": {
+    "backbone_template": {
+      "type": "enum",
+      "required": false,
+      "default": "bifurcating",
+      "enum": [
+        "bifurcating",
+        "bifurcating_converging",
+        "bifurcating_cycle",
+        "bifurcating_loop",
+        "binary_tree",
+        "branching",
+        "consecutive_bifurcating",
+        "converging",
+        "cycle",
+        "cycle_simple",
+        "disconnected",
+        "linear",
+        "linear_simple",
+        "trifurcating"
+      ],
+      "description": "Built-in dyngen backbone constructor used to define the simulated trajectory topology."
+    },
+    "num_cells": {
+      "type": "int",
+      "required": false,
+      "default": 1000,
+      "min": 10,
+      "description": "Number of cells to sample from the simulated process."
+    },
+    "num_tfs": {
+      "type": "int",
+      "required": false,
+      "default": null,
+      "min": 1,
+      "description": "Number of transcription factors. When null, dyngen uses the number of modules in the selected backbone."
+    },
+    "num_targets": {
+      "type": "int",
+      "required": false,
+      "default": 50,
+      "min": 1,
+      "description": "Number of target genes downstream of the transcription-factor network."
+    },
+    "num_hks": {
+      "type": "int",
+      "required": false,
+      "default": 50,
+      "min": 0,
+      "description": "Number of housekeeping genes to include in the simulation."
+    },
+    "distance_metric": {
+      "type": "enum",
+      "required": false,
+      "default": "pearson",
+      "enum": ["pearson", "spearman", "cosine", "euclidean", "manhattan"],
+      "description": "Distance metric used internally by dyngen for cell-to-cell distance calculations."
+    },
+    "tf_network_params": {
+      "type": "object",
+      "required": false,
+      "default": {
+        "min_tfs_per_module": 1,
+        "weighted_sampling": false
+      },
+      "description": "Serializable subset of dyngen TF-network generation parameters.",
+      "properties": {
+        "min_tfs_per_module": {
+          "type": "int",
+          "required": false,
+          "default": 1,
+          "min": 1,
+          "description": "Minimum number of TFs generated per module."
+        },
+        "weighted_sampling": {
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "Whether regulator sampling should be weighted by current target counts."
+        }
+      }
+    },
+    "feature_network_params": {
+      "type": "object",
+      "required": false,
+      "default": {
+        "realnet": null,
+        "damping": 0.01,
+        "target_resampling": null,
+        "max_in_degree": 5
+      },
+      "description": "Serializable dyngen feature-network generation parameters.",
+      "properties": {
+        "realnet": {
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Optional dyngen realnet identifier. When null, dyngen samples one from its bundled collection."
+        },
+        "damping": {
+          "type": "float",
+          "required": false,
+          "default": 0.01,
+          "min": 0.0,
+          "description": "Damping factor used in the PageRank-based target sampling step."
+        },
+        "target_resampling": {
+          "type": "int",
+          "required": false,
+          "default": null,
+          "min": 1,
+          "description": "Optional finite resampling cap for targets. When null, dyngen uses its unbounded default."
+        },
+        "max_in_degree": {
+          "type": "int",
+          "required": false,
+          "default": 5,
+          "min": 1,
+          "description": "Maximum in-degree permitted in the sampled feature network."
+        }
+      }
+    },
+    "gold_standard_params": {
+      "type": "object",
+      "required": false,
+      "default": {
+        "tau": 0.008333333333333333,
+        "census_interval": 0.16666666666666666,
+        "simulate_targets": false
+      },
+      "description": "Serializable dyngen gold-standard simulation parameters.",
+      "properties": {
+        "tau": {
+          "type": "float",
+          "required": false,
+          "default": 0.008333333333333333,
+          "min": 0.0,
+          "exclusive_min": true,
+          "description": "Tau used by dyngen when simulating the regulatory gold standard."
+        },
+        "census_interval": {
+          "type": "float",
+          "required": false,
+          "default": 0.16666666666666666,
+          "min": 0.0,
+          "exclusive_min": true,
+          "description": "Gold-standard census interval."
+        },
+        "simulate_targets": {
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "Whether to include target genes when simulating the gold standard, not only TF molecules."
+        }
+      }
+    },
+    "simulation_params": {
+      "type": "object",
+      "required": false,
+      "default": {
+        "burn_time": null,
+        "total_time": null,
+        "ssa_etl_tau": 0.008333333333333333,
+        "census_interval": 4.0,
+        "num_simulations": 32,
+        "num_knockdown_simulations": 0,
+        "store_reaction_firings": false,
+        "store_reaction_propensities": false,
+        "compute_dimred": false,
+        "compute_rna_velocity": false,
+        "kinetics_noise_kind": "simple",
+        "kinetics_noise_mean": 1.0,
+        "kinetics_noise_sd": 0.005
+      },
+      "description": "Serializable dyngen simulation parameters.",
+      "properties": {
+        "burn_time": {
+          "type": "float",
+          "required": false,
+          "default": null,
+          "min": 0.0,
+          "description": "Optional explicit burn-in time. When null, dyngen derives it from the backbone."
+        },
+        "total_time": {
+          "type": "float",
+          "required": false,
+          "default": null,
+          "min": 0.0,
+          "description": "Optional explicit total simulation time. When null, dyngen derives it from the backbone."
+        },
+        "ssa_etl_tau": {
+          "type": "float",
+          "required": false,
+          "default": 0.008333333333333333,
+          "min": 0.0,
+          "exclusive_min": true,
+          "description": "Tau parameter for dyngen's ssa_etl stochastic simulation algorithm."
+        },
+        "census_interval": {
+          "type": "float",
+          "required": false,
+          "default": 4.0,
+          "min": 0.0,
+          "exclusive_min": true,
+          "description": "Simulation census interval."
+        },
+        "num_simulations": {
+          "type": "int",
+          "required": false,
+          "default": 32,
+          "min": 1,
+          "description": "Number of wild-type simulations used to sample cells."
+        },
+        "num_knockdown_simulations": {
+          "type": "int",
+          "required": false,
+          "default": 0,
+          "min": 0,
+          "description": "Number of knockdown simulations to include in addition to wild-type simulations."
+        },
+        "store_reaction_firings": {
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "Whether to store reaction firing logs in the dyngen dataset object."
+        },
+        "store_reaction_propensities": {
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "Whether to store reaction propensities in the dyngen dataset object."
+        },
+        "compute_dimred": {
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "Whether dyngen should compute dimension reductions in the wrapped dataset."
+        },
+        "compute_rna_velocity": {
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "Whether to simulate spliced and unspliced abundances allowing RNA velocity ground truth."
+        },
+        "kinetics_noise_kind": {
+          "type": "enum",
+          "required": false,
+          "default": "simple",
+          "enum": ["simple", "none"],
+          "description": "Kinetics noise preset passed to dyngen."
+        },
+        "kinetics_noise_mean": {
+          "type": "float",
+          "required": false,
+          "default": 1.0,
+          "description": "Mean for dyngen's simple kinetics noise preset."
+        },
+        "kinetics_noise_sd": {
+          "type": "float",
+          "required": false,
+          "default": 0.005,
+          "min": 0.0,
+          "description": "Standard deviation for dyngen's simple kinetics noise preset."
+        }
+      }
+    },
+    "experiment_params": {
+      "type": "object",
+      "required": false,
+      "default": {
+        "kind": "snapshot",
+        "map_reference_cpm": false,
+        "map_reference_ls": false,
+        "weight_bw": 0.1,
+        "num_timepoints": 8,
+        "pct_between": 0.75
+      },
+      "description": "Serializable dyngen experimental sampling parameters.",
+      "properties": {
+        "kind": {
+          "type": "enum",
+          "required": false,
+          "default": "snapshot",
+          "enum": ["snapshot", "synchronised"],
+          "description": "Whether dyngen should sample a snapshot experiment or a synchronised time-course experiment."
+        },
+        "map_reference_cpm": {
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "Whether to map to the reference CPM distribution."
+        },
+        "map_reference_ls": {
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "Whether to map to the reference library-size distribution."
+        },
+        "weight_bw": {
+          "type": "float",
+          "required": false,
+          "default": 0.1,
+          "min": 0.0,
+          "description": "Bandwidth weight used by dyngen's snapshot experiment sampler."
+        },
+        "num_timepoints": {
+          "type": "int",
+          "required": false,
+          "default": 8,
+          "min": 2,
+          "description": "Number of timepoints used by dyngen's synchronised experiment sampler."
+        },
+        "pct_between": {
+          "type": "float",
+          "required": false,
+          "default": 0.75,
+          "min": 0.0,
+          "max": 1.0,
+          "description": "Fraction of synchronised cells sampled between timepoints."
+        }
+      }
+    }
+  }
+}

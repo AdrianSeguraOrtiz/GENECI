@@ -1,0 +1,474 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geneci.org/schemas/simulator-spec.schema.json",
+  "title": "GENECI SimulatorSpec",
+  "description": "Operational and scientific schema for benchmark data simulators used by generate-v2. This schema describes what a simulator can model, which auxiliary artefacts it can emit or derive, which simulator-side inputs it requires, and the container image GENECI uses to execute it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "name",
+    "publication",
+    "first_author",
+    "year",
+    "simulation_summary",
+    "simulation_keywords",
+    "implementation_url",
+    "docker_image",
+    "simulator_inputs",
+    "profile_capabilities",
+    "params"
+  ],
+  "$defs": {
+    "canonical_profile": {
+      "type": "string",
+      "enum": [
+        "bulk_steady_state",
+        "bulk_time_series",
+        "bulk_perturbational",
+        "scrna_global",
+        "scrna_grouped"
+      ]
+    },
+    "extra_key": {
+      "type": "string",
+      "enum": [
+        "groups",
+        "lineage_tree",
+        "tf_list",
+        "prior_grn_by_group"
+      ]
+    },
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "artifact_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "description"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "formats": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "conditional_input_requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input",
+        "message"
+      ],
+      "properties": {
+        "input": {
+          "$ref": "#/$defs/identifier"
+        },
+        "profile": {
+          "$ref": "#/$defs/canonical_profile"
+        },
+        "requested_extra": {
+          "$ref": "#/$defs/extra_key"
+        },
+        "param": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*(\\.[a-zA-Z_][a-zA-Z0-9_]*)*$"
+        },
+        "op": {
+          "type": "string",
+          "enum": [
+            "==",
+            "!=",
+            "in",
+            "not_in"
+          ]
+        },
+        "value": {
+          "anyOf": [
+            { "type": "null" },
+            { "type": "integer" },
+            { "type": "number" },
+            { "type": "boolean" },
+            { "type": "string" },
+            {
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  { "type": "integer" },
+                  { "type": "number" },
+                  { "type": "boolean" },
+                  { "type": "string" }
+                ]
+              }
+            }
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "simulator_inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required",
+        "optional"
+      ],
+      "properties": {
+        "required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/artifact_ref"
+          }
+        },
+        "optional": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/artifact_ref"
+          }
+        },
+        "conditional_required": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/conditional_input_requirement"
+          }
+        }
+      }
+    },
+    "truth_output_mode": {
+      "type": "string",
+      "enum": [
+        "none",
+        "native",
+        "derivable"
+      ]
+    },
+    "truth_outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "global_network",
+        "legacy_binary_matrix",
+        "group_networks"
+      ],
+      "properties": {
+        "global_network": {
+          "$ref": "#/$defs/truth_output_mode"
+        },
+        "legacy_binary_matrix": {
+          "$ref": "#/$defs/truth_output_mode"
+        },
+        "group_networks": {
+          "$ref": "#/$defs/truth_output_mode"
+        }
+      }
+    },
+    "aux_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "description"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/identifier"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "table",
+            "matrix",
+            "graph",
+            "counts",
+            "metadata",
+            "directory",
+            "other"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "formats": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "profile_capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "native_extras",
+        "derivable_extras",
+        "truth_outputs",
+        "artifacts_aux"
+      ],
+      "properties": {
+        "native_extras": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/extra_key"
+          }
+        },
+        "derivable_extras": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/extra_key"
+          }
+        },
+        "truth_outputs": {
+          "$ref": "#/$defs/truth_outputs"
+        },
+        "artifacts_aux": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/aux_artifact"
+          }
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "param_def": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "required",
+        "default",
+        "description"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "int",
+            "float",
+            "bool",
+            "string",
+            "enum",
+            "object",
+            "array",
+            "union"
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "default": {
+          "anyOf": [
+            { "type": "null" },
+            { "type": "integer" },
+            { "type": "number" },
+            { "type": "boolean" },
+            { "type": "string" },
+            { "type": "array" },
+            { "type": "object" }
+          ]
+        },
+        "enum": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string" }
+        },
+        "min": {
+          "type": "number"
+        },
+        "exclusive_min": {
+          "type": "boolean"
+        },
+        "max": {
+          "type": "number"
+        },
+        "exclusive_max": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "properties": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/param_def"
+          }
+        },
+        "items": {
+          "$ref": "#/$defs/param_def"
+        },
+        "oneOf": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "$ref": "#/$defs/param_def"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": { "const": "enum" }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "required": ["enum"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": { "const": "array" }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "required": ["items"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": { "const": "union" }
+            },
+            "required": ["type"]
+          },
+          "then": {
+            "required": ["oneOf"]
+          }
+        }
+      ]
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "publication": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "first_author": {
+      "type": "string",
+      "minLength": 1
+    },
+    "year": {
+      "type": "integer",
+      "minimum": 1900,
+      "maximum": 2100
+    },
+    "simulation_summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "simulation_keywords": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "^[a-z0-9_]+$"
+      }
+    },
+    "implementation_url": {
+      "type": "string",
+      "format": "uri",
+      "minLength": 1
+    },
+    "docker_image": {
+      "type": "string",
+      "minLength": 1
+    },
+    "simulator_inputs": {
+      "$ref": "#/$defs/simulator_inputs"
+    },
+    "profile_capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "bulk_steady_state": {
+          "$ref": "#/$defs/profile_capability"
+        },
+        "bulk_time_series": {
+          "$ref": "#/$defs/profile_capability"
+        },
+        "bulk_perturbational": {
+          "$ref": "#/$defs/profile_capability"
+        },
+        "scrna_global": {
+          "$ref": "#/$defs/profile_capability"
+        },
+        "scrna_grouped": {
+          "$ref": "#/$defs/profile_capability"
+        }
+      }
+    },
+    "params": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/param_def"
+      }
+    },
+    "notes": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

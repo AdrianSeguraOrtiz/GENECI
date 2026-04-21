@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geneci.org/schemas/benchmark-manifest.schema.json",
+  "title": "GENECI BenchmarkManifest",
+  "description": "Top-level manifest indexing a generated benchmark package.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "profile",
+    "simulator_id",
+    "replicates",
+    "organism",
+    "requested_extras",
+    "effective_extras",
+    "input_files",
+    "resolved_simulator_params",
+    "datasets",
+    "artifacts"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile": {
+      "type": "string",
+      "minLength": 1
+    },
+    "simulator_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "replicates": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "organism": {
+      "type": "object"
+    },
+    "requested_extras": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "effective_extras": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "base_seed": {
+      "type": ["integer", "null"]
+    },
+    "input_files": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "resolved_simulator_params": {
+      "type": "object"
+    },
+    "datasets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "dataset_id",
+          "seed",
+          "path",
+          "dataset_manifest",
+          "ground_truth_manifest"
+        ],
+        "properties": {
+          "dataset_id": { "type": "string", "minLength": 1 },
+          "seed": { "type": "integer" },
+          "path": { "type": "string", "minLength": 1 },
+          "dataset_manifest": { "type": "string", "minLength": 1 },
+          "ground_truth_manifest": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "dataset_id",
+          "expression_matrix",
+          "global_network",
+          "legacy_binary_matrix"
+        ],
+        "properties": {
+          "dataset_id": { "type": "string", "minLength": 1 },
+          "expression_matrix": { "type": "string", "minLength": 1 },
+          "groups": { "type": ["string", "null"] },
+          "lineage_tree": { "type": ["string", "null"] },
+          "tf_list": { "type": ["string", "null"] },
+          "prior_grn_by_group": { "type": ["string", "null"] },
+          "global_network": { "type": "string", "minLength": 1 },
+          "legacy_binary_matrix": { "type": "string", "minLength": 1 },
+          "group_networks_dir": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "notes": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

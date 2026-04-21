@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geneci.org/schemas/preflight-report.schema.json",
+  "title": "GENECI GenerateV2PreflightReport",
+  "description": "Scenario-first simulator classification report for generate-v2.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "scenario",
+    "catalog_summary",
+    "eligible",
+    "warning",
+    "blocked"
+  ],
+  "$defs": {
+    "simulator_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "simulator_id",
+        "name",
+        "requested_profile",
+        "requested_extras",
+        "effective_extras",
+        "input_files_used",
+        "native_extras_used",
+        "derived_extras_used",
+        "truth_outputs",
+        "status",
+        "warnings",
+        "blocking_reasons"
+      ],
+      "properties": {
+        "simulator_id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "requested_profile": { "type": "string", "minLength": 1 },
+        "requested_extras": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "effective_extras": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "input_files_used": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "native_extras_used": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "derived_extras_used": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "truth_outputs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["global_network", "legacy_binary_matrix", "group_networks"],
+          "properties": {
+            "global_network": {
+              "type": "string",
+              "enum": ["none", "native", "derivable"]
+            },
+            "legacy_binary_matrix": {
+              "type": "string",
+              "enum": ["none", "native", "derivable"]
+            },
+            "group_networks": {
+              "type": "string",
+              "enum": ["none", "native", "derivable"]
+            }
+          }
+        },
+        "status": {
+          "type": "string",
+          "enum": ["eligible", "warning", "blocked"]
+        },
+        "warnings": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "blocking_reasons": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "profile",
+        "replicates",
+        "organism",
+        "requested_extras",
+        "effective_extras",
+        "input_files",
+        "base_seed",
+        "replicate_seeds"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "profile": { "type": "string", "minLength": 1 },
+        "replicates": { "type": "integer", "minimum": 1 },
+        "organism": { "type": "object" },
+        "requested_extras": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "effective_extras": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "input_files": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "base_seed": { "type": "integer" },
+        "replicate_seeds": {
+          "type": "array",
+          "items": { "type": "integer" }
+        }
+      }
+    },
+    "catalog_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "eligible", "warning", "blocked"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "eligible": { "type": "integer", "minimum": 0 },
+        "warning": { "type": "integer", "minimum": 0 },
+        "blocked": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "eligible": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/simulator_entry" }
+    },
+    "warning": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/simulator_entry" }
+    },
+    "blocked": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/simulator_entry" }
+    }
+  }
+}

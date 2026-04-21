@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geneci.org/schemas/ground-truth-manifest.schema.json",
+  "title": "GENECI GroundTruthManifest",
+  "description": "Truth artefact index for one generated dataset package.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "dataset_id", "simulator_id", "profile", "outputs"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "dataset_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "simulator_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile": {
+      "type": "string",
+      "minLength": 1
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["global_network", "legacy_binary_matrix", "group_networks"],
+      "properties": {
+        "global_network": { "type": ["string", "null"], "pattern": ".*\\.csv$" },
+        "legacy_binary_matrix": { "type": ["string", "null"], "pattern": ".*\\.csv$" },
+        "group_networks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["group", "path"],
+            "properties": {
+              "group": { "type": "string", "minLength": 1 },
+              "path": { "type": "string", "pattern": ".*\\.csv$" }
+            }
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}
