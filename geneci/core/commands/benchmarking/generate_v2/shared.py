@@ -62,36 +62,54 @@ PROFILE_SPECS: dict[str, ProfileSpec] = {
 
 
 @dataclass(frozen=True)
-class ResolvedBenchmarkRequest:
+class ResolvedSimulatorRun:
     request_id: str
     profile: str
+    run_id: str
     simulator_id: str
-    replicates: int
     organism: dict[str, Any]
     requested_extras: list[str]
     effective_extras: list[str]
+    inputs: dict[str, dict[str, Any]]
     input_files: dict[str, str]
     resolved_input_files: dict[str, Path]
     simulator_params: dict[str, Any]
+    replicates: int
     base_seed: Optional[int]
     replicate_seeds: list[int]
     notes: Optional[str]
     simulator_spec: dict[str, Any]
-    request_payload: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class ResolvedSimulationPlan:
+    request_id: str
+    profile: str
+    organism: dict[str, Any]
+    requested_extras: list[str]
+    effective_extras: list[str]
+    inputs: dict[str, dict[str, Any]]
+    input_files: dict[str, str]
+    resolved_input_files: dict[str, Path]
+    base_seed: Optional[int]
+    notes: Optional[str]
+    simulator_runs: list[ResolvedSimulatorRun]
+    tasks: list[dict[str, Any]]
+    execution: dict[str, Any]
+    plan_payload: dict[str, Any]
 
 
 @dataclass(frozen=True)
 class ResolvedScenarioRequest:
     request_id: str
     profile: str
-    replicates: int
     organism: dict[str, Any]
     requested_extras: list[str]
     effective_extras: list[str]
+    inputs: dict[str, dict[str, Any]]
     input_files: dict[str, str]
     resolved_input_files: dict[str, Path]
     base_seed: Optional[int]
-    replicate_seeds: list[int]
     notes: Optional[str]
     request_payload: dict[str, Any]
 
@@ -148,7 +166,9 @@ def _validate_json_instance(
     first = errors[0]
     dotted = ".".join(str(x) for x in first.absolute_path)
     if dotted:
-        raise ValueError(f"{label} failed schema validation at {dotted}: {first.message}")
+        raise ValueError(
+            f"{label} failed schema validation at {dotted}: {first.message}"
+        )
     raise ValueError(f"{label} failed schema validation: {first.message}")
 
 

@@ -5,14 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from .shared import CATALOG_ROOT, PROFILE_SPECS, _load_json_object, _validate_json_instance
-
-
-def _supported_profiles_from_spec(spec: dict[str, Any]) -> list[str]:
-    profile_capabilities = spec.get("profile_capabilities", {})
-    if not isinstance(profile_capabilities, dict):
-        return []
-    return [profile for profile in PROFILE_SPECS if profile in profile_capabilities]
+from .shared import CATALOG_ROOT, _load_json_object, _validate_json_instance
 
 
 def get_profile_capability(spec: dict[str, Any], profile: str) -> dict[str, Any] | None:
@@ -49,7 +42,8 @@ def _load_all_schemas(schemas_dir: Path) -> dict[str, dict[str, Any]]:
     return {
         "simulatorspec": _load_schema(schemas_dir, "simulatorspec.schema.json"),
         "scenario_request": _load_schema(schemas_dir, "scenario-request.schema.json"),
-        "benchmark_request": _load_schema(schemas_dir, "benchmark-request.schema.json"),
+        "simulator_runs": _load_schema(schemas_dir, "simulator-runs.schema.json"),
+        "simulation_plan": _load_schema(schemas_dir, "simulation-plan.schema.json"),
         "simulator_output_manifest": _load_schema(
             schemas_dir, "simulator-output-manifest.schema.json"
         ),
@@ -71,7 +65,9 @@ def _load_simulator_spec(
 ) -> dict[str, Any]:
     spec_path = simulators_dir / simulator_id / "simulatorspec.json"
     if not spec_path.exists():
-        raise ValueError(f"Simulator '{simulator_id}' not found in catalog: {spec_path}")
+        raise ValueError(
+            f"Simulator '{simulator_id}' not found in catalog: {spec_path}"
+        )
     spec = _load_json_object(spec_path, f"simulatorspec[{simulator_id}]")
     _validate_json_instance(
         instance=spec,
@@ -81,7 +77,9 @@ def _load_simulator_spec(
     return spec
 
 
-def _load_simulator_catalog() -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]]:
+def _load_simulator_catalog() -> (
+    tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]]
+):
     schemas_dir, simulators_dir = _resolve_catalog_paths()
     schemas = _load_all_schemas(schemas_dir)
     simulator_spec_schema = schemas["simulatorspec"]
@@ -95,27 +93,3 @@ def _load_simulator_catalog() -> tuple[dict[str, dict[str, Any]], dict[str, dict
             simulator_spec_schema=simulator_spec_schema,
         )
     return schemas, catalog
-
-
-def list_simulator_catalog() -> list[dict[str, Any]]:
-    _schemas, catalog = _load_simulator_catalog()
-    items: list[dict[str, Any]] = []
-    for simulator_id in sorted(catalog):
-        spec = catalog[simulator_id]
-        items.append(
-            {
-                "id": spec["id"],
-                "name": spec["name"],
-                "docker_image": spec.get("docker_image"),
-                "supports_profiles": _supported_profiles_from_spec(spec),
-                "approach_keywords": list(spec.get("simulation_keywords", [])),
-            }
-        )
-    return items
-
-
-def show_simulator_catalog_item(simulator_id: str) -> dict[str, Any]:
-    schemas, catalog = _load_simulator_catalog()
-    if simulator_id not in catalog:
-        raise ValueError(f"Unknown simulator_id: {simulator_id}")
-    return catalog[simulator_id]

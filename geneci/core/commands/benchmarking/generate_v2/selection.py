@@ -38,9 +38,7 @@ def evaluate_simulator_for_scenario(
     warnings: list[str] = []
 
     if profile_capability is None:
-        blocking_reasons.append(
-            f"profile '{scenario.profile}' is not supported"
-        )
+        blocking_reasons.append(f"profile '{scenario.profile}' is not supported")
         native = set()
         derivable = set()
         truth_outputs = {
@@ -80,12 +78,6 @@ def evaluate_simulator_for_scenario(
             )
         )
         blocking_reasons.extend(_evaluate_runtime_requirements(simulator_id))
-
-        derived_extras_used = sorted(set(supported_effective_extras).intersection(derivable))
-        if derived_extras_used:
-            warnings.append(
-                "derived extras required: " + ", ".join(derived_extras_used)
-            )
 
     if blocking_reasons:
         status = "blocked"
@@ -133,13 +125,12 @@ def preflight_generate_v2_scenario(scenario_path: Path) -> dict[str, Any]:
         "scenario": {
             "id": scenario.request_id,
             "profile": scenario.profile,
-            "replicates": scenario.replicates,
             "organism": scenario.organism,
             "requested_extras": scenario.requested_extras,
             "effective_extras": scenario.effective_extras,
             "input_files": scenario.input_files,
+            "inputs": scenario.inputs,
             "base_seed": scenario.base_seed,
-            "replicate_seeds": scenario.replicate_seeds,
         },
         "catalog_summary": {
             "total": len(entries),

@@ -12,7 +12,7 @@ from geneci.core.commands.benchmarking.expression_data import (
     expression_data as core_expression_data,
 )
 from geneci.core.commands.benchmarking.generate_v2 import (
-    list_simulator_catalog as core_generate_v2_catalog_list,
+    execute_generate_v2 as core_execute_generate_v2,
 )
 from geneci.core.commands.benchmarking.generate_v2 import (
     plan_generate_v2_request as core_plan_generate_v2_request,
@@ -22,12 +22,6 @@ from geneci.core.commands.benchmarking.generate_v2 import (
 )
 from geneci.core.commands.benchmarking.generate_v2 import (
     run_generate_v2 as core_run_generate_v2,
-)
-from geneci.core.commands.benchmarking.generate_v2 import (
-    show_simulator_catalog_item as core_generate_v2_catalog_show,
-)
-from geneci.core.commands.benchmarking.generate_v2 import (
-    validate_generate_v2_request as core_validate_generate_v2_request,
 )
 from geneci.core.commands.benchmarking.expression_data import (
     generate_from_real_network as core_generate_from_real_network,
@@ -102,21 +96,6 @@ def _run_core(fn, *args, **kwargs):
         raise typer.Exit(code=1)
 
 
-def _load_json_object_for_cli(path: Path) -> dict:
-    try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc:
-        print(
-            "[bold red]Error:[/bold red] "
-            f"{escape(str(path))} is malformed JSON at line {exc.lineno}, column {exc.colno}: {escape(exc.msg)}"
-        )
-        raise typer.Exit(code=1)
-    if not isinstance(payload, dict):
-        print(f"[bold red]Error:[/bold red] {escape(str(path))} must contain a JSON object")
-        raise typer.Exit(code=1)
-    return payload
-
-
 app = typer.Typer(rich_markup_mode="rich")
 
 # Benchmarking space
@@ -141,12 +120,6 @@ benchmarking_generate_v2_app = typer.Typer(
 benchmarking_app.add_typer(
     benchmarking_generate_v2_app,
     name="generate-v2",
-)
-
-benchmarking_generate_v2_catalog_app = typer.Typer(help="Simulator catalog commands.")
-benchmarking_generate_v2_app.add_typer(
-    benchmarking_generate_v2_catalog_app,
-    name="catalog",
 )
 
 generate_app = typer.Typer(help="Generate expression data with SysGenSIM.")
@@ -193,60 +166,6 @@ app.add_typer(
 )
 
 
-@benchmarking_generate_v2_catalog_app.command("list")
-def benchmarking_generate_v2_catalog_list():
-    """
-    List available generate-v2 simulators.
-    """
-    items = _run_core(core_generate_v2_catalog_list)
-    if not items:
-        print("[bold yellow]No simulators found[/bold yellow]")
-        return
-    print("[bold green]generate-v2 simulators[/bold green]")
-    for item in items:
-        profiles = ", ".join(item.get("supports_profiles", []))
-        print(f"  - {item.get('id')}: {item.get('name')} [{profiles}]")
-
-
-@benchmarking_generate_v2_catalog_app.command("show")
-def benchmarking_generate_v2_catalog_show(
-    simulator_id: str = typer.Option(
-        ...,
-        "--simulator-id",
-        help="Simulator identifier from the generate-v2 catalog.",
-    ),
-):
-    """
-    Show one simulator spec from the generate-v2 catalog.
-    """
-    spec = _run_core(core_generate_v2_catalog_show, simulator_id)
-    print(json.dumps(spec, indent=2, ensure_ascii=True))
-
-
-@benchmarking_generate_v2_app.command("validate-request")
-def benchmarking_generate_v2_validate_request(
-    request: Path = typer.Option(
-        ...,
-        exists=True,
-        file_okay=True,
-        help="Path to benchmark-request.json.",
-    ),
-):
-    """
-    Validate a generate-v2 benchmark request against schemas and catalog constraints.
-    """
-    report = _run_core(core_validate_generate_v2_request, request)
-    print("[bold green]generate-v2 request is valid[/bold green]")
-    print(f"  request id: {report['request_id']}")
-    print(f"  profile: {report['profile']}")
-    print(f"  simulator: {report['simulator_id']}")
-    print(f"  replicates: {report['replicates']}")
-    print(f"  requested extras: {', '.join(report['requested_extras']) or '(none)'}")
-    print(f"  effective extras: {', '.join(report['effective_extras']) or '(none)'}")
-    print(f"  input files: {', '.join(report['input_files']) or '(none)'}")
-    print(f"  seeds: {', '.join(str(x) for x in report['replicate_seeds'])}")
-
-
 @benchmarking_generate_v2_app.command("preflight")
 def benchmarking_generate_v2_preflight(
     scenario: Path = typer.Option(
@@ -255,11 +174,21 @@ def benchmarking_generate_v2_preflight(
         file_okay=True,
         help="Path to scenario-request.json.",
     ),
+    output_json: Optional[Path] = typer.Option(
+        None,
+        help="Optional output path to persist preflight report JSON.",
+    ),
 ):
     """
     Classify simulators for a scenario-first generate-v2 request.
     """
     report = _run_core(core_preflight_generate_v2_scenario, scenario)
+    if output_json is not None:
+        output_json.parent.mkdir(parents=True, exist_ok=True)
+        output_json.write_text(
+            json.dumps(report, indent=2, ensure_ascii=True) + "\n", encoding="utf-8"
+        )
+        print(f"[bold green]preflight report written[/bold green]: {output_json}")
     summary = report["catalog_summary"]
     print("[bold green]generate-v2 scenario preflight[/bold green]")
     print(f"  scenario id: {report['scenario']['id']}")
@@ -270,9 +199,7 @@ def benchmarking_generate_v2_preflight(
     print(
         f"  effective extras: {', '.join(report['scenario']['effective_extras']) or '(none)'}"
     )
-    print(
-        f"  input files: {', '.join(report['scenario']['input_files']) or '(none)'}"
-    )
+    print(f"  input files: {', '.join(report['scenario']['input_files']) or '(none)'}")
     print(
         f"  catalog summary: total={summary['total']} "
         f"eligible={summary['eligible']} warning={summary['warning']} blocked={summary['blocked']}"
@@ -284,7 +211,9 @@ def benchmarking_generate_v2_preflight(
         print(f"  {bucket}:")
         for entry in entries:
             suffix = ""
-            reasons = entry["blocking_reasons"] if bucket == "blocked" else entry["warnings"]
+            reasons = (
+                entry["blocking_reasons"] if bucket == "blocked" else entry["warnings"]
+            )
             if reasons:
                 suffix = " - " + "; ".join(reasons)
             print(f"    - {entry['simulator_id']}{suffix}")
@@ -298,56 +227,110 @@ def benchmarking_generate_v2_plan(
         file_okay=True,
         help="Path to scenario-request.json.",
     ),
-    simulator_id: str = typer.Option(
+    simulator_runs: Path = typer.Option(
         ...,
-        "--simulator-id",
-        help="Simulator identifier chosen from generate-v2 preflight.",
-    ),
-    params: Path | None = typer.Option(
-        None,
         exists=True,
         file_okay=True,
         dir_okay=False,
-        help="Optional JSON object with simulator parameter overrides.",
+        help="Path to simulator-runs.json.",
     ),
     out: Path = typer.Option(
         ...,
-        help="Path where the resolved benchmark-request.json will be written.",
+        help="Path where the resolved simulation-plan.json will be written.",
+    ),
+    max_parallel_tasks: int = typer.Option(
+        multiprocessing.cpu_count(),
+        min=1,
+        help="Maximum simulator tasks to run concurrently when this plan is executed.",
     ),
 ):
     """
-    Resolve a scenario request into a runnable benchmark-request.json for one simulator.
+    Resolve a scenario request into a runnable simulation-plan.json.
     """
     output_path = _run_core(
         core_plan_generate_v2_request,
         scenario_request_path=scenario,
-        simulator_id=simulator_id,
-        simulator_params=_load_json_object_for_cli(params) if params else None,
+        simulator_runs_path=simulator_runs,
         output_path=out,
+        max_parallel_tasks=max_parallel_tasks,
     )
-    print(f"[bold green]benchmark request planned[/bold green]: {output_path}")
+    print(f"[bold green]simulation plan written[/bold green]: {output_path}")
 
 
 @benchmarking_generate_v2_app.command("run")
 def benchmarking_generate_v2_run(
-    request: Path = typer.Option(
+    plan: Path = typer.Option(
         ...,
         exists=True,
         file_okay=True,
-        help="Path to benchmark-request.json.",
+        help="Path to simulation-plan.json.",
     ),
     output_dir: Path = typer.Option(
         Path("./benchmarks_v2"),
         help="Root directory where the benchmark package will be created.",
     ),
+    max_parallel_tasks: Optional[int] = typer.Option(
+        None,
+        min=1,
+        help="Optional override for the plan's max_parallel_tasks.",
+    ),
+    progress_poll_seconds: float = typer.Option(
+        0.5,
+        help="Polling interval in seconds for reading per-simulator progress.json.",
+    ),
 ):
     """
-    Generate a benchmark package from a resolved benchmark-request.json.
+    Generate a benchmark package from a resolved simulation-plan.json.
     """
     benchmark_root = _run_core(
         core_run_generate_v2,
-        request_path=request,
+        plan_path=plan,
         output_dir=output_dir,
+        max_parallel_tasks=max_parallel_tasks,
+        progress_poll_seconds=progress_poll_seconds,
+    )
+    print(f"[bold green]benchmark written[/bold green]: {benchmark_root}")
+
+
+@benchmarking_generate_v2_app.command("execute")
+def benchmarking_generate_v2_execute(
+    scenario: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        help="Path to scenario-request.json.",
+    ),
+    simulator_runs: Path = typer.Option(
+        ...,
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        help="Path to simulator-runs.json.",
+    ),
+    output_dir: Path = typer.Option(
+        Path("./benchmarks_v2"),
+        help="Root directory where the benchmark package will be created.",
+    ),
+    max_parallel_tasks: int = typer.Option(
+        multiprocessing.cpu_count(),
+        min=1,
+        help="Maximum simulator tasks to run concurrently.",
+    ),
+    progress_poll_seconds: float = typer.Option(
+        0.5,
+        help="Polling interval in seconds for reading per-simulator progress.json.",
+    ),
+):
+    """
+    End-to-end generate-v2 wrapper (preflight + plan + run).
+    """
+    benchmark_root = _run_core(
+        core_execute_generate_v2,
+        scenario_request_path=scenario,
+        simulator_runs_path=simulator_runs,
+        output_dir=output_dir,
+        max_parallel_tasks=max_parallel_tasks,
+        progress_poll_seconds=progress_poll_seconds,
     )
     print(f"[bold green]benchmark written[/bold green]: {benchmark_root}")
 

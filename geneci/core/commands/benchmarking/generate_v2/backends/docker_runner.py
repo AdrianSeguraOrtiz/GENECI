@@ -3,15 +3,20 @@
 from __future__ import annotations
 
 import os
+import json
 import shutil
 import subprocess
 import tempfile
+import threading
+import time
 from pathlib import Path
+from typing import Any, Callable
 
-from ..shared import REPO_ROOT, ResolvedBenchmarkRequest, _write_json
+from ..shared import REPO_ROOT, ResolvedSimulatorRun, _write_json
 
 _BUILT_IMAGES: set[str] = set()
 _PULLED_IMAGES: set[str] = set()
+_IMAGE_LOCK = threading.Lock()
 
 
 def _run_cmd(cmd: list[str]) -> subprocess.CompletedProcess[str]:
@@ -39,11 +44,7 @@ def _docker_image_exists(image: str) -> bool:
 
 def _resolve_wrapper_dir(simulator_id: str) -> Path:
     return (
-        REPO_ROOT
-        / "components"
-        / "generate_data_dev"
-        / "generators"
-        / simulator_id
+        REPO_ROOT / "components" / "generate_data_dev" / "generators" / simulator_id
     ).resolve()
 
 
@@ -67,7 +68,7 @@ def _build_local_image(*, simulator_id: str, image: str) -> str:
             image,
             str(REPO_ROOT),
         ]
-        )
+    )
     if result.returncode != 0:
         details = (result.stderr or result.stdout or "").strip()
         raise RuntimeError(
@@ -89,42 +90,60 @@ def _pull_image(*, image: str) -> str:
 
 
 def _ensure_docker_image(*, simulator_id: str, image: str) -> str:
-    wrapper_dir = _resolve_wrapper_dir(simulator_id)
-    dockerfile = wrapper_dir / "Dockerfile"
-    if dockerfile.exists():
+    with _IMAGE_LOCK:
+        wrapper_dir = _resolve_wrapper_dir(simulator_id)
+        dockerfile = wrapper_dir / "Dockerfile"
+        if dockerfile.exists():
+            try:
+                return _build_local_image(simulator_id=simulator_id, image=image)
+            except RuntimeError as exc:
+                build_error = str(exc)
+        elif _docker_image_exists(image):
+            return "local"
+        else:
+            build_error = None
+
         try:
-            return _build_local_image(simulator_id=simulator_id, image=image)
+            return _pull_image(image=image)
         except RuntimeError as exc:
-            build_error = str(exc)
-    elif _docker_image_exists(image):
-        return "local"
-    else:
-        build_error = None
+            pull_error = str(exc)
 
+        message = [f"Could not prepare docker image '{image}' for '{simulator_id}'."]
+        if build_error:
+            message.append(build_error)
+        message.append(pull_error)
+        raise RuntimeError(" ".join(message))
+
+
+def _read_progress(progress_path: Path) -> dict[str, object] | None:
     try:
-        return _pull_image(image=image)
-    except RuntimeError as exc:
-        pull_error = str(exc)
-
-    message = [f"Could not prepare docker image '{image}' for '{simulator_id}'."]
-    if build_error:
-        message.append(build_error)
-    message.append(pull_error)
-    raise RuntimeError(" ".join(message))
+        return json.loads(progress_path.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError):
+        return None
 
 
 def run_docker_simulator(
     *,
-    request: ResolvedBenchmarkRequest,
+    request: ResolvedSimulatorRun,
     seed: int,
     stage_dir: Path,
+    task_label: str,
+    progress_poll_seconds: float,
+    show_progress: bool,
+    progress_callback: Callable[[dict[str, Any]], None] | None = None,
 ) -> Path:
     image = str(request.simulator_spec.get("docker_image", "")).strip()
     if not image:
-        raise RuntimeError(
-            f"Simulator '{request.simulator_id}' has no docker_image"
-        )
+        raise RuntimeError(f"Simulator '{request.simulator_id}' has no docker_image")
 
+    if show_progress and progress_callback is not None:
+        progress_callback(
+            {
+                "status": "running",
+                "step": "prepare_image",
+                "message": f"Preparing Docker image {image}",
+            }
+        )
     _ensure_docker_cli()
     image_origin = _ensure_docker_image(simulator_id=request.simulator_id, image=image)
 
@@ -132,7 +151,9 @@ def run_docker_simulator(
     raw_dir = stage_dir / "provenance" / "raw"
     raw_dir.mkdir(parents=True, exist_ok=True)
 
-    with tempfile.TemporaryDirectory(prefix=f"geneci_generate_v2_{request.simulator_id}_") as tmp:
+    with tempfile.TemporaryDirectory(
+        prefix=f"geneci_generate_v2_{request.simulator_id}_"
+    ) as tmp:
         request_dir = Path(tmp) / "request"
         inputs_dir = Path(tmp) / "inputs"
         request_dir.mkdir(parents=True, exist_ok=True)
@@ -148,10 +169,12 @@ def run_docker_simulator(
 
         request_payload = {
             "schema_version": "1.0",
+            "run_id": request.run_id,
             "simulator_id": request.simulator_id,
             "profile": request.profile,
             "seed": int(seed),
             "effective_extras": list(request.effective_extras),
+            "inputs": request.inputs,
             "input_files": container_input_files,
             "params": dict(request.simulator_params),
             "output_dir_in_container": "/work/out",
@@ -174,13 +197,44 @@ def run_docker_simulator(
             ]
         )
 
-        completed = _run_cmd(cmd)
-        (raw_dir / "docker_wrapper.stdout.log").write_text(
-            completed.stdout, encoding="utf-8"
-        )
-        (raw_dir / "docker_wrapper.stderr.log").write_text(
-            completed.stderr, encoding="utf-8"
-        )
+        stdout_path = raw_dir / "docker_wrapper.stdout.log"
+        stderr_path = raw_dir / "docker_wrapper.stderr.log"
+        progress_path = stage_dir / "progress.json"
+        with (
+            stdout_path.open("w", encoding="utf-8") as stdout_fh,
+            stderr_path.open("w", encoding="utf-8") as stderr_fh,
+        ):
+            proc = subprocess.Popen(
+                cmd,
+                text=True,
+                stdout=stdout_fh,
+                stderr=stderr_fh,
+            )
+            last_progress: str | None = None
+            if show_progress and progress_callback is not None:
+                progress_callback(
+                    {
+                        "status": "running",
+                        "step": "container_started",
+                        "message": f"Container started for {task_label}",
+                    }
+                )
+            while proc.poll() is None:
+                if show_progress and progress_callback is not None:
+                    progress_payload = _read_progress(progress_path)
+                    if progress_payload is not None:
+                        rendered = json.dumps(progress_payload, sort_keys=True)
+                        if rendered != last_progress:
+                            progress_callback(progress_payload)
+                            last_progress = rendered
+                time.sleep(max(0.05, float(progress_poll_seconds)))
+            returncode = proc.wait()
+            if show_progress and progress_callback is not None:
+                progress_payload = _read_progress(progress_path)
+                if progress_payload is not None:
+                    rendered = json.dumps(progress_payload, sort_keys=True)
+                    if rendered != last_progress:
+                        progress_callback(progress_payload)
         (raw_dir / "docker_wrapper.request.json").write_text(
             request_path.read_text(encoding="utf-8"),
             encoding="utf-8",
@@ -191,11 +245,15 @@ def run_docker_simulator(
         (raw_dir / "docker_wrapper.image_origin.txt").write_text(
             image_origin + "\n", encoding="utf-8"
         )
-        if completed.returncode != 0:
-            details = (completed.stderr or completed.stdout or "").strip()
+        if returncode != 0:
+            details = (
+                stderr_path.read_text(encoding="utf-8")
+                or stdout_path.read_text(encoding="utf-8")
+                or ""
+            ).strip()
             raise RuntimeError(
                 f"Docker simulator '{request.simulator_id}' failed with exit code "
-                f"{completed.returncode}: {details}"
+                f"{returncode}: {details}"
             )
 
     manifest_path = stage_dir / "simulator-output-manifest.json"

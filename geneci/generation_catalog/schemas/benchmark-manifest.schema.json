@@ -9,13 +9,14 @@
     "schema_version",
     "id",
     "profile",
-    "simulator_id",
-    "replicates",
     "organism",
     "requested_extras",
     "effective_extras",
+    "inputs",
     "input_files",
-    "resolved_simulator_params",
+    "runs",
+    "tasks",
+    "execution",
     "datasets",
     "artifacts"
   ],
@@ -24,25 +25,9 @@
       "type": "string",
       "const": "1.0"
     },
-    "id": {
-      "type": "string",
-      "minLength": 1
-    },
-    "profile": {
-      "type": "string",
-      "minLength": 1
-    },
-    "simulator_id": {
-      "type": "string",
-      "minLength": 1
-    },
-    "replicates": {
-      "type": "integer",
-      "minimum": 1
-    },
-    "organism": {
-      "type": "object"
-    },
+    "id": { "type": "string", "minLength": 1 },
+    "profile": { "type": "string", "minLength": 1 },
+    "organism": { "type": "object" },
     "requested_extras": {
       "type": "array",
       "items": { "type": "string" }
@@ -51,15 +36,70 @@
       "type": "array",
       "items": { "type": "string" }
     },
-    "base_seed": {
-      "type": ["integer", "null"]
-    },
+    "base_seed": { "type": ["integer", "null"] },
+    "inputs": { "type": "object" },
     "input_files": {
       "type": "object",
       "additionalProperties": { "type": "string" }
     },
-    "resolved_simulator_params": {
-      "type": "object"
+    "runs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "run_id",
+          "simulator_id",
+          "replicates",
+          "base_seed",
+          "replicate_seeds",
+          "resolved_simulator_params"
+        ],
+        "properties": {
+          "run_id": { "type": "string", "minLength": 1 },
+          "simulator_id": { "type": "string", "minLength": 1 },
+          "replicates": { "type": "integer", "minimum": 1 },
+          "base_seed": { "type": "integer" },
+          "replicate_seeds": {
+            "type": "array",
+            "items": { "type": "integer" }
+          },
+          "resolved_simulator_params": { "type": "object" }
+        }
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "task_id",
+          "run_id",
+          "simulator_id",
+          "replicate_index",
+          "seed",
+          "dataset_id"
+        ],
+        "properties": {
+          "task_id": { "type": "string", "minLength": 1 },
+          "run_id": { "type": "string", "minLength": 1 },
+          "simulator_id": { "type": "string", "minLength": 1 },
+          "replicate_index": { "type": "integer", "minimum": 1 },
+          "seed": { "type": "integer" },
+          "dataset_id": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_parallel_tasks"],
+      "properties": {
+        "max_parallel_tasks": { "type": "integer", "minimum": 1 }
+      }
     },
     "datasets": {
       "type": "array",
@@ -69,6 +109,8 @@
         "additionalProperties": false,
         "required": [
           "dataset_id",
+          "run_id",
+          "simulator_id",
           "seed",
           "path",
           "dataset_manifest",
@@ -76,6 +118,8 @@
         ],
         "properties": {
           "dataset_id": { "type": "string", "minLength": 1 },
+          "run_id": { "type": "string", "minLength": 1 },
+          "simulator_id": { "type": "string", "minLength": 1 },
           "seed": { "type": "integer" },
           "path": { "type": "string", "minLength": 1 },
           "dataset_manifest": { "type": "string", "minLength": 1 },
@@ -91,12 +135,16 @@
         "additionalProperties": false,
         "required": [
           "dataset_id",
+          "run_id",
+          "simulator_id",
           "expression_matrix",
           "global_network",
           "legacy_binary_matrix"
         ],
         "properties": {
           "dataset_id": { "type": "string", "minLength": 1 },
+          "run_id": { "type": "string", "minLength": 1 },
+          "simulator_id": { "type": "string", "minLength": 1 },
           "expression_matrix": { "type": "string", "minLength": 1 },
           "groups": { "type": ["string", "null"] },
           "lineage_tree": { "type": ["string", "null"] },

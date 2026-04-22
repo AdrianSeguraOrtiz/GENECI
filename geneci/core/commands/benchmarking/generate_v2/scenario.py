@@ -9,7 +9,6 @@ from .catalog import _load_simulator_catalog
 from .request import _validate_organism
 from .request import _resolve_input_files
 from .shared import (
-    MAX_SEED_32BIT,
     KNOWN_EXTRAS,
     PROFILE_SPECS,
     ResolvedScenarioRequest,
@@ -40,14 +39,10 @@ def validate_scenario_request_payload(
         unsupported = sorted(set(requested_extras).difference(KNOWN_EXTRAS))
         raise ValueError(f"Unknown requested_extras: {unsupported}")
 
-    organism = payload.get("organism")
+    organism = payload.get("organism", {"kind": "synthetic", "tax_id": None})
     if not isinstance(organism, dict):
         raise ValueError("scenario-request.organism must be an object")
     _validate_organism(organism)
-
-    replicates = int(payload.get("replicates", 0))
-    if replicates < 1:
-        raise ValueError("scenario-request.replicates must be >= 1")
 
     base_seed = payload.get("base_seed")
     if base_seed is not None and not isinstance(base_seed, int):
@@ -64,26 +59,22 @@ def validate_scenario_request_payload(
     effective_extras = sorted(
         set(requested_extras).union(PROFILE_SPECS[profile].required_extras)
     )
-    input_files, resolved_input_files = _resolve_input_files(
-        payload.get("input_files", {}),
+    raw_inputs = payload.get("inputs", payload.get("input_files", {}))
+    inputs, input_files, resolved_input_files = _resolve_input_files(
+        raw_inputs,
         base_dir=base_dir or Path.cwd(),
     )
-    replicate_seeds = [
-        ((int(base_seed) - 1 + idx) % MAX_SEED_32BIT) + 1
-        for idx in range(replicates)
-    ]
 
     return ResolvedScenarioRequest(
         request_id=str(payload["id"]),
         profile=profile,
-        replicates=replicates,
         organism=organism,
         requested_extras=requested_extras,
         effective_extras=effective_extras,
+        inputs=inputs,
         input_files=input_files,
         resolved_input_files=resolved_input_files,
         base_seed=int(base_seed),
-        replicate_seeds=replicate_seeds,
         notes=payload.get("notes"),
         request_payload=payload,
     )

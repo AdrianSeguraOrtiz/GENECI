@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://geneci.org/schemas/simulation-plan.schema.json",
+  "title": "GENECI SimulationPlan",
+  "description": "Frozen executable plan for generate-v2 benchmark creation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "profile",
+    "organism",
+    "requested_extras",
+    "effective_extras",
+    "inputs",
+    "runs",
+    "tasks",
+    "execution"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z0-9][a-z0-9_-]*$"
+    },
+    "profile": {
+      "type": "string",
+      "enum": [
+        "bulk_steady_state",
+        "bulk_time_series",
+        "bulk_perturbational",
+        "scrna_global",
+        "scrna_grouped"
+      ]
+    },
+    "organism": {
+      "type": "object"
+    },
+    "requested_extras": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": ["groups", "lineage_tree", "tf_list", "prior_grn_by_group"]
+      }
+    },
+    "effective_extras": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": ["groups", "lineage_tree", "tf_list", "prior_grn_by_group"]
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["path"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "input_files": {
+      "deprecated": true,
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "runs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "run_id",
+          "simulator_id",
+          "simulator_params",
+          "replicates",
+          "base_seed",
+          "replicate_seeds"
+        ],
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9_-]*$"
+          },
+          "simulator_id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9_-]*$"
+          },
+          "simulator_params": {
+            "type": "object"
+          },
+          "replicates": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "base_seed": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "replicate_seeds": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "integer", "minimum": 1 }
+          },
+          "notes": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "task_id",
+          "run_id",
+          "simulator_id",
+          "replicate_index",
+          "seed",
+          "dataset_id"
+        ],
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9_-]*$"
+          },
+          "run_id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9_-]*$"
+          },
+          "simulator_id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9_-]*$"
+          },
+          "replicate_index": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "seed": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "dataset_id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9_-]*$"
+          }
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_parallel_tasks"],
+      "properties": {
+        "max_parallel_tasks": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "base_seed": {
+      "type": ["integer", "null"],
+      "minimum": 1
+    },
+    "notes": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}
