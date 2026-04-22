@@ -1,44 +1,37 @@
-"""Run simulator smoketests for selected or all configured simulators."""
+"""Run simulator smoketests for selected or all catalog simulators."""
 
 from __future__ import annotations
 
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 from jsonschema import Draft202012Validator
 
+from shared.catalog_simulators import (
+    CATALOG_ROOT,
+    DEFAULT_CATALOG_SIMULATORS_ROOT,
+    DEFAULT_SMOKETEST_CONFIGS_ROOT,
+    DEFAULT_SMOKETEST_SCHEMA_PATH,
+    DEFAULT_WRAPPERS_ROOT,
+    REPO_ROOT,
+    discover_catalog_simulator_dirs,
+    load_json,
+    load_simulatorspec,
+    select_simulators,
+)
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
-CONFIGS_DIR = REPO_ROOT / "components" / "generate_data_dev" / "tests" / "smoketest_configs"
-SCHEMA_PATH = (
-    REPO_ROOT
-    / "components"
-    / "generate_data_dev"
-    / "tests"
-    / "schemas"
-    / "smoketest.config.schema.json"
+SIMULATOR_OUTPUT_SCHEMA_PATH = (
+    CATALOG_ROOT / "schemas" / "simulator-output-manifest.schema.json"
 )
-SIMULATOR_SCHEMA_PATH = (
-    REPO_ROOT
-    / "geneci"
-    / "generation_catalog"
-    / "schemas"
-    / "simulator-output-manifest.schema.json"
-)
-GENERATORS_ROOT = REPO_ROOT / "geneci" / "generation_catalog" / "simulators"
-WRAPPERS_ROOT = REPO_ROOT / "components" / "generate_data_dev" / "generators"
 _BUILT_IMAGES: set[str] = set()
-
-
-def _load_json(path: Path) -> dict[str, Any]:
-    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def _run(cmd: list[str]) -> subprocess.CompletedProcess[str]:
@@ -52,55 +45,69 @@ def _ensure_docker() -> None:
         raise RuntimeError(f"Docker is not available: {details}")
 
 
-def _load_smoketest_configs(simulator_id: str) -> list[tuple[Path, dict[str, Any]]]:
-    config_paths = sorted(CONFIGS_DIR.glob(f"{simulator_id}*.json"))
-    if not config_paths:
-        raise RuntimeError(f"Missing smoketest configs for: {simulator_id}")
+def _schema_errors(
+    *,
+    validator: Draft202012Validator,
+    payload: dict[str, Any],
+) -> list[str]:
+    errors = sorted(validator.iter_errors(payload), key=lambda err: list(err.path))
+    return [".".join(str(x) for x in err.path) + f" -> {err.message}" for err in errors]
 
-    validator = Draft202012Validator(_load_json(SCHEMA_PATH))
+
+def _load_smoketest_configs(
+    *,
+    simulator_id: str,
+    configs_root: Path,
+    schema_validator: Draft202012Validator,
+) -> list[tuple[Path, dict[str, Any]]]:
     configs: list[tuple[Path, dict[str, Any]]] = []
-    for config_path in config_paths:
-        config = _load_json(config_path)
-        errors = sorted(validator.iter_errors(config), key=lambda err: list(err.path))
-        if errors:
-            joined = "; ".join(f"{list(err.path)} -> {err.message}" for err in errors)
-            raise RuntimeError(f"Invalid smoketest config {config_path.name}: {joined}")
-        if config["simulator_id"] != simulator_id:
+    for config_path in sorted(configs_root.glob("*.json")):
+        config = load_json(config_path)
+        if not isinstance(config, dict):
             raise RuntimeError(
-                f"Smoketest config {config_path.name} declares simulator_id={config['simulator_id']!r}, "
-                f"expected {simulator_id!r}"
+                f"Invalid smoketest config {config_path}: expected object"
+            )
+        if config.get("simulator_id") != simulator_id:
+            continue
+        errors = _schema_errors(validator=schema_validator, payload=config)
+        if errors:
+            raise RuntimeError(
+                f"Invalid smoketest config {config_path.name}: " + "; ".join(errors)
             )
         configs.append((config_path, config))
+    if not configs:
+        raise RuntimeError(f"Missing smoketest configs for: {simulator_id}")
     return configs
 
 
-def _load_simulator_spec(simulator_id: str) -> dict[str, Any]:
-    spec_path = GENERATORS_ROOT / simulator_id / "simulatorspec.json"
-    if not spec_path.exists():
-        raise RuntimeError(f"Missing SimulatorSpec: {spec_path}")
-    return _load_json(spec_path)
-
-
-def _build_image(simulator_id: str, image: str) -> None:
-    dockerfile = WRAPPERS_ROOT / simulator_id / "Dockerfile"
+def _build_image(
+    *,
+    simulator_id: str,
+    image: str,
+    wrappers_root: Path,
+) -> None:
+    dockerfile = wrappers_root / simulator_id / "Dockerfile"
     if not dockerfile.exists():
         raise RuntimeError(f"Missing Dockerfile for {simulator_id}: {dockerfile}")
     if image in _BUILT_IMAGES:
         return
-    result = _run(
+    result = subprocess.run(
         [
-          "docker",
-          "build",
-          "-f",
-          str(dockerfile),
-          "-t",
-          image,
-          str(REPO_ROOT),
-        ]
+            "docker",
+            "build",
+            "-f",
+            str(dockerfile),
+            "-t",
+            image,
+            str(REPO_ROOT),
+        ],
+        text=True,
+        check=False,
     )
     if result.returncode != 0:
-        details = (result.stderr or result.stdout or "").strip()
-        raise RuntimeError(f"[{simulator_id}] docker build failed: {details}")
+        raise RuntimeError(
+            f"[{simulator_id}] docker build failed with exit code {result.returncode}"
+        )
     _BUILT_IMAGES.add(image)
 
 
@@ -108,136 +115,266 @@ def _validate_manifest(simulator_id: str, out_dir: Path) -> None:
     manifest_path = out_dir / "simulator-output-manifest.json"
     if not manifest_path.exists():
         raise RuntimeError(f"[{simulator_id}] missing simulator-output-manifest.json")
-    manifest = _load_json(manifest_path)
-    validator = Draft202012Validator(_load_json(SIMULATOR_SCHEMA_PATH))
-    errors = sorted(validator.iter_errors(manifest), key=lambda err: list(err.path))
+    manifest = load_json(manifest_path)
+    validator = Draft202012Validator(load_json(SIMULATOR_OUTPUT_SCHEMA_PATH))
+    errors = _schema_errors(validator=validator, payload=manifest)
     if errors:
-        joined = "; ".join(f"{list(err.path)} -> {err.message}" for err in errors)
-        raise RuntimeError(f"[{simulator_id}] invalid simulator-output-manifest.json: {joined}")
+        raise RuntimeError(
+            f"[{simulator_id}] invalid simulator-output-manifest.json: "
+            + "; ".join(errors)
+        )
 
 
-def _assert_required_files(simulator_id: str, out_dir: Path, required_files: list[str]) -> None:
+def _assert_required_files(
+    simulator_id: str,
+    out_dir: Path,
+    required_files: list[str],
+) -> None:
     for rel_path in required_files:
         path = out_dir / rel_path
         if not path.exists():
-            raise RuntimeError(f"[{simulator_id}] missing required smoketest artifact: {rel_path}")
+            raise RuntimeError(
+                f"[{simulator_id}] missing required smoketest artifact: {rel_path}"
+            )
         if path.is_file() and path.stat().st_size == 0:
-            raise RuntimeError(f"[{simulator_id}] empty required smoketest artifact: {rel_path}")
-
-
-def _run_smoketest(simulator_id: str, show_output: bool) -> None:
-    spec = _load_simulator_spec(simulator_id)
-    image = str(spec["docker_image"])
-    _build_image(simulator_id, image)
-    for config_path, config in _load_smoketest_configs(simulator_id):
-        with tempfile.TemporaryDirectory(prefix=f"geneci_smoketest_{simulator_id}_") as tmp:
-            tmp_path = Path(tmp)
-            request_dir = tmp_path / "request"
-            out_dir = tmp_path / "out"
-            request_dir.mkdir(parents=True, exist_ok=True)
-            out_dir.mkdir(parents=True, exist_ok=True)
-
-            request_payload = {
-                "schema_version": "1.0",
-                "simulator_id": simulator_id,
-                "profile": config["request"]["profile"],
-                "seed": int(config["request"].get("seed", 1)),
-                "effective_extras": list(config["request"]["effective_extras"]),
-                "input_files": dict(config["request"].get("input_files", {})),
-                "params": dict(config["request"]["params"]),
-                "output_dir_in_container": "/work/out",
-            }
-            request_path = request_dir / "simulator-run-request.json"
-            request_path.write_text(
-                json.dumps(request_payload, indent=2, ensure_ascii=True) + "\n",
-                encoding="utf-8",
+            raise RuntimeError(
+                f"[{simulator_id}] empty required smoketest artifact: {rel_path}"
             )
 
-            cmd = ["docker", "run", "--rm"]
-            if hasattr(os, "getuid") and hasattr(os, "getgid"):
-                cmd.extend(["--user", f"{os.getuid()}:{os.getgid()}"])
-            cmd.extend(
-                [
-                    "-v",
-                    f"{request_dir}:/work/request:ro",
-                    "-v",
-                    f"{out_dir}:/work/out",
-                    image,
-                ]
-            )
 
-            proc = subprocess.Popen(
-                cmd,
-                text=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+def _stage_input_files(
+    *,
+    config_path: Path,
+    config: dict[str, Any],
+    inputs_dir: Path,
+) -> dict[str, str]:
+    container_input_files: dict[str, str] = {}
+    raw_input_files = dict(config["request"].get("input_files", {}))
+    for input_id, raw_path in raw_input_files.items():
+        source_path = Path(str(raw_path)).expanduser()
+        if not source_path.is_absolute():
+            source_path = (config_path.parent / source_path).resolve()
+        if not source_path.exists():
+            raise RuntimeError(
+                f"[{config['simulator_id']}:{config_path.stem}] input file not found: {source_path}"
             )
-            progress_seen = False
-            progress_path = out_dir / "progress.json"
-            while proc.poll() is None:
-                if progress_path.exists():
-                    progress_seen = True
-                time.sleep(0.5)
-            stdout, stderr = proc.communicate()
+        staged_path = inputs_dir / input_id
+        if source_path.is_dir():
+            shutil.copytree(source_path, staged_path)
+        else:
+            staged_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source_path, staged_path)
+        container_input_files[input_id] = f"/work/inputs/{input_id}"
+    return container_input_files
+
+
+def _run_one_config(
+    *,
+    simulator_id: str,
+    image: str,
+    config_path: Path,
+    config: dict[str, Any],
+    show_output: bool,
+) -> None:
+    with tempfile.TemporaryDirectory(prefix=f"geneci_smoketest_{simulator_id}_") as tmp:
+        tmp_path = Path(tmp)
+        request_dir = tmp_path / "request"
+        inputs_dir = tmp_path / "inputs"
+        out_dir = tmp_path / "out"
+        request_dir.mkdir(parents=True, exist_ok=True)
+        inputs_dir.mkdir(parents=True, exist_ok=True)
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        container_input_files = _stage_input_files(
+            config_path=config_path,
+            config=config,
+            inputs_dir=inputs_dir,
+        )
+        request_payload = {
+            "schema_version": "1.0",
+            "simulator_id": simulator_id,
+            "profile": config["request"]["profile"],
+            "seed": int(config["request"].get("seed", 1)),
+            "effective_extras": list(config["request"]["effective_extras"]),
+            "input_files": container_input_files,
+            "params": dict(config["request"]["params"]),
+            "output_dir_in_container": "/work/out",
+        }
+        request_path = request_dir / "simulator-run-request.json"
+        request_path.write_text(
+            json.dumps(request_payload, indent=2, ensure_ascii=True) + "\n",
+            encoding="utf-8",
+        )
+
+        cmd = ["docker", "run", "--rm"]
+        if hasattr(os, "getuid") and hasattr(os, "getgid"):
+            cmd.extend(["--user", f"{os.getuid()}:{os.getgid()}"])
+        cmd.extend(
+            [
+                "-v",
+                f"{request_dir}:/work/request:ro",
+                "-v",
+                f"{inputs_dir}:/work/inputs:ro",
+                "-v",
+                f"{out_dir}:/work/out",
+                image,
+            ]
+        )
+
+        proc = subprocess.Popen(
+            cmd,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        progress_seen = False
+        progress_path = out_dir / "progress.json"
+        while proc.poll() is None:
             if progress_path.exists():
                 progress_seen = True
+            time.sleep(0.5)
+        stdout, stderr = proc.communicate()
+        if progress_path.exists():
+            progress_seen = True
 
-            if proc.returncode != 0:
-                details = (stderr or stdout or "").strip()
-                raise RuntimeError(f"[{simulator_id}:{config_path.stem}] docker run failed: {details}")
-            if config["expect_progress"] and not progress_seen:
-                raise RuntimeError(f"[{simulator_id}:{config_path.stem}] progress.json was never observed")
+        if proc.returncode != 0:
+            details = (stderr or stdout or "").strip()
+            raise RuntimeError(
+                f"[{simulator_id}:{config_path.stem}] docker run failed: {details}"
+            )
+        if config["expect_progress"] and not progress_seen:
+            raise RuntimeError(
+                f"[{simulator_id}:{config_path.stem}] progress.json was never observed"
+            )
 
-            _validate_manifest(simulator_id, out_dir)
-            _assert_required_files(simulator_id, out_dir, list(config["required_files"]))
+        _validate_manifest(simulator_id, out_dir)
+        _assert_required_files(
+            simulator_id,
+            out_dir,
+            list(config["required_files"]),
+        )
 
-            if show_output:
-                print(f"[{simulator_id}:{config_path.stem}] progress.json")
-                print(progress_path.read_text(encoding="utf-8"))
-                print(f"[{simulator_id}:{config_path.stem}] simulator-output-manifest.json")
-                print((out_dir / "simulator-output-manifest.json").read_text(encoding="utf-8"))
+        if show_output:
+            print(f"[{simulator_id}:{config_path.stem}] progress.json")
+            print(progress_path.read_text(encoding="utf-8"))
+            print(f"[{simulator_id}:{config_path.stem}] simulator-output-manifest.json")
+            print(
+                (out_dir / "simulator-output-manifest.json").read_text(encoding="utf-8")
+            )
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Run generate-data docker smoketests.")
+def _run_smoketest(
+    *,
+    simulator_id: str,
+    catalog_simulators_root: Path,
+    configs_root: Path,
+    wrappers_root: Path,
+    schema_validator: Draft202012Validator,
+    skip_build: bool,
+    show_output: bool,
+) -> None:
+    spec = load_simulatorspec(catalog_simulators_root, simulator_id)
+    image = str(spec["docker_image"])
+    if not skip_build:
+        _build_image(
+            simulator_id=simulator_id, image=image, wrappers_root=wrappers_root
+        )
+    for config_path, config in _load_smoketest_configs(
+        simulator_id=simulator_id,
+        configs_root=configs_root,
+        schema_validator=schema_validator,
+    ):
+        _run_one_config(
+            simulator_id=simulator_id,
+            image=image,
+            config_path=config_path,
+            config=config,
+            show_output=show_output,
+        )
+
+
+def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Run generate-v2 simulator smoketests."
+    )
+    parser.add_argument(
+        "--catalog-simulators-root",
+        type=Path,
+        default=DEFAULT_CATALOG_SIMULATORS_ROOT,
+        help=f"Path to catalog simulators directory. Default: {DEFAULT_CATALOG_SIMULATORS_ROOT}",
+    )
+    parser.add_argument(
+        "--configs-root",
+        type=Path,
+        default=DEFAULT_SMOKETEST_CONFIGS_ROOT,
+        help=f"Path to smoketest config directory. Default: {DEFAULT_SMOKETEST_CONFIGS_ROOT}",
+    )
+    parser.add_argument(
+        "--wrappers-root",
+        type=Path,
+        default=DEFAULT_WRAPPERS_ROOT,
+        help=f"Path to simulator wrapper directories. Default: {DEFAULT_WRAPPERS_ROOT}",
+    )
+    parser.add_argument(
+        "--schema",
+        type=Path,
+        default=DEFAULT_SMOKETEST_SCHEMA_PATH,
+        help=f"Path to smoketest config schema. Default: {DEFAULT_SMOKETEST_SCHEMA_PATH}",
+    )
     parser.add_argument(
         "--simulator",
         dest="simulators",
         action="append",
-        help="Simulator id to test. Repeatable. Defaults to all configured simulators.",
+        help="Simulator id to test. Repeatable. Defaults to all catalog simulators.",
+    )
+    parser.add_argument(
+        "--skip-build",
+        action="store_true",
+        help="Do not build images before running containers.",
     )
     parser.add_argument(
         "--show-output",
         action="store_true",
         help="Print progress.json and simulator-output-manifest.json after successful runs.",
     )
-    args = parser.parse_args(argv)
+    return parser.parse_args(argv)
 
-    _ensure_docker()
-    available = sorted(
-        {
-            path.name.split("_", 1)[0]
-            for path in CONFIGS_DIR.glob("*.json")
-        }
-    )
-    simulators = args.simulators or available
+
+def main(argv: Sequence[str] | None = None) -> int:
+    args = parse_args(argv)
+    try:
+        _ensure_docker()
+        discovered = discover_catalog_simulator_dirs(args.catalog_simulators_root)
+        selected = select_simulators(discovered, args.simulators or [])
+        schema_validator = Draft202012Validator(load_json(args.schema))
+    except RuntimeError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
 
     failures: list[str] = []
-    for simulator_id in simulators:
-      print(f"[{simulator_id}] running smoketest")
-      try:
-        _run_smoketest(simulator_id, args.show_output)
-      except Exception as exc:  # noqa: BLE001
-        failures.append(f"{simulator_id}: {exc}")
-        print(f"[{simulator_id}] FAILED: {exc}", file=sys.stderr)
-      else:
-        print(f"[{simulator_id}] passed")
+    for simulator_id, _simulator_dir in selected:
+        print(f"[{simulator_id}] running smoketest", flush=True)
+        try:
+            _run_smoketest(
+                simulator_id=simulator_id,
+                catalog_simulators_root=args.catalog_simulators_root,
+                configs_root=args.configs_root,
+                wrappers_root=args.wrappers_root,
+                schema_validator=schema_validator,
+                skip_build=args.skip_build,
+                show_output=args.show_output,
+            )
+        except Exception as exc:  # noqa: BLE001
+            failures.append(f"{simulator_id}: {exc}")
+            print(f"[{simulator_id}] FAILED: {exc}", file=sys.stderr, flush=True)
+        else:
+            print(f"[{simulator_id}] passed", flush=True)
 
     if failures:
-      print("Simulator smoketests failed:", file=sys.stderr)
-      for failure in failures:
-        print(f"  - {failure}", file=sys.stderr)
-      return 1
+        print("Simulator smoketests failed:", file=sys.stderr)
+        for failure in failures:
+            print(f"  - {failure}", file=sys.stderr)
+        return 1
     return 0
 
 

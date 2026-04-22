@@ -266,24 +266,43 @@ Requirements:
 - Leave [integration_decisions.md](components/generate_data_dev/generators/<simulator_id>/integration_decisions.md) complete and concise
 ```
 
-### Step 6. Build And Optionally Publish The Image
+### Step 6. Build, Verify And Optionally Publish The Image
 
-Build or rebuild through the smoke-test runner:
+Validate the catalog and smoke-test config first:
 
 ```bash
-make run-simulator-smoketests ARGS="--simulator <simulator_id>"
+make validate-simulatorspecs ARGS="--simulator <simulator_id>"
+make validate-simulator-smoketest-configs ARGS="--simulator <simulator_id>"
+```
+
+Build or rebuild the simulator image:
+
+```bash
+make build-simulator-images ARGS="--simulator <simulator_id>"
+```
+
+Run the smoke-test matrix:
+
+```bash
+make run-simulator-smoketests ARGS="--simulator <simulator_id> --skip-build"
+```
+
+Or run the complete per-simulator verification:
+
+```bash
+make verify-simulator SIMULATOR=<simulator_id>
 ```
 
 If image publication is part of the task, push:
 
 ```bash
-docker push adriansegura99/simulator_<simulator_id>:1.0.0
+make push-simulator-images ARGS="--simulator <simulator_id>"
 ```
 
 If another machine or CI needs the image explicitly:
 
 ```bash
-docker pull adriansegura99/simulator_<simulator_id>:1.0.0
+make pull-simulator-images ARGS="--simulator <simulator_id>"
 ```
 
 ## Runtime Contract
@@ -656,7 +675,7 @@ For `dyngen`, this currently means:
 Run:
 
 ```bash
-make run-simulator-smoketests ARGS="--simulator <simulator_id>"
+make verify-simulator SIMULATOR=<simulator_id>
 ```
 
 ## Required Structure Of `integration_decisions.md`
@@ -690,9 +709,16 @@ If a value is unclear:
 From repository root:
 
 ```bash
-make run-simulator-smoketests ARGS="--simulator <simulator_id>"
+make validate-generation-catalog
+make validate-simulatorspecs ARGS="--simulator <simulator_id>"
+make validate-simulator-smoketest-configs ARGS="--simulator <simulator_id>"
+make build-simulator-images ARGS="--simulator <simulator_id>"
+make run-simulator-smoketests ARGS="--simulator <simulator_id> --skip-build"
+make verify-simulator SIMULATOR=<simulator_id>
+make list-simulator-images
+make scaffold-simulator SIMULATOR=<simulator_id> WRAPPER=python
+make prepare-simulator-papers SIMULATOR=<simulator_id>
 python -m pytest tests/generation_catalog/test_simulatorspecs.py -q
-python -m pytest tests/generate_data_dev/test_simulator_smoketests.py -q
 python -m pytest tests/core/commands/generate_v2/test_generate_v2.py -q
 ```
 
