@@ -88,7 +88,7 @@
       "uniqueItems": true,
       "items": {
         "type": "string",
-        "enum": ["groups", "lineage_tree", "tf_list", "prior_grn_by_group"]
+        "enum": ["groups", "lineage_tree", "tf_list", "prior_grn_by_group", "group_networks"]
       }
     },
     "input_files": {

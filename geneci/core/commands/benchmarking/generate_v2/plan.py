@@ -6,8 +6,9 @@ import multiprocessing
 from pathlib import Path
 from typing import Any
 
-from .catalog import _load_simulator_catalog
+from .catalog import _load_simulator_catalog, get_profile_capability
 from .request import (
+    _resolve_native_outputs,
     _resolve_simulator_params,
     validate_simulation_plan_payload,
 )
@@ -84,6 +85,18 @@ def _build_simulation_plan_payload(
             user_params=dict(run_config.get("params", {})),
             spec_params=simulator_spec.get("params", {}),
         )
+        profile_capability = get_profile_capability(simulator_spec, scenario.profile)
+        if profile_capability is None:
+            raise ValueError(
+                f"Simulator '{simulator_id}' does not support profile '{scenario.profile}'"
+            )
+        native_outputs = _resolve_native_outputs(
+            simulator_id=simulator_id,
+            profile=scenario.profile,
+            profile_capability=profile_capability,
+            raw_native_outputs=run_config.get("native_outputs"),
+            label=f"simulator-runs.runs[{run_id}]",
+        )
         base_seed = run_config.get("base_seed")
         if base_seed is None:
             if scenario.base_seed is None:
@@ -104,6 +117,7 @@ def _build_simulation_plan_payload(
                 "simulator_id": simulator_id,
                 "simulator_params": resolved_params,
                 "replicates": replicates,
+                "native_outputs": native_outputs,
                 "base_seed": int(base_seed),
                 "replicate_seeds": seeds,
                 **({"notes": run_config["notes"]} if run_config.get("notes") else {}),

@@ -625,6 +625,35 @@ def gui_infer_network_v2(
     run_server(host=host, port=port, open_browser=open_browser)
 
 
+@gui_app.command("generate-data-v2")
+def gui_generate_data_v2(
+    host: str = typer.Option(
+        "127.0.0.1",
+        help="Host address for the local GUI server.",
+    ),
+    port: int = typer.Option(
+        8766,
+        min=1,
+        max=65535,
+        help="Port for the local GUI server.",
+    ),
+    open_browser: bool = typer.Option(
+        False,
+        "--open-browser/--no-open-browser",
+        help=(
+            "Automatically open the GUI in your default browser. "
+            "Disabled by default to avoid SSH/remote session confusion."
+        ),
+    ),
+):
+    """
+    Launch the local graphical interface for generate-data-v2.
+    """
+    from geneci.gui.generate_data_v2.server import run_server
+
+    run_server(host=host, port=port, open_browser=open_browser)
+
+
 @app.command(rich_help_panel="Main commands")
 def apply_consensus(
     confidence_list: Optional[List[str]] = typer.Option(

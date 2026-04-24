@@ -60,6 +60,10 @@
           "run_id": { "type": "string", "minLength": 1 },
           "simulator_id": { "type": "string", "minLength": 1 },
           "replicates": { "type": "integer", "minimum": 1 },
+          "native_outputs": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          },
           "base_seed": { "type": "integer" },
           "replicate_seeds": {
             "type": "array",
@@ -150,6 +154,10 @@
           "lineage_tree": { "type": ["string", "null"] },
           "tf_list": { "type": ["string", "null"] },
           "prior_grn_by_group": { "type": ["string", "null"] },
+          "native_outputs": {
+            "type": "object",
+            "additionalProperties": { "type": "string", "minLength": 1 }
+          },
           "global_network": { "type": "string", "minLength": 1 },
           "legacy_binary_matrix": { "type": "string", "minLength": 1 },
           "group_networks_dir": { "type": ["string", "null"] }

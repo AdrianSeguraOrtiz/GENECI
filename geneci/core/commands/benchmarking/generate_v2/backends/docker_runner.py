@@ -136,7 +136,7 @@ def run_docker_simulator(
     if not image:
         raise RuntimeError(f"Simulator '{request.simulator_id}' has no docker_image")
 
-    if show_progress and progress_callback is not None:
+    if progress_callback is not None:
         progress_callback(
             {
                 "status": "running",
@@ -174,6 +174,7 @@ def run_docker_simulator(
             "profile": request.profile,
             "seed": int(seed),
             "effective_extras": list(request.effective_extras),
+            "native_outputs": list(request.native_outputs),
             "inputs": request.inputs,
             "input_files": container_input_files,
             "params": dict(request.simulator_params),
@@ -211,7 +212,7 @@ def run_docker_simulator(
                 stderr=stderr_fh,
             )
             last_progress: str | None = None
-            if show_progress and progress_callback is not None:
+            if progress_callback is not None:
                 progress_callback(
                     {
                         "status": "running",
@@ -220,7 +221,7 @@ def run_docker_simulator(
                     }
                 )
             while proc.poll() is None:
-                if show_progress and progress_callback is not None:
+                if progress_callback is not None:
                     progress_payload = _read_progress(progress_path)
                     if progress_payload is not None:
                         rendered = json.dumps(progress_payload, sort_keys=True)
@@ -229,7 +230,7 @@ def run_docker_simulator(
                             last_progress = rendered
                 time.sleep(max(0.05, float(progress_poll_seconds)))
             returncode = proc.wait()
-            if show_progress and progress_callback is not None:
+            if progress_callback is not None:
                 progress_payload = _read_progress(progress_path)
                 if progress_payload is not None:
                     rendered = json.dumps(progress_payload, sort_keys=True)

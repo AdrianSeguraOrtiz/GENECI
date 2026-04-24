@@ -30,31 +30,70 @@
         "legacy_binary_matrix": "derivable",
         "group_networks": "none"
       },
-      "artifacts_aux": [
+      "native_outputs": [
         {
           "id": "milestone_network",
           "kind": "graph",
-          "description": "Directed milestone-state network describing the simulated trajectory topology."
+          "description": "Directed milestone-state network describing the simulated trajectory topology.",
+          "formats": ["tsv"]
         },
         {
           "id": "milestone_percentages",
           "kind": "table",
-          "description": "Per-cell soft assignments over milestone states derived from the simulated trajectory."
+          "description": "Per-cell soft assignments over milestone states derived from the simulated trajectory.",
+          "formats": ["tsv"]
         },
         {
           "id": "progressions",
           "kind": "table",
-          "description": "Per-cell progression records along directed milestone transitions."
+          "description": "Per-cell progression records along directed milestone transitions.",
+          "formats": ["tsv"]
         },
         {
           "id": "rna_velocity",
           "kind": "matrix",
-          "description": "Ground-truth RNA velocity vectors derived from the simulated reactions."
+          "description": "Ground-truth RNA velocity matrix over the simulated feature set.",
+          "formats": ["tsv"]
         },
         {
-          "id": "cellwise_grn",
+          "id": "regulatory_network_sc",
           "kind": "table",
-          "description": "Cell-specific regulatory interaction scores that can be aggregated into state- or group-level truth."
+          "description": "Cell-specific regulatory interaction scores emitted directly by dyngen.",
+          "formats": ["tsv"],
+          "notes": "Advanced output intended for downstream benchmarking or method development rather than the canonical generate-v2 extras layer."
+        }
+      ],
+      "derivations": [
+        {
+          "artifact": "tf_list",
+          "source_artifacts": ["feature_info"],
+          "method": "Select dyngen features whose feature metadata marks them as transcription factors and export their feature identifiers one per line.",
+          "assumptions": [
+            "dyngen feature_info$is_tf is the authoritative TF annotation for the simulated feature set."
+          ],
+          "limitations": [
+            "The exported TF list reflects dyngen's simulated regulator classes, not an external organism-specific TF catalogue."
+          ],
+          "implemented_in": "components/generate_data_dev/generators/dyngen/run_simulator.R"
+        },
+        {
+          "artifact": "legacy_binary_matrix",
+          "source_artifacts": ["truth/global_network.csv", "feature_info"],
+          "method": "Convert the normalized directed global truth edge list into a square binary adjacency matrix over all simulated feature identifiers.",
+          "assumptions": [
+            "A non-zero entry means the directed source-target edge exists in dyngen's native feature network truth."
+          ],
+          "limitations": [
+            "The legacy matrix intentionally discards edge weights, signs and context labels."
+          ],
+          "implemented_in": "components/generate_data_dev/generators/dyngen/run_simulator.R"
+        }
+      ],
+      "artifacts_aux": [
+        {
+          "id": "feature_info",
+          "kind": "metadata",
+          "description": "dyngen feature metadata, including feature identifiers and TF annotations."
         }
       ],
       "notes": "Global scRNA snapshots can be generated from either built-in dyngen backbones or a custom backbone definition without exporting explicit groups."
@@ -67,34 +106,122 @@
         "legacy_binary_matrix": "derivable",
         "group_networks": "derivable"
       },
-      "artifacts_aux": [
+      "native_outputs": [
         {
           "id": "milestone_network",
           "kind": "graph",
-          "description": "Directed milestone-state network describing the simulated trajectory topology."
+          "description": "Directed milestone-state network describing the simulated trajectory topology.",
+          "formats": ["tsv"]
         },
         {
           "id": "milestone_percentages",
           "kind": "table",
-          "description": "Per-cell soft assignments over milestone states derived from the simulated trajectory."
+          "description": "Per-cell soft assignments over milestone states derived from the simulated trajectory.",
+          "formats": ["tsv"]
         },
         {
           "id": "progressions",
           "kind": "table",
-          "description": "Per-cell progression records along directed milestone transitions."
+          "description": "Per-cell progression records along directed milestone transitions.",
+          "formats": ["tsv"]
         },
         {
           "id": "rna_velocity",
           "kind": "matrix",
-          "description": "Ground-truth RNA velocity vectors derived from the simulated reactions."
+          "description": "Ground-truth RNA velocity matrix over the simulated feature set.",
+          "formats": ["tsv"]
         },
         {
-          "id": "cellwise_grn",
+          "id": "regulatory_network_sc",
           "kind": "table",
-          "description": "Cell-specific regulatory interaction scores that can be aggregated into state- or group-level truth."
+          "description": "Cell-specific regulatory interaction scores emitted directly by dyngen.",
+          "formats": ["tsv"],
+          "notes": "Advanced output intended for downstream benchmarking or method development rather than the canonical generate-v2 extras layer."
         }
       ],
-      "notes": "Groups can be derived from milestone assignments, lineage_tree from the milestone network, and group-level truth from cell-specific regulatory activity."
+      "derivations": [
+        {
+          "artifact": "groups",
+          "source_artifacts": ["milestone_percentages"],
+          "method": "Assign each exported cell to the dyngen milestone with the highest milestone percentage; ties are resolved deterministically by milestone identifier.",
+          "assumptions": [
+            "A hard single-group assignment is acceptable for grouped scRNA benchmarks even though dyngen stores soft milestone memberships."
+          ],
+          "limitations": [
+            "Cells near transitions can have mixed milestone memberships; the exported group keeps only the maximum-membership state."
+          ],
+          "implemented_in": "components/generate_data_dev/generators/dyngen/run_simulator.R"
+        },
+        {
+          "artifact": "lineage_tree",
+          "source_artifacts": [
+            "milestone_network",
+            "groups",
+            "regulatory_network_sc"
+          ],
+          "method": "Filter dyngen milestone transitions to exported groups, aggregate absolute cell-specific regulatory strengths by group and edge, mark edges active when mean absolute strength is at least 0.1, then compute gain/loss rates between parent and child active-edge sets.",
+          "assumptions": [
+            "dyngen milestone transitions define the lineage topology for the exported hard groups.",
+            "Mean absolute cell-specific regulatory strength >= 0.1 is a stable activity threshold for lineage gain/loss summaries."
+          ],
+          "limitations": [
+            "The lineage tree is a wrapper-derived summary, not a dyngen-native file.",
+            "Gain/loss rates depend on the fixed 0.1 activity threshold and on hard group assignments."
+          ],
+          "implemented_in": "components/generate_data_dev/generators/dyngen/run_simulator.R"
+        },
+        {
+          "artifact": "tf_list",
+          "source_artifacts": ["feature_info"],
+          "method": "Select dyngen features whose feature metadata marks them as transcription factors and export their feature identifiers one per line.",
+          "assumptions": [
+            "dyngen feature_info$is_tf is the authoritative TF annotation for the simulated feature set."
+          ],
+          "limitations": [
+            "The exported TF list reflects dyngen's simulated regulator classes, not an external organism-specific TF catalogue."
+          ],
+          "implemented_in": "components/generate_data_dev/generators/dyngen/run_simulator.R"
+        },
+        {
+          "artifact": "group_networks",
+          "source_artifacts": [
+            "groups",
+            "regulatory_network_sc"
+          ],
+          "method": "For each exported group, aggregate dyngen cell-specific regulatory strengths by regulator-target edge across all cells in the group, treating missing cell-edge values as zero. An edge is active when mean absolute strength is at least 0.1. The group truth score is the mean absolute strength and the sign is derived from the mean signed strength.",
+          "assumptions": [
+            "dyngen regulatory_network_sc is a cell-specific regulatory activity truth over the generated feature network.",
+            "A hard group-level truth network can be represented by aggregating cell-specific regulatory activity over the cells assigned to that group.",
+            "Mean absolute cell-specific regulatory strength >= 0.1 is a stable activity threshold for public group truth."
+          ],
+          "limitations": [
+            "Group truth networks are wrapper-derived summaries, not dyngen-native files.",
+            "The active-edge set depends on the fixed 0.1 threshold and on the hard group assignment used in groups.tsv.",
+            "Opposing signed effects across cells can yield an ambiguous sign even when the mean absolute activity is high."
+          ],
+          "implemented_in": "components/generate_data_dev/generators/dyngen/run_simulator.R"
+        },
+        {
+          "artifact": "legacy_binary_matrix",
+          "source_artifacts": ["truth/global_network.csv", "feature_info"],
+          "method": "Convert the normalized directed global truth edge list into a square binary adjacency matrix over all simulated feature identifiers.",
+          "assumptions": [
+            "A non-zero entry means the directed source-target edge exists in dyngen's native feature network truth."
+          ],
+          "limitations": [
+            "The legacy matrix intentionally discards edge weights, signs and context labels."
+          ],
+          "implemented_in": "components/generate_data_dev/generators/dyngen/run_simulator.R"
+        }
+      ],
+      "artifacts_aux": [
+        {
+          "id": "feature_info",
+          "kind": "metadata",
+          "description": "dyngen feature metadata, including feature identifiers and TF annotations."
+        }
+      ],
+      "notes": "Groups can be derived from milestone assignments. Public group truth networks are derived from cell-specific regulatory activity, and lineage_tree is derived from milestone transitions plus those public group truth networks."
     }
   },
   "params": {

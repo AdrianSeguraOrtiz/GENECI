@@ -198,7 +198,7 @@ build_simulation_experiment_types <- function(params) {
   )
 }
 
-build_simulation_params <- function(params, need_cellwise_grn) {
+build_simulation_params <- function(params, need_cellwise_grn, need_rna_velocity) {
   dyngen::simulation_default(
     burn_time = params$simulation_params$burn_time,
     total_time = params$simulation_params$total_time,
@@ -209,7 +209,7 @@ build_simulation_params <- function(params, need_cellwise_grn) {
     store_reaction_propensities = params$simulation_params$store_reaction_propensities,
     compute_cellwise_grn = need_cellwise_grn,
     compute_dimred = params$simulation_params$compute_dimred,
-    compute_rna_velocity = params$simulation_params$compute_rna_velocity,
+    compute_rna_velocity = isTRUE(params$simulation_params$compute_rna_velocity) || isTRUE(need_rna_velocity),
     kinetics_noise_function = build_kinetics_noise_function(params)
   )
 }
@@ -252,6 +252,64 @@ write_tf_list <- function(feature_info, path) {
   writeLines(tf_ids, con = path, sep = "\n", useBytes = TRUE)
 }
 
+write_table_tsv <- function(value, path) {
+  table_df <- as.data.frame(value, stringsAsFactors = FALSE)
+  write.table(
+    table_df,
+    file = path,
+    sep = "\t",
+    row.names = FALSE,
+    col.names = TRUE,
+    quote = FALSE
+  )
+}
+
+write_native_outputs <- function(dataset, native_output_ids, output_dir) {
+  requested <- unique(as.character(native_output_ids))
+  requested <- requested[nzchar(requested)]
+  if (length(requested) == 0) {
+    return(structure(list(), names = character()))
+  }
+
+  dir.create(file.path(output_dir, "native"), recursive = TRUE, showWarnings = FALSE)
+  manifest <- list()
+
+  if ("milestone_network" %in% requested) {
+    write_table_tsv(dataset$milestone_network, file.path(output_dir, "native", "milestone_network.tsv"))
+    manifest$milestone_network <- "native/milestone_network.tsv"
+  }
+  if ("milestone_percentages" %in% requested) {
+    write_table_tsv(
+      dataset$milestone_percentages,
+      file.path(output_dir, "native", "milestone_percentages.tsv")
+    )
+    manifest$milestone_percentages <- "native/milestone_percentages.tsv"
+  }
+  if ("progressions" %in% requested) {
+    write_table_tsv(dataset$progressions, file.path(output_dir, "native", "progressions.tsv"))
+    manifest$progressions <- "native/progressions.tsv"
+  }
+  if ("rna_velocity" %in% requested) {
+    if (is.null(dataset$rna_velocity)) {
+      stop("native output rna_velocity was requested but dyngen did not return dataset$rna_velocity.", call. = FALSE)
+    }
+    write_expression_tsv(dataset$rna_velocity, file.path(output_dir, "native", "rna_velocity.tsv"))
+    manifest$rna_velocity <- "native/rna_velocity.tsv"
+  }
+  if ("regulatory_network_sc" %in% requested) {
+    if (is.null(dataset$regulatory_network_sc)) {
+      stop("native output regulatory_network_sc was requested but dyngen did not return dataset$regulatory_network_sc.", call. = FALSE)
+    }
+    write_table_tsv(
+      dataset$regulatory_network_sc,
+      file.path(output_dir, "native", "regulatory_network_sc.tsv")
+    )
+    manifest$regulatory_network_sc <- "native/regulatory_network_sc.tsv"
+  }
+
+  manifest
+}
+
 derive_groups <- function(milestone_percentages, cell_ids) {
   milestone_df <- as.data.frame(milestone_percentages, stringsAsFactors = FALSE)
   milestone_df$milestone_id <- as.character(milestone_df$milestone_id)
@@ -283,11 +341,196 @@ write_groups <- function(groups_df, path) {
   )
 }
 
-derive_lineage_tree <- function(dataset, groups_df, path, raw_dir) {
+slugify_group <- function(value) {
+  slug <- gsub("[^A-Za-z0-9_.-]+", "_", as.character(value))
+  slug <- gsub("^_+|_+$", "", slug)
+  if (identical(slug, "")) {
+    return("group")
+  }
+  slug
+}
+
+derive_group_networks <- function(dataset, groups_df, output_dir, raw_dir, active_threshold = 0.1, export_public = TRUE) {
   if (is.null(dataset$regulatory_network_sc)) {
-    stop("lineage_tree derivation requires dyngen cell-specific GRN output.", call. = FALSE)
+    stop("group_networks derivation requires dyngen cell-specific GRN output.", call. = FALSE)
   }
 
+  used_groups <- unique(groups_df$cluster)
+  if (length(used_groups) < 1) {
+    stop("group_networks derivation requires at least one exported group.", call. = FALSE)
+  }
+
+  regulatory_network_sc <- as.data.frame(dataset$regulatory_network_sc, stringsAsFactors = FALSE)
+  regulatory_network_sc$cell_id <- as.character(regulatory_network_sc$cell_id)
+  regulatory_network_sc$regulator <- as.character(regulatory_network_sc$regulator)
+  regulatory_network_sc$target <- as.character(regulatory_network_sc$target)
+  regulatory_network_sc$strength <- as.numeric(regulatory_network_sc$strength)
+
+  edge_activity <- merge(
+    regulatory_network_sc,
+    groups_df,
+    by.x = "cell_id",
+    by.y = "cell",
+    all.x = FALSE,
+    all.y = FALSE
+  )
+
+  if (nrow(edge_activity) == 0) {
+    group_edge_activity <- data.frame(
+      cluster = character(),
+      regulator = character(),
+      target = character(),
+      sum_abs_strength = numeric(),
+      sum_signed_strength = numeric(),
+      cells_in_group = integer(),
+      mean_abs_strength = numeric(),
+      mean_signed_strength = numeric(),
+      active = logical(),
+      edge_id = character(),
+      stringsAsFactors = FALSE
+    )
+  } else {
+    edge_activity$abs_strength <- abs(edge_activity$strength)
+    sum_abs <- aggregate(
+      abs_strength ~ cluster + regulator + target,
+      data = edge_activity,
+      FUN = sum
+    )
+    names(sum_abs)[names(sum_abs) == "abs_strength"] <- "sum_abs_strength"
+    sum_signed <- aggregate(
+      strength ~ cluster + regulator + target,
+      data = edge_activity,
+      FUN = sum
+    )
+    names(sum_signed)[names(sum_signed) == "strength"] <- "sum_signed_strength"
+    group_edge_activity <- merge(
+      sum_abs,
+      sum_signed,
+      by = c("cluster", "regulator", "target"),
+      all = TRUE
+    )
+    group_counts <- as.data.frame(table(groups_df$cluster), stringsAsFactors = FALSE)
+    names(group_counts) <- c("cluster", "cells_in_group")
+    group_counts$cluster <- as.character(group_counts$cluster)
+    group_counts$cells_in_group <- as.integer(group_counts$cells_in_group)
+    group_edge_activity <- merge(
+      group_edge_activity,
+      group_counts,
+      by = "cluster",
+      all.x = TRUE,
+      all.y = FALSE
+    )
+    group_edge_activity$sum_abs_strength[is.na(group_edge_activity$sum_abs_strength)] <- 0
+    group_edge_activity$sum_signed_strength[is.na(group_edge_activity$sum_signed_strength)] <- 0
+    group_edge_activity$mean_abs_strength <- group_edge_activity$sum_abs_strength / pmax(group_edge_activity$cells_in_group, 1L)
+    group_edge_activity$mean_signed_strength <- group_edge_activity$sum_signed_strength / pmax(group_edge_activity$cells_in_group, 1L)
+    group_edge_activity$active <- group_edge_activity$mean_abs_strength >= active_threshold
+    group_edge_activity$edge_id <- paste(
+      group_edge_activity$regulator,
+      group_edge_activity$target,
+      sep = "->"
+    )
+  }
+
+  group_slugs <- make.unique(vapply(used_groups, slugify_group, character(1)), sep = "_")
+  names(group_slugs) <- used_groups
+
+  group_networks <- lapply(used_groups, function(group_name) {
+    group_edges <- group_edge_activity[
+      group_edge_activity$cluster == group_name & group_edge_activity$active,
+      ,
+      drop = FALSE
+    ]
+    group_truth <- data.frame(
+      source = as.character(group_edges$regulator),
+      target = as.character(group_edges$target),
+      score = as.numeric(group_edges$mean_abs_strength),
+      sign = ifelse(group_edges$mean_signed_strength > 0, "+", ifelse(group_edges$mean_signed_strength < 0, "-", "?")),
+      evidence = "simulated_truth",
+      context = paste0("group:", group_name),
+      stringsAsFactors = FALSE
+    )
+    group_truth <- group_truth[order(group_truth$source, group_truth$target), , drop = FALSE]
+    rel_path <- file.path("truth", "group_networks", paste0(group_slugs[[group_name]], ".csv"))
+    if (isTRUE(export_public)) {
+      dir.create(file.path(output_dir, "truth", "group_networks"), recursive = TRUE, showWarnings = FALSE)
+      write.csv(
+        group_truth,
+        file = file.path(output_dir, rel_path),
+        row.names = FALSE,
+        quote = TRUE
+      )
+      list(group = as.character(group_name), path = rel_path)
+    } else {
+      list(group = as.character(group_name), path = rel_path)
+    }
+  })
+
+  active_edges_by_group <- lapply(used_groups, function(group_name) {
+    active <- group_edge_activity[
+      group_edge_activity$cluster == group_name & group_edge_activity$active,
+      "edge_id",
+      drop = TRUE
+    ]
+    unique(as.character(active))
+  })
+  names(active_edges_by_group) <- used_groups
+
+  write.table(
+    group_edge_activity[
+      ,
+      c(
+        "cluster",
+        "regulator",
+        "target",
+        "mean_abs_strength",
+        "mean_signed_strength",
+        "cells_in_group",
+        "active"
+      ),
+      drop = FALSE
+    ],
+    file = file.path(raw_dir, "group_edge_activity.tsv"),
+    sep = "\t",
+    row.names = FALSE,
+    col.names = TRUE,
+    quote = FALSE
+  )
+  write.table(
+    group_edge_activity[
+      group_edge_activity$active,
+      c("cluster", "regulator", "target", "edge_id"),
+      drop = FALSE
+    ],
+    file = file.path(raw_dir, "group_active_networks.tsv"),
+    sep = "\t",
+    row.names = FALSE,
+    col.names = TRUE,
+    quote = FALSE
+  )
+  if (isTRUE(export_public)) {
+    write.table(
+      data.frame(
+        group = used_groups,
+        path = vapply(group_networks, function(item) item$path, character(1)),
+        stringsAsFactors = FALSE
+      ),
+      file = file.path(raw_dir, "group_networks_index.tsv"),
+      sep = "\t",
+      row.names = FALSE,
+      col.names = TRUE,
+      quote = FALSE
+    )
+  }
+
+  list(
+    group_networks = if (isTRUE(export_public)) group_networks else list(),
+    active_edges_by_group = active_edges_by_group,
+    used_groups = used_groups
+  )
+}
+
+derive_lineage_tree <- function(dataset, groups_df, active_edges_by_group, path, raw_dir) {
   used_groups <- unique(groups_df$cluster)
   if (length(used_groups) < 2) {
     stop("lineage_tree derivation requires at least two exported groups.", call. = FALSE)
@@ -306,43 +549,6 @@ derive_lineage_tree <- function(dataset, groups_df, path, raw_dir) {
   if (nrow(lineage_edges) == 0) {
     stop("lineage_tree derivation found no lineage edges after filtering exported groups.", call. = FALSE)
   }
-
-  regulatory_network_sc <- as.data.frame(dataset$regulatory_network_sc, stringsAsFactors = FALSE)
-  regulatory_network_sc$cell_id <- as.character(regulatory_network_sc$cell_id)
-  regulatory_network_sc$regulator <- as.character(regulatory_network_sc$regulator)
-  regulatory_network_sc$target <- as.character(regulatory_network_sc$target)
-  regulatory_network_sc$strength <- as.numeric(regulatory_network_sc$strength)
-
-  edge_activity <- merge(
-    regulatory_network_sc,
-    groups_df,
-    by.x = "cell_id",
-    by.y = "cell",
-    all.x = FALSE,
-    all.y = FALSE
-  )
-  edge_activity$abs_strength <- abs(edge_activity$strength)
-  group_edge_activity <- aggregate(
-    abs_strength ~ cluster + regulator + target,
-    data = edge_activity,
-    FUN = mean
-  )
-  group_edge_activity$active <- group_edge_activity$abs_strength >= 0.1
-  group_edge_activity$edge_id <- paste(
-    group_edge_activity$regulator,
-    group_edge_activity$target,
-    sep = "->"
-  )
-
-  active_edges_by_group <- lapply(used_groups, function(group_name) {
-    active <- group_edge_activity[
-      group_edge_activity$cluster == group_name & group_edge_activity$active,
-      "edge_id",
-      drop = TRUE
-    ]
-    unique(as.character(active))
-  })
-  names(active_edges_by_group) <- used_groups
 
   lineage_tree <- do.call(
     rbind,
@@ -366,27 +572,6 @@ derive_lineage_tree <- function(dataset, groups_df, path, raw_dir) {
   write.table(
     lineage_tree,
     file = path,
-    sep = "\t",
-    row.names = FALSE,
-    col.names = TRUE,
-    quote = FALSE
-  )
-
-  write.table(
-    group_edge_activity[, c("cluster", "regulator", "target", "abs_strength", "active")],
-    file = file.path(raw_dir, "group_edge_activity.tsv"),
-    sep = "\t",
-    row.names = FALSE,
-    col.names = TRUE,
-    quote = FALSE
-  )
-  write.table(
-    group_edge_activity[
-      group_edge_activity$active,
-      c("cluster", "regulator", "target", "edge_id"),
-      drop = FALSE
-    ],
-    file = file.path(raw_dir, "group_active_networks.tsv"),
     sep = "\t",
     row.names = FALSE,
     col.names = TRUE,
@@ -452,7 +637,7 @@ write_global_truth <- function(model, output_dir) {
   )
 }
 
-write_manifest <- function(request, params, dataset, output_dir) {
+write_manifest <- function(request, params, dataset, output_dir, group_networks = list(), native_outputs = structure(list(), names = character())) {
   expression_path <- file.path(output_dir, "expression.tsv")
   expression_header <- strsplit(readLines(expression_path, n = 1L, warn = FALSE), "\t", fixed = TRUE)[[1]]
   expression_columns <- max(length(expression_header) - 1L, 0L)
@@ -476,10 +661,11 @@ write_manifest <- function(request, params, dataset, output_dir) {
       tf_list = if (file.exists(file.path(output_dir, "extras", "tf_list.txt"))) "extras/tf_list.txt" else NULL,
       prior_grn_by_group = NULL
     ),
+    native_outputs = if (length(native_outputs) > 0) native_outputs else structure(list(), names = character()),
     truth = list(
       global_network = "truth/global_network.csv",
       legacy_binary_matrix = "truth/legacy/global_gs.csv",
-      group_networks = list()
+      group_networks = group_networks
     ),
     provenance = list(
       raw_dir = "provenance/raw",
@@ -495,6 +681,7 @@ write_manifest <- function(request, params, dataset, output_dir) {
 request <- parse_request(request_path)
 params <- normalise_params(request)
 effective_extras <- unique(as.character(request$effective_extras))
+native_outputs <- unique(as.character(request$native_outputs %||% character()))
 cache_dir <- Sys.getenv("DYNGEN_CACHE_DIR", unset = "/opt/dyngen-cache")
 dir.create(cache_dir, recursive = TRUE, showWarnings = FALSE)
 options(dyngen_download_cache_dir = cache_dir, Ncpus = 1L)
@@ -520,7 +707,12 @@ tryCatch(
     need_groups <- identical(request$profile, "scrna_grouped") || any(c("groups", "lineage_tree") %in% effective_extras)
     need_lineage <- "lineage_tree" %in% effective_extras
     need_tf_list <- "tf_list" %in% effective_extras
-    need_cellwise_grn <- need_lineage
+    need_group_networks <- "group_networks" %in% effective_extras
+    need_regulatory_network_sc <- "regulatory_network_sc" %in% native_outputs
+    need_rna_velocity <- "rna_velocity" %in% native_outputs
+    need_cellwise_grn <- need_group_networks || need_lineage || need_regulatory_network_sc
+    group_networks <- list()
+    exported_native_outputs <- structure(list(), names = character())
 
     init <- dyngen::initialise_model(
       backbone = backbone,
@@ -534,7 +726,7 @@ tryCatch(
       verbose = FALSE,
       download_cache_dir = cache_dir,
       gold_standard_params = build_gold_standard_params(params),
-      simulation_params = build_simulation_params(params, need_cellwise_grn),
+      simulation_params = build_simulation_params(params, need_cellwise_grn, need_rna_velocity),
       experiment_params = build_experiment_params(params)
     )
 
@@ -545,7 +737,7 @@ tryCatch(
       make_plots = FALSE,
       store_dimred = params$simulation_params$compute_dimred,
       store_cellwise_grn = need_cellwise_grn,
-      store_rna_velocity = params$simulation_params$compute_rna_velocity
+      store_rna_velocity = isTRUE(params$simulation_params$compute_rna_velocity) || need_rna_velocity
     )
     dataset <- out$dataset
     model <- out$model
@@ -556,6 +748,7 @@ tryCatch(
     write_progress("running", "package_outputs", "Writing normalized GENECI outputs.")
     write_expression_tsv(dataset$counts, file.path(output_dir, "expression.tsv"))
     write_global_truth(model, output_dir)
+    exported_native_outputs <- write_native_outputs(dataset, native_outputs, output_dir)
 
     if (need_tf_list) {
       write_tf_list(model$feature_info, file.path(output_dir, "extras", "tf_list.txt"))
@@ -564,11 +757,34 @@ tryCatch(
     if (need_groups) {
       groups_df <- derive_groups(dataset$milestone_percentages, dataset$cell_ids)
       write_groups(groups_df, file.path(output_dir, "extras", "groups.tsv"))
+      group_network_result <- NULL
+      if (need_group_networks) {
+        write_progress("running", "derive_truth", "Deriving group_networks from dyngen cell-specific GRN outputs.")
+        group_network_result <- derive_group_networks(
+          dataset = dataset,
+          groups_df = groups_df,
+          output_dir = output_dir,
+          raw_dir = raw_dir,
+          export_public = need_group_networks
+        )
+        group_networks <- group_network_result$group_networks
+      }
       if (need_lineage) {
-        write_progress("running", "derive_extras", "Deriving lineage_tree from dyngen milestone and cellwise GRN outputs.")
+        if (is.null(group_network_result)) {
+          group_network_result <- derive_group_networks(
+            dataset = dataset,
+            groups_df = groups_df,
+            output_dir = output_dir,
+            raw_dir = raw_dir,
+            export_public = FALSE
+          )
+          group_networks <- group_network_result$group_networks
+        }
+        write_progress("running", "derive_extras", "Deriving lineage_tree from dyngen milestone transitions and public group truth networks.")
         derive_lineage_tree(
           dataset = dataset,
           groups_df = groups_df,
+          active_edges_by_group = group_network_result$active_edges_by_group,
           path = file.path(output_dir, "extras", "lineage_tree.tsv"),
           raw_dir = raw_dir
         )
@@ -576,7 +792,14 @@ tryCatch(
     }
 
     write_progress("running", "write_manifest", "Writing simulator-output-manifest.json.")
-    write_manifest(request, params, dataset, output_dir)
+    write_manifest(
+      request,
+      params,
+      dataset,
+      output_dir,
+      group_networks = group_networks,
+      native_outputs = exported_native_outputs
+    )
     write_progress("done", "done", "dyngen wrapper completed successfully.")
   },
   error = function(exc) {

@@ -62,13 +62,45 @@ class SimulatorSpecCatalogTest(unittest.TestCase):
             set(dyngen["profile_capabilities"]),
             {"scrna_global", "scrna_grouped"},
         )
+        global_capability = dyngen["profile_capabilities"]["scrna_global"]
         grouped = dyngen["profile_capabilities"]["scrna_grouped"]
+        self.assertEqual(
+            {item["id"] for item in global_capability["native_outputs"]},
+            {
+                "milestone_network",
+                "milestone_percentages",
+                "progressions",
+                "rna_velocity",
+                "regulatory_network_sc",
+            },
+        )
         self.assertEqual(
             set(grouped["derivable_extras"]),
             {"groups", "lineage_tree", "tf_list"},
         )
         self.assertEqual(grouped["truth_outputs"]["global_network"], "native")
         self.assertEqual(grouped["truth_outputs"]["group_networks"], "derivable")
+
+    def test_dyngen_documents_every_derivation(self) -> None:
+        dyngen = self.specs["dyngen"]
+        for profile_id, capability in dyngen["profile_capabilities"].items():
+            expected = set(capability["derivable_extras"])
+            expected.update(
+                key
+                for key, mode in capability["truth_outputs"].items()
+                if mode == "derivable"
+            )
+            documented = {item["artifact"] for item in capability["derivations"]}
+            self.assertEqual(
+                documented,
+                expected,
+                msg=f"{profile_id} derivation documentation mismatch",
+            )
+            for derivation in capability["derivations"]:
+                self.assertTrue(derivation["source_artifacts"])
+                self.assertTrue(derivation["method"])
+                self.assertTrue(derivation["assumptions"])
+                self.assertTrue(derivation["limitations"])
 
     def test_dyngen_declares_no_external_required_inputs(self) -> None:
         dyngen = self.specs["dyngen"]

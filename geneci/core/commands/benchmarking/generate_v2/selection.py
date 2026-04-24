@@ -7,7 +7,11 @@ import subprocess
 from typing import Any
 
 from .catalog import _load_simulator_catalog, get_profile_capability
-from .request import _resolve_simulator_params, validate_simulator_input_files
+from .request import (
+    _resolve_simulator_params,
+    _supported_requested_artifacts,
+    validate_simulator_input_files,
+)
 from .scenario import validate_scenario_request
 from .shared import ResolvedScenarioRequest, _validate_json_instance
 
@@ -53,8 +57,7 @@ def evaluate_simulator_for_scenario(
             user_params={},
             spec_params=spec.get("params", {}),
         )
-        native = set(profile_capability.get("native_extras", []))
-        derivable = set(profile_capability.get("derivable_extras", []))
+        native, derivable = _supported_requested_artifacts(profile_capability)
         truth_outputs = dict(profile_capability.get("truth_outputs", {}))
         supported_effective_extras = sorted(
             set(scenario.effective_extras).intersection(native.union(derivable))

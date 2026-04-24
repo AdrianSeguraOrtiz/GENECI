@@ -14,7 +14,10 @@ from geneci.core.commands.benchmarking.generate_v2.catalog import (
     _load_simulator_catalog,
 )
 from geneci.core.commands.benchmarking.generate_v2.plan import plan_generate_v2_request
-from geneci.core.commands.benchmarking.generate_v2.pipeline import run_generate_v2
+from geneci.core.commands.benchmarking.generate_v2.pipeline import (
+    _copy_dataset_from_stage,
+    run_generate_v2,
+)
 from geneci.core.commands.benchmarking.generate_v2.request import (
     validate_simulation_plan,
 )
@@ -76,6 +79,7 @@ class GenerateV2DyngenTests(unittest.TestCase):
         organism: dict[str, object] | None = None,
         replicates: int = 1,
         base_seed: int = 100,
+        native_outputs: list[str] | None = None,
     ) -> Path:
         seeds = [base_seed + idx for idx in range(replicates)]
         payload = {
@@ -98,6 +102,7 @@ class GenerateV2DyngenTests(unittest.TestCase):
                     "simulator_id": simulator_id,
                     "simulator_params": simulator_params,
                     "replicates": replicates,
+                    "native_outputs": native_outputs or [],
                     "base_seed": base_seed,
                     "replicate_seeds": seeds,
                 }
@@ -231,7 +236,7 @@ class GenerateV2DyngenTests(unittest.TestCase):
                 Path(tmp),
                 request_id="scrna_grouped_lineage",
                 profile="scrna_grouped",
-                requested_extras=["lineage_tree"],
+                requested_extras=["lineage_tree", "group_networks"],
             )
             report = preflight_generate_v2_scenario(scenario_path)
 
@@ -242,6 +247,7 @@ class GenerateV2DyngenTests(unittest.TestCase):
         self.assertEqual(report["eligible"][0]["simulator_id"], "dyngen")
         self.assertIn("groups", report["eligible"][0]["derived_extras_used"])
         self.assertIn("lineage_tree", report["eligible"][0]["derived_extras_used"])
+        self.assertIn("group_networks", report["eligible"][0]["derived_extras_used"])
         self.assertEqual(report["eligible"][0]["warnings"], [])
 
     def test_preflight_blocks_dyngen_when_docker_is_unavailable(self) -> None:
@@ -311,6 +317,53 @@ class GenerateV2DyngenTests(unittest.TestCase):
         self.assertEqual(len(resolved.simulator_runs), 1)
         self.assertEqual(resolved.simulator_runs[0].simulator_id, "dyngen")
         self.assertEqual(resolved.effective_extras, ["groups", "lineage_tree"])
+
+    def test_validate_plan_accepts_group_networks_requested_extra(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            plan_path = self._write_plan(
+                Path(tmp),
+                request_id="dyngen_group_networks_ok",
+                profile="scrna_grouped",
+                simulator_id="dyngen",
+                requested_extras=["group_networks"],
+                simulator_params={"num_cells": 10},
+            )
+            resolved = validate_simulation_plan(plan_path)
+
+        self.assertEqual(resolved.profile, "scrna_grouped")
+        self.assertEqual(resolved.effective_extras, ["group_networks", "groups"])
+
+    def test_validate_plan_accepts_dyngen_native_outputs(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            plan_path = self._write_plan(
+                Path(tmp),
+                request_id="dyngen_native_outputs_ok",
+                profile="scrna_global",
+                simulator_id="dyngen",
+                requested_extras=[],
+                simulator_params={"num_cells": 10},
+                native_outputs=["milestone_network", "rna_velocity"],
+            )
+            resolved = validate_simulation_plan(plan_path)
+
+        self.assertEqual(
+            resolved.simulator_runs[0].native_outputs,
+            ["milestone_network", "rna_velocity"],
+        )
+
+    def test_validate_plan_rejects_unknown_native_output(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            plan_path = self._write_plan(
+                Path(tmp),
+                request_id="dyngen_native_outputs_bad",
+                profile="scrna_global",
+                simulator_id="dyngen",
+                requested_extras=[],
+                simulator_params={"num_cells": 10},
+                native_outputs=["not_a_real_output"],
+            )
+            with self.assertRaisesRegex(ValueError, "does not support native outputs"):
+                validate_simulation_plan(plan_path)
 
     def test_validate_plan_rejects_unsupported_profile(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -422,6 +475,7 @@ class GenerateV2DyngenTests(unittest.TestCase):
                         "run_id": "dyngen_small",
                         "simulator_id": "dyngen",
                         "replicates": 2,
+                        "native_outputs": ["milestone_network", "progressions"],
                         "params": {"num_cells": 25},
                     },
                     {
@@ -451,13 +505,237 @@ class GenerateV2DyngenTests(unittest.TestCase):
         self.assertEqual(payload["requested_extras"], ["lineage_tree", "tf_list"])
         simulator_params = payload["runs"][0]["simulator_params"]
         self.assertEqual(simulator_params["num_cells"], 25)
+        self.assertEqual(
+            payload["runs"][0]["native_outputs"],
+            ["milestone_network", "progressions"],
+        )
         self.assertIn("simulation_params", simulator_params)
         self.assertEqual(resolved.simulator_runs[0].run_id, "dyngen_small")
+        self.assertEqual(
+            resolved.simulator_runs[0].native_outputs,
+            ["milestone_network", "progressions"],
+        )
         self.assertEqual(len(resolved.tasks), 4)
         self.assertEqual(resolved.execution["max_parallel_tasks"], 2)
         self.assertEqual(
             resolved.effective_extras, ["groups", "lineage_tree", "tf_list"]
         )
+
+    def test_package_copy_omits_group_networks_when_not_requested(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            stage_dir = base / "stage"
+            dataset_dir = base / "dataset"
+            (stage_dir / "truth" / "group_networks").mkdir(parents=True, exist_ok=True)
+            (stage_dir / "truth" / "legacy").mkdir(parents=True, exist_ok=True)
+            (stage_dir / "provenance").mkdir(parents=True, exist_ok=True)
+            (stage_dir / "expression.tsv").write_text(
+                "gene\tC1\nG1\t1\n", encoding="utf-8"
+            )
+            (stage_dir / "truth" / "global_network.csv").write_text(
+                "source,target,score,sign,evidence,context\nG1,G2,1,+,simulated_truth,global\n",
+                encoding="utf-8",
+            )
+            (stage_dir / "truth" / "legacy" / "global_gs.csv").write_text(
+                ",G1,G2\nG1,0,1\nG2,0,0\n",
+                encoding="utf-8",
+            )
+            (stage_dir / "truth" / "group_networks" / "group_a.csv").write_text(
+                "source,target,score,sign,evidence,context\nG1,G2,1,+,simulated_truth,group:A\n",
+                encoding="utf-8",
+            )
+            (stage_dir / "simulator-output-manifest.json").write_text(
+                '{"schema_version":"1.0"}\n',
+                encoding="utf-8",
+            )
+
+            _copy_dataset_from_stage(
+                stage_dir=stage_dir,
+                dataset_dir=dataset_dir,
+                dataset_manifest_payload={"schema_version": "1.0"},
+                ground_truth_manifest_payload={"schema_version": "1.0"},
+                simulator_run_payload={"schema_version": "1.0"},
+                include_group_networks=False,
+            )
+
+            self.assertTrue((dataset_dir / "truth" / "global_network.csv").exists())
+            self.assertFalse((dataset_dir / "truth" / "group_networks").exists())
+
+    def test_package_copy_preserves_native_outputs_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            stage_dir = base / "stage"
+            dataset_dir = base / "dataset"
+            (stage_dir / "truth" / "legacy").mkdir(parents=True, exist_ok=True)
+            (stage_dir / "native").mkdir(parents=True, exist_ok=True)
+            (stage_dir / "provenance").mkdir(parents=True, exist_ok=True)
+            (stage_dir / "expression.tsv").write_text(
+                "gene\tC1\nG1\t1\n", encoding="utf-8"
+            )
+            (stage_dir / "truth" / "global_network.csv").write_text(
+                "source,target,score,sign,evidence,context\nG1,G2,1,+,simulated_truth,global\n",
+                encoding="utf-8",
+            )
+            (stage_dir / "truth" / "legacy" / "global_gs.csv").write_text(
+                ",G1,G2\nG1,0,1\nG2,0,0\n",
+                encoding="utf-8",
+            )
+            (stage_dir / "native" / "rna_velocity.tsv").write_text(
+                "gene\tC1\nG1\t0.1\n",
+                encoding="utf-8",
+            )
+            (stage_dir / "simulator-output-manifest.json").write_text(
+                '{"schema_version":"1.0"}\n',
+                encoding="utf-8",
+            )
+
+            _copy_dataset_from_stage(
+                stage_dir=stage_dir,
+                dataset_dir=dataset_dir,
+                dataset_manifest_payload={"schema_version": "1.0"},
+                ground_truth_manifest_payload={"schema_version": "1.0"},
+                simulator_run_payload={"schema_version": "1.0"},
+                include_group_networks=True,
+            )
+
+            self.assertTrue((dataset_dir / "native" / "rna_velocity.tsv").exists())
+
+    def test_run_generate_v2_freezes_reproducibility_assets_in_benchmark_root(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            plan_path = self._write_plan(
+                base,
+                request_id="dyngen_repro",
+                profile="scrna_global",
+                simulator_id="dyngen",
+                run_id="dyngen_small",
+                requested_extras=[],
+                simulator_params={"num_cells": 10},
+                native_outputs=["rna_velocity"],
+            )
+
+            def fake_run_simulator(**kwargs):  # noqa: ANN003
+                stage_dir = kwargs["stage_dir"]
+                stage_dir.mkdir(parents=True, exist_ok=True)
+                (stage_dir / "truth" / "legacy").mkdir(parents=True, exist_ok=True)
+                (stage_dir / "native").mkdir(parents=True, exist_ok=True)
+                (stage_dir / "provenance" / "raw").mkdir(parents=True, exist_ok=True)
+                (stage_dir / "expression.tsv").write_text(
+                    "gene\tC1\nG1\t1\n",
+                    encoding="utf-8",
+                )
+                (stage_dir / "native" / "rna_velocity.tsv").write_text(
+                    "gene\tC1\nG1\t0.1\n",
+                    encoding="utf-8",
+                )
+                (stage_dir / "truth" / "global_network.csv").write_text(
+                    "source,target,score,sign,evidence,context\nG1,G2,1,+,simulated_truth,global\n",
+                    encoding="utf-8",
+                )
+                (stage_dir / "truth" / "legacy" / "global_gs.csv").write_text(
+                    ",G1,G2\nG1,0,1\nG2,0,0\n",
+                    encoding="utf-8",
+                )
+                manifest_path = stage_dir / "simulator-output-manifest.json"
+                manifest_path.write_text(
+                    json.dumps(
+                        {
+                            "schema_version": "1.0",
+                            "simulator_id": "dyngen",
+                            "profile": "scrna_global",
+                            "seed": 100,
+                            "expression": {
+                                "path": "expression.tsv",
+                                "genes": 1,
+                                "columns": 1,
+                                "column_kind": "cells",
+                                "expression_profile": "scrna",
+                            },
+                            "extras": {},
+                            "native_outputs": {
+                                "rna_velocity": "native/rna_velocity.tsv",
+                            },
+                            "truth": {
+                                "global_network": "truth/global_network.csv",
+                                "legacy_binary_matrix": "truth/legacy/global_gs.csv",
+                                "group_networks": [],
+                            },
+                            "provenance": {"raw_dir": "provenance/raw"},
+                        },
+                        indent=2,
+                        ensure_ascii=True,
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+                return manifest_path
+
+            fake_preflight = {
+                "schema_version": "1.0",
+                "scenario": {
+                    "id": "dyngen_repro",
+                    "profile": "scrna_global",
+                    "organism": {"kind": "synthetic", "tax_id": None},
+                    "requested_extras": [],
+                    "effective_extras": [],
+                    "input_files": {},
+                    "inputs": {},
+                    "base_seed": 100,
+                },
+                "catalog_summary": {
+                    "total": 1,
+                    "eligible": 1,
+                    "warning": 0,
+                    "blocked": 0,
+                },
+                "eligible": [],
+                "warning": [],
+                "blocked": [],
+            }
+
+            with (
+                patch(
+                    "geneci.core.commands.benchmarking.generate_v2.pipeline._run_simulator",
+                    side_effect=fake_run_simulator,
+                ),
+                patch(
+                    "geneci.core.commands.benchmarking.generate_v2.pipeline.preflight_generate_v2_scenario",
+                    return_value=fake_preflight,
+                ),
+            ):
+                benchmark_root = run_generate_v2(
+                    plan_path=plan_path,
+                    output_dir=base / "out",
+                    show_progress=False,
+                )
+
+            self.assertTrue((benchmark_root / "input" / "scenario-request.json").exists())
+            self.assertTrue((benchmark_root / "input" / "simulator-runs.json").exists())
+            self.assertTrue((benchmark_root / "simulation-plan.json").exists())
+            self.assertTrue((benchmark_root / "preflight-report.json").exists())
+
+            frozen_plan = json.loads(
+                (benchmark_root / "simulation-plan.json").read_text(encoding="utf-8")
+            )
+            frozen_runs = json.loads(
+                (benchmark_root / "input" / "simulator-runs.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            benchmark_manifest = json.loads(
+                (benchmark_root / "benchmark-manifest.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual(frozen_plan["execution"]["max_parallel_tasks"], 1)
+            self.assertEqual(
+                frozen_runs["runs"][0]["native_outputs"],
+                ["rna_velocity"],
+            )
+            self.assertEqual(benchmark_manifest["input_files"], {})
+            self.assertEqual(benchmark_manifest["inputs"], {})
 
     @unittest.skipUnless(
         _has_docker_runtime(), "docker runtime is required for dyngen tests"

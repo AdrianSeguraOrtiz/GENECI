@@ -12,6 +12,7 @@
     "seed",
     "expression",
     "extras",
+    "native_outputs",
     "truth",
     "provenance"
   ],
@@ -57,6 +58,18 @@
         "lineage_tree": { "type": ["string", "null"], "pattern": ".*\\.tsv$" },
         "tf_list": { "type": ["string", "null"], "pattern": ".*\\.txt$" },
         "prior_grn_by_group": { "type": ["string", "null"], "pattern": ".*\\.tsv$" }
+      }
+    },
+    "native_outputs": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "^[a-z][a-z0-9_]*$"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
       }
     },
     "truth": {

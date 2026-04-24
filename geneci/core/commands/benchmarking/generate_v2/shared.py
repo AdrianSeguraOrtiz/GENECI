@@ -15,7 +15,13 @@ DEFAULT_OUTPUT_DIR = Path("./benchmarks_v2")
 CATALOG_ROOT = Path(__file__).resolve().parents[4] / "generation_catalog"
 REPO_ROOT = Path(__file__).resolve().parents[5]
 SCHEMA_VERSION = "1.0"
-KNOWN_EXTRAS = {"groups", "lineage_tree", "tf_list", "prior_grn_by_group"}
+KNOWN_EXTRAS = {
+    "groups",
+    "lineage_tree",
+    "tf_list",
+    "prior_grn_by_group",
+    "group_networks",
+}
 MAX_SEED_32BIT = 2_147_483_646
 
 
@@ -74,6 +80,7 @@ class ResolvedSimulatorRun:
     input_files: dict[str, str]
     resolved_input_files: dict[str, Path]
     simulator_params: dict[str, Any]
+    native_outputs: list[str]
     replicates: int
     base_seed: Optional[int]
     replicate_seeds: list[int]

@@ -20,6 +20,75 @@ from .shared import (
 )
 
 
+def _supported_requested_artifacts(
+    profile_capability: dict[str, Any],
+) -> tuple[set[str], set[str]]:
+    native = set(profile_capability.get("native_extras", []))
+    derivable = set(profile_capability.get("derivable_extras", []))
+    truth_outputs = profile_capability.get("truth_outputs", {})
+    if isinstance(truth_outputs, dict):
+        native.update(
+            key
+            for key, mode in truth_outputs.items()
+            if key in KNOWN_EXTRAS and mode == "native"
+        )
+        derivable.update(
+            key
+            for key, mode in truth_outputs.items()
+            if key in KNOWN_EXTRAS and mode == "derivable"
+        )
+    return native, derivable
+
+
+def _supported_native_outputs(
+    profile_capability: dict[str, Any],
+) -> dict[str, dict[str, Any]]:
+    supported: dict[str, dict[str, Any]] = {}
+    for item in profile_capability.get("native_outputs", []):
+        if not isinstance(item, dict):
+            continue
+        output_id = str(item.get("id", "")).strip()
+        if output_id:
+            supported[output_id] = item
+    return supported
+
+
+def _resolve_native_outputs(
+    *,
+    simulator_id: str,
+    profile: str,
+    profile_capability: dict[str, Any],
+    raw_native_outputs: Any,
+    label: str,
+) -> list[str]:
+    supported = _supported_native_outputs(profile_capability)
+    if raw_native_outputs is None:
+        return []
+    if not isinstance(raw_native_outputs, list):
+        raise ValueError(f"{label}.native_outputs must be an array when provided")
+
+    resolved: list[str] = []
+    seen: set[str] = set()
+    for item in raw_native_outputs:
+        if not isinstance(item, str) or not item.strip():
+            raise ValueError(
+                f"{label}.native_outputs must contain non-empty string identifiers"
+            )
+        output_id = item.strip()
+        if output_id in seen:
+            continue
+        seen.add(output_id)
+        resolved.append(output_id)
+
+    unsupported = sorted(set(resolved).difference(supported))
+    if unsupported:
+        raise ValueError(
+            f"Simulator '{simulator_id}' does not support native outputs for profile '{profile}': "
+            f"{unsupported}"
+        )
+    return resolved
+
+
 def _resolve_simulator_params(
     *,
     simulator_id: str,
@@ -283,8 +352,7 @@ def _resolve_simulator_run(
             f"Simulator '{simulator_id}' does not support profile '{profile}'"
         )
 
-    native = set(profile_capability.get("native_extras", []))
-    derivable = set(profile_capability.get("derivable_extras", []))
+    native, derivable = _supported_requested_artifacts(profile_capability)
     supported_extras = native.union(derivable)
     unsupported_requested = sorted(set(requested_extras).difference(supported_extras))
     if unsupported_requested:
@@ -310,6 +378,13 @@ def _resolve_simulator_run(
         simulator_id=simulator_id,
         user_params=raw_simulator_params,
         spec_params=simulator_spec.get("params", {}),
+    )
+    native_outputs = _resolve_native_outputs(
+        simulator_id=simulator_id,
+        profile=profile,
+        profile_capability=profile_capability,
+        raw_native_outputs=run_payload.get("native_outputs"),
+        label=f"simulation-plan.runs[{run_id}]",
     )
 
     input_errors = validate_simulator_input_files(
@@ -366,6 +441,7 @@ def _resolve_simulator_run(
         input_files=input_files,
         resolved_input_files=resolved_input_files,
         simulator_params=resolved_params,
+        native_outputs=native_outputs,
         replicates=replicates,
         base_seed=int(simulator_seed_base),
         replicate_seeds=[int(seed) for seed in replicate_seeds],

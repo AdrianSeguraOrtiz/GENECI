@@ -36,6 +36,15 @@
             "type": "integer",
             "minimum": 1
           },
+          "native_outputs": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[a-z][a-z0-9_]*$"
+            }
+          },
           "base_seed": {
             "type": "integer",
             "minimum": 1
