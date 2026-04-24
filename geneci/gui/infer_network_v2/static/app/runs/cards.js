@@ -1,5 +1,5 @@
 import { $ } from "../core/dom.js";
-import { conditionalRuleMatches, deepEqualJson, readParamsFromHost, renderParamsHost, resolvedDefaultParams, setParamFieldError } from "./schema_form.js";
+import { conditionalRuleMatches, deepEqualJson, readParamsFromHost, renderParamsHost, resolvedDefaultParams, setParamFieldError } from "/static-common/app/params/schema_form.js?v=20260423c";
 
 let getToolByIdFn = null;
 let listAvailableToolsFn = null;

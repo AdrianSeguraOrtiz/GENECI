@@ -12,7 +12,7 @@ import { resetPlanView } from "./plan/view.js";
 import { closeReproducibilityStepsModal, initReproducibility, resetReproducibility } from "./repro/view.js";
 import { closeParamsModal, initParamsModal, openParamsModal, applyParamsModal, setParamsModalStatus } from "./runs/params_modal.js";
 import { addRunCard, collectRuns, initRunCards, readParamsFromCard, refreshRunCardsValidation, renderRunParamsForm, updateRunsEmptyState } from "./runs/cards.js";
-import { readParamsFromHost, renderParamsHost, resolvedDefaultParams } from "./runs/schema_form.js";
+import { readParamsFromHost, renderParamsHost, resolvedDefaultParams } from "/static-common/app/params/schema_form.js?v=20260423c";
 import { buildInfoTooltip, hideInfoTooltip, readHelpPayload, showInfoTooltip } from "./ui/popovers.js";
 import { setActiveStep, setStepState } from "./ui/steps.js";
 import { pushToast } from "./ui/toasts.js";

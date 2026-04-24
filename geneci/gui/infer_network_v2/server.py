@@ -33,6 +33,7 @@ from geneci.core.commands.infer_network_v2 import (
 )
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
+COMMON_STATIC_DIR = Path(__file__).resolve().parents[1] / "common" / "static"
 GUI_TMP_ROOT = Path(tempfile.gettempdir()) / "geneci_gui" / "infer_network_v2"
 MAX_TEXT_PREVIEW_BYTES = 256 * 1024
 MAX_TABLE_PREVIEW_ROWS = 400
@@ -382,7 +383,7 @@ def _build_dataset_manifest_file(
             f"{bootstrap['expression_profiles']}"
         )
 
-    organism_cfg = dataset_cfg.get("organism")
+    organism_cfg = dataset_cfg.get("organism", {"tax_id": 9606})
     if not isinstance(organism_cfg, dict):
         raise ValueError("config.dataset.organism must be an object")
     organism_tax_id = _safe_int(organism_cfg.get("tax_id"), default=0)
@@ -503,9 +504,7 @@ def _shell_join_pretty(args: list[str]) -> str:
         if token.startswith("--") and idx + 1 < len(args):
             next_token = str(args[idx + 1])
             if not next_token.startswith("--"):
-                groups.append(
-                    f"{shlex.quote(token)} {shlex.quote(next_token)}"
-                )
+                groups.append(f"{shlex.quote(token)} {shlex.quote(next_token)}")
                 idx += 2
                 continue
         groups.append(shlex.quote(token))
@@ -555,7 +554,9 @@ def _build_reproducibility_payload(job: GuiJob) -> dict[str, Any]:
 
     dataset_manifest_path = str(dataset_manifest)
     tools_params_path = str(tools_params)
-    plan_payload = _read_json_if_exists(job.plan_path or str(run_dir / "plan.json")) or {}
+    plan_payload = (
+        _read_json_if_exists(job.plan_path or str(run_dir / "plan.json")) or {}
+    )
     resource_limits = (
         plan_payload.get("resource_limits", {})
         if isinstance(plan_payload.get("resource_limits"), dict)
@@ -826,7 +827,9 @@ def _collect_runtime_progress(*, run_dir: Optional[Path]) -> dict[str, Any]:
 
             if progress_file.exists() and progress_file.is_file():
                 try:
-                    direct_payload = json.loads(progress_file.read_text(encoding="utf-8"))
+                    direct_payload = json.loads(
+                        progress_file.read_text(encoding="utf-8")
+                    )
                 except Exception:  # noqa: BLE001
                     direct_payload = {}
                 percent = int(direct_payload.get("percent", 0))
@@ -842,11 +845,10 @@ def _collect_runtime_progress(*, run_dir: Optional[Path]) -> dict[str, Any]:
                 )
             else:
                 physical_tasks = logical.get("physical_tasks", [])
-                if (
-                    isinstance(physical_tasks, list)
-                    and len(physical_tasks) > 1
-                ):
-                    child_results = logical_results.get(run_id, {}).get("child_results", {})
+                if isinstance(physical_tasks, list) and len(physical_tasks) > 1:
+                    child_results = logical_results.get(run_id, {}).get(
+                        "child_results", {}
+                    )
                     weighted_total = 0.0
                     weighted_progress = 0.0
                     completed = 0
@@ -861,11 +863,16 @@ def _collect_runtime_progress(*, run_dir: Optional[Path]) -> dict[str, Any]:
                             continue
                         weight = float(child.get("eta_seconds", 0.0) or 0.0)
                         weight = max(weight, 1.0)
-                        child_progress_file = run_dir / output_dir / "io" / "out" / "progress.json"
+                        child_progress_file = (
+                            run_dir / output_dir / "io" / "out" / "progress.json"
+                        )
                         child_percent = 0
                         child_status = "pending"
                         child_updated_at: Optional[str] = None
-                        if child_progress_file.exists() and child_progress_file.is_file():
+                        if (
+                            child_progress_file.exists()
+                            and child_progress_file.is_file()
+                        ):
                             try:
                                 payload = json.loads(
                                     child_progress_file.read_text(encoding="utf-8")
@@ -983,7 +990,12 @@ def _collect_runtime_progress(*, run_dir: Optional[Path]) -> dict[str, Any]:
 
                 percent = max(0, min(100, int(percent)))
                 normalized_status = status.lower().strip()
-                if normalized_status not in {"pending", "running", "completed", "failed"}:
+                if normalized_status not in {
+                    "pending",
+                    "running",
+                    "completed",
+                    "failed",
+                }:
                     normalized_status = "running" if percent > 0 else "pending"
                 tool_entries.append(
                     {
@@ -1332,6 +1344,9 @@ def _run_job(
 def create_app() -> FastAPI:
     app = FastAPI(title="GENECI GUI - infer-network-v2")
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+    app.mount(
+        "/static-common", StaticFiles(directory=COMMON_STATIC_DIR), name="static-common"
+    )
 
     bootstrap = _load_tools_bootstrap()
 

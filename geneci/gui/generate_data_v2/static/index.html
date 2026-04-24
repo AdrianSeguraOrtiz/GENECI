@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GENECI GUI · generate-data-v2</title>
+    <link rel="stylesheet" href="/static/styles.css?v=20260423i" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="hero">
+        <p class="eyebrow">GENECI GUI</p>
+        <h1>generate-data-v2</h1>
+        <p class="subtitle">
+          Define a canonical simulation scenario, select compatible simulators, plan replicas, and generate benchmark datasets.
+        </p>
+      </header>
+
+      <section class="panel workflow-step is-active" id="step-1" data-step="1">
+        <div class="step-head">
+          <button class="step-toggle" id="step-1-toggle" type="button">Step 1 · Scenario</button>
+          <span class="step-state" id="step-1-state">draft</span>
+        </div>
+        <div class="step-body">
+          <div class="grid three">
+            <label>
+              Benchmark ID
+              <input id="benchmark-id" type="text" value="gui_generate_benchmark" />
+            </label>
+            <label>
+              Canonical Profile
+              <select id="profile"></select>
+            </label>
+            <label>
+              Base Seed
+              <input id="base-seed" type="number" min="1" step="1" placeholder="stable default" />
+            </label>
+          </div>
+
+          <h3>Requested Extras</h3>
+          <div id="extras-grid" class="checkbox-grid"></div>
+          <div id="extras-empty" class="muted-box compact-empty" hidden>No optional extras are available for this profile.</div>
+
+          <div class="panel-head compact-head input-files-head">
+            <h3>Optional Input Files</h3>
+            <button class="secondary" id="add-input-btn" type="button">Add Input</button>
+          </div>
+          <div id="inputs-empty" class="muted-box">No simulator input files added.</div>
+          <div id="inputs-list" class="extra-list"></div>
+
+          <div class="step-action-row">
+            <button id="preflight-btn" type="button">Preflight Scenario</button>
+          </div>
+          <div id="preflight-report-view" class="preflight-view muted-box">No preflight report yet.</div>
+          <div class="step-next-row">
+            <button class="secondary" id="step-1-next-btn" type="button" disabled>Next</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel workflow-step" id="step-2" data-step="2">
+        <div class="step-head">
+          <button class="step-toggle" id="step-2-toggle" type="button">Step 2 · Simulators And Plan</button>
+          <span class="step-state" id="step-2-state">blocked</span>
+        </div>
+        <div class="step-body">
+          <div class="tool-groups">
+            <article class="tool-group tool-group-eligible">
+              <header><h3>Eligible</h3><span id="eligible-count" class="group-count">0</span></header>
+              <div id="simulators-eligible-list" class="tool-list tool-list-scroll"></div>
+            </article>
+            <article class="tool-group tool-group-warning">
+              <header><h3>Warning</h3><span id="warning-count" class="group-count">0</span></header>
+              <div id="simulators-warning-list" class="tool-list tool-list-scroll"></div>
+            </article>
+            <article class="tool-group tool-group-blocked">
+              <header><h3>Blocked</h3><span id="blocked-count" class="group-count">0</span></header>
+              <div id="simulators-blocked-list" class="tool-list tool-list-scroll"></div>
+            </article>
+          </div>
+
+          <div class="tool-request-actions">
+            <button id="open-simulator-request-modal-btn" class="secondary" type="button">Request New Simulator</button>
+            <button id="open-simulator-issue-modal-btn" class="secondary" type="button">Report Simulator Issue</button>
+          </div>
+
+          <div class="panel-head compact-head runs-head">
+            <h3>Selected Simulator Runs</h3>
+            <div class="actions-inline">
+              <button class="secondary" id="add-all-simulators-btn" type="button" disabled>Add All Eligible</button>
+              <button class="danger" id="clear-runs-btn" type="button" disabled>Clear Runs</button>
+            </div>
+          </div>
+          <div id="runs-empty" class="muted-box">No simulator runs added yet.</div>
+          <div id="runs-container" class="runs"></div>
+
+          <h3>Planning Options</h3>
+          <div class="grid two planning-options">
+            <label>
+              Output Directory
+              <input id="output-dir" type="text" value="./benchmarks_v2" />
+            </label>
+            <label>
+              Max Parallel Tasks
+              <input id="max-parallel-tasks" type="number" min="1" step="1" value="4" />
+            </label>
+          </div>
+
+          <div class="step-action-row">
+            <button id="plan-btn" type="button" disabled>Generate Plan</button>
+          </div>
+          <div id="plan-summary" class="muted-box">No plan loaded yet.</div>
+          <div id="plan-tables" class="plan-waves"></div>
+          <div class="step-next-row">
+            <button class="secondary" id="step-2-next-btn" type="button" disabled>Next</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel workflow-step" id="step-3" data-step="3">
+        <div class="step-head">
+          <button class="step-toggle" id="step-3-toggle" type="button">Step 3 · Execute And Explore</button>
+          <span class="step-state" id="step-3-state">blocked</span>
+        </div>
+        <div class="step-body">
+          <div class="actions-inline">
+            <button id="execute-btn" type="button" disabled>Execute Plan</button>
+            <label class="inline-input">
+              Progress Poll (s)
+              <input id="progress-poll" type="number" min="0.1" step="0.1" value="0.5" />
+            </label>
+          </div>
+          <div id="execution-alerts" class="execution-alerts muted-box">No execution errors or warnings.</div>
+          <div id="runtime-progress" class="runtime-progress muted-box">No runtime progress yet.</div>
+
+          <div id="results-explorer-placeholder" class="muted-box results-placeholder">Results Explorer will be available after execution.</div>
+          <div id="results-explorer-section" hidden>
+            <div class="panel-head compact-head">
+              <h3>Benchmark Explorer</h3>
+              <div class="actions-inline">
+                <label class="inline-input">
+                  Bundle mode
+                  <select id="bundle-mode">
+                    <option value="full" selected>full</option>
+                    <option value="light">light</option>
+                  </select>
+                </label>
+                <button id="refresh-files-btn" class="secondary" type="button">Refresh Files</button>
+                <button id="download-bundle-btn" type="button">Download ZIP</button>
+              </div>
+            </div>
+            <div class="files-layout">
+              <div class="files-tree-wrap">
+                <div id="files-summary" class="muted-box">No files loaded yet.</div>
+                <div id="files-tree" class="files-tree"></div>
+              </div>
+              <div class="files-preview-wrap">
+                <div id="file-preview-header" class="muted-box">Select a file to preview.</div>
+                <div id="file-preview" class="file-preview"></div>
+              </div>
+            </div>
+          </div>
+
+          <div id="reproducibility-placeholder" class="muted-box results-placeholder">Reproducibility snippets will be available after execution.</div>
+          <section id="reproducibility-section" hidden>
+            <div class="panel-head compact-head"><h3>Reproduce This Benchmark</h3></div>
+            <div id="reproducibility-grid" class="repro-grid"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <div id="info-popover" class="info-popover hidden" role="dialog" aria-live="polite">
+      <div class="info-popover-card">
+        <button id="info-popover-close" class="info-popover-close" type="button" aria-label="Close help">x</button>
+        <div id="info-popover-content"></div>
+      </div>
+    </div>
+
+    <div id="params-modal" class="info-popover hidden" role="dialog" aria-modal="true">
+      <div class="info-popover-card params-modal-card">
+        <button id="params-modal-close" class="info-popover-close" type="button" aria-label="Close parameters">x</button>
+        <div class="params-modal-head">
+          <h4 id="params-modal-title">Configuration</h4>
+          <div class="actions-inline">
+            <button id="params-modal-reset" class="secondary" type="button">Reset</button>
+            <button id="params-modal-save" type="button">Apply</button>
+          </div>
+        </div>
+        <div class="params-modal-native-section">
+          <div class="run-section-head">
+            <strong>Native Outputs</strong>
+          </div>
+          <div id="params-modal-native-outputs" class="native-output-host"></div>
+        </div>
+        <div id="params-modal-status" class="muted-box">Adjust native outputs and parameters, then apply changes.</div>
+        <div id="params-modal-form" class="run-params-form"></div>
+      </div>
+    </div>
+
+    <div id="simulator-request-modal" class="info-popover hidden" role="dialog" aria-modal="true">
+      <div class="info-popover-card tool-request-modal-card">
+        <button id="simulator-request-modal-close" class="info-popover-close" type="button" aria-label="Close simulator request">x</button>
+        <h4>Request New Simulator</h4>
+        <div class="tool-request-body">
+          <div class="grid two">
+            <label>
+              Simulator Name
+              <input id="simulator-request-name" type="text" placeholder="e.g. scMultiSim" />
+            </label>
+            <label>
+              DOI / Publication
+              <input id="simulator-request-doi" type="text" placeholder="https://doi.org/..." />
+            </label>
+            <label>
+              Implementation Repository URL
+              <input id="simulator-request-repo" type="text" placeholder="https://github.com/owner/repo" />
+            </label>
+            <label>
+              Expected Profiles
+              <input id="simulator-request-profiles" type="text" placeholder="scrna_grouped, bulk_time_series..." />
+            </label>
+          </div>
+          <label>
+            Expected Extras / Inputs
+            <input id="simulator-request-artifacts" type="text" placeholder="lineage_tree, input GRN, prior_grn_by_group..." />
+          </label>
+          <label>
+            Notes
+            <textarea id="simulator-request-notes" rows="4" placeholder="Why this simulator would be useful in GENECI."></textarea>
+          </label>
+          <div class="actions-inline">
+            <button id="open-simulator-request-issue-btn" class="secondary" type="button">Open Prefilled GitHub Issue</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="simulator-issue-modal" class="info-popover hidden" role="dialog" aria-modal="true">
+      <div class="info-popover-card tool-request-modal-card">
+        <button id="simulator-issue-modal-close" class="info-popover-close" type="button" aria-label="Close simulator issue">x</button>
+        <h4>Report Simulator Issue</h4>
+        <div class="tool-request-body">
+          <div class="grid two">
+            <label>
+              Simulator
+              <select id="simulator-issue-id"></select>
+            </label>
+            <label>
+              Issue Type
+              <select id="simulator-issue-type">
+                <option value="compatibility">Compatibility / constraints</option>
+                <option value="parameters">Parameters / defaults</option>
+                <option value="runtime">Runtime / execution</option>
+                <option value="docs">Documentation / metadata</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+          </div>
+          <label>
+            Observed Behavior
+            <textarea id="simulator-issue-observed" rows="3" placeholder="What is wrong or missing?"></textarea>
+          </label>
+          <label>
+            Expected Behavior
+            <textarea id="simulator-issue-expected" rows="3" placeholder="What should happen instead?"></textarea>
+          </label>
+          <label>
+            Repro / Context
+            <textarea id="simulator-issue-context" rows="3" placeholder="Scenario profile, extras, plan/run details..."></textarea>
+          </label>
+          <div class="actions-inline">
+            <button id="open-simulator-issue-btn" class="secondary" type="button">Open Prefilled GitHub Issue</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="repro-steps-modal" class="info-popover hidden" role="dialog" aria-modal="true">
+      <div class="info-popover-card repro-steps-modal-card">
+        <button id="repro-steps-modal-close" class="info-popover-close" type="button" aria-label="Close reproducibility steps">x</button>
+        <h4 id="repro-steps-modal-title">Reproducibility Steps</h4>
+        <div id="repro-steps-modal-body" class="repro-steps-modal-body"></div>
+      </div>
+    </div>
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <template id="run-template">
+      <article class="run-card">
+        <div class="run-top">
+          <div class="run-tool-meta">
+            <div class="run-tool-name"></div>
+            <input class="simulator-id" type="hidden" />
+          </div>
+          <label>Replicates <input class="replicates" type="number" min="1" step="1" value="1" /></label>
+          <label>Run ID <input class="run-id" type="text" /></label>
+          <button class="remove-run icon-btn" type="button" aria-label="Remove run">x</button>
+        </div>
+        <div class="run-section-head">
+          <strong>Native Outputs</strong>
+        </div>
+        <div class="run-native-outputs-summary muted-box">No native outputs selected.</div>
+        <div class="run-native-outputs-form" hidden></div>
+        <div class="run-section-head">
+          <strong>Parameters</strong>
+          <div class="actions-inline">
+            <button class="secondary open-params" type="button">Configure</button>
+            <button class="secondary reset-params" type="button">Reset</button>
+          </div>
+        </div>
+        <div class="run-params-summary muted-box">Default parameters</div>
+        <div class="run-params-form" hidden></div>
+        <div class="run-validation muted-box">Run configuration looks valid.</div>
+      </article>
+    </template>
+
+    <template id="input-template">
+      <article class="extra-row">
+        <div class="extra-left">
+          <label>
+            Input Type
+            <select class="input-kind"></select>
+          </label>
+          <div class="input-kind-description muted-box"></div>
+          <details class="advanced-box input-organism-box" hidden>
+            <summary>Organism metadata</summary>
+            <div class="grid three">
+              <label>
+                Organism Kind
+                <select class="organism-kind">
+                  <option value="synthetic" selected>synthetic</option>
+                  <option value="unknown">unknown</option>
+                  <option value="biological">biological</option>
+                </select>
+              </label>
+              <label>
+                Tax ID
+                <input class="organism-tax-id" type="number" min="1" step="1" placeholder="null for synthetic" />
+              </label>
+              <label>
+                Organism Name
+                <input class="organism-name" type="text" placeholder="Required when providing an input GRN" />
+              </label>
+            </div>
+          </details>
+        </div>
+        <div class="extra-file-wrap">
+          <input class="input-file" type="file" />
+          <input class="input-description" type="text" placeholder="Description" />
+        </div>
+        <button class="remove-input icon-btn" type="button" aria-label="Remove input">x</button>
+      </article>
+    </template>
+
+    <template id="simulator-catalog-item-template">
+      <article class="tool-item">
+        <div class="tool-item-head">
+          <h4 class="tool-item-name"></h4>
+          <span class="tool-item-badge"></span>
+        </div>
+        <div class="tool-item-meta"></div>
+        <div class="tool-item-actions"></div>
+      </article>
+    </template>
+
+    <script type="module" src="/static/app/main.js?v=20260423i"></script>
+  </body>
+</html>

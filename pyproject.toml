@@ -61,6 +61,14 @@ include = ["geneci*"]
     "static/*",
     "static/**/*",
 ]
+"geneci.gui.common" = [
+    "static/*",
+    "static/**/*",
+]
+"geneci.gui.generate_data_v2" = [
+    "static/*",
+    "static/**/*",
+]
 
 [build-system]
 requires = ["setuptools>=69.0.0", "wheel"]
