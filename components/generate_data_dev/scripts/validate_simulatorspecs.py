@@ -94,6 +94,38 @@ def semantic_errors(
             errors.append(
                 f"profile_capabilities.{profile}: native_extras and derivable_extras overlap: {overlap}"
             )
+        truth_derivable = {
+            key
+            for key, value in capability.get("truth_outputs", {}).items()
+            if value == "derivable"
+        }
+        expected_derivations = derivable.union(truth_derivable)
+        derivation_entries = capability.get("derivations", [])
+        derivation_artifacts = [
+            str(item.get("artifact"))
+            for item in derivation_entries
+            if isinstance(item, dict)
+        ]
+        duplicate_derivations = sorted(
+            artifact
+            for artifact in set(derivation_artifacts)
+            if derivation_artifacts.count(artifact) > 1
+        )
+        if duplicate_derivations:
+            errors.append(
+                f"profile_capabilities.{profile}: duplicate derivation entries: {duplicate_derivations}"
+            )
+        documented_derivations = set(derivation_artifacts)
+        missing_derivations = sorted(expected_derivations.difference(documented_derivations))
+        if missing_derivations:
+            errors.append(
+                f"profile_capabilities.{profile}: missing derivation explanations for: {missing_derivations}"
+            )
+        unexpected_derivations = sorted(documented_derivations.difference(expected_derivations))
+        if unexpected_derivations:
+            errors.append(
+                f"profile_capabilities.{profile}: derivation explanations declared for non-derived artifacts: {unexpected_derivations}"
+            )
     return errors
 
 

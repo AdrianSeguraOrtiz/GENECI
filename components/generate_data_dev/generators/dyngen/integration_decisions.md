@@ -23,7 +23,8 @@
 - `dyngen` does not define a bulk RNA-seq simulator, so it is not mapped to bulk profiles.
 - Native global truth comes from the package-generated regulatory network.
 - `groups.tsv` is derived from dyngen `milestone_percentages` by assigning each cell to the milestone with maximum percentage.
-- `lineage_tree.tsv` is derived from dyngen `milestone_network` and group-aggregated `regulatory_network_sc`.
+- Public `truth/group_networks/*.csv` files are derived from dyngen `regulatory_network_sc` by aggregating cell-specific regulatory strengths within each exported group. Missing cell-edge values are treated as zero; active edges use `mean(abs(strength)) >= 0.1`.
+- `lineage_tree.tsv` is derived from dyngen `milestone_network` and the public group truth active-edge sets.
 - `tf_list.txt` is derived from `feature_info$is_tf`.
 - The current single dyngen spec is intentionally operational as well as scientific:
   - only inputs and parameters that GENECI can actually execute today are declared

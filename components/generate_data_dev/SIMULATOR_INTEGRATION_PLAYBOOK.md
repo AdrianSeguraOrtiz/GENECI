@@ -89,6 +89,18 @@ Use these modes for:
 
 Be explicit about whether a truth output comes directly from the simulator or is derived by the wrapper from simulator-native state.
 
+Every derived public artifact must also have a `derivations[]` entry in the relevant profile capability. This applies to both:
+- each item in `derivable_extras`
+- each `truth_outputs.*` entry whose mode is `derivable`
+
+Each derivation entry must state:
+- `artifact`: the derived extra or truth output key
+- `source_artifacts`: simulator-native or already-normalized artifacts used as evidence
+- `method`: the exact wrapper rule, including thresholds and tie-breaks
+- `assumptions`: why the rule is acceptable for the benchmark profile
+- `limitations`: what information is lost or where the derivation can be misleading
+- `implemented_in`: wrapper path where the rule is implemented
+
 ## Official End-To-End Procedure
 
 Follow these steps in order. A simulator is not considered integrated until the Docker image and smoke-test matrix pass.
@@ -102,6 +114,7 @@ Manual action:
 - decide which upstream public API/CLI entrypoint the wrapper mirrors
 - list which canonical profiles are realistically supported
 - list which extras are native or derivable
+- for every derived extra or truth output, write the exact derivation explanation before implementing the wrapper
 
 This id will be reused in:
 - simulator spec: `geneci/generation_catalog/simulators/<simulator_id>/simulatorspec.json`

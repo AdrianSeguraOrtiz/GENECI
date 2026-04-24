@@ -31,9 +31,11 @@
     "extras/tf_list.txt",
     "truth/global_network.csv",
     "truth/legacy/global_gs.csv",
+    "truth/group_networks",
     "simulator-output-manifest.json",
     "progress.json",
     "provenance/raw/model.rds",
-    "provenance/raw/dataset.rds"
+    "provenance/raw/dataset.rds",
+    "provenance/raw/group_networks_index.tsv"
   ]
 }

@@ -189,6 +189,16 @@ def spec_payload(simulator_id: str) -> dict[str, object]:
                     "legacy_binary_matrix": "derivable",
                     "group_networks": "none",
                 },
+                "derivations": [
+                    {
+                        "artifact": "legacy_binary_matrix",
+                        "source_artifacts": ["truth/global_network.csv"],
+                        "method": "TODO: describe how this derived artifact is computed.",
+                        "assumptions": ["TODO: describe derivation assumptions."],
+                        "limitations": ["TODO: describe information loss or caveats."],
+                        "implemented_in": f"components/generate_data_dev/generators/{simulator_id}/run_simulator",
+                    }
+                ],
                 "artifacts_aux": [],
                 "notes": "TODO: replace with the real supported profile capabilities.",
             }
